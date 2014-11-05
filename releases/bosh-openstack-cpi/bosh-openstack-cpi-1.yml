@@ -1,0 +1,31 @@
+---
+packages:
+- name: bosh_openstack_cpi
+  version: !binary |-
+    MmY3N2JjYTRiYTEzMTA3MWVjYzdiNGJjMDYwMjg2NjJkYmVkMWE3Ng==
+  sha1: !binary |-
+    YWRjNDk0MzYyM2U0OTA5OWU2MGE0NDQ3YWJkMzA4YjYwMjk3MWQxZg==
+  fingerprint: !binary |-
+    MmY3N2JjYTRiYTEzMTA3MWVjYzdiNGJjMDYwMjg2NjJkYmVkMWE3Ng==
+  dependencies:
+  - ruby_openstack_cpi
+- name: ruby_openstack_cpi
+  version: !binary |-
+    OGU0OTBmNzM1NjBlYTNmNDRmYjE5NzBiODEyNWQ4YTEwNzhlMTU5Yw==
+  sha1: !binary |-
+    MTgyMjI5ZWNmMTczOGNiYmEwMDIyNjFhZTgyYTc0Y2EwNWQ3YWEzYg==
+  fingerprint: !binary |-
+    OGU0OTBmNzM1NjBlYTNmNDRmYjE5NzBiODEyNWQ4YTEwNzhlMTU5Yw==
+  dependencies: []
+jobs:
+- name: cpi
+  version: !binary |-
+    NTU4MDRiYjg4ZDFjMjU4ZGFjNjMzOGU0Y2IyZjhhOTdhYWE1MmEyZQ==
+  fingerprint: !binary |-
+    NTU4MDRiYjg4ZDFjMjU4ZGFjNjMzOGU0Y2IyZjhhOTdhYWE1MmEyZQ==
+  sha1: !binary |-
+    M2QyYjA1YzVmZTg1NzcyN2E5ZGY5MTZkOTBjMTI5YTJlMjE3OGM4YQ==
+commit_hash: adcef7aa
+uncommitted_changes: true
+name: bosh-openstack-cpi
+version: '1'
