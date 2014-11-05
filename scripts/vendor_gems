@@ -1,0 +1,29 @@
+#!/bin/bash
+
+set -ex
+
+tmp_dir=$(mktemp -dt openstack-cpi-XXXXXXXX)
+
+cleanup() {  
+  rm -rf $tmp_dir
+}
+
+trap cleanup EXIT
+
+openstack_cpi_dir=$(cd $(dirname $0)/../ && pwd)
+openstack_cpi_gems_dir=$openstack_cpi_dir/src/bosh_openstack_cpi
+rm -rf $openstack_cpi_gems_dir
+mkdir -p $openstack_cpi_gems_dir
+
+(
+  cd $tmp_dir
+  cat > 'Gemfile' <<EOF
+source "https://rubygems.org"
+
+gem "bosh_openstack_cpi"    
+EOF
+
+  bundle install --path .
+
+  cp -r ruby/*/cache/*.gem ${openstack_cpi_gems_dir}
+)

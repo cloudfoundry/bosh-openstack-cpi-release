@@ -1,0 +1,16 @@
+---
+ruby_openstack_cpi/ruby-1.9.3-p545.tar.gz:
+  object_id: 3365e9d2-b873-44ad-9d8a-8dd7e216408d
+  sha: !binary |-
+    MDM0NTUzNjQ3NDA5MTRlOGQyZGZkNjQyMWY2ODFiM2ZiNjhhNDMxMw==
+  size: 12582277
+ruby_openstack_cpi/rubygems-2.1.11.tgz:
+  object_id: d709e5e9-07bc-44ff-b7b5-747baa1a884c
+  sha: !binary |-
+    Y2EzMDMzNDMyY2FlMjhkZWI3Y2VkNzljZGEyNzFjYjI5MmI3MGU1OQ==
+  size: 367166
+ruby_openstack_cpi/yaml-0.1.5.tar.gz:
+  object_id: 6ea9080c-2ec1-4f5c-98d1-d3d5db8f1bf8
+  sha: !binary |-
+    OGI3OGNiOWY3NTljN2Q4MGRiOGE3MzI4YzBlYmVjZmUzNGZkZTczNw==
+  size: 504897

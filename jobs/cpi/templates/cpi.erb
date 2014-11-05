@@ -1,0 +1,16 @@
+#!/bin/bash
+
+read INPUT
+
+BOSH_PACKAGES_DIR=${BOSH_PACKAGES_DIR:-/var/vcap/packages}
+BOSH_JOBS_DIR=${BOSH_JOBS_DIR:-/var/vcap/jobs}
+
+PATH=$BOSH_PACKAGES_DIR/ruby_openstack_cpi/bin:$PATH
+export PATH
+
+export GEM_HOME=$BOSH_PACKAGES_DIR/bosh_openstack_cpi/gem_home
+
+echo $INPUT | $BOSH_PACKAGES_DIR/bosh_openstack_cpi/bin/openstack_cpi \
+  $BOSH_JOBS_DIR/cpi/config/cpi.yml
+
+exit 0

@@ -1,0 +1,6 @@
+---
+name: bosh_openstack_cpi
+dependencies:
+- ruby_openstack_cpi
+files:
+- bosh_openstack_cpi/*.gem
