@@ -8,3 +8,10 @@ config/dev.yml
 config/private.yml
 dev_releases
 releases/*.tgz
+releases/**/*.tgz
+.DS_Store
+*.swp
+*~
+*#
+#*
+
