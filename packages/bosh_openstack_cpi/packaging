@@ -2,20 +2,24 @@ set -e -x
 
 BOSH_PACKAGES_DIR=${BOSH_PACKAGES_DIR:-/var/vcap/packages}
 
-export PATH=${BOSH_PACKAGES_DIR}/ruby_openstack_cpi/bin:$PATH
-export GEM_HOME=${BOSH_INSTALL_TARGET}/gem_home
-
 mkdir -p ${BOSH_INSTALL_TARGET}/{bin,gem_home}
+
+export PATH=${BOSH_INSTALL_TARGET}/bin:$PATH
+export GEM_HOME=${BOSH_INSTALL_TARGET}/gem_home
 
 cd bosh_openstack_cpi
 
-gem_cmd="$BOSH_PACKAGES_DIR/ruby_openstack_cpi/bin/gem install \
-  --local    \
-  --verbose  \
-  --no-ri    \
-  --no-rdoc  \
-  --wrappers \
-  --bindir ${BOSH_INSTALL_TARGET}/bin \
-  --install-dir ${GEM_HOME}"
+cat >> Gemfile <<EOF
+gem 'bosh_openstack_cpi'
+EOF
 
-$gem_cmd bosh_openstack_cpi
+bundle_cmd="$BOSH_PACKAGES_DIR/ruby_openstack_cpi/bin/bundle"
+
+$bundle_cmd install \
+  --local           \
+  --no-prune        \
+  --binstubs ${BOSH_INSTALL_TARGET}/bin \
+  --path ${GEM_HOME}
+
+cp Gemfile ${BOSH_INSTALL_TARGET}
+cp Gemfile.lock ${BOSH_INSTALL_TARGET}

@@ -2,28 +2,24 @@
 
 set -ex
 
-tmp_dir=$(mktemp -dt openstack-cpi-XXXXXXXX)
+cpi_name="openstack"
+cpi_dir=$(cd $(dirname $0)/../ && pwd)
+cpi_gems_dir=${cpi_dir}/src/bosh_${cpi_name}_cpi
 
-cleanup() {  
-  rm -rf $tmp_dir
+cleanup() {
+  cd $cpi_gems_dir
+  rm Gemfile*
 }
 
 trap cleanup EXIT
 
-openstack_cpi_dir=$(cd $(dirname $0)/../ && pwd)
-openstack_cpi_gems_dir=$openstack_cpi_dir/src/bosh_openstack_cpi
-rm -rf $openstack_cpi_gems_dir
-mkdir -p $openstack_cpi_gems_dir
-
 (
-  cd $tmp_dir
+  cd $cpi_gems_dir
   cat > 'Gemfile' <<EOF
 source "https://rubygems.org"
 
-gem "bosh_openstack_cpi"    
+gem "bosh_${cpi_name}_cpi"
 EOF
 
-  bundle install --path .
-
-  cp -r ruby/*/cache/*.gem ${openstack_cpi_gems_dir}
+  bundle package
 )

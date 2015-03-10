@@ -5,8 +5,8 @@ tar xzf ruby_openstack_cpi/yaml-0.1.5.tar.gz
   set -e
   cd yaml-0.1.5
   CFLAGS='-fPIC' ./configure --prefix=${BOSH_INSTALL_TARGET} --disable-shared
-  make
-  make install
+  make -j
+  make -j install
 )
 
 tar xzf ruby_openstack_cpi/ruby-1.9.3-p545.tar.gz
@@ -14,8 +14,8 @@ tar xzf ruby_openstack_cpi/ruby-1.9.3-p545.tar.gz
   set -e
   cd ruby-1.9.3-p545
   LDFLAGS="-Wl,-rpath -Wl,${BOSH_INSTALL_TARGET}" CFLAGS='-fPIC' ./configure --prefix=${BOSH_INSTALL_TARGET} --disable-install-doc --with-opt-dir=${BOSH_INSTALL_TARGET}
-  make
-  make install
+  make -j
+  make -j install
 )
 
 tar zxvf ruby_openstack_cpi/rubygems-2.1.11.tgz
@@ -31,3 +31,5 @@ tar zxvf ruby_openstack_cpi/rubygems-2.1.11.tgz
     exit 1
   fi
 )
+
+${BOSH_INSTALL_TARGET}/bin/gem install ruby_openstack_cpi/bundler-1.8.2.gem --local --no-ri --no-rdoc

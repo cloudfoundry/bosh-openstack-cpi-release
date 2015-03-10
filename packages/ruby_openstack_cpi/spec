@@ -4,3 +4,4 @@ files:
 - ruby_openstack_cpi/yaml-0.1.5.tar.gz
 - ruby_openstack_cpi/ruby-1.9.3-p545.tar.gz
 - ruby_openstack_cpi/rubygems-2.1.11.tgz
+- ruby_openstack_cpi/bundler-1.8.2.gem
