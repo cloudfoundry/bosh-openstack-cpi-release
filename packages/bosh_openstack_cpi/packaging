@@ -15,6 +15,9 @@ EOF
 
 bundle_cmd="$BOSH_PACKAGES_DIR/ruby_openstack_cpi/bin/bundle"
 
+# Use system libxml2 and libxslt, rather than those from Nokogiri
+$bundle_cmd config --local build.nokogiri --use-system-libraries
+
 $bundle_cmd install \
   --local           \
   --no-prune        \

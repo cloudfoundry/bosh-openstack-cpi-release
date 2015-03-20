@@ -45,12 +45,12 @@ properties:
     description: Config drive device (cdrom or disk) to use as metadata service on OpenStack (optional)
     example: cdrom
 
-  registry.address:
-    description: Address of the Registry for CPI and agent to connect to
+  registry.host:
+    description: Address of the Registry to connect to
   registry.port:
     description: Port of the Registry for CPI and agent to connect to
     default: 25777
-  registry.user:
+  registry.username:
     description: Username to access the Registry
   registry.password:
     description: Password to access the Registry
