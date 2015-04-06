@@ -13,10 +13,10 @@ cat >> Gemfile <<EOF
 gem 'bosh_openstack_cpi'
 EOF
 
-bundle_cmd="$BOSH_PACKAGES_DIR/ruby_openstack_cpi/bin/bundle"
+# force bundler to use a clean config
+export BUNDLE_CONFIG=`pwd`/.cpi_bundle_config
 
-# Use system libxml2 and libxslt, rather than those from Nokogiri
-$bundle_cmd config --local build.nokogiri --use-system-libraries
+bundle_cmd="$BOSH_PACKAGES_DIR/ruby_openstack_cpi/bin/bundle"
 
 $bundle_cmd install \
   --local           \
