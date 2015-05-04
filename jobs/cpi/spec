@@ -84,4 +84,5 @@ properties:
     description: NATS address used by agent to subscribe to agent requests
   nats.port:
     description: NATS port used by agent to subscribe to agent requests
+    default: 4222
 
