@@ -27,4 +27,3 @@ For now this is done by hand:
 1. Create `config/private.yml` with the blobstore secrets (found in `deployments-bosh` repo)
 2. `bosh create release --final`
 3. `git add . && git commit`
-

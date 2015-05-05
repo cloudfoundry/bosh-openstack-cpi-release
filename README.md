@@ -1,12 +1,13 @@
 # BOSH Openstack CPI Release
 
-This is a BOSH release for the external Openstack CPI.
+* Documentation: [bosh.io/docs](https://bosh.io/docs)
+* IRC: [`#bosh` on freenode](https://webchat.freenode.net/?channels=bosh)
+* Mailing list: [cf-bosh](https://lists.cloudfoundry.org/pipermail/cf-bosh)
+* Roadmap: [Pivotal Tracker](https://www.pivotaltracker.com/n/projects/956238) (label:openstack)
 
-This release can be collocated with the BOSH release or used with new [bosh-micro cli](https://github.com/cloudfoundry/bosh-micro-cli).
+This is a BOSH release for the Openstack CPI.
 
-### Experimental `bosh-micro` usage
-
-See [bosh-micro usage doc](docs/bosh-micro-usage.md)
+See [Initializing a BOSH environment on Openstack](https://bosh.io/docs/init-openstack.html) for example usage.
 
 ## Development
 
