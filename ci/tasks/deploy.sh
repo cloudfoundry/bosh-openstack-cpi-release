@@ -30,7 +30,7 @@ mv ./bosh-release/release.tgz ./tmp/bosh-release.tgz
 mv ./stemcell/stemcell.tgz ./tmp/stemcell.tgz
 
 set +x
-echo "$bats_private_key" > ./tmp/bats.pem
+echo "$bats_private_key_data" > ./tmp/bats.pem
 set -x
 
 initver=$(cat bosh-init/version)
