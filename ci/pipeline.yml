@@ -19,17 +19,20 @@ jobs:
   serial: true
   plan:
   - aggregate:
-    - {trigger: true,  passed: [build-candidate], get: bosh-cpi-dev-artifacts}
-    - {trigger: true,  passed: [build-candidate], get: version-semver}
-    - {trigger: true,  passed: [build-candidate], get: bosh-concourse-ci }
+    - {trigger: true, passed: [build-candidate], get: bosh-cpi-dev-artifacts} # used for job chaining only not for tasks
+    - {trigger: true, passed: [build-candidate], get: bosh-cpi-release, resource: bosh-cpi-release-in}
     - {trigger: false,                            get: bosh-src}
 
   - task: test
-    file: bosh-concourse-ci/tasks/run-lifecycle.yml
+    file: bosh-cpi-release/ci/tasks/run-lifecycle.yml
     config:
       params:
-        cpi_directory: bosh_openstack_cpi
-        cpi_release_name: bosh-openstack-cpi
+        BOSH_OPENSTACK_AUTH_URL:  {{lifecycle_BOSH_OPENSTACK_AUTH_URL}}
+        BOSH_OPENSTACK_USERNAME:  {{lifecycle_BOSH_OPENSTACK_USERNAME}}
+        BOSH_OPENSTACK_API_KEY:   {{lifecycle_BOSH_OPENSTACK_API_KEY}}
+        BOSH_OPENSTACK_TENANT:    {{lifecycle_BOSH_OPENSTACK_TENANT}}
+        BOSH_OPENSTACK_MANUAL_IP: {{lifecycle_BOSH_OPENSTACK_MANUAL_IP}}
+        BOSH_OPENSTACK_NET_ID:    {{lifecycle_BOSH_OPENSTACK_NET_ID}}
 
 - name: deploy-ubuntu
   serial_groups: [ubuntu-director] # shouldn't deploy while bats are running

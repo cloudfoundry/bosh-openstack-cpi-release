@@ -1,0 +1,15 @@
+---
+platform: linux
+image: docker:///bosh/integration
+inputs:
+- name: bosh-src
+- name: bosh-cpi-release
+run:
+  path: bosh-cpi-release/ci/tasks/run-lifecycle.sh
+params:
+  BOSH_OPENSTACK_AUTH_URL:  replace-me
+  BOSH_OPENSTACK_USERNAME:  replace-me
+  BOSH_OPENSTACK_API_KEY:   replace-me
+  BOSH_OPENSTACK_TENANT:    replace-me
+  BOSH_OPENSTACK_MANUAL_IP: replace-me
+  BOSH_OPENSTACK_NET_ID:    replace-me
