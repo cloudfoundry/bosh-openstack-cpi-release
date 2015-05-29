@@ -31,7 +31,6 @@ mv ./stemcell/stemcell.tgz ./tmp/stemcell.tgz
 
 set +x
 echo "$bats_private_key" > ./tmp/bats.pem
-chmod 400 ./tmp/bats.pem
 set -x
 
 initver=$(cat bosh-init/version)
