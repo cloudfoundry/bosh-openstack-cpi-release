@@ -5,14 +5,10 @@ jobs:
   plan:
   - aggregate:
     - {trigger: true,  get: bosh-cpi-release, resource: bosh-cpi-release-in}
-    - {trigger: false, get: bosh-concourse-ci}
     - {trigger: false, get: version-semver, params: {bump: patch}}
 
   - task: build
-    file: bosh-concourse-ci/tasks/build-candidate.yml
-    config:
-      params:
-        cpi_release_name: bosh-openstack-cpi
+    file: bosh-cpi-release/ci/tasks/build-candidate.yml
 
   - put: version-semver
     params: {file: version-semver/number}
