@@ -47,7 +47,7 @@ jobs:
     - {trigger: false,                            get: stemcell, resource: openstack-ubuntu-stemcell}
 
   - task: deploy
-    file: bosh-cpi-release/tasks/deploy.yml
+    file: bosh-cpi-release/ci/tasks/deploy.yml
     config:
       params:
         base_os: ubuntu
