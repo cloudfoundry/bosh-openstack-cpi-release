@@ -23,10 +23,10 @@ jobs:
   serial: true
   plan:
   - aggregate:
-    - {trigger: true, passed: [build-candidate], get: bosh-cpi-dev-artifacts}
-    - {trigger: true, passed: [build-candidate], get: version-semver}
-    - {trigger: true, passed: [build-candidate], get: bosh-concourse-ci }
-    - {trigger: true,                            get: bosh-src}
+    - {trigger: true,  passed: [build-candidate], get: bosh-cpi-dev-artifacts}
+    - {trigger: true,  passed: [build-candidate], get: version-semver}
+    - {trigger: true,  passed: [build-candidate], get: bosh-concourse-ci }
+    - {trigger: false,                            get: bosh-src}
 
   - task: test
     file: bosh-concourse-ci/tasks/run-lifecycle.yml
@@ -41,7 +41,7 @@ jobs:
   - aggregate:
     - {trigger: true,  passed: [build-candidate], get: bosh-cpi-dev-artifacts}
     - {trigger: true,  passed: [build-candidate], get: version-semver}
-    - {trigger: false, passed: [build-candidate], get: bosh-concourse-ci}
+    - {trigger: true,  passed: [build-candidate], get: bosh-concourse-ci}
     - {trigger: false,                            get: bats}
     - {trigger: false,                            get: bosh-init}
     - {trigger: false,                            get: bosh-release}
