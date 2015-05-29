@@ -55,11 +55,10 @@ jobs:
 
   - conditions: [success, failure]
     task: save-deployment
-    file: bosh-concourse-ci/tasks/save-deployment.yml
+    file: bosh-cpi-release/ci/tasks/save-deployment.yml
     config:
       params:
         base_os: ubuntu
-        cpi_release_name: bosh-openstack-cpi
 
   - put: bosh-concourse-ci
     params:
@@ -83,31 +82,30 @@ jobs:
         cpi_release_name: bosh-openstack-cpi
 
 - name: deploy-centos
-  serial_groups: [centos-director] # shouldn't deploy while bats run
+  serial_groups: [centos-director] # shouldn't deploy while bats are running
   plan:
   - aggregate:
-    - {trigger: true, passed: [build-candidate], get: bosh-cpi-dev-artifacts}
-    - {trigger: true, passed: [build-candidate], get: version-semver}
-    - {trigger: true, passed: [build-candidate], get: bosh-concourse-ci }
-    - {get: bats}
-    - {get: bosh-init}
-    - {get: bosh-release}
-    - {get: stemcell, resource: openstack-centos-stemcell}
+    - {trigger: true,  passed: [build-candidate], get: bosh-cpi-dev-artifacts}
+    - {trigger: true,  passed: [build-candidate], get: version-semver}
+    - {trigger: true,  passed: [build-candidate], get: bosh-cpi-release, resource: bosh-cpi-release-in}
+    - {trigger: false,                            get: bosh-concourse-ci }
+    - {trigger: false,                            get: bosh-init}
+    - {trigger: false,                            get: bosh-release}
+    - {trigger: false,                            get: stemcell, resource: openstack-centos-stemcell}
 
   - task: deploy
-    file: bosh-concourse-ci/tasks/deploy.yml
+    file: bosh-cpi-release/ci/tasks/deploy.yml
     config:
       params:
         base_os: centos
-        cpi_release_name: bosh-openstack-cpi
+        bats_private_key_data: {{bats_private_key}}
 
   - conditions: [success, failure]
     task: save-deployment
-    file: bosh-concourse-ci/tasks/save-deployment.yml
+    file: bosh-cpi-release/ci/tasks/save-deployment.yml
     config:
       params:
         base_os: centos
-        cpi_release_name: bosh-openstack-cpi
 
   - put: bosh-concourse-ci
     params:
