@@ -69,10 +69,10 @@ jobs:
   serial_groups: [ubuntu-director] # can't run while deploying
   plan:
   - aggregate:
-    - {trigger: true, passed: [deploy-ubuntu], get: bosh-cpi-dev-artifacts}
-    - {trigger: true, passed: [deploy-ubuntu], get: stemcell, resource: openstack-ubuntu-stemcell}
-    - {trigger: true, passed: [deploy-ubuntu], get: bosh-concourse-ci}
-    - {passed: [deploy-ubuntu], get: bats}
+    - {trigger: true,  passed: [deploy-ubuntu], get: bosh-cpi-dev-artifacts}
+    - {trigger: true,  passed: [deploy-ubuntu], get: stemcell, resource: openstack-ubuntu-stemcell}
+    - {trigger: true,  passed: [deploy-ubuntu], get: bosh-concourse-ci}
+    - {trigger: false,                          get: bats}
 
   - task: test
     file: bosh-concourse-ci/tasks/run-bats.yml
@@ -116,10 +116,10 @@ jobs:
   serial_groups: [centos-director] # can't run while deploying
   plan:
   - aggregate:
-    - {trigger: true, passed: [deploy-centos], get: bosh-cpi-dev-artifacts}
-    - {trigger: true, passed: [deploy-centos], get: stemcell, resource: openstack-centos-stemcell}
-    - {trigger: true, passed: [deploy-centos], get: bosh-concourse-ci}
-    - {passed: [deploy-centos], get: bats}
+    - {trigger: true,  passed: [deploy-centos], get: bosh-cpi-dev-artifacts}
+    - {trigger: true,  passed: [deploy-centos], get: stemcell, resource: openstack-centos-stemcell}
+    - {trigger: true,  passed: [deploy-centos], get: bosh-concourse-ci}
+    - {trigger: false,                          get: bats}
 
   - task: test
     file: bosh-concourse-ci/tasks/run-bats.yml
