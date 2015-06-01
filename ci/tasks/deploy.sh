@@ -16,8 +16,7 @@ ensure_not_replace_value bats_private_key_data
 
 cpi_release_name=bosh-openstack-cpi
 
-source /etc/profile.d/chruby.sh
-chruby 2.1.2
+source /etc/profile.d/chruby-with-ruby-2.1.2.sh
 
 semver=`cat version-semver/number`
 manifest_dir=bosh-concourse-ci/pipelines/$cpi_release_name
