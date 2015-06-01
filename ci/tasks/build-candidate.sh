@@ -2,14 +2,16 @@
 
 set -e
 
-source /etc/profile.d/chruby.sh
-chruby 2.1.2
+source /etc/profile.d/chruby-with-ruby-2.1.2.sh
 
 semver=`cat version-semver/number`
 
 mkdir out
 
 cd bosh-cpi-release
+
+echo "installing the latest bosh_cli"
+gem install bosh_cli --no-ri --no-rdoc
 
 echo "using bosh CLI version..."
 bosh version

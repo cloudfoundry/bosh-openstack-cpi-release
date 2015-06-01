@@ -14,4 +14,4 @@ releases/**/*.tgz
 *~
 *#
 #*
-
+.vagrant
