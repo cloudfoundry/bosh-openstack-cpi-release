@@ -20,7 +20,7 @@ jobs:
   plan:
   - aggregate:
     - {trigger: true,  passed: [build-candidate], get: bosh-cpi-dev-artifacts} # used for job chaining only not for tasks
-    - {trigger: true,  passed: [build-candidate], get: bosh-cpi-release, resource: bosh-cpi-release-in}
+    - {trigger: false, passed: [build-candidate], get: bosh-cpi-release, resource: bosh-cpi-release-in}
     - {trigger: false,                            get: bosh-src}
 
   - task: test
@@ -39,8 +39,8 @@ jobs:
   plan:
   - aggregate:
     - {trigger: true,  passed: [build-candidate], get: bosh-cpi-dev-artifacts}
-    - {trigger: true,  passed: [build-candidate], get: version-semver}
-    - {trigger: true,  passed: [build-candidate], get: bosh-cpi-release, resource: bosh-cpi-release-in}
+    - {trigger: false, passed: [build-candidate], get: version-semver}
+    - {trigger: false, passed: [build-candidate], get: bosh-cpi-release, resource: bosh-cpi-release-in}
     - {trigger: false,                            get: bosh-concourse-ci }
     - {trigger: false,                            get: bosh-init}
     - {trigger: false,                            get: bosh-release}
@@ -70,8 +70,8 @@ jobs:
   plan:
   - aggregate:
     - {trigger: true,  passed: [deploy-ubuntu], get: bosh-cpi-dev-artifacts}
-    - {trigger: true,  passed: [deploy-ubuntu], get: stemcell, resource: openstack-ubuntu-stemcell}
-    - {trigger: true,  passed: [deploy-ubuntu], get: bosh-concourse-ci}
+    - {trigger: false, passed: [deploy-ubuntu], get: stemcell, resource: openstack-ubuntu-stemcell}
+    - {trigger: false, passed: [deploy-ubuntu], get: bosh-concourse-ci}
     - {trigger: false,                          get: bats}
 
   - task: test
@@ -86,8 +86,8 @@ jobs:
   plan:
   - aggregate:
     - {trigger: true,  passed: [build-candidate], get: bosh-cpi-dev-artifacts}
-    - {trigger: true,  passed: [build-candidate], get: version-semver}
-    - {trigger: true,  passed: [build-candidate], get: bosh-cpi-release, resource: bosh-cpi-release-in}
+    - {trigger: false, passed: [build-candidate], get: version-semver}
+    - {trigger: false, passed: [build-candidate], get: bosh-cpi-release, resource: bosh-cpi-release-in}
     - {trigger: false,                            get: bosh-concourse-ci }
     - {trigger: false,                            get: bosh-init}
     - {trigger: false,                            get: bosh-release}
@@ -117,8 +117,8 @@ jobs:
   plan:
   - aggregate:
     - {trigger: true,  passed: [deploy-centos], get: bosh-cpi-dev-artifacts}
-    - {trigger: true,  passed: [deploy-centos], get: stemcell, resource: openstack-centos-stemcell}
-    - {trigger: true,  passed: [deploy-centos], get: bosh-concourse-ci}
+    - {trigger: false, passed: [deploy-centos], get: stemcell, resource: openstack-centos-stemcell}
+    - {trigger: false, passed: [deploy-centos], get: bosh-concourse-ci}
     - {trigger: false,                          get: bats}
 
   - task: test
