@@ -22,8 +22,7 @@ export BOSH_CLI_SILENCE_SLOW_LOAD_WARNING=true
 export BOSH_OPENSTACK_STEMCELL_ID="b3683c70-d0db-4ed0-a3ea-51239efbc08b"
 export BOSH_OPENSTACK_VOLUME_TYPE="SSD"
 
-source /etc/profile.d/chruby.sh
-chruby 2.1.6
+source /etc/profile.d/chruby-with-ruby-2.1.2.sh
 
 cd bosh-src/bosh_openstack_cpi
 
