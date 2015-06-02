@@ -17,10 +17,7 @@ ensure_not_replace_value BOSH_OPENSTACK_API_KEY
 ensure_not_replace_value BOSH_OPENSTACK_TENANT
 ensure_not_replace_value BOSH_OPENSTACK_MANUAL_IP
 ensure_not_replace_value BOSH_OPENSTACK_NET_ID
-
-export BOSH_CLI_SILENCE_SLOW_LOAD_WARNING=true
-export BOSH_OPENSTACK_STEMCELL_ID="b3683c70-d0db-4ed0-a3ea-51239efbc08b"
-export BOSH_OPENSTACK_VOLUME_TYPE="SSD"
+ensure_not_replace_value BOSH_OPENSTACK_STEMCELL_ID
 
 source /etc/profile.d/chruby-with-ruby-2.1.2.sh
 
