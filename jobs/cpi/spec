@@ -86,3 +86,9 @@ properties:
     description: NATS port used by agent to subscribe to agent requests
     default: 4222
 
+  env.http_proxy:
+    description: Http proxy to connect to cloud API's
+  env.https_proxy:
+    description: Https proxy to connect to cloud API's
+  env.no_proxy:
+    description: No proxy environment variable
