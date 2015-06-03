@@ -180,6 +180,7 @@ jobs:
 #        cpi_release_name: bosh-openstack-cpi
 
 - name: promote-candidate
+  serial: true
   plan:
   - aggregate:
 #    - {trigger: true,  passed: [lifecycle, bats-ubuntu, bats-centos],     get: bosh-cpi-dev-artifacts}
@@ -199,6 +200,7 @@ jobs:
     params: {repository: promote/bosh-cpi-release}
 
 - name: master-merge
+  serial: true
   plan:
     - aggregate:
       - {trigger: true,  get: bosh-cpi-release-master, params: {fetch: [wip/promote-develop-95585962]}}
