@@ -186,7 +186,7 @@ jobs:
 #    - {trigger: true,  passed: [lifecycle, bats-ubuntu, bats-centos],     get: bosh-cpi-dev-artifacts}
 #    - {trigger: false, passed: [lifecycle, deploy-ubuntu, deploy-centos], get: bosh-cpi-release}
     - {trigger: true,  passed: [build-candidate], get: bosh-cpi-dev-artifacts}
-    - {trigger: false, passed: [build-candidate], get: bosh-cpi-release}
+    - {trigger: false, passed: [build-candidate], get: bosh-cpi-release, params: {fetch: [wip/promote-master-95585962]}}
 
   - task: promote
     file: bosh-cpi-release/ci/tasks/promote-candidate.yml
@@ -195,8 +195,7 @@ jobs:
         aws_access_key_id: {{s3_openstack_cpi_access_key}}
         aws_secret_access_key: {{s3_openstack_cpi_secret_key}}
 
-  - put: bosh-cpi-release
-    resource: bosh-cpi-release-master
+  - put: bosh-cpi-release-master
     params: {repository: promote/bosh-cpi-release}
 
 - name: master-merge
