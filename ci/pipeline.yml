@@ -3,49 +3,32 @@ groups:
 - name: bosh-openstack-cpi-release
   jobs:
   - build-candidate
-#  - lifecycle
-#  - deploy-ubuntu
-#  - deploy-centos
-#  - bats-ubuntu
-#  - bats-centos
+  - lifecycle
+  - deploy-ubuntu
+  - deploy-centos
+  - bats-ubuntu
+  - bats-centos
   - promote-candidate
 
-#- name: lifecycle
-#  jobs:
-#  - build-candidate
-#  - lifecycle
-#  - promote-candidate
-#
-#- name: ubuntu
-#  jobs:
-#  - build-candidate
-#  - deploy-ubuntu
-#  - bats-ubuntu
-#  - promote-candidate
-#
-#- name: centos
-#  jobs:
-#  - build-candidate
-#  - deploy-centos
-#  - bats-centos
-#  - promote-candidate
-#
-#- name: manual
-#  jobs:
-#  - build-candidate
-#  - deploy-ubuntu
-#  - bats-ubuntu
-#  - deploy-centos
-#  - bats-centos
-#  - promote-candidate
-#
-#- name: dynamic
-#  jobs:
-#  - build-candidate
-#  - promote-candidate
-#
-#- name: junk-drawer
-#  jobs: [master-merge]
+- name: lifecycle
+  jobs:
+  - build-candidate
+  - lifecycle
+  - promote-candidate
+
+- name: ubuntu
+  jobs:
+  - build-candidate
+  - deploy-ubuntu
+  - bats-ubuntu
+  - promote-candidate
+
+- name: centos
+  jobs:
+  - build-candidate
+  - deploy-centos
+  - bats-centos
+  - promote-candidate
 
 jobs:
 - name: build-candidate
@@ -64,128 +47,128 @@ jobs:
   - put: bosh-cpi-dev-artifacts
     params: {from: build/out/.*\.tgz}
 
-#- name: lifecycle
-#  serial: true
-#  plan:
-#  - aggregate:
-#    - {trigger: true,  passed: [build-candidate], get: bosh-cpi-dev-artifacts} # used for job chaining only not for tasks
-#    - {trigger: false, passed: [build-candidate], get: bosh-cpi-release}
-#    - {trigger: false,                            get: bosh-src}
-#
-#  - task: test
-#    file: bosh-cpi-release/ci/tasks/run-lifecycle.yml
-#    config:
-#      params:
-#        BOSH_OPENSTACK_AUTH_URL:    {{lifecycle_BOSH_OPENSTACK_AUTH_URL}}
-#        BOSH_OPENSTACK_USERNAME:    {{lifecycle_BOSH_OPENSTACK_USERNAME}}
-#        BOSH_OPENSTACK_API_KEY:     {{lifecycle_BOSH_OPENSTACK_API_KEY}}
-#        BOSH_OPENSTACK_TENANT:      {{lifecycle_BOSH_OPENSTACK_TENANT}}
-#        BOSH_OPENSTACK_MANUAL_IP:   {{lifecycle_BOSH_OPENSTACK_MANUAL_IP}}
-#        BOSH_OPENSTACK_NET_ID:      {{lifecycle_BOSH_OPENSTACK_NET_ID}}
-#        BOSH_OPENSTACK_STEMCELL_ID: {{lifecycle_BOSH_OPENSTACK_STEMCELL_ID}}
-#
-#- name: deploy-ubuntu
-#  serial_groups: [ubuntu-director] # shouldn't deploy while bats are running
-#  plan:
-#  - aggregate:
-#    - {trigger: true,  passed: [build-candidate], get: bosh-cpi-dev-artifacts}
-#    - {trigger: false, passed: [build-candidate], get: version-semver}
-#    - {trigger: false, passed: [build-candidate], get: bosh-cpi-release}
-#    - {trigger: false,                            get: bosh-concourse-ci }
-#    - {trigger: false,                            get: bosh-init}
-#    - {trigger: false,                            get: bosh-release}
-#    - {trigger: false,                            get: stemcell, resource: openstack-ubuntu-stemcell}
-#
-#  - task: deploy
-#    file: bosh-cpi-release/ci/tasks/deploy.yml
-#    config:
-#      params:
-#        base_os: ubuntu
-#        bats_private_key_data: {{bats_private_key}}
-#
-#  - conditions: [success, failure]
-#    task: save-deployment
-#    file: bosh-cpi-release/ci/tasks/save-deployment.yml
-#    config:
-#      params:
-#        base_os: ubuntu
-#
-#  - put: bosh-concourse-ci
-#    params:
-#      repository: save-deployment/deploy/bosh-concourse-ci
-#      rebase: true
-#
-#- name: bats-ubuntu
-#  serial_groups: [ubuntu-director] # can't run while deploying
-#  plan:
-#  - aggregate:
-#    - {trigger: true,  passed: [deploy-ubuntu], get: bosh-cpi-dev-artifacts}
-#    - {trigger: false, passed: [deploy-ubuntu], get: stemcell, resource: openstack-ubuntu-stemcell}
-#    - {trigger: false, passed: [deploy-ubuntu], get: bosh-concourse-ci}
-#    - {trigger: false,                          get: bats}
-#
-#  - task: test
-#    file: bosh-concourse-ci/tasks/run-bats.yml
-#    config:
-#      params:
-#        base_os: ubuntu
-#        cpi_release_name: bosh-openstack-cpi
-#
-#- name: deploy-centos
-#  serial_groups: [centos-director] # shouldn't deploy while bats are running
-#  plan:
-#  - aggregate:
-#    - {trigger: true,  passed: [build-candidate], get: bosh-cpi-dev-artifacts}
-#    - {trigger: false, passed: [build-candidate], get: version-semver}
-#    - {trigger: false, passed: [build-candidate], get: bosh-cpi-release}
-#    - {trigger: false,                            get: bosh-concourse-ci }
-#    - {trigger: false,                            get: bosh-init}
-#    - {trigger: false,                            get: bosh-release}
-#    - {trigger: false,                            get: stemcell, resource: openstack-centos-stemcell}
-#
-#  - task: deploy
-#    file: bosh-cpi-release/ci/tasks/deploy.yml
-#    config:
-#      params:
-#        base_os: centos
-#        bats_private_key_data: {{bats_private_key}}
-#
-#  - conditions: [success, failure]
-#    task: save-deployment
-#    file: bosh-cpi-release/ci/tasks/save-deployment.yml
-#    config:
-#      params:
-#        base_os: centos
-#
-#  - put: bosh-concourse-ci
-#    params:
-#      repository: save-deployment/deploy/bosh-concourse-ci
-#      rebase: true
-#
-#- name: bats-centos
-#  serial_groups: [centos-director] # can't run while deploying
-#  plan:
-#  - aggregate:
-#    - {trigger: true,  passed: [deploy-centos], get: bosh-cpi-dev-artifacts}
-#    - {trigger: false, passed: [deploy-centos], get: stemcell, resource: openstack-centos-stemcell}
-#    - {trigger: false, passed: [deploy-centos], get: bosh-concourse-ci}
-#    - {trigger: false,                          get: bats}
-#
-#  - task: test
-#    file: bosh-concourse-ci/tasks/run-bats.yml
-#    config:
-#      params:
-#        base_os: centos
-#        cpi_release_name: bosh-openstack-cpi
+- name: lifecycle
+  serial: true
+  plan:
+  - aggregate:
+    - {trigger: true,  passed: [build-candidate], get: bosh-cpi-dev-artifacts} # used for job chaining only not for tasks
+    - {trigger: false, passed: [build-candidate], get: bosh-cpi-release}
+    - {trigger: false,                            get: bosh-src}
+
+  - task: test
+    file: bosh-cpi-release/ci/tasks/run-lifecycle.yml
+    config:
+      params:
+        BOSH_OPENSTACK_AUTH_URL:    {{lifecycle_BOSH_OPENSTACK_AUTH_URL}}
+        BOSH_OPENSTACK_USERNAME:    {{lifecycle_BOSH_OPENSTACK_USERNAME}}
+        BOSH_OPENSTACK_API_KEY:     {{lifecycle_BOSH_OPENSTACK_API_KEY}}
+        BOSH_OPENSTACK_TENANT:      {{lifecycle_BOSH_OPENSTACK_TENANT}}
+        BOSH_OPENSTACK_MANUAL_IP:   {{lifecycle_BOSH_OPENSTACK_MANUAL_IP}}
+        BOSH_OPENSTACK_NET_ID:      {{lifecycle_BOSH_OPENSTACK_NET_ID}}
+        BOSH_OPENSTACK_STEMCELL_ID: {{lifecycle_BOSH_OPENSTACK_STEMCELL_ID}}
+
+- name: deploy-ubuntu
+  serial_groups: [ubuntu-director] # shouldn't deploy while bats are running
+  plan:
+  - aggregate:
+    - {trigger: true,  passed: [build-candidate], get: bosh-cpi-dev-artifacts}
+    - {trigger: false, passed: [build-candidate], get: version-semver}
+    - {trigger: false, passed: [build-candidate], get: bosh-cpi-release}
+    - {trigger: false,                            get: bosh-concourse-ci }
+    - {trigger: false,                            get: bosh-init}
+    - {trigger: false,                            get: bosh-release}
+    - {trigger: false,                            get: stemcell, resource: openstack-ubuntu-stemcell}
+
+  - task: deploy
+    file: bosh-cpi-release/ci/tasks/deploy.yml
+    config:
+      params:
+        base_os: ubuntu
+        bats_private_key_data: {{bats_private_key}}
+
+  - conditions: [success, failure]
+    task: save-deployment
+    file: bosh-cpi-release/ci/tasks/save-deployment.yml
+    config:
+      params:
+        base_os: ubuntu
+
+  - put: bosh-concourse-ci
+    params:
+      repository: save-deployment/deploy/bosh-concourse-ci
+      rebase: true
+
+- name: bats-ubuntu
+  serial_groups: [ubuntu-director] # can't run while deploying
+  plan:
+  - aggregate:
+    - {trigger: true,  passed: [deploy-ubuntu], get: bosh-cpi-dev-artifacts}
+    - {trigger: false, passed: [deploy-ubuntu], get: stemcell, resource: openstack-ubuntu-stemcell}
+    - {trigger: false, passed: [deploy-ubuntu], get: bosh-concourse-ci}
+    - {trigger: false, passed: [deploy-ubuntu], get: bosh-cpi-release}
+    - {trigger: false,                          get: bats}
+
+  - task: test
+    file: bosh-concourse-ci/tasks/run-bats.yml
+    config:
+      params:
+        base_os: ubuntu
+        cpi_release_name: bosh-openstack-cpi
+
+- name: deploy-centos
+  serial_groups: [centos-director] # shouldn't deploy while bats are running
+  plan:
+  - aggregate:
+    - {trigger: true,  passed: [build-candidate], get: bosh-cpi-dev-artifacts}
+    - {trigger: false, passed: [build-candidate], get: version-semver}
+    - {trigger: false, passed: [build-candidate], get: bosh-cpi-release}
+    - {trigger: false,                            get: bosh-concourse-ci }
+    - {trigger: false,                            get: bosh-init}
+    - {trigger: false,                            get: bosh-release}
+    - {trigger: false,                            get: stemcell, resource: openstack-centos-stemcell}
+
+  - task: deploy
+    file: bosh-cpi-release/ci/tasks/deploy.yml
+    config:
+      params:
+        base_os: centos
+        bats_private_key_data: {{bats_private_key}}
+
+  - conditions: [success, failure]
+    task: save-deployment
+    file: bosh-cpi-release/ci/tasks/save-deployment.yml
+    config:
+      params:
+        base_os: centos
+
+  - put: bosh-concourse-ci
+    params:
+      repository: save-deployment/deploy/bosh-concourse-ci
+      rebase: true
+
+- name: bats-centos
+  serial_groups: [centos-director] # can't run while deploying
+  plan:
+  - aggregate:
+    - {trigger: true,  passed: [deploy-centos], get: bosh-cpi-dev-artifacts}
+    - {trigger: false, passed: [deploy-centos], get: stemcell, resource: openstack-centos-stemcell}
+    - {trigger: false, passed: [deploy-centos], get: bosh-concourse-ci}
+    - {trigger: false, passed: [deploy-centos], get: bosh-cpi-release}
+    - {trigger: false,                          get: bats}
+
+  - task: test
+    file: bosh-concourse-ci/tasks/run-bats.yml
+    config:
+      params:
+        base_os: centos
+        cpi_release_name: bosh-openstack-cpi
 
 - name: promote-candidate
   serial: true
   plan:
   - aggregate:
-#    - {trigger: true,  passed: [lifecycle, bats-ubuntu, bats-centos],     get: bosh-cpi-dev-artifacts}
-#    - {trigger: false, passed: [lifecycle, deploy-ubuntu, deploy-centos], get: bosh-cpi-release}
-    - {trigger: true,  passed: [build-candidate], get: bosh-cpi-dev-artifacts}
-    - {trigger: false, passed: [build-candidate], get: bosh-cpi-release}
+    - {trigger: true,  passed: [lifecycle, bats-ubuntu, bats-centos], get: bosh-cpi-dev-artifacts}
+    - {trigger: false, passed: [lifecycle, bats-ubuntu, bats-centos], get: bosh-cpi-release}
 
   - task: promote
     file: bosh-cpi-release/ci/tasks/promote-candidate.yml
@@ -218,7 +201,7 @@ resources:
   type: git
   source:
     uri: git@github.com:cloudfoundry-incubator/bosh-openstack-cpi-release.git
-    branch: wip/promote-master-95585962
+    branch: master
     private_key: {{github_deployment_key__bosh-openstack-cpi-release}}
 
 - name: version-semver
@@ -247,13 +230,6 @@ resources:
   source:
     uri: https://github.com/cloudfoundry/bosh-acceptance-tests.git
     branch: concourse
-
-# - name: deployments-bosh
-#   type: git
-#   source:
-#     uri: git@github.com:cloudfoundry/deployments-bosh.git
-#     branch: master
-#     private_key: {{github_deployment_key__deployments-bosh}}
 
 - name: bosh-release
   type: bosh-io-release
