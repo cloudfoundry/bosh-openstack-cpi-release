@@ -56,11 +56,12 @@ jobs:
     - {trigger: true,  get: bosh-cpi-release}
     - {trigger: false, get: version-semver, params: {bump: patch}}
 
+  - put: version-semver
+    params: {file: version-semver/number}
+
   - task: build
     file: bosh-cpi-release/ci/tasks/build-candidate.yml
 
-  - put: version-semver
-    params: {file: version-semver/number}
   - put: bosh-cpi-dev-artifacts
     params: {from: build/out/.*\.tgz}
 
