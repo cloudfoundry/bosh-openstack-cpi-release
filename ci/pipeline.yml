@@ -9,7 +9,6 @@ groups:
 #  - bats-ubuntu
 #  - bats-centos
   - promote-candidate
-  - master-merge
 
 #- name: lifecycle
 #  jobs:
@@ -53,7 +52,7 @@ jobs:
   serial: true
   plan:
   - aggregate:
-    - {trigger: true,  get: bosh-cpi-release}
+    - {trigger: false, get: bosh-cpi-release}
     - {trigger: false, get: version-semver, params: {bump: patch}}
 
   - put: version-semver
@@ -186,7 +185,7 @@ jobs:
 #    - {trigger: true,  passed: [lifecycle, bats-ubuntu, bats-centos],     get: bosh-cpi-dev-artifacts}
 #    - {trigger: false, passed: [lifecycle, deploy-ubuntu, deploy-centos], get: bosh-cpi-release}
     - {trigger: true,  passed: [build-candidate], get: bosh-cpi-dev-artifacts}
-    - {trigger: false, passed: [build-candidate], get: bosh-cpi-release, params: {fetch: [wip/promote-master-95585962]}}
+    - {trigger: false, passed: [build-candidate], get: bosh-cpi-release}
 
   - task: promote
     file: bosh-cpi-release/ci/tasks/promote-candidate.yml
@@ -195,22 +194,8 @@ jobs:
         aws_access_key_id: {{s3_openstack_cpi_access_key}}
         aws_secret_access_key: {{s3_openstack_cpi_secret_key}}
 
-  - put: bosh-cpi-release-master
-    params: {repository: promote/bosh-cpi-release}
-
-- name: master-merge
-  serial: true
-  plan:
-    - aggregate:
-      - {trigger: true,  get: bosh-cpi-release-master, params: {fetch: [wip/promote-develop-95585962]}}
-      - {trigger: false, get: bosh-cpi-release-develop}
-
-    - task: merge-to-develop
-      file: bosh-cpi-release-develop/ci/tasks/master-merge.yml
-
-    - put: bosh-cpi-release-develop
-      params:
-        repository: merge-to-develop/bosh-cpi-release-master
+  - put: bosh-cpi-release
+    params: {repository: promote/bosh-cpi-release, rebase: true}
 
 resources:
 - name: bosh-cpi-dev-artifacts
@@ -230,23 +215,6 @@ resources:
     private_key: {{github_deployment_key__bosh-concourse-ci}}
 
 - name: bosh-cpi-release
-  type: git
-  source:
-    uri: git@github.com:cloudfoundry-incubator/bosh-openstack-cpi-release.git
-    branch: wip/promote-develop-95585962
-    private_key: {{github_deployment_key__bosh-openstack-cpi-release}}
-    ignore_paths:
-      - .final_builds/**/*.yml
-      - releases/**/*.yml
-
-- name: bosh-cpi-release-develop
-  type: git
-  source:
-    uri: git@github.com:cloudfoundry-incubator/bosh-openstack-cpi-release.git
-    branch: wip/promote-develop-95585962
-    private_key: {{github_deployment_key__bosh-openstack-cpi-release}}
-
-- name: bosh-cpi-release-master
   type: git
   source:
     uri: git@github.com:cloudfoundry-incubator/bosh-openstack-cpi-release.git

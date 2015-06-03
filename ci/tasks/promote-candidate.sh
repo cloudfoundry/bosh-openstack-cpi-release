@@ -18,11 +18,6 @@ cd bosh-cpi-release
 
 source /etc/profile.d/chruby-with-ruby-2.1.2.sh
 
-git config --global user.email cf-bosh-eng@pivotal.io
-git config --global user.name CI
-
-git merge --no-edit wip/promote-master-95585962
-
 set +x
 echo creating config/private.yml with blobstore secrets
 cat > config/private.yml << EOF
@@ -46,4 +41,6 @@ version=`git diff releases/*/index.yml | grep -E "^\+.+version" | sed s/[^0-9]*/
 git diff | cat
 git add .
 
+git config --global user.email cf-bosh-eng@pivotal.io
+git config --global user.name CI
 git commit -m "New final release v $version"
