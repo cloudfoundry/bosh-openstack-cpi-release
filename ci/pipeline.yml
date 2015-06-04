@@ -4,9 +4,9 @@ groups:
   jobs:
   - build-candidate
   - lifecycle
-  - deploy-ubuntu
+  - deploy-ubuntu-manual
+  - bats-ubuntu-manual
   - deploy-centos
-  - bats-ubuntu
   - bats-centos
   - promote-candidate
 
@@ -19,8 +19,8 @@ groups:
 - name: ubuntu
   jobs:
   - build-candidate
-  - deploy-ubuntu
-  - bats-ubuntu
+  - deploy-ubuntu-manual
+  - bats-ubuntu-manual
   - promote-candidate
 
 - name: centos
