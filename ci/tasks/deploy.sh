@@ -12,6 +12,7 @@ ensure_not_replace_value() {
 }
 
 ensure_not_replace_value base_os
+ensure_not_replace_value network_type_to_test
 ensure_not_replace_value bats_private_key_data
 
 cpi_release_name=bosh-openstack-cpi
@@ -20,7 +21,7 @@ source /etc/profile.d/chruby-with-ruby-2.1.2.sh
 
 semver=`cat version-semver/number`
 manifest_dir=bosh-concourse-ci/pipelines/$cpi_release_name
-manifest_filename=$manifest_dir/$base_os-director-manifest.yml
+manifest_filename=$manifest_dir/$base_os-$network_type_to_test-director-manifest.yml
 
 echo "normalizing paths to match values referenced in $manifest_filename"
 mkdir ./tmp

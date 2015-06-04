@@ -13,4 +13,5 @@ run:
   path: bosh-cpi-release/ci/tasks/deploy.sh
 params:
   base_os:               replace-me
+  network_type_to_test:  replace-me
   bats_private_key_data: replace-me
