@@ -6,8 +6,8 @@ groups:
   - lifecycle
   - deploy-ubuntu-manual
   - bats-ubuntu-manual
-  - deploy-centos
-  - bats-centos
+  - deploy-centos-manual
+  - bats-centos-manual
   - promote-candidate
 
 - name: lifecycle
@@ -26,8 +26,8 @@ groups:
 - name: centos
   jobs:
   - build-candidate
-  - deploy-centos
-  - bats-centos
+  - deploy-centos-manual
+  - bats-centos-manual
   - promote-candidate
 
 jobs:
@@ -108,6 +108,7 @@ jobs:
     - {trigger: false, passed: [deploy-ubuntu-manual], get: bosh-cpi-release}
     - {trigger: false, passed: [deploy-ubuntu-manual], get: stemcell, resource: openstack-ubuntu-stemcell}
     - {trigger: false, passed: [deploy-ubuntu-manual], get: bosh-concourse-ci}
+    - {trigger: false,                                 get: bats}
 
   - task: test
     file: bosh-cpi-release/ci/tasks/run-bats.yml
@@ -116,8 +117,8 @@ jobs:
         base_os: ubuntu
         network_type_to_test: manual
 
-- name: deploy-centos
-  serial_groups: [centos-director] # shouldn't deploy while bats are running
+- name: deploy-centos-manual
+  serial_groups: [centos-director-manual] # shouldn't deploy while bats are running
   plan:
   - aggregate:
     - {trigger: true,  passed: [build-candidate], get: bosh-cpi-dev-artifacts}
@@ -133,6 +134,7 @@ jobs:
     config:
       params:
         base_os: centos
+        network_type_to_test: manual
         bats_private_key_data: {{bats_private_key}}
 
   - conditions: [success, failure]
@@ -141,35 +143,36 @@ jobs:
     config:
       params:
         base_os: centos
+        network_type_to_test: manual
 
   - put: bosh-concourse-ci
     params:
       repository: save-deployment/deploy/bosh-concourse-ci
       rebase: true
 
-- name: bats-centos
-  serial_groups: [centos-director] # can't run while deploying
+- name: bats-centos-manual
+  serial_groups: [centos-director-manual] # can't run while deploying
   plan:
   - aggregate:
-    - {trigger: true,  passed: [deploy-centos], get: bosh-cpi-dev-artifacts}
-    - {trigger: false, passed: [deploy-centos], get: stemcell, resource: openstack-centos-stemcell}
-    - {trigger: false, passed: [deploy-centos], get: bosh-concourse-ci}
-    - {trigger: false, passed: [deploy-centos], get: bosh-cpi-release}
-    - {trigger: false,                          get: bats}
+    - {trigger: true,  passed: [deploy-centos-manual], get: bosh-cpi-dev-artifacts}
+    - {trigger: false, passed: [deploy-centos-manual], get: stemcell, resource: openstack-centos-stemcell}
+    - {trigger: false, passed: [deploy-centos-manual], get: bosh-concourse-ci}
+    - {trigger: false, passed: [deploy-centos-manual], get: bosh-cpi-release}
+    - {trigger: false,                                 get: bats}
 
   - task: test
-    file: bosh-concourse-ci/tasks/run-bats.yml
+    file: bosh-cpi-release/ci/tasks/run-bats.yml
     config:
       params:
         base_os: centos
-        cpi_release_name: bosh-openstack-cpi
+        network_type_to_test: manual
 
 - name: promote-candidate
   serial: true
   plan:
   - aggregate:
-    - {trigger: true,  passed: [lifecycle, bats-ubuntu-manual, bats-centos], get: bosh-cpi-dev-artifacts}
-    - {trigger: false, passed: [lifecycle, bats-ubuntu-manual, bats-centos], get: bosh-cpi-release}
+    - {trigger: true,  passed: [lifecycle, bats-ubuntu-manual, bats-centos-manual], get: bosh-cpi-dev-artifacts}
+    - {trigger: false, passed: [lifecycle, bats-ubuntu-manual, bats-centos-manual], get: bosh-cpi-release}
 
   - task: promote
     file: bosh-cpi-release/ci/tasks/promote-candidate.yml
