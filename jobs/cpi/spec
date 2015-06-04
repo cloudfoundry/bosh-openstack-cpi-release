@@ -44,6 +44,9 @@ properties:
   openstack.config_drive:
     description: Config drive device (cdrom or disk) to use as metadata service on OpenStack (optional)
     example: cdrom
+  openstack.ignore_server_availability_zone:
+    description: "when creating a disk, do not use the availability zone of the server, fall back to Openstacks default"
+    default: false
 
   registry.host:
     description: Address of the Registry to connect to
