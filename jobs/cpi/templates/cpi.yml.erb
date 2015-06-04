@@ -27,6 +27,7 @@ cloud:
       default_key_name: <%= p("openstack.default_key_name") %>
       default_security_groups: <%= p("openstack.default_security_groups") %>
       wait_resource_poll_interval: <%= p("openstack.wait_resource_poll_interval") %>
+      ignore_server_availability_zone: <%= p("openstack.ignore_server_availability_zone") %>
       <% if_p("openstack.config_drive") do |config_drive| %>
       config_drive: <%= config_drive %>
       <% end %>
