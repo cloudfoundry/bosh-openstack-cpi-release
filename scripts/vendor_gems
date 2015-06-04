@@ -18,7 +18,8 @@ trap cleanup EXIT
   cat > 'Gemfile' <<EOF
 source "https://rubygems.org"
 
-gem "bosh_${cpi_name}_cpi"
+gem "fog-aws", "0.1.1"
+gem "bosh_${cpi_name}_cpi", "1.2978.0"
 EOF
 
   bundle package
