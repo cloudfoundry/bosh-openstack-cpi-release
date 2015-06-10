@@ -8,6 +8,10 @@ groups:
   - bats-ubuntu-manual
   - deploy-centos-manual
   - bats-centos-manual
+  - deploy-ubuntu-dynamic
+  - bats-ubuntu-dynamic
+  - deploy-centos-dynamic
+  - bats-centos-dynamic
   - promote-candidate
 
 - name: lifecycle
@@ -21,6 +25,8 @@ groups:
   - build-candidate
   - deploy-ubuntu-manual
   - bats-ubuntu-manual
+  - deploy-ubuntu-dynamic
+  - bats-ubuntu-dynamic
   - promote-candidate
 
 - name: centos
@@ -28,6 +34,8 @@ groups:
   - build-candidate
   - deploy-centos-manual
   - bats-centos-manual
+  - deploy-centos-dynamic
+  - bats-centos-dynamic
   - promote-candidate
 
 jobs:
@@ -59,13 +67,13 @@ jobs:
     file: bosh-cpi-release/ci/tasks/run-lifecycle.yml
     config:
       params:
-        BOSH_OPENSTACK_AUTH_URL:    {{lifecycle_BOSH_OPENSTACK_AUTH_URL}}
-        BOSH_OPENSTACK_USERNAME:    {{lifecycle_BOSH_OPENSTACK_USERNAME}}
-        BOSH_OPENSTACK_API_KEY:     {{lifecycle_BOSH_OPENSTACK_API_KEY}}
         BOSH_OPENSTACK_TENANT:      {{lifecycle_BOSH_OPENSTACK_TENANT}}
         BOSH_OPENSTACK_MANUAL_IP:   {{lifecycle_BOSH_OPENSTACK_MANUAL_IP}}
         BOSH_OPENSTACK_NET_ID:      {{lifecycle_BOSH_OPENSTACK_NET_ID}}
         BOSH_OPENSTACK_STEMCELL_ID: {{lifecycle_BOSH_OPENSTACK_STEMCELL_ID}}
+        BOSH_OPENSTACK_AUTH_URL:    {{BOSH_OPENSTACK_AUTH_URL}}
+        BOSH_OPENSTACK_USERNAME:    {{BOSH_OPENSTACK_USERNAME}}
+        BOSH_OPENSTACK_API_KEY:     {{BOSH_OPENSTACK_API_KEY}}
 
 - name: deploy-ubuntu-manual
   serial_groups: [ubuntu-director-manual] # shouldn't deploy while bats are running
@@ -114,8 +122,102 @@ jobs:
     file: bosh-cpi-release/ci/tasks/run-bats.yml
     config:
       params:
+        base_os:                            ubuntu
+        network_type_to_test:               manual
+        BAT_DIRECTOR:	                    {{manual_ubuntu_BAT_DIRECTOR}}
+        BAT_DNS_HOST:	                    {{manual_ubuntu_BAT_DNS_HOST}}
+        BAT_DEPLOYMENT_SPEC:	            {{manual_ubuntu_BAT_DEPLOYMENT_SPEC}}
+        BOSH_OPENSTACK_VIP_DIRECTOR_IP:	    {{manual_ubuntu_BOSH_OPENSTACK_VIP_DIRECTOR_IP}}
+        BOSH_OPENSTACK_MANUAL_IP:	        {{manual_ubuntu_BOSH_OPENSTACK_MANUAL_IP}}
+        BAT_NETWORKING:	                    {{manual_BAT_NETWORKING}}
+        BOSH_OPENSTACK_MICRO_NET_ID:  	    {{manual_BOSH_OPENSTACK_MICRO_NET_ID}}
+        BOSH_OPENSTACK_NET_ID:	            {{manual_BOSH_OPENSTACK_NET_ID}}
+        BOSH_OPENSTACK_REGISTRY_PORT:     	{{manual_BOSH_OPENSTACK_REGISTRY_PORT}}
+        BAT_VCAP_PRIVATE_KEY:             	{{BAT_VCAP_PRIVATE_KEY}}
+        BAT_VCAP_PASSWORD:	                {{BAT_VCAP_PASSWORD}}
+        BAT_STEMCELL:	                    {{BAT_STEMCELL}}
+        BAT_INFRASTRUCTURE:					{{BAT_INFRASTRUCTURE}}
+        BOSH_OPENSTACK_AUTH_URL:	        {{BOSH_OPENSTACK_AUTH_URL}}
+        BOSH_OPENSTACK_USERNAME:	        {{BOSH_OPENSTACK_USERNAME}}
+        BOSH_OPENSTACK_API_KEY:	            {{BOSH_OPENSTACK_API_KEY}}
+        BOSH_OPENSTACK_TENANT:	            {{BOSH_OPENSTACK_TENANT}}
+        BOSH_OPENSTACK_FLAVOR:	            {{BOSH_OPENSTACK_FLAVOR}}
+        BOSH_OPENSTACK_PRIVATE_KEY:	        {{BOSH_OPENSTACK_PRIVATE_KEY}}
+        BOSH_OPENSTACK_STATE_TIMEOUT:	    {{BOSH_OPENSTACK_STATE_TIMEOUT}}
+        BOSH_OPENSTACK_CONNECTION_TIMEOUT:	{{BOSH_OPENSTACK_CONNECTION_TIMEOUT}}
+        BOSH_OPENSTACK_DEFAULT_KEY_NAME:	{{BOSH_OPENSTACK_DEFAULT_KEY_NAME}}
+
+- name: deploy-ubuntu-dynamic
+  serial_groups: [ubuntu-director-dynamic] # shouldn't deploy while bats are running
+  plan:
+  - aggregate:
+    - {trigger: true,  passed: [build-candidate], get: bosh-cpi-dev-artifacts}
+    - {trigger: false, passed: [build-candidate], get: version-semver}
+    - {trigger: false, passed: [build-candidate], get: bosh-cpi-release}
+    - {trigger: false,                            get: bosh-concourse-ci }
+    - {trigger: false,                            get: bosh-init}
+    - {trigger: false,                            get: bosh-release}
+    - {trigger: false,                            get: stemcell, resource: openstack-ubuntu-stemcell}
+
+  - task: deploy
+    file: bosh-cpi-release/ci/tasks/deploy.yml
+    config:
+      params:
         base_os: ubuntu
-        network_type_to_test: manual
+        network_type_to_test: dynamic
+        bats_private_key_data: {{bats_private_key}}
+
+  - conditions: [success, failure]
+    task: save-deployment
+    file: bosh-cpi-release/ci/tasks/save-deployment.yml
+    config:
+      params:
+        base_os: ubuntu
+        network_type_to_test: dynamic
+
+  - put: bosh-concourse-ci
+    params:
+      repository: save-deployment/deploy/bosh-concourse-ci
+      rebase: true
+
+- name: bats-ubuntu-dynamic
+  serial_groups: [ubuntu-director-dynamic] # can't run while deploying
+  plan:
+  - aggregate:
+    - {trigger: true,  passed: [deploy-ubuntu-dynamic], get: bosh-cpi-dev-artifacts}
+    - {trigger: false, passed: [deploy-ubuntu-dynamic], get: bosh-cpi-release}
+    - {trigger: false, passed: [deploy-ubuntu-dynamic], get: stemcell, resource: openstack-ubuntu-stemcell}
+    - {trigger: false, passed: [deploy-ubuntu-dynamic], get: bosh-concourse-ci}
+    - {trigger: false,                                 get: bats}
+
+  - task: test
+    file: bosh-cpi-release/ci/tasks/run-bats.yml
+    config:
+      params:
+        base_os:                                ubuntu
+        network_type_to_test:                   dynamic
+        BAT_DIRECTOR:	                        {{dynamic_ubuntu_BAT_DIRECTOR}}
+        BAT_DNS_HOST:	                        {{dynamic_ubuntu_BAT_DNS_HOST}}
+        BAT_DEPLOYMENT_SPEC:	                {{dynamic_ubuntu_BAT_DEPLOYMENT_SPEC}}
+        BOSH_OPENSTACK_VIP_DIRECTOR_IP:	        {{dynamic_ubuntu_BOSH_OPENSTACK_VIP_DIRECTOR_IP}}
+        BAT_NETWORKING:	                        {{dynamic_BAT_NETWORKING}}
+        BOSH_OPENSTACK_MICRO_NET_ID:  	        {{dynamic_BOSH_OPENSTACK_MICRO_NET_ID}}
+        BOSH_OPENSTACK_NET_ID:	                {{dynamic_BOSH_OPENSTACK_NET_ID}}
+        BOSH_OPENSTACK_MANUAL_IP:	            "" #TODO: see if this fails
+        BOSH_OPENSTACK_REGISTRY_PORT:     	    {{dynamic_BOSH_OPENSTACK_REGISTRY_PORT}}
+        BAT_VCAP_PRIVATE_KEY:             	    {{BAT_VCAP_PRIVATE_KEY}}
+        BAT_VCAP_PASSWORD:	                    {{BAT_VCAP_PASSWORD}}
+        BAT_STEMCELL:	                        {{BAT_STEMCELL}}
+        BAT_INFRASTRUCTURE:					    {{BAT_INFRASTRUCTURE}}
+        BOSH_OPENSTACK_AUTH_URL:	            {{BOSH_OPENSTACK_AUTH_URL}}
+        BOSH_OPENSTACK_USERNAME:	            {{BOSH_OPENSTACK_USERNAME}}
+        BOSH_OPENSTACK_API_KEY:	                {{BOSH_OPENSTACK_API_KEY}}
+        BOSH_OPENSTACK_TENANT:	                {{BOSH_OPENSTACK_TENANT}}
+        BOSH_OPENSTACK_FLAVOR:	                {{BOSH_OPENSTACK_FLAVOR}}
+        BOSH_OPENSTACK_PRIVATE_KEY:	            {{BOSH_OPENSTACK_PRIVATE_KEY}}
+        BOSH_OPENSTACK_STATE_TIMEOUT:	        {{BOSH_OPENSTACK_STATE_TIMEOUT}}
+        BOSH_OPENSTACK_CONNECTION_TIMEOUT:	    {{BOSH_OPENSTACK_CONNECTION_TIMEOUT}}
+        BOSH_OPENSTACK_DEFAULT_KEY_NAME:	    {{BOSH_OPENSTACK_DEFAULT_KEY_NAME}}
 
 - name: deploy-centos-manual
   serial_groups: [centos-director-manual] # shouldn't deploy while bats are running
@@ -164,15 +266,109 @@ jobs:
     file: bosh-cpi-release/ci/tasks/run-bats.yml
     config:
       params:
+        base_os:                                centos
+        network_type_to_test:                   manual
+        BAT_DIRECTOR:	                        {{manual_centos_BAT_DIRECTOR}}
+        BAT_DNS_HOST:	                        {{manual_centos_BAT_DNS_HOST}}
+        BAT_DEPLOYMENT_SPEC:	                {{manual_centos_BAT_DEPLOYMENT_SPEC}}
+        BOSH_OPENSTACK_VIP_DIRECTOR_IP:	        {{manual_centos_BOSH_OPENSTACK_VIP_DIRECTOR_IP}}
+        BOSH_OPENSTACK_MANUAL_IP:	            {{manual_centos_BOSH_OPENSTACK_MANUAL_IP}}
+        BAT_NETWORKING:	                        {{manual_BAT_NETWORKING}}
+        BOSH_OPENSTACK_MICRO_NET_ID:  	        {{manual_BOSH_OPENSTACK_MICRO_NET_ID}}
+        BOSH_OPENSTACK_NET_ID:	                {{manual_BOSH_OPENSTACK_NET_ID}}
+        BOSH_OPENSTACK_REGISTRY_PORT:     	    {{manual_BOSH_OPENSTACK_REGISTRY_PORT}}
+        BAT_VCAP_PRIVATE_KEY:             	    {{BAT_VCAP_PRIVATE_KEY}}
+        BAT_VCAP_PASSWORD:	                    {{BAT_VCAP_PASSWORD}}
+        BAT_STEMCELL:	                        {{BAT_STEMCELL}}
+        BAT_INFRASTRUCTURE:					    {{BAT_INFRASTRUCTURE}}
+        BOSH_OPENSTACK_AUTH_URL:	            {{BOSH_OPENSTACK_AUTH_URL}}
+        BOSH_OPENSTACK_USERNAME:	            {{BOSH_OPENSTACK_USERNAME}}
+        BOSH_OPENSTACK_API_KEY:	                {{BOSH_OPENSTACK_API_KEY}}
+        BOSH_OPENSTACK_TENANT:	                {{BOSH_OPENSTACK_TENANT}}
+        BOSH_OPENSTACK_FLAVOR:	                {{BOSH_OPENSTACK_FLAVOR}}
+        BOSH_OPENSTACK_PRIVATE_KEY:	            {{BOSH_OPENSTACK_PRIVATE_KEY}}
+        BOSH_OPENSTACK_STATE_TIMEOUT:	        {{BOSH_OPENSTACK_STATE_TIMEOUT}}
+        BOSH_OPENSTACK_CONNECTION_TIMEOUT:	    {{BOSH_OPENSTACK_CONNECTION_TIMEOUT}}
+        BOSH_OPENSTACK_DEFAULT_KEY_NAME:	    {{BOSH_OPENSTACK_DEFAULT_KEY_NAME}}
+
+- name: deploy-centos-dynamic
+  serial_groups: [centos-director-dynamic] # shouldn't deploy while bats are running
+  plan:
+  - aggregate:
+    - {trigger: true,  passed: [build-candidate], get: bosh-cpi-dev-artifacts}
+    - {trigger: false, passed: [build-candidate], get: version-semver}
+    - {trigger: false, passed: [build-candidate], get: bosh-cpi-release}
+    - {trigger: false,                            get: bosh-concourse-ci }
+    - {trigger: false,                            get: bosh-init}
+    - {trigger: false,                            get: bosh-release}
+    - {trigger: false,                            get: stemcell, resource: openstack-centos-stemcell}
+
+  - task: deploy
+    file: bosh-cpi-release/ci/tasks/deploy.yml
+    config:
+      params:
         base_os: centos
-        network_type_to_test: manual
+        network_type_to_test: dynamic
+        bats_private_key_data: {{bats_private_key}}
+
+  - conditions: [success, failure]
+    task: save-deployment
+    file: bosh-cpi-release/ci/tasks/save-deployment.yml
+    config:
+      params:
+        base_os: centos
+        network_type_to_test: dynamic
+
+  - put: bosh-concourse-ci
+    params:
+      repository: save-deployment/deploy/bosh-concourse-ci
+      rebase: true
+
+- name: bats-centos-dynamic
+  serial_groups: [centos-director-dynamic] # can't run while deploying
+  plan:
+  - aggregate:
+    - {trigger: true,  passed: [deploy-centos-dynamic], get: bosh-cpi-dev-artifacts}
+    - {trigger: false, passed: [deploy-centos-dynamic], get: stemcell, resource: openstack-centos-stemcell}
+    - {trigger: false, passed: [deploy-centos-dynamic], get: bosh-concourse-ci}
+    - {trigger: false, passed: [deploy-centos-dynamic], get: bosh-cpi-release}
+    - {trigger: false,                                 get: bats}
+
+  - task: test
+    file: bosh-cpi-release/ci/tasks/run-bats.yml
+    config:
+      params:
+        base_os:                                centos
+        network_type_to_test:                   dynamic
+        BAT_DIRECTOR:	                        {{dynamic_centos_BAT_DIRECTOR}}
+        BAT_DNS_HOST:	                        {{dynamic_centos_BAT_DNS_HOST}}
+        BAT_DEPLOYMENT_SPEC:	                {{dynamic_centos_BAT_DEPLOYMENT_SPEC}}
+        BOSH_OPENSTACK_VIP_DIRECTOR_IP:	        {{dynamic_centos_BOSH_OPENSTACK_VIP_DIRECTOR_IP}}
+        BAT_NETWORKING:	                        {{dynamic_BAT_NETWORKING}}
+        BOSH_OPENSTACK_MICRO_NET_ID:  	        {{dynamic_BOSH_OPENSTACK_MICRO_NET_ID}}
+        BOSH_OPENSTACK_NET_ID:	                {{dynamic_BOSH_OPENSTACK_NET_ID}}
+        BOSH_OPENSTACK_MANUAL_IP:	            "" #TODO: see if this fails
+        BOSH_OPENSTACK_REGISTRY_PORT:     	    {{dynamic_BOSH_OPENSTACK_REGISTRY_PORT}}
+        BAT_VCAP_PRIVATE_KEY:             	    {{BAT_VCAP_PRIVATE_KEY}}
+        BAT_VCAP_PASSWORD:	                    {{BAT_VCAP_PASSWORD}}
+        BAT_STEMCELL:	                        {{BAT_STEMCELL}}
+        BAT_INFRASTRUCTURE:					    {{BAT_INFRASTRUCTURE}}
+        BOSH_OPENSTACK_AUTH_URL:	            {{BOSH_OPENSTACK_AUTH_URL}}
+        BOSH_OPENSTACK_USERNAME:	            {{BOSH_OPENSTACK_USERNAME}}
+        BOSH_OPENSTACK_API_KEY:	                {{BOSH_OPENSTACK_API_KEY}}
+        BOSH_OPENSTACK_TENANT:	                {{BOSH_OPENSTACK_TENANT}}
+        BOSH_OPENSTACK_FLAVOR:	                {{BOSH_OPENSTACK_FLAVOR}}
+        BOSH_OPENSTACK_PRIVATE_KEY:	            {{BOSH_OPENSTACK_PRIVATE_KEY}}
+        BOSH_OPENSTACK_STATE_TIMEOUT:	        {{BOSH_OPENSTACK_STATE_TIMEOUT}}
+        BOSH_OPENSTACK_CONNECTION_TIMEOUT:	    {{BOSH_OPENSTACK_CONNECTION_TIMEOUT}}
+        BOSH_OPENSTACK_DEFAULT_KEY_NAME:	    {{BOSH_OPENSTACK_DEFAULT_KEY_NAME}}
 
 - name: promote-candidate
   serial: true
   plan:
   - aggregate:
-    - {trigger: true,  passed: [lifecycle, bats-ubuntu-manual, bats-centos-manual], get: bosh-cpi-dev-artifacts}
-    - {trigger: false, passed: [lifecycle, bats-ubuntu-manual, bats-centos-manual], get: bosh-cpi-release}
+    - {trigger: true,  passed: [lifecycle, bats-ubuntu-manual, bats-centos-manual, bats-ubuntu-dynamic, bats-centos-dynamic], get: bosh-cpi-dev-artifacts}
+    - {trigger: false, passed: [lifecycle, bats-ubuntu-manual, bats-centos-manual, bats-ubuntu-dynamic, bats-centos-dynamic], get: bosh-cpi-release}
 
   - task: promote
     file: bosh-cpi-release/ci/tasks/promote-candidate.yml
@@ -227,7 +423,7 @@ resources:
   type: git
   source:
     uri: https://github.com/cloudfoundry/bosh.git
-    branch: develop
+    branch: master
 
 - name: bats
   type: git

@@ -32,7 +32,11 @@ cloud:
       config_drive: <%= config_drive %>
       <% end %>
     registry:
+      <% if_p("registry.endpoint") do |endpoint| %>
+      endpoint: <%= endpoint %>
+      <% end.else do %>
       endpoint: http://<%= p("registry.host") %>:<%= p("registry.port") %>
+      <% end %>
       user: <%= p("registry.username") %>
       password: <%= p("registry.password") %>
       address: <%= p("registry.host") %>

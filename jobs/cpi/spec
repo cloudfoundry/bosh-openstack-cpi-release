@@ -57,6 +57,9 @@ properties:
     description: Username to access the Registry
   registry.password:
     description: Password to access the Registry
+  registry.endpoint:
+    description: Full URL for the registry endpoint that may include basic auth credentials
+    example: http://admin:admin-password@some-ip:port
 
   ntp:
     description: List of ntp server URIs
