@@ -29,6 +29,10 @@ mv ./bosh-cpi-dev-artifacts/$cpi_release_name-$semver.tgz ./tmp/$cpi_release_nam
 mv ./bosh-release/release.tgz ./tmp/bosh-release.tgz
 mv ./stemcell/stemcell.tgz ./tmp/stemcell.tgz
 
+echo "creating symlink to deployment assets in $manifest_dir"
+ln -s tmp $manifest_dir/tmp
+ls -l $manifest_dir
+
 set +x
 echo "$bats_private_key_data" > ./tmp/bats.pem
 set -x
