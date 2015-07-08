@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
 set -e
+set -x
 
 source /etc/profile.d/chruby-with-ruby-2.1.2.sh
 
