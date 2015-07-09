@@ -56,7 +56,7 @@ networks:
   type: dynamic
   cloud_properties:
     net_id: $openstack_net_id
-    security_groups: [${openstack_floating_ip}]
+    security_groups: [${openstack_security_group}]
 - name: public
   type: vip
 
