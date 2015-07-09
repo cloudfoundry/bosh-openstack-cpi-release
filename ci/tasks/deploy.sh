@@ -34,7 +34,7 @@ cpi_release_name="bosh-openstack-cpi"
 working_dir=$PWD
 
 mkdir -p $working_dir/keys
-echo $bats_private_key_data > $working_dir/keys/bats.pem
+echo "$bats_private_key_data" > $working_dir/keys/bats.pem
 
 manifest_dir="${working_dir}/tmp"
 manifest_prefix=${base_os}-${network_type_to_test}-director-manifest
