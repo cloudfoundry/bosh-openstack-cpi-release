@@ -67,7 +67,7 @@ jobs:
     file: bosh-cpi-release/ci/tasks/run-lifecycle.yml
     config:
       params:
-        BOSH_OPENSTACK_TENANT:      {{lifecycle_BOSH_OPENSTACK_TENANT}}
+        BOSH_OPENSTACK_TENANT:      {{lifecycle_OPENSTACK_TENANT}}
         BOSH_OPENSTACK_MANUAL_IP:   {{lifecycle_BOSH_OPENSTACK_MANUAL_IP}}
         BOSH_OPENSTACK_NET_ID:      {{lifecycle_BOSH_OPENSTACK_NET_ID}}
         BOSH_OPENSTACK_STEMCELL_ID: {{lifecycle_BOSH_OPENSTACK_STEMCELL_ID}}
@@ -102,7 +102,7 @@ jobs:
         openstack_auth_url:            {{BOSH_OPENSTACK_AUTH_URL}}
         openstack_username:            {{BOSH_OPENSTACK_USERNAME}}
         openstack_api_key:             {{BOSH_OPENSTACK_API_KEY}}
-        openstack_tenant:              {{BOSH_OPENSTACK_TENANT}}
+        openstack_tenant:              {{bats_OPENSTACK_TENANT}}
         openstack_flavor:              m1.small
         openstack_connection_timeout:  "600"
         openstack_state_timeout:       "900"
@@ -152,7 +152,7 @@ jobs:
         BOSH_OPENSTACK_AUTH_URL:	        {{BOSH_OPENSTACK_AUTH_URL}}
         BOSH_OPENSTACK_USERNAME:	        {{BOSH_OPENSTACK_USERNAME}}
         BOSH_OPENSTACK_API_KEY:	            {{BOSH_OPENSTACK_API_KEY}}
-        BOSH_OPENSTACK_TENANT:	            {{BOSH_OPENSTACK_TENANT}}
+        BOSH_OPENSTACK_TENANT:	            {{bats_OPENSTACK_TENANT}}
         BOSH_OPENSTACK_FLAVOR:	            {{BOSH_OPENSTACK_FLAVOR}}
         BOSH_OPENSTACK_PRIVATE_KEY:	        {{BOSH_OPENSTACK_PRIVATE_KEY}}
         BOSH_OPENSTACK_STATE_TIMEOUT:	    {{BOSH_OPENSTACK_STATE_TIMEOUT}}
@@ -186,7 +186,7 @@ jobs:
         openstack_auth_url:            {{BOSH_OPENSTACK_AUTH_URL}}
         openstack_username:            {{BOSH_OPENSTACK_USERNAME}}
         openstack_api_key:             {{BOSH_OPENSTACK_API_KEY}}
-        openstack_tenant:              {{BOSH_OPENSTACK_TENANT}}
+        openstack_tenant:              {{bats_OPENSTACK_TENANT}}
         openstack_flavor:              m1.small
         openstack_connection_timeout:  "600"
         openstack_state_timeout:       "900"
@@ -227,7 +227,6 @@ jobs:
         BAT_NETWORKING:	                        {{dynamic_BAT_NETWORKING}}
         BOSH_OPENSTACK_MICRO_NET_ID:  	        {{dynamic_BOSH_OPENSTACK_MICRO_NET_ID}}
         BOSH_OPENSTACK_NET_ID:	                {{dynamic_BOSH_OPENSTACK_NET_ID}}
-        BOSH_OPENSTACK_MANUAL_IP:	            "" #TODO: see if this fails
         BOSH_OPENSTACK_REGISTRY_PORT:     	    {{dynamic_BOSH_OPENSTACK_REGISTRY_PORT}}
         BAT_VCAP_PRIVATE_KEY:             	    {{BAT_VCAP_PRIVATE_KEY}}
         BAT_VCAP_PASSWORD:	                    {{BAT_VCAP_PASSWORD}}
@@ -236,7 +235,7 @@ jobs:
         BOSH_OPENSTACK_AUTH_URL:	            {{BOSH_OPENSTACK_AUTH_URL}}
         BOSH_OPENSTACK_USERNAME:	            {{BOSH_OPENSTACK_USERNAME}}
         BOSH_OPENSTACK_API_KEY:	                {{BOSH_OPENSTACK_API_KEY}}
-        BOSH_OPENSTACK_TENANT:	                {{BOSH_OPENSTACK_TENANT}}
+        BOSH_OPENSTACK_TENANT:	                {{bats_OPENSTACK_TENANT}}
         BOSH_OPENSTACK_FLAVOR:	                {{BOSH_OPENSTACK_FLAVOR}}
         BOSH_OPENSTACK_PRIVATE_KEY:	            {{BOSH_OPENSTACK_PRIVATE_KEY}}
         BOSH_OPENSTACK_STATE_TIMEOUT:	        {{BOSH_OPENSTACK_STATE_TIMEOUT}}
@@ -270,7 +269,7 @@ jobs:
         openstack_auth_url:            {{BOSH_OPENSTACK_AUTH_URL}}
         openstack_username:            {{BOSH_OPENSTACK_USERNAME}}
         openstack_api_key:             {{BOSH_OPENSTACK_API_KEY}}
-        openstack_tenant:              {{BOSH_OPENSTACK_TENANT}}
+        openstack_tenant:              {{bats_OPENSTACK_TENANT}}
         openstack_flavor:              m1.small
         openstack_connection_timeout:  "600"
         openstack_state_timeout:       "900"
@@ -320,7 +319,7 @@ jobs:
         BOSH_OPENSTACK_AUTH_URL:	            {{BOSH_OPENSTACK_AUTH_URL}}
         BOSH_OPENSTACK_USERNAME:	            {{BOSH_OPENSTACK_USERNAME}}
         BOSH_OPENSTACK_API_KEY:	                {{BOSH_OPENSTACK_API_KEY}}
-        BOSH_OPENSTACK_TENANT:	                {{BOSH_OPENSTACK_TENANT}}
+        BOSH_OPENSTACK_TENANT:	                {{bats_OPENSTACK_TENANT}}
         BOSH_OPENSTACK_FLAVOR:	                {{BOSH_OPENSTACK_FLAVOR}}
         BOSH_OPENSTACK_PRIVATE_KEY:	            {{BOSH_OPENSTACK_PRIVATE_KEY}}
         BOSH_OPENSTACK_STATE_TIMEOUT:	        {{BOSH_OPENSTACK_STATE_TIMEOUT}}
@@ -354,7 +353,7 @@ jobs:
         openstack_auth_url:            {{BOSH_OPENSTACK_AUTH_URL}}
         openstack_username:            {{BOSH_OPENSTACK_USERNAME}}
         openstack_api_key:             {{BOSH_OPENSTACK_API_KEY}}
-        openstack_tenant:              {{BOSH_OPENSTACK_TENANT}}
+        openstack_tenant:              {{bats_OPENSTACK_TENANT}}
         openstack_flavor:              m1.small
         openstack_connection_timeout:  "600"
         openstack_state_timeout:       "900"
@@ -395,7 +394,6 @@ jobs:
         BAT_NETWORKING:	                        {{dynamic_BAT_NETWORKING}}
         BOSH_OPENSTACK_MICRO_NET_ID:  	        {{dynamic_BOSH_OPENSTACK_MICRO_NET_ID}}
         BOSH_OPENSTACK_NET_ID:	                {{dynamic_BOSH_OPENSTACK_NET_ID}}
-        BOSH_OPENSTACK_MANUAL_IP:	            "" #TODO: see if this fails
         BOSH_OPENSTACK_REGISTRY_PORT:     	    {{dynamic_BOSH_OPENSTACK_REGISTRY_PORT}}
         BAT_VCAP_PRIVATE_KEY:             	    {{BAT_VCAP_PRIVATE_KEY}}
         BAT_VCAP_PASSWORD:	                    {{BAT_VCAP_PASSWORD}}
@@ -404,7 +402,7 @@ jobs:
         BOSH_OPENSTACK_AUTH_URL:	            {{BOSH_OPENSTACK_AUTH_URL}}
         BOSH_OPENSTACK_USERNAME:	            {{BOSH_OPENSTACK_USERNAME}}
         BOSH_OPENSTACK_API_KEY:	                {{BOSH_OPENSTACK_API_KEY}}
-        BOSH_OPENSTACK_TENANT:	                {{BOSH_OPENSTACK_TENANT}}
+        BOSH_OPENSTACK_TENANT:	                {{bats_OPENSTACK_TENANT}}
         BOSH_OPENSTACK_FLAVOR:	                {{BOSH_OPENSTACK_FLAVOR}}
         BOSH_OPENSTACK_PRIVATE_KEY:	            {{BOSH_OPENSTACK_PRIVATE_KEY}}
         BOSH_OPENSTACK_STATE_TIMEOUT:	        {{BOSH_OPENSTACK_STATE_TIMEOUT}}
