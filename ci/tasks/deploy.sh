@@ -54,7 +54,7 @@ releases:
 networks:
 - name: private
   type: dynamic
-  dns: [8.8.8.8, 8.8.4.4]
+  dns: [8.8.8.8]
   cloud_properties:
     net_id: $openstack_net_id
     security_groups: [${openstack_security_group}]
