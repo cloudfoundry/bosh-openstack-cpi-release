@@ -29,6 +29,8 @@ ensure_not_replace_value bosh_registry_port
 
 source /etc/profile.d/chruby-with-ruby-2.1.2.sh
 
+export BOSH_INIT_LOG_LEVEL=DEBUG
+
 semver=`cat version-semver/number`
 cpi_release_name="bosh-openstack-cpi"
 working_dir=$PWD
