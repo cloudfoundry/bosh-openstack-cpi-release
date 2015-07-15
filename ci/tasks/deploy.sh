@@ -23,6 +23,7 @@ ensure_not_replace_value openstack_username
 ensure_not_replace_value openstack_api_key
 ensure_not_replace_value openstack_tenant
 ensure_not_replace_value openstack_connection_timeout
+ensure_not_replace_value openstack_read_timeout
 ensure_not_replace_value openstack_state_timeout
 ensure_not_replace_value openstack_default_key_name
 ensure_not_replace_value bosh_registry_port
@@ -158,6 +159,7 @@ jobs:
       wait_resource_poll_interval: 5
       connection_options:
         connect_timeout: ${openstack_connection_timeout}
+        read_timeout: ${openstack_read_timeout}
 
     # Tells agents how to contact nats
     agent: {mbus: "nats://nats:nats-password@${openstack_floating_ip}:4222"}
