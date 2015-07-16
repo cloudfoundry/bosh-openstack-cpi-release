@@ -106,6 +106,7 @@ jobs:
         openstack_flavor:              m1.small
         openstack_connection_timeout:  "600"
         openstack_read_timeout:        "180"
+        openstack_write_timeout:       "180"
         openstack_state_timeout:       "900"
 
   - conditions: [success, failure]
@@ -191,6 +192,7 @@ jobs:
         openstack_flavor:              m1.small
         openstack_connection_timeout:  "600"
         openstack_read_timeout:        "180"
+        openstack_write_timeout:       "180"
         openstack_state_timeout:       "900"
 
   - conditions: [success, failure]
@@ -275,6 +277,7 @@ jobs:
         openstack_flavor:              m1.small
         openstack_connection_timeout:  "600"
         openstack_read_timeout:        "180"
+        openstack_write_timeout:       "180"
         openstack_state_timeout:       "900"
 
   - conditions: [success, failure]
@@ -360,6 +363,7 @@ jobs:
         openstack_flavor:              m1.small
         openstack_connection_timeout:  "600"
         openstack_read_timeout:        "180"
+        openstack_write_timeout:       "180"
         openstack_state_timeout:       "900"
 
   - conditions: [success, failure]

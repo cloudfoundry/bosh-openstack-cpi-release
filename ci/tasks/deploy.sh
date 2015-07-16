@@ -160,6 +160,7 @@ jobs:
       connection_options:
         connect_timeout: ${openstack_connection_timeout}
         read_timeout: ${openstack_read_timeout}
+        write_timeout: ${openstack_write_timeout}
 
     # Tells agents how to contact nats
     agent: {mbus: "nats://nats:nats-password@${openstack_floating_ip}:4222"}
