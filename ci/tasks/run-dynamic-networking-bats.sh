@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-set -e -x
+set -e -x -u
 
 ensure_not_replace_value() {
   local name=$1
@@ -11,28 +11,67 @@ ensure_not_replace_value() {
   fi
 }
 
-ensure_not_replace_value base_os
-ensure_not_replace_value network_type_to_test
+ensure_not_replace_value bats_private_key_data
+ensure_not_replace_value openstack_bat_security_group
+ensure_not_replace_value openstack_bats_flavor_with_ephemeral_disk
+ensure_not_replace_value openstack_bats_flavor_with_no_ephemeral_disk
+ensure_not_replace_value openstack_bats_network_id
+
+ensure_not_replace_value bat_stemcell_name
+ensure_not_replace_value BOSH_OPENSTACK_VIP_DIRECTOR_IP
+
+####
+# TODO:
+# - check that all environment variables defined in pipeline.yml are set
+# - reference stemcell like vCloud bats job does
+# - upload new keypair to bluebox/mirantis with `external-cpi` tag to tell which vms have been deployed by which ci
+# - use heredoc to generate deployment spec
+# - copy rogue vm check from vSphere pipeline
+####
 
 cpi_release_name=bosh-openstack-cpi
+working_dir=$PWD
+
+mkdir -p $working_dir/keys
+echo "$bats_private_key_data" > $working_dir/keys/bats.pem
 
 source /etc/profile.d/chruby.sh
 chruby 2.1.2
 
-BAT_STEMCELL="$PWD$BAT_STEMCELL"
-BAT_VCAP_PRIVATE_KEY="$PWD$BAT_VCAP_PRIVATE_KEY"
-BAT_DEPLOYMENT_SPEC="$PWD$BAT_DEPLOYMENT_SPEC"
+export BAT_STEMCELL="${working_dir}/stemcell/stemcell.tgz"
+export BAT_VCAP_PRIVATE_KEY="$working_dir/keys/bats.pem"
 
 eval $(ssh-agent)
-chmod go-r $BAT_VCAP_PRIVATE_KEY
-ssh-add $BAT_VCAP_PRIVATE_KEY
+chmod go-r $working_dir/keys/bats.pem
+ssh-add $working_dir/keys/bats.pem
 
 echo "using bosh CLI version..."
 bosh version
 
-bosh -n target $BAT_DIRECTOR
+bosh -n target $BOSH_OPENSTACK_VIP_DIRECTOR_IP
 
-sed -i.bak s/"uuid: replace-me"/"uuid: $(bosh status --uuid)"/ $BAT_DEPLOYMENT_SPEC
+export BAT_DEPLOYMENT_SPEC="${working_dir}/bats-config.yml"
+cat > $BAT_DEPLOYMENT_SPEC <<EOF
+---
+cpi: openstack
+properties:
+  key_name: bosh-openstack-cpi
+  uuid: $(bosh status --uuid)
+  vip: ${openstack_director_public_ip}
+  instance_type: ${openstack_bats_flavor_with_ephemeral_disk}
+  pool_size: 1
+  instances: 1
+  flavor_with_no_ephemeral_disk: ${openstack_bats_flavor_with_no_ephemeral_disk}
+  stemcell:
+    name: ${bat_stemcell_name}
+    version: latest
+  networks:
+  - name: default
+    type: dynamic
+    cloud_properties:
+      net_id: ${openstack_bats_network_id}
+      security_groups: [${openstack_bat_security_group}]
+EOF
 
 cd bats
 
