@@ -146,7 +146,6 @@ jobs:
         BAT_NETWORKING:                      {{manual_BAT_NETWORKING}}
         BOSH_OPENSTACK_MICRO_NET_ID:        {{manual_BOSH_OPENSTACK_MICRO_NET_ID}}
         BOSH_OPENSTACK_NET_ID:              {{manual_BOSH_OPENSTACK_NET_ID}}
-        BOSH_OPENSTACK_REGISTRY_PORT:       {{manual_BOSH_OPENSTACK_REGISTRY_PORT}}
         BAT_VCAP_PRIVATE_KEY:               {{BAT_VCAP_PRIVATE_KEY}}
         BAT_VCAP_PASSWORD:                  {{BAT_VCAP_PASSWORD}}
         BAT_STEMCELL:                      {{BAT_STEMCELL}}
@@ -237,7 +236,6 @@ jobs:
         BAT_NETWORKING:                               {{dynamic_BAT_NETWORKING}}
         BOSH_OPENSTACK_MICRO_NET_ID:                  {{dynamic_BOSH_OPENSTACK_MICRO_NET_ID}}
         BOSH_OPENSTACK_NET_ID:                        {{dynamic_BOSH_OPENSTACK_NET_ID}}
-        BOSH_OPENSTACK_REGISTRY_PORT:                 {{dynamic_BOSH_OPENSTACK_REGISTRY_PORT}}
         BAT_VCAP_PRIVATE_KEY:                         {{BAT_VCAP_PRIVATE_KEY}}
         BAT_VCAP_PASSWORD:                            {{BAT_VCAP_PASSWORD}}
         BAT_INFRASTRUCTURE:                           {{BAT_INFRASTRUCTURE}}
@@ -322,7 +320,6 @@ jobs:
         BAT_NETWORKING:                          {{manual_BAT_NETWORKING}}
         BOSH_OPENSTACK_MICRO_NET_ID:            {{manual_BOSH_OPENSTACK_MICRO_NET_ID}}
         BOSH_OPENSTACK_NET_ID:                  {{manual_BOSH_OPENSTACK_NET_ID}}
-        BOSH_OPENSTACK_REGISTRY_PORT:           {{manual_BOSH_OPENSTACK_REGISTRY_PORT}}
         BAT_VCAP_PRIVATE_KEY:                   {{BAT_VCAP_PRIVATE_KEY}}
         BAT_VCAP_PASSWORD:                      {{BAT_VCAP_PASSWORD}}
         BAT_STEMCELL:                          {{BAT_STEMCELL}}
@@ -407,7 +404,6 @@ jobs:
         BAT_NETWORKING:                          {{dynamic_BAT_NETWORKING}}
         BOSH_OPENSTACK_MICRO_NET_ID:            {{dynamic_BOSH_OPENSTACK_MICRO_NET_ID}}
         BOSH_OPENSTACK_NET_ID:                  {{dynamic_BOSH_OPENSTACK_NET_ID}}
-        BOSH_OPENSTACK_REGISTRY_PORT:           {{dynamic_BOSH_OPENSTACK_REGISTRY_PORT}}
         BAT_VCAP_PRIVATE_KEY:                   {{BAT_VCAP_PRIVATE_KEY}}
         BAT_VCAP_PASSWORD:                      {{BAT_VCAP_PASSWORD}}
         BAT_STEMCELL:                          {{BAT_STEMCELL}}

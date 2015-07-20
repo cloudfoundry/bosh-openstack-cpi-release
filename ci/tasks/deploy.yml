@@ -26,4 +26,3 @@ params:
   openstack_state_timeout:       replace-me
   openstack_read_timeout:        replace-me
   openstack_default_key_name:    replace-me
-  bosh_registry_port:            replace-me
