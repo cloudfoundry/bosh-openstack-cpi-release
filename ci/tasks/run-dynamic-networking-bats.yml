@@ -7,33 +7,13 @@ inputs:
   - name: bosh-concourse-ci
   - name: bats
 run:
-  path: bosh-cpi-release/ci/tasks/run-bats.sh
+  path: bosh-cpi-release/ci/tasks/run-dynamic-networking-bats.sh
 params:
-  base_os:                                      replace-me
   bat_stemcell_name:                            replace-me
   bats_private_key_data:                        replace-me
-  network_type_to_test:                         replace-me
   openstack_bats_flavor_with_ephemeral_disk:    replace-me
   openstack_bats_flavor_with_no_ephemeral_disk: replace-me
+  openstack_bat_security_group:                 replace-me
   openstack_bats_network_id:                    replace-me
-  openstack_director_public_ip:                 replace-me
-  BAT_DIRECTOR:                                 replace-me
-  BAT_DNS_HOST:                                 replace-me
-  BAT_INFRASTRUCTURE:                           replace-me
-  BAT_NETWORKING:                               replace-me
-  BAT_VCAP_PASSWORD:                            replace-me
-  BAT_DEPLOYMENT_SPEC:                          replace-me
-  BOSH_OPENSTACK_AUTH_URL:                      replace-me
-  BOSH_OPENSTACK_USERNAME:                      replace-me
-  BOSH_OPENSTACK_API_KEY:                       replace-me
-  BOSH_OPENSTACK_TENANT:                        replace-me
-  BOSH_OPENSTACK_FLAVOR:                        replace-me
-  BOSH_OPENSTACK_VIP_DIRECTOR_IP:               replace-me
-  BOSH_OPENSTACK_MICRO_NET_ID:                  replace-me
-  BOSH_OPENSTACK_NET_ID:                        replace-me
-  BOSH_OPENSTACK_MANUAL_IP:                     replace-me
-  BOSH_OPENSTACK_REGISTRY_PORT:                 replace-me
-  BOSH_OPENSTACK_PRIVATE_KEY:                   replace-me
-  BOSH_OPENSTACK_STATE_TIMEOUT:                 replace-me
-  BOSH_OPENSTACK_CONNECTION_TIMEOUT:            replace-me
-  BOSH_OPENSTACK_DEFAULT_KEY_NAME:              replace-me
+  bosh_director_public_ip:                      replace-me
+  desired_vcap_user_password:                   replace-me

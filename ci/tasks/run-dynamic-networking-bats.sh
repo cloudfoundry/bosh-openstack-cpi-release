@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-set -e -x -u
+set -x
 
 ensure_not_replace_value() {
   local name=$1
@@ -11,14 +11,16 @@ ensure_not_replace_value() {
   fi
 }
 
+ensure_not_replace_value bat_stemcell_name
 ensure_not_replace_value bats_private_key_data
 ensure_not_replace_value openstack_bat_security_group
 ensure_not_replace_value openstack_bats_flavor_with_ephemeral_disk
 ensure_not_replace_value openstack_bats_flavor_with_no_ephemeral_disk
 ensure_not_replace_value openstack_bats_network_id
+ensure_not_replace_value bosh_director_public_ip
+ensure_not_replace_value desired_vcap_user_password 
 
 ensure_not_replace_value bat_stemcell_name
-ensure_not_replace_value BOSH_OPENSTACK_VIP_DIRECTOR_IP
 
 ####
 # TODO:
@@ -35,29 +37,35 @@ working_dir=$PWD
 mkdir -p $working_dir/keys
 echo "$bats_private_key_data" > $working_dir/keys/bats.pem
 
-source /etc/profile.d/chruby.sh
-chruby 2.1.2
-
-export BAT_STEMCELL="${working_dir}/stemcell/stemcell.tgz"
-export BAT_VCAP_PRIVATE_KEY="$working_dir/keys/bats.pem"
-
 eval $(ssh-agent)
 chmod go-r $working_dir/keys/bats.pem
 ssh-add $working_dir/keys/bats.pem
 
+source /etc/profile.d/chruby.sh
+chruby 2.1.2
+
+# checked by BATs environment helper (bosh-acceptance-tests.git/lib/bat/env.rb)
+export BAT_STEMCELL="${working_dir}/stemcell/stemcell.tgz"
+export BAT_VCAP_PRIVATE_KEY="$working_dir/keys/bats.pem"
+export BAT_DIRECTOR=${bosh_director_public_ip}
+export BAT_VCAP_PASSWORD=${desired_vcap_user_password}
+export BAT_DNS_HOST=${bosh_director_public_ip}
+export BAT_INFRASTRUCTURE='openstack'
+export BAT_NETWORKING='dynamic'
+
 echo "using bosh CLI version..."
 bosh version
 
-bosh -n target $BOSH_OPENSTACK_VIP_DIRECTOR_IP
+bosh -n target $bosh_director_public_ip
 
 export BAT_DEPLOYMENT_SPEC="${working_dir}/bats-config.yml"
 cat > $BAT_DEPLOYMENT_SPEC <<EOF
 ---
 cpi: openstack
 properties:
-  key_name: bosh-openstack-cpi
+  key_name: external-cpi
   uuid: $(bosh status --uuid)
-  vip: ${openstack_director_public_ip}
+  vip: ${bosh_director_public_ip}
   instance_type: ${openstack_bats_flavor_with_ephemeral_disk}
   pool_size: 1
   instances: 1
