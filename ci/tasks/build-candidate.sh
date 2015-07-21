@@ -12,7 +12,7 @@ mkdir out
 cd bosh-cpi-release
 
 echo "installing the latest bosh_cli"
-gem install bosh_cli --no-ri --no-rdoc
+gem install bosh_cli -v 1.3016.0 --no-ri --no-rdoc
 
 echo "using bosh CLI version..."
 bosh version
