@@ -42,6 +42,13 @@ manifest_dir="${working_dir}/tmp"
 manifest_prefix=${base_os}-${network_type_to_test}-director-manifest
 manifest_filename=${manifest_prefix}.yml
 
+eval $(ssh-agent)
+chmod go-r $working_dir/keys/bats.pem
+ssh-add $working_dir/keys/bats.pem
+
+source /etc/profile.d/chruby.sh
+chruby 2.1.2
+
 mkdir $manifest_dir
 cat > "${manifest_dir}/${manifest_filename}" <<EOF
 ---
