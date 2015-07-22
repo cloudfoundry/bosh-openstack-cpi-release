@@ -98,6 +98,7 @@ jobs:
         openstack_security_group:      {{BOSH_OPENSTACK_DEFAULT_SECURITY_GROUP}}
         openstack_default_key_name:    {{BOSH_OPENSTACK_DEFAULT_KEY_NAME}}
         openstack_floating_ip:         {{manual_ubuntu_BOSH_OPENSTACK_VIP_DIRECTOR_IP}}
+        bosh_registry_port:            {{manual_BOSH_OPENSTACK_REGISTRY_PORT}}
         openstack_auth_url:            {{BOSH_OPENSTACK_AUTH_URL}}
         openstack_username:            {{BOSH_OPENSTACK_USERNAME}}
         openstack_api_key:             {{BOSH_OPENSTACK_API_KEY}}
@@ -145,6 +146,7 @@ jobs:
         BAT_NETWORKING:                      {{manual_BAT_NETWORKING}}
         BOSH_OPENSTACK_MICRO_NET_ID:        {{manual_BOSH_OPENSTACK_MICRO_NET_ID}}
         BOSH_OPENSTACK_NET_ID:              {{manual_BOSH_OPENSTACK_NET_ID}}
+        BOSH_OPENSTACK_REGISTRY_PORT:       {{manual_BOSH_OPENSTACK_REGISTRY_PORT}}
         BAT_VCAP_PRIVATE_KEY:               {{BAT_VCAP_PRIVATE_KEY}}
         BAT_VCAP_PASSWORD:                  {{BAT_VCAP_PASSWORD}}
         BAT_STEMCELL:                      {{BAT_STEMCELL}}
@@ -182,6 +184,7 @@ jobs:
         openstack_security_group:      {{BOSH_OPENSTACK_DEFAULT_SECURITY_GROUP}}
         openstack_default_key_name:    {{BOSH_OPENSTACK_DEFAULT_KEY_NAME}}
         openstack_floating_ip:         {{dynamic_ubuntu_BOSH_OPENSTACK_VIP_DIRECTOR_IP}}
+        bosh_registry_port:            {{dynamic_BOSH_OPENSTACK_REGISTRY_PORT}}
         openstack_auth_url:            {{BOSH_OPENSTACK_AUTH_URL}}
         openstack_username:            {{BOSH_OPENSTACK_USERNAME}}
         openstack_api_key:             {{BOSH_OPENSTACK_API_KEY}}
@@ -227,6 +230,7 @@ jobs:
         openstack_bat_security_group:                 {{BOSH_OPENSTACK_DEFAULT_SECURITY_GROUP}}
         desired_vcap_user_password:                   {{BAT_VCAP_PASSWORD}}
         bats_private_key_data:                        {{bats_private_key}} 
+        BOSH_OPENSTACK_REGISTRY_PORT:                 {{dynamic_BOSH_OPENSTACK_REGISTRY_PORT}}
 
 - name: deploy-centos-manual
   serial_groups: [centos-director-manual] # shouldn't deploy while bats are running
@@ -251,6 +255,7 @@ jobs:
         openstack_security_group:      {{BOSH_OPENSTACK_DEFAULT_SECURITY_GROUP}}
         openstack_default_key_name:    {{BOSH_OPENSTACK_DEFAULT_KEY_NAME}}
         openstack_floating_ip:         {{manual_centos_BOSH_OPENSTACK_VIP_DIRECTOR_IP}}
+        bosh_registry_port:            {{manual_BOSH_OPENSTACK_REGISTRY_PORT}}
         openstack_auth_url:            {{BOSH_OPENSTACK_AUTH_URL}}
         openstack_username:            {{BOSH_OPENSTACK_USERNAME}}
         openstack_api_key:             {{BOSH_OPENSTACK_API_KEY}}
@@ -298,6 +303,7 @@ jobs:
         BAT_NETWORKING:                          {{manual_BAT_NETWORKING}}
         BOSH_OPENSTACK_MICRO_NET_ID:            {{manual_BOSH_OPENSTACK_MICRO_NET_ID}}
         BOSH_OPENSTACK_NET_ID:                  {{manual_BOSH_OPENSTACK_NET_ID}}
+        BOSH_OPENSTACK_REGISTRY_PORT:           {{manual_BOSH_OPENSTACK_REGISTRY_PORT}}
         BAT_VCAP_PRIVATE_KEY:                   {{BAT_VCAP_PRIVATE_KEY}}
         BAT_VCAP_PASSWORD:                      {{BAT_VCAP_PASSWORD}}
         BAT_STEMCELL:                          {{BAT_STEMCELL}}
@@ -335,6 +341,7 @@ jobs:
         openstack_security_group:      {{BOSH_OPENSTACK_DEFAULT_SECURITY_GROUP}}
         openstack_default_key_name:    {{BOSH_OPENSTACK_DEFAULT_KEY_NAME}}
         openstack_floating_ip:         {{dynamic_centos_BOSH_OPENSTACK_VIP_DIRECTOR_IP}}
+        bosh_registry_port:            {{dynamic_BOSH_OPENSTACK_REGISTRY_PORT}}
         openstack_auth_url:            {{BOSH_OPENSTACK_AUTH_URL}}
         openstack_username:            {{BOSH_OPENSTACK_USERNAME}}
         openstack_api_key:             {{BOSH_OPENSTACK_API_KEY}}
@@ -381,6 +388,7 @@ jobs:
         BAT_NETWORKING:                          {{dynamic_BAT_NETWORKING}}
         BOSH_OPENSTACK_MICRO_NET_ID:            {{dynamic_BOSH_OPENSTACK_MICRO_NET_ID}}
         BOSH_OPENSTACK_NET_ID:                  {{dynamic_BOSH_OPENSTACK_NET_ID}}
+        BOSH_OPENSTACK_REGISTRY_PORT:           {{dynamic_BOSH_OPENSTACK_REGISTRY_PORT}}
         BAT_VCAP_PRIVATE_KEY:                   {{BAT_VCAP_PRIVATE_KEY}}
         BAT_VCAP_PASSWORD:                      {{BAT_VCAP_PASSWORD}}
         BAT_STEMCELL:                          {{BAT_STEMCELL}}

@@ -26,6 +26,7 @@ ensure_not_replace_value openstack_connection_timeout
 ensure_not_replace_value openstack_read_timeout
 ensure_not_replace_value openstack_state_timeout
 ensure_not_replace_value openstack_default_key_name
+ensure_not_replace_value bosh_registry_port
 
 source /etc/profile.d/chruby-with-ruby-2.1.2.sh
 
@@ -127,11 +128,11 @@ jobs:
       address: ${openstack_floating_ip}
       host: ${openstack_floating_ip}
       db: *db
-      http: {user: admin, password: admin, port: 25555}
+      http: {user: admin, password: admin, port: ${bosh_registry_port}}
       username: admin
       password: admin
-      port: 25555
-      endpoint: http://admin:admin@${openstack_floating_ip}:25555}
+      port: ${bosh_registry_port}
+      endpoint: http://admin:admin@${openstack_floating_ip}:${bosh_registry_port}
 
     # Tells the Director/agents how to contact blobstore
     blobstore:
