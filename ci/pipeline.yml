@@ -98,7 +98,6 @@ jobs:
         openstack_security_group:      {{BOSH_OPENSTACK_DEFAULT_SECURITY_GROUP}}
         openstack_default_key_name:    {{BOSH_OPENSTACK_DEFAULT_KEY_NAME}}
         openstack_floating_ip:         {{manual_ubuntu_BOSH_OPENSTACK_VIP_DIRECTOR_IP}}
-        bosh_registry_port:            {{manual_BOSH_OPENSTACK_REGISTRY_PORT}}
         openstack_auth_url:            {{BOSH_OPENSTACK_AUTH_URL}}
         openstack_username:            {{BOSH_OPENSTACK_USERNAME}}
         openstack_api_key:             {{BOSH_OPENSTACK_API_KEY}}
@@ -183,7 +182,6 @@ jobs:
         openstack_security_group:      {{BOSH_OPENSTACK_DEFAULT_SECURITY_GROUP}}
         openstack_default_key_name:    {{BOSH_OPENSTACK_DEFAULT_KEY_NAME}}
         openstack_floating_ip:         {{dynamic_ubuntu_BOSH_OPENSTACK_VIP_DIRECTOR_IP}}
-        bosh_registry_port:            {{dynamic_BOSH_OPENSTACK_REGISTRY_PORT}}
         openstack_auth_url:            {{BOSH_OPENSTACK_AUTH_URL}}
         openstack_username:            {{BOSH_OPENSTACK_USERNAME}}
         openstack_api_key:             {{BOSH_OPENSTACK_API_KEY}}
@@ -253,7 +251,6 @@ jobs:
         openstack_security_group:      {{BOSH_OPENSTACK_DEFAULT_SECURITY_GROUP}}
         openstack_default_key_name:    {{BOSH_OPENSTACK_DEFAULT_KEY_NAME}}
         openstack_floating_ip:         {{manual_centos_BOSH_OPENSTACK_VIP_DIRECTOR_IP}}
-        bosh_registry_port:            {{manual_BOSH_OPENSTACK_REGISTRY_PORT}}
         openstack_auth_url:            {{BOSH_OPENSTACK_AUTH_URL}}
         openstack_username:            {{BOSH_OPENSTACK_USERNAME}}
         openstack_api_key:             {{BOSH_OPENSTACK_API_KEY}}
@@ -338,7 +335,6 @@ jobs:
         openstack_security_group:      {{BOSH_OPENSTACK_DEFAULT_SECURITY_GROUP}}
         openstack_default_key_name:    {{BOSH_OPENSTACK_DEFAULT_KEY_NAME}}
         openstack_floating_ip:         {{dynamic_centos_BOSH_OPENSTACK_VIP_DIRECTOR_IP}}
-        bosh_registry_port:            {{dynamic_BOSH_OPENSTACK_REGISTRY_PORT}}
         openstack_auth_url:            {{BOSH_OPENSTACK_AUTH_URL}}
         openstack_username:            {{BOSH_OPENSTACK_USERNAME}}
         openstack_api_key:             {{BOSH_OPENSTACK_API_KEY}}
