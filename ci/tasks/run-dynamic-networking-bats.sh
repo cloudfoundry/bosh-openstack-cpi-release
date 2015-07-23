@@ -19,6 +19,7 @@ ensure_not_replace_value openstack_bats_flavor_with_no_ephemeral_disk
 ensure_not_replace_value openstack_bats_network_id
 ensure_not_replace_value bosh_director_public_ip
 ensure_not_replace_value desired_vcap_user_password 
+ensure_not_replace_value bats_vm_floating_ip
 
 ensure_not_replace_value bat_stemcell_name
 
@@ -65,7 +66,7 @@ cpi: openstack
 properties:
   key_name: external-cpi
   uuid: $(bosh status --uuid)
-  vip: ${bosh_director_public_ip}
+  vip: ${bats_vm_floating_ip}
   instance_type: ${openstack_bats_flavor_with_ephemeral_disk}
   pool_size: 1
   instances: 1

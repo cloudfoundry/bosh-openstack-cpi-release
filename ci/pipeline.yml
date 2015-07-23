@@ -230,6 +230,7 @@ jobs:
         openstack_bat_security_group:                 {{BOSH_OPENSTACK_DEFAULT_SECURITY_GROUP}}
         desired_vcap_user_password:                   {{BAT_VCAP_PASSWORD}}
         bats_private_key_data:                        {{bats_private_key}} 
+        bats_vm_floating_ip:                          {{dynamic_ubuntu_bats_vm_floating_ip}}
         BOSH_OPENSTACK_REGISTRY_PORT:                 {{dynamic_BOSH_OPENSTACK_REGISTRY_PORT}}
 
 - name: deploy-centos-manual
@@ -463,7 +464,7 @@ resources:
   type: git
   source:
     uri: https://github.com/cloudfoundry/bosh.git
-    branch: master
+    branch: openstack-external-cpi
 
 - name: bats
   type: git

@@ -17,3 +17,4 @@ params:
   openstack_bats_network_id:                    replace-me
   bosh_director_public_ip:                      replace-me
   desired_vcap_user_password:                   replace-me
+  bats_vm_floating_ip:                          replace-me
