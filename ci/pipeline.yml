@@ -133,33 +133,29 @@ jobs:
     - {trigger: false,                                 get: bats}
 
   - task: test
-    file: bosh-cpi-release/ci/tasks/run-bats.yml
+    file: bosh-cpi-release/ci/tasks/run-manual-networking-bats.yml
     config:
       params:
-        base_os:                            ubuntu
-        network_type_to_test:               manual
-        BAT_DIRECTOR:                      {{manual_ubuntu_BAT_DIRECTOR}}
-        BAT_DNS_HOST:                      {{manual_ubuntu_BAT_DNS_HOST}}
-        BAT_DEPLOYMENT_SPEC:              {{manual_ubuntu_BAT_DEPLOYMENT_SPEC}}
-        BOSH_OPENSTACK_VIP_DIRECTOR_IP:      {{manual_ubuntu_BOSH_OPENSTACK_VIP_DIRECTOR_IP}}
-        BOSH_OPENSTACK_MANUAL_IP:          {{manual_ubuntu_BOSH_OPENSTACK_MANUAL_IP}}
-        BAT_NETWORKING:                      {{manual_BAT_NETWORKING}}
-        BOSH_OPENSTACK_MICRO_NET_ID:        {{manual_BOSH_OPENSTACK_MICRO_NET_ID}}
-        BOSH_OPENSTACK_NET_ID:              {{manual_BOSH_OPENSTACK_NET_ID}}
-        BOSH_OPENSTACK_REGISTRY_PORT:       {{manual_BOSH_OPENSTACK_REGISTRY_PORT}}
-        BAT_VCAP_PRIVATE_KEY:               {{BAT_VCAP_PRIVATE_KEY}}
-        BAT_VCAP_PASSWORD:                  {{BAT_VCAP_PASSWORD}}
-        BAT_STEMCELL:                      {{BAT_STEMCELL}}
-        BAT_INFRASTRUCTURE:          {{BAT_INFRASTRUCTURE}}
-        BOSH_OPENSTACK_AUTH_URL:          {{BOSH_OPENSTACK_AUTH_URL}}
-        BOSH_OPENSTACK_USERNAME:          {{BOSH_OPENSTACK_USERNAME}}
-        BOSH_OPENSTACK_API_KEY:              {{BOSH_OPENSTACK_API_KEY}}
-        BOSH_OPENSTACK_TENANT:              {{bats_OPENSTACK_TENANT}}
-        BOSH_OPENSTACK_FLAVOR:              {{BOSH_OPENSTACK_FLAVOR}}
-        BOSH_OPENSTACK_PRIVATE_KEY:          {{BOSH_OPENSTACK_PRIVATE_KEY}}
-        BOSH_OPENSTACK_STATE_TIMEOUT:      {{BOSH_OPENSTACK_STATE_TIMEOUT}}
-        BOSH_OPENSTACK_CONNECTION_TIMEOUT:  {{BOSH_OPENSTACK_CONNECTION_TIMEOUT}}
-        BOSH_OPENSTACK_DEFAULT_KEY_NAME:  {{BOSH_OPENSTACK_DEFAULT_KEY_NAME}}
+        bat_stemcell_name:                            bosh-openstack-kvm-ubuntu-trusty-go_agent
+        openstack_bat_security_group:                 {{BOSH_OPENSTACK_DEFAULT_SECURITY_GROUP}}
+        openstack_bats_default_network_id:            {{manual_BOSH_OPENSTACK_DEFAULT_NET_ID}}
+        openstack_bats_flavor_with_ephemeral_disk:    {{openstack_bats_flavor_with_ephemeral_disk}}
+        openstack_bats_flavor_with_no_ephemeral_disk: {{openstack_bats_flavor_with_no_ephemeral_disk}}
+        openstack_bats_second_network_id:             {{manual_BOSH_OPENSTACK_NET_ID}}
+        BAT_CIDR:                                     {{manual_ubuntu_BAT_CIDR}}
+        BAT_SECOND_CIDR:                              {{manual_ubuntu_BAT_SECOND_CIDR}}
+        BAT_DNS_HOST:                                 {{manual_ubuntu_BAT_DNS_HOST}}
+        BAT_INFRASTRUCTURE:                           {{BAT_INFRASTRUCTURE}}
+        BAT_NETWORKING:                               {{manual_BAT_NETWORKING}}
+        BAT_VCAP_PASSWORD:                            {{BAT_VCAP_PASSWORD}}
+        BAT_DIRECTOR:                                 {{manual_ubuntu_BAT_DIRECTOR}}
+        BAT_GATEWAY:                                  {{manual_ubuntu_BAT_GATEWAY}}
+        BAT_SECOND_GATEWAY:                           {{manual_ubuntu_BAT_SECOND_GATEWAY}}
+        BAT_STATIC_RANGE:                             {{manual_ubuntu_BAT_STATIC_RANGE}} 
+        BAT_VCAP_PRIVATE_KEY:                         {{BAT_VCAP_PRIVATE_KEY}}
+        BAT_VM_FLOATING_IP:                           {{manual_ubuntu_bats_vm_floating_ip}}
+        BOSH_OPENSTACK_MANUAL_IP:                     {{manual_ubuntu_BOSH_OPENSTACK_MANUAL_IP}}
+        BOSH_OPENSTACK_SECOND_MANUAL_IP:              {{manual_ubuntu_BOSH_OPENSTACK_SECOND_MANUAL_IP}}   
 
 - name: deploy-ubuntu-dynamic
   serial_groups: [ubuntu-director-dynamic] # shouldn't deploy while bats are running

@@ -17,13 +17,15 @@ params:
   bats_private_key_data:         replace-me
   openstack_net_id:              replace-me
   openstack_security_group:      replace-me
-  openstack_flavor:              replace-me
+  openstack_default_key_name:    replace-me
+  openstack_floating_ip:         replace-me
+  bosh_registry_port:            replace-me
   openstack_auth_url:            replace-me
   openstack_username:            replace-me
   openstack_api_key:             replace-me
   openstack_tenant:              replace-me
+  openstack_flavor:              replace-me
   openstack_connection_timeout:  replace-me
   openstack_state_timeout:       replace-me
   openstack_read_timeout:        replace-me
-  openstack_default_key_name:    replace-me
-  bosh_registry_port:            replace-me
+  openstack_write_timeout:       replace-me
