@@ -2,7 +2,7 @@
 name: cpi
 templates:
   cpi.erb: bin/cpi
-  cpi.yml.erb: config/cpi.yml
+  cpi.json.erb: config/cpi.json
 
 packages:
 - ruby_openstack_cpi

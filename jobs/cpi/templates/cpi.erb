@@ -27,6 +27,6 @@ export BUNDLE_GEMFILE=$BOSH_PACKAGES_DIR/bosh_openstack_cpi/Gemfile
 export GEM_HOME=$BOSH_PACKAGES_DIR/bosh_openstack_cpi/gem_home/ruby/1.9.1
 
 echo $INPUT | $BOSH_PACKAGES_DIR/bosh_openstack_cpi/bin/openstack_cpi \
-  $BOSH_JOBS_DIR/cpi/config/cpi.yml
+  $BOSH_JOBS_DIR/cpi/config/cpi.json
 
 exit 0
