@@ -244,7 +244,7 @@ jobs:
     file: bosh-cpi-release/ci/tasks/deploy.yml
     config:
       params:
-        base_os:                       "ubuntu"
+        base_os:                       "centos"
         network_type_to_test:          "manual"
         openstack_flavor:              "m1.small"
         openstack_connection_timeout:  "600"
