@@ -12,7 +12,7 @@ ensure_not_replace_value() {
 }
 
 ensure_not_replace_value stemcell_name
-ensure_not_replace_value bats_private_key_data
+ensure_not_replace_value private_key_data
 ensure_not_replace_value openstack_bat_security_group
 ensure_not_replace_value openstack_bats_flavor_with_ephemeral_disk
 ensure_not_replace_value openstack_bats_flavor_with_no_ephemeral_disk
@@ -34,7 +34,7 @@ working_dir=$PWD
 
 mkdir -p $working_dir/keys
 export BAT_VCAP_PRIVATE_KEY="$working_dir/keys/bats.pem"
-echo "$bats_private_key_data" > $BAT_VCAP_PRIVATE_KEY
+echo "$private_key_data" > $BAT_VCAP_PRIVATE_KEY
 
 eval $(ssh-agent)
 chmod go-r $BAT_VCAP_PRIVATE_KEY

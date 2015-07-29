@@ -366,11 +366,11 @@ jobs:
     - {trigger: false,                                 get: bats}
 
   - task: test
-    file: bosh-cpi-release/ci/tasks/run-bats.yml
+    file: bosh-cpi-release/ci/tasks/run-dynamic-networking-bats.yml
     config:
       params:
         stemcell_name:                            "bosh-openstack-kvm-centos-trusty-go_agent"
-        private_key_data:                         {{bosh_private_key}} 
+        private_key_data:                         {{bosh_private_key}}
         openstack_security_group:                 {{openstack_security_group}}
         openstack_flavor_with_ephemeral_disk:     {{openstack_flavor_with_ephemeral_disk}}
         openstack_flavor_with_no_ephemeral_disk:  {{openstack_flavor_with_no_ephemeral_disk}}
