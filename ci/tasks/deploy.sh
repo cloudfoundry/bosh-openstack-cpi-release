@@ -13,20 +13,21 @@ ensure_not_replace_value() {
 
 ensure_not_replace_value base_os
 ensure_not_replace_value network_type_to_test
-ensure_not_replace_value bats_private_key_data
+ensure_not_replace_value openstack_flavor
+ensure_not_replace_value openstack_connection_timeout
+ensure_not_replace_value openstack_read_timeout
+ensure_not_replace_value openstack_write_timeout
+ensure_not_replace_value openstack_state_timeout
+ensure_not_replace_value private_key_data
+ensure_not_replace_value bosh_registry_port
 ensure_not_replace_value openstack_net_id
 ensure_not_replace_value openstack_security_group
-ensure_not_replace_value openstack_flavor
-ensure_not_replace_value openstack_floating_ip
+ensure_not_replace_value openstack_default_key_name
 ensure_not_replace_value openstack_auth_url
 ensure_not_replace_value openstack_username
 ensure_not_replace_value openstack_api_key
 ensure_not_replace_value openstack_tenant
-ensure_not_replace_value openstack_connection_timeout
-ensure_not_replace_value openstack_read_timeout
-ensure_not_replace_value openstack_state_timeout
-ensure_not_replace_value openstack_default_key_name
-ensure_not_replace_value bosh_registry_port
+ensure_not_replace_value openstack_floating_ip
 
 source /etc/profile.d/chruby-with-ruby-2.1.2.sh
 
@@ -37,7 +38,7 @@ cpi_release_name="bosh-openstack-cpi"
 working_dir=$PWD
 
 mkdir -p $working_dir/keys
-echo "$bats_private_key_data" > $working_dir/keys/bats.pem
+echo "$private_key_data" > $working_dir/keys/bats.pem
 
 manifest_dir="${working_dir}/tmp"
 manifest_prefix=${base_os}-${network_type_to_test}-director-manifest

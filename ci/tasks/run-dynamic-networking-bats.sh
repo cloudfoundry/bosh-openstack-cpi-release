@@ -11,17 +11,15 @@ ensure_not_replace_value() {
   fi
 }
 
-ensure_not_replace_value bat_stemcell_name
+ensure_not_replace_value stemcell_name
 ensure_not_replace_value bats_private_key_data
 ensure_not_replace_value openstack_bat_security_group
 ensure_not_replace_value openstack_bats_flavor_with_ephemeral_disk
 ensure_not_replace_value openstack_bats_flavor_with_no_ephemeral_disk
-ensure_not_replace_value openstack_bats_network_id
+ensure_not_replace_value primary_network_id
 ensure_not_replace_value bosh_director_public_ip
 ensure_not_replace_value desired_vcap_user_password 
 ensure_not_replace_value bats_vm_floating_ip
-
-ensure_not_replace_value bat_stemcell_name
 
 ####
 # TODO:
@@ -32,22 +30,21 @@ ensure_not_replace_value bat_stemcell_name
 # - copy rogue vm check from vSphere pipeline
 ####
 
-cpi_release_name=bosh-openstack-cpi
 working_dir=$PWD
 
 mkdir -p $working_dir/keys
-echo "$bats_private_key_data" > $working_dir/keys/bats.pem
+export BAT_VCAP_PRIVATE_KEY="$working_dir/keys/bats.pem"
+echo "$bats_private_key_data" > $BAT_VCAP_PRIVATE_KEY
 
 eval $(ssh-agent)
-chmod go-r $working_dir/keys/bats.pem
-ssh-add $working_dir/keys/bats.pem
+chmod go-r $BAT_VCAP_PRIVATE_KEY
+ssh-add $BAT_VCAP_PRIVATE_KEY
 
 source /etc/profile.d/chruby.sh
 chruby 2.1.2
 
 # checked by BATs environment helper (bosh-acceptance-tests.git/lib/bat/env.rb)
 export BAT_STEMCELL="${working_dir}/stemcell/stemcell.tgz"
-export BAT_VCAP_PRIVATE_KEY="$working_dir/keys/bats.pem"
 export BAT_DIRECTOR=${bosh_director_public_ip}
 export BAT_VCAP_PASSWORD=${desired_vcap_user_password}
 export BAT_DNS_HOST=${bosh_director_public_ip}
@@ -67,19 +64,19 @@ properties:
   key_name: external-cpi
   uuid: $(bosh status --uuid)
   vip: ${bats_vm_floating_ip}
-  instance_type: ${openstack_bats_flavor_with_ephemeral_disk}
+  instance_type: ${openstack_flavor_with_ephemeral_disk}
   pool_size: 1
   instances: 1
-  flavor_with_no_ephemeral_disk: ${openstack_bats_flavor_with_no_ephemeral_disk}
+  flavor_with_no_ephemeral_disk: ${openstack_flavor_with_no_ephemeral_disk}
   stemcell:
-    name: ${bat_stemcell_name}
+    name: ${stemcell_name}
     version: latest
   networks:
   - name: default
     type: dynamic
     cloud_properties:
-      net_id: ${openstack_bats_network_id}
-      security_groups: [${openstack_bat_security_group}]
+      net_id: ${primary_network_id}
+      security_groups: [${openstack_security_group}]
 EOF
 
 cd bats

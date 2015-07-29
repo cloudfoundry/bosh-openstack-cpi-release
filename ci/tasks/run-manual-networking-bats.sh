@@ -11,94 +11,100 @@ ensure_not_replace_value() {
   fi
 }
 
-ensure_not_replace_value bat_stemcell_name
-ensure_not_replace_value openstack_bat_security_group
-ensure_not_replace_value openstack_bats_default_network_id
-ensure_not_replace_value openstack_bats_flavor_with_ephemeral_disk
-ensure_not_replace_value openstack_bats_flavor_with_no_ephemeral_disk
-ensure_not_replace_value openstack_bats_second_network_id
-ensure_not_replace_value BAT_DIRECTOR
-ensure_not_replace_value BAT_VCAP_PASSWORD
-ensure_not_replace_value BAT_DNS_HOST
-ensure_not_replace_value BAT_INFRASTRUCTURE
-ensure_not_replace_value BAT_NETWORKING
-ensure_not_replace_value BAT_CIDR
-ensure_not_replace_value BAT_SECOND_CIDR
-ensure_not_replace_value BAT_GATEWAY
-ensure_not_replace_value BAT_SECOND_GATEWAY
-ensure_not_replace_value BAT_STATIC_RANGE
-ensure_not_replace_value BAT_VM_FLOATING_IP
-ensure_not_replace_value BOSH_OPENSTACK_MANUAL_IP
-ensure_not_replace_value BOSH_OPENSTACK_SECOND_MANUAL_IP
-ensure_not_replace_value BAT_VCAP_PRIVATE_KEY
+ensure_not_replace_value stemcell_name
+ensure_not_replace_value openstack_security_group
+ensure_not_replace_value openstack_flavor_with_ephemeral_disk
+ensure_not_replace_value openstack_flavor_with_no_ephemeral_disk
+ensure_not_replace_value bosh_director_public_ip
+ensure_not_replace_value desired_vcap_user_password
+ensure_not_replace_value bats_vm_floating_ip
+ensure_not_replace_value private_key_data
+
+ensure_not_replace_value primary_network_id
+ensure_not_replace_value primary_network_cidr
+ensure_not_replace_value primary_network_gateway
+ensure_not_replace_value primary_network_range
+ensure_not_replace_value primary_network_manual_ip
+
+ensure_not_replace_value secondary_network_id
+ensure_not_replace_value secondary_network_cidr
+ensure_not_replace_value secondary_network_gateway
+ensure_not_replace_value secondary_network_range
+ensure_not_replace_value secondary_network_manual_ip
 
 ####
 #
 # TODO:
 # - check that all environment variables defined in pipeline.yml are set
 # - reference stemcell like vCloud bats job does
-# - upload new keypair to bluebox/mirantis with `external-cpi` tag to tell which vms have been deployed by which ci
-# - use heredoc to generate deployment spec
 # - copy rogue vm check from vSphere pipeline
 #
 ####
 
-cpi_release_name=bosh-openstack-cpi
 working_dir=$PWD
+
+# checked by BATs environment helper (bosh-acceptance-tests.git/lib/bat/env.rb)
+export BAT_STEMCELL="${working_dir}/stemcell/stemcell.tgz"
+export BAT_VCAP_PRIVATE_KEY="$working_dir/keys/bats.pem"
+export BAT_DIRECTOR=${bosh_director_public_ip}
+export BAT_VCAP_PASSWORD=${desired_vcap_user_password}
+export BAT_DNS_HOST=${bosh_director_public_ip}
+export BAT_INFRASTRUCTURE='openstack'
+export BAT_NETWORKING='manual'
 
 source /etc/profile.d/chruby.sh
 chruby 2.1.2
 
-eval $(ssh-agent)
-chmod go-r $BAT_VCAP_PRIVATE_KEY
-ssh-add $BAT_VCAP_PRIVATE_KEY
+mkdir -p $working_dir/keys
+export BAT_VCAP_PRIVATE_KEY="$working_dir/keys/bats.pem"
+echo "$private_key_data" > $BAT_VCAP_PRIVATE_KEY
 
-export BAT_STEMCELL="$working_dir/stemcell/stemcell.tgz"
-export BAT_VCAP_PRIVATE_KEY="$PWD/$BAT_VCAP_PRIVATE_KEY"
+eval $(ssh-agent)
+chmod go-r $working_dir/keys/bats.pem
+ssh-add $working_dir/keys/bats.pem
 
 echo "using bosh CLI version..."
 bosh version
 
-bosh -n target $BAT_DIRECTOR
+bosh -n target ${bosh_director_public_ip}
 
-# TODO double-check on second_static_ip - may be deprecated, unnecessary, as seems to be using the sane as the default static ip
 export BAT_DEPLOYMENT_SPEC="${working_dir}/bats-config.yml"
 cat > $BAT_DEPLOYMENT_SPEC <<EOF
 ---
 cpi: openstack
 properties:
-  key_name: external-cpi
+  key_name: 
   pool_size: 1
   instances: 1
   uuid: $(bosh status --uuid)
-  vip: ${BAT_VM_FLOATING_IP}
-  second_static_ip: ${BOSH_OPENSTACK_MANUAL_IP}
-  instance_type: ${openstack_bats_flavor_with_ephemeral_disk}
-  flavor_with_no_ephemeral_disk: ${openstack_bats_flavor_with_no_ephemeral_disk}
+  vip: ${bats_vm_floating_ip}
+  second_static_ip: ${secondary_network_manual_ip}
+  instance_type: ${openstack_flavor_with_ephemeral_disk}
+  flavor_with_no_ephemeral_disk: ${openstack_flavor_with_no_ephemeral_disk}
   stemcell:
-    name: ${bat_stemcell_name}
+    name: ${stemcell_name}
     version: latest
   networks:
   - name: default
-    static_ip: ${BOSH_OPENSTACK_MANUAL_IP}
+    static_ip: ${primary_network_manual_ip}
     type: manual
     cloud_properties:
-      net_id: ${openstack_bats_default_network_id}
-      security_groups: ['${openstack_bat_security_group}']
-    cidr: ${BAT_CIDR}
+      net_id: ${primary_network_id}
+      security_groups: [${openstack_security_group}]
+    cidr: ${primary_network_cidr}
     reserved: []
-    static: [${BAT_STATIC_RANGE}]
-    gateway: ${BAT_GATEWAY}
+    static: [${primary_network_range}]
+    gateway: ${primary_network_gateway}
   - name: second
-    static_ip: ${BOSH_OPENSTACK_SECOND_MANUAL_IP}
+    static_ip: ${secondary_network_manual_ip}
     type: manual
     cloud_properties:
-      net_id: ${openstack_bats_second_network_id}
-      security_groups: [${openstack_bat_security_group}]
-    cidr: ${BAT_SECOND_CIDR}
+      net_id: ${secondary_network_id}
+      security_groups: [${openstack_security_group}]
+    cidr: ${secondary_network_cidr}
     reserved: []
-    static: [${BOSH_OPENSTACK_SECOND_MANUAL_IP}]
-    gateway: ${BAT_SECOND_GATEWAY}
+    static: [${secondary_network_manual_ip}]
+    gateway: ${secondary_network_gateway}
 EOF
 
 cd bats
