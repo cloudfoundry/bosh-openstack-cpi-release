@@ -260,7 +260,7 @@ jobs:
         openstack_username:            {{openstack_username}}
         openstack_api_key:             {{openstack_api_key}}
         openstack_tenant:              {{openstack_tenant}}
-        openstack_floating_ip:         {{bats_manual_ubuntu_director_public_ip}}
+        openstack_floating_ip:         {{bats_manual_centos_director_public_ip}}
 
   - conditions: [success, failure]
     task: save-deployment
