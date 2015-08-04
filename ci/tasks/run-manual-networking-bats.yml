@@ -22,6 +22,7 @@ params:
   primary_network_gateway:                  replace-me
   primary_network_range:                    replace-me
   primary_network_manual_ip:                replace-me
+  primary_network_second_manual_ip:         replace-me
   secondary_network_id:                     replace-me
   secondary_network_cidr:                   replace-me
   secondary_network_gateway:                replace-me

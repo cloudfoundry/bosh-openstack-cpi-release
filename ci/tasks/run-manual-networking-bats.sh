@@ -25,6 +25,7 @@ ensure_not_replace_value primary_network_cidr
 ensure_not_replace_value primary_network_gateway
 ensure_not_replace_value primary_network_range
 ensure_not_replace_value primary_network_manual_ip
+ensure_not_replace_value primary_network_second_manual_ip
 
 ensure_not_replace_value secondary_network_id
 ensure_not_replace_value secondary_network_cidr
@@ -78,7 +79,7 @@ properties:
   instances: 1
   uuid: $(bosh status --uuid)
   vip: ${bats_vm_floating_ip}
-  second_static_ip: ${secondary_network_manual_ip}
+  second_static_ip: ${primary_network_second_manual_ip}
   instance_type: ${openstack_flavor_with_ephemeral_disk}
   flavor_with_no_ephemeral_disk: ${openstack_flavor_with_no_ephemeral_disk}
   stemcell:

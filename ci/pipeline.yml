@@ -149,6 +149,7 @@ jobs:
         primary_network_gateway:                  {{bats_manual_ubuntu_primary_net_gateway}}
         primary_network_range:                    {{bats_manual_ubuntu_primary_net_static_range}}
         primary_network_manual_ip:                {{bats_manual_ubuntu_primary_net_manual_ip}}
+        primary_network_second_manual_ip:         {{bats_manual_ubuntu_primary_net_second_manual_ip}}
         secondary_network_id:                     {{bats_manual_ubuntu_secondary_net_id}}
         secondary_network_cidr:                   {{bats_manual_ubuntu_secondary_net_cidr}}
         secondary_network_gateway:                {{bats_manual_ubuntu_secondary_net_gateway}}
@@ -302,6 +303,7 @@ jobs:
         primary_network_gateway:                  {{bats_manual_centos_primary_net_gateway}}
         primary_network_range:                    {{bats_manual_centos_primary_net_static_range}}
         primary_network_manual_ip:                {{bats_manual_centos_primary_net_manual_ip}}
+        primary_network_second_manual_ip:         {{bats_manual_centos_primary_net_second_manual_ip}}
         secondary_network_id:                     {{bats_manual_centos_secondary_net_id}}
         secondary_network_cidr:                   {{bats_manual_centos_secondary_net_cidr}}
         secondary_network_gateway:                {{bats_manual_centos_secondary_net_gateway}}
