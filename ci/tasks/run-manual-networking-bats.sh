@@ -16,6 +16,7 @@ ensure_not_replace_value openstack_security_group
 ensure_not_replace_value openstack_flavor_with_ephemeral_disk
 ensure_not_replace_value openstack_flavor_with_no_ephemeral_disk
 ensure_not_replace_value bosh_director_public_ip
+ensure_not_replace_value bosh_director_private_ip
 ensure_not_replace_value desired_vcap_user_password
 ensure_not_replace_value bats_vm_floating_ip
 ensure_not_replace_value private_key_data
@@ -93,7 +94,7 @@ properties:
       net_id: ${primary_network_id}
       security_groups: [${openstack_security_group}]
     cidr: ${primary_network_cidr}
-    reserved: []
+    reserved: [${bosh_director_private_ip}]
     static: [${primary_network_range}]
     gateway: ${primary_network_gateway}
   - name: second

@@ -145,6 +145,7 @@ jobs:
         openstack_flavor_with_no_ephemeral_disk:  {{openstack_flavor_with_no_ephemeral_disk}}
         desired_vcap_user_password:               {{bosh_desired_vcap_user_password}}
         bosh_director_public_ip:                  {{bats_manual_ubuntu_director_public_ip}}
+        bosh_director_private_ip:                 {{bats_manual_ubuntu_director_private_ip}}
         bats_vm_floating_ip:                      {{bats_manual_ubuntu_floating_ip}}
         primary_network_id:                       {{bats_manual_ubuntu_primary_net_id}}
         primary_network_cidr:                     {{bats_manual_ubuntu_primary_net_cidr}}
@@ -301,6 +302,7 @@ jobs:
         openstack_flavor_with_no_ephemeral_disk:  {{openstack_flavor_with_no_ephemeral_disk}}
         desired_vcap_user_password:               {{bosh_desired_vcap_user_password}}
         bosh_director_public_ip:                  {{bats_manual_centos_director_public_ip}}
+        bosh_director_private_ip:                 {{bats_manual_centos_director_private_ip}}
         bats_vm_floating_ip:                      {{bats_manual_centos_floating_ip}}
         primary_network_id:                       {{bats_manual_centos_primary_net_id}}
         primary_network_cidr:                     {{bats_manual_centos_primary_net_cidr}}
