@@ -109,6 +109,7 @@ jobs:
 
   networks:
   - name: private
+    static_ips: [${openstack_manual_ip}]
     default: [dns, gateway]
   - name: public
     static_ips: [${openstack_floating_ip}]
