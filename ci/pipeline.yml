@@ -108,19 +108,18 @@ jobs:
         openstack_api_key:             {{openstack_api_key}}
         openstack_tenant:              {{openstack_tenant}}
         openstack_floating_ip:         {{bats_manual_ubuntu_director_public_ip}}
-
-  - conditions: [success, failure]
-    task: save-deployment
-    file: bosh-cpi-release/ci/tasks/save-deployment.yml
-    config:
-      params:
-        base_os: ubuntu
-        network_type_to_test: manual
-
-  - put: bosh-concourse-ci
-    params:
-      repository: save-deployment/deploy/bosh-concourse-ci
-      rebase: true
+    ensure:
+      do:
+      - task: save-deployment
+        file: bosh-cpi-release/ci/tasks/save-deployment.yml
+        config:
+          params:
+            base_os: ubuntu
+            network_type_to_test: manual
+      - put: bosh-concourse-ci
+        params:
+          repository: save-deployment/deploy/bosh-concourse-ci
+          rebase: true
 
 - name: bats-ubuntu-manual
   serial_groups: [ubuntu-director-manual] # can't run while deploying
@@ -189,21 +188,18 @@ jobs:
         openstack_api_key:             {{openstack_api_key}}
         openstack_tenant:              {{openstack_tenant}}
         openstack_floating_ip:         {{bats_dynamic_ubuntu_director_public_ip}}
-
-
-
-  - conditions: [success, failure]
-    task: save-deployment
-    file: bosh-cpi-release/ci/tasks/save-deployment.yml
-    config:
-      params:
-        base_os: ubuntu
-        network_type_to_test: dynamic
-
-  - put: bosh-concourse-ci
-    params:
-      repository: save-deployment/deploy/bosh-concourse-ci
-      rebase: true
+    ensure:
+      do:
+      - task: save-deployment
+        file: bosh-cpi-release/ci/tasks/save-deployment.yml
+        config:
+          params:
+            base_os: ubuntu
+            network_type_to_test: dynamic
+      - put: bosh-concourse-ci
+        params:
+          repository: save-deployment/deploy/bosh-concourse-ci
+          rebase: true
 
 - name: bats-ubuntu-dynamic
   serial_groups: [ubuntu-director-dynamic] # can't run while deploying
@@ -262,19 +258,18 @@ jobs:
         openstack_api_key:             {{openstack_api_key}}
         openstack_tenant:              {{openstack_tenant}}
         openstack_floating_ip:         {{bats_manual_centos_director_public_ip}}
-
-  - conditions: [success, failure]
-    task: save-deployment
-    file: bosh-cpi-release/ci/tasks/save-deployment.yml
-    config:
-      params:
-        base_os: centos
-        network_type_to_test: manual
-
-  - put: bosh-concourse-ci
-    params:
-      repository: save-deployment/deploy/bosh-concourse-ci
-      rebase: true
+    ensure:
+      do:
+      - task: save-deployment
+        file: bosh-cpi-release/ci/tasks/save-deployment.yml
+        config:
+          params:
+            base_os: centos
+            network_type_to_test: manual
+      - put: bosh-concourse-ci
+        params:
+          repository: save-deployment/deploy/bosh-concourse-ci
+          rebase: true
 
 - name: bats-centos-manual
   serial_groups: [centos-director-manual] # can't run while deploying
@@ -343,19 +338,18 @@ jobs:
         openstack_api_key:             {{openstack_api_key}}
         openstack_tenant:              {{openstack_tenant}}
         openstack_floating_ip:         {{bats_dynamic_centos_director_public_ip}}
-
-  - conditions: [success, failure]
-    task: save-deployment
-    file: bosh-cpi-release/ci/tasks/save-deployment.yml
-    config:
-      params:
-        base_os: centos
-        network_type_to_test: dynamic
-
-  - put: bosh-concourse-ci
-    params:
-      repository: save-deployment/deploy/bosh-concourse-ci
-      rebase: true
+    ensure:
+      do:
+      - task: save-deployment
+        file: bosh-cpi-release/ci/tasks/save-deployment.yml
+        config:
+          params:
+            base_os: centos
+            network_type_to_test: dynamic
+      - put: bosh-concourse-ci
+        params:
+          repository: save-deployment/deploy/bosh-concourse-ci
+          rebase: true
 
 - name: bats-centos-dynamic
   serial_groups: [centos-director-dynamic] # can't run while deploying
