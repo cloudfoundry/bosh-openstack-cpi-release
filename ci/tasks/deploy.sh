@@ -28,6 +28,9 @@ ensure_not_replace_value openstack_username
 ensure_not_replace_value openstack_api_key
 ensure_not_replace_value openstack_tenant
 ensure_not_replace_value openstack_floating_ip
+ensure_not_replace_value openstack_manual_ip
+ensure_not_replace_value openstack_net_cidr
+ensure_not_replace_value openstack_net_gateway
 
 source /etc/profile.d/chruby-with-ruby-2.1.2.sh
 
@@ -64,11 +67,15 @@ releases:
 
 networks:
 - name: private
-  type: dynamic
-  dns: ['8.8.8.8']
-  cloud_properties:
-    net_id: $openstack_net_id
-    security_groups: [${openstack_security_group}]
+  type: manual
+  subnets:
+   - range:   ${openstack_net_cidr}
+     gateway: ${openstack_net_gateway}
+     dns:     [8.8.8.8]
+     static:  [${openstack_manual_ip}]
+     cloud_properties:
+       net_id: ${openstack_net_id}
+       security_groups: [${openstack_security_group}]
 - name: public
   type: vip
 

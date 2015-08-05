@@ -29,3 +29,6 @@ params:
   openstack_api_key:             replace-me
   openstack_tenant:              replace-me
   openstack_floating_ip:         replace-me
+  openstack_manual_ip:           replace-me
+  openstack_net_cidr:            replace-me
+  openstack_net_gateway:         replace-me
