@@ -443,7 +443,7 @@ resources:
   type: git
   source:
     uri: https://github.com/cloudfoundry/bosh.git
-    branch: openstack-external-cpi
+    branch: develop
 
 - name: bats
   type: git
