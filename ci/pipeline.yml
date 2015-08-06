@@ -88,7 +88,7 @@ jobs:
     - {trigger: false,                            get: stemcell, resource: openstack-ubuntu-stemcell}
 
   - task: deploy
-    file: bosh-cpi-release/ci/tasks/deploy.yml
+    file: bosh-cpi-release/ci/tasks/deploy-manual-networking.yml
     config:
       params:
         base_os:                       "ubuntu"
@@ -172,7 +172,7 @@ jobs:
     - {trigger: false,                            get: stemcell, resource: openstack-ubuntu-stemcell}
 
   - task: deploy
-    file: bosh-cpi-release/ci/tasks/deploy.yml
+    file: bosh-cpi-release/ci/tasks/deploy-dynamic-networking.yml
     config:
       params:
         base_os:                       "ubuntu"
@@ -192,9 +192,6 @@ jobs:
         openstack_api_key:             {{openstack_api_key}}
         openstack_tenant:              {{openstack_tenant}}
         openstack_floating_ip:         {{bats_dynamic_ubuntu_director_public_ip}}
-        openstack_manual_ip:           {{bats_dynamic_ubuntu_director_private_ip}}
-        openstack_net_cidr:            {{bats_dynamic_ubuntu_net_cidr}}
-        openstack_net_gateway:         {{bats_dynamic_ubuntu_net_gateway}}
     ensure:
       do:
       - task: save-deployment
@@ -245,7 +242,7 @@ jobs:
     - {trigger: false,                            get: stemcell, resource: openstack-centos-stemcell}
 
   - task: deploy
-    file: bosh-cpi-release/ci/tasks/deploy.yml
+    file: bosh-cpi-release/ci/tasks/deploy-manual-networking.yml
     config:
       params:
         base_os:                       "centos"
@@ -329,7 +326,7 @@ jobs:
     - {trigger: false,                            get: stemcell, resource: openstack-centos-stemcell}
 
   - task: deploy
-    file: bosh-cpi-release/ci/tasks/deploy.yml
+    file: bosh-cpi-release/ci/tasks/deploy-dynamic-networking.yml
     config:
       params:
         base_os:                       "centos"
@@ -349,9 +346,6 @@ jobs:
         openstack_api_key:             {{openstack_api_key}}
         openstack_tenant:              {{openstack_tenant}}
         openstack_floating_ip:         {{bats_dynamic_centos_director_public_ip}}
-        openstack_manual_ip:           {{bats_dynamic_centos_director_private_ip}}
-        openstack_net_cidr:            {{bats_dynamic_centos_net_cidr}}
-        openstack_net_gateway:         {{bats_dynamic_centos_net_gateway}}
     ensure:
       do:
       - task: save-deployment
