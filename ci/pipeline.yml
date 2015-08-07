@@ -67,13 +67,16 @@ jobs:
     file: bosh-cpi-release/ci/tasks/run-lifecycle.yml
     config:
       params:
-        BOSH_OPENSTACK_TENANT:      {{openstack_tenant}}
-        BOSH_OPENSTACK_MANUAL_IP:   {{lifecycle_manual_ip}}
-        BOSH_OPENSTACK_NET_ID:      {{lifecycle_openstack_net_id}}
-        BOSH_OPENSTACK_STEMCELL_ID: {{lifecycle_stemcell_id}}
-        BOSH_OPENSTACK_AUTH_URL:    {{openstack_auth_url}}
-        BOSH_OPENSTACK_USERNAME:    {{openstack_username}}
-        BOSH_OPENSTACK_API_KEY:     {{openstack_api_key}}
+        BOSH_OPENSTACK_TENANT:        {{openstack_tenant}}
+        BOSH_OPENSTACK_MANUAL_IP:     {{lifecycle_manual_ip}}
+        BOSH_OPENSTACK_NET_ID:        {{lifecycle_openstack_net_id}}
+        BOSH_OPENSTACK_STEMCELL_ID:   {{lifecycle_stemcell_id}}
+        BOSH_OPENSTACK_AUTH_URL:      {{openstack_auth_url}}
+        BOSH_OPENSTACK_USERNAME:      {{openstack_username}}
+        BOSH_OPENSTACK_API_KEY:       {{openstack_api_key}}
+        openstack_connection_timeout: "600"
+        openstack_read_timeout:       "120"
+        openstack_write_timeout:      "120"
 
 - name: deploy-ubuntu-manual
   serial_groups: [ubuntu-director-manual] # shouldn't deploy while bats are running

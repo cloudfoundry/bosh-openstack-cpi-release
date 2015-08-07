@@ -16,3 +16,6 @@ params:
   BOSH_OPENSTACK_STEMCELL_ID:         replace-me
   BOSH_CLI_SILENCE_SLOW_LOAD_WARNING: true
   BOSH_OPENSTACK_VOLUME_TYPE:         "SSD"
+  openstack_connection_timeout:       replace-me
+  openstack_read_timeout:             replace-me
+  openstack_write_timeout:            replace-me
