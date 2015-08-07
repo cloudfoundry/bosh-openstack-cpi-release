@@ -446,7 +446,7 @@ resources:
   type: git
   source:
     uri: https://github.com/cloudfoundry/bosh.git
-    branch: develop
+    branch: wip-100786866-openstack-connection-options
 
 - name: bats
   type: git
