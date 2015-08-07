@@ -13,4 +13,15 @@ See [Initializing a BOSH environment on Openstack](https://bosh.io/docs/init-ope
 ## Development
 
 See [development doc](docs/development.md).
-testing
+
+### Deploying concourse locally
+
+Below instructions assume you have a local concourse running and a BOSH environment on Openstack.
+
+See [Concourse - Getting Started](http://concourse.ci/getting-started.html)
+
+Configure concourse with your [pipeline.yml](ci/pipeline.yml), see how [parameters are passed](http://concourse.ci/fly-cli.html#fly-configure).
+
+```
+fly configure -c ci/pipeline.yml -vf /path/to/secrets.yml
+```
