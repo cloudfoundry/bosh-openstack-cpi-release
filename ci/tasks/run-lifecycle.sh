@@ -22,9 +22,9 @@ ensure_not_replace_value openstack_connection_timeout
 ensure_not_replace_value openstack_read_timeout
 ensure_not_replace_value openstack_write_timeout
 
-export BOSH_OPENSTACK_CONNECT_TIMEOUT=openstack_connection_timeout
-export BOSH_OPENSTACK_READ_TIMEOUT=openstack_read_timeout
-export BOSH_OPENSTACK_WRITE_TIMEOUT=openstack_write_timeout
+export BOSH_OPENSTACK_CONNECT_TIMEOUT=${openstack_connection_timeout}
+export BOSH_OPENSTACK_READ_TIMEOUT=${openstack_read_timeout}
+export BOSH_OPENSTACK_WRITE_TIMEOUT=${openstack_write_timeout}
 
 source /etc/profile.d/chruby-with-ruby-2.1.2.sh
 
