@@ -43,7 +43,7 @@ working_dir=$PWD
 mkdir -p $working_dir/keys
 echo "$private_key_data" > $working_dir/keys/bats.pem
 
-manifest_dir="${working_dir}/tmp"
+manifest_dir="${working_dir}/director-state-file"
 manifest_prefix=${base_os}-${network_type_to_test}-director-manifest
 manifest_filename=${manifest_prefix}.yml
 
@@ -210,11 +210,6 @@ cloud_provider:
 
     ntp: *ntp
 EOF
-
-set +e
-echo "if previous runs state file exists, copy into: ${manifest_dir}"
-cp bosh-concourse-ci/pipelines/${cpi_release_name}/${manifest_prefix}-state.json ${manifest_dir}/
-set -e
 
 initver=$(cat bosh-init/version)
 bosh_init="${working_dir}/bosh-init/bosh-init-${initver}-linux-amd64"

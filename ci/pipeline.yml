@@ -85,7 +85,7 @@ jobs:
     - {trigger: true,  passed: [build-candidate], get: bosh-cpi-dev-artifacts}
     - {trigger: false, passed: [build-candidate], get: version-semver}
     - {trigger: false, passed: [build-candidate], get: bosh-cpi-release}
-    - {trigger: false,                            get: bosh-concourse-ci }
+    - {trigger: false,                            get: director-state-file, resource: ubuntu-manual-director-state-file}
     - {trigger: false,                            get: bosh-init}
     - {trigger: false,                            get: bosh-release}
     - {trigger: false,                            get: stemcell, resource: openstack-ubuntu-stemcell}
@@ -115,17 +115,8 @@ jobs:
         openstack_net_cidr:            {{bats_manual_ubuntu_primary_net_cidr}}
         openstack_net_gateway:         {{bats_manual_ubuntu_primary_net_gateway}}
     ensure:
-      do:
-      - task: save-deployment
-        file: bosh-cpi-release/ci/tasks/save-deployment.yml
-        config:
-          params:
-            base_os: ubuntu
-            network_type_to_test: manual
-      - put: bosh-concourse-ci
-        params:
-          repository: save-deployment/deploy/bosh-concourse-ci
-          rebase: true
+      put: ubuntu-manual-director-state-file
+      params: {from: deploy/director-state-file/ubuntu-manual-director-manifest-state.json}
 
 - name: bats-ubuntu-manual
   serial_groups: [ubuntu-director-manual] # can't run while deploying
@@ -169,7 +160,7 @@ jobs:
     - {trigger: true,  passed: [build-candidate], get: bosh-cpi-dev-artifacts}
     - {trigger: false, passed: [build-candidate], get: version-semver}
     - {trigger: false, passed: [build-candidate], get: bosh-cpi-release}
-    - {trigger: false,                            get: bosh-concourse-ci }
+    - {trigger: false,                            get: director-state-file, resource: ubuntu-dynamic-director-state-file}
     - {trigger: false,                            get: bosh-init}
     - {trigger: false,                            get: bosh-release}
     - {trigger: false,                            get: stemcell, resource: openstack-ubuntu-stemcell}
@@ -196,17 +187,8 @@ jobs:
         openstack_tenant:              {{openstack_tenant}}
         openstack_floating_ip:         {{bats_dynamic_ubuntu_director_public_ip}}
     ensure:
-      do:
-      - task: save-deployment
-        file: bosh-cpi-release/ci/tasks/save-deployment.yml
-        config:
-          params:
-            base_os: ubuntu
-            network_type_to_test: dynamic
-      - put: bosh-concourse-ci
-        params:
-          repository: save-deployment/deploy/bosh-concourse-ci
-          rebase: true
+      put: ubuntu-dynamic-director-state-file
+      params: {from: deploy/director-state-file/ubuntu-dynamic-director-manifest-state.json}
 
 - name: bats-ubuntu-dynamic
   serial_groups: [ubuntu-director-dynamic] # can't run while deploying
@@ -239,7 +221,7 @@ jobs:
     - {trigger: true,  passed: [build-candidate], get: bosh-cpi-dev-artifacts}
     - {trigger: false, passed: [build-candidate], get: version-semver}
     - {trigger: false, passed: [build-candidate], get: bosh-cpi-release}
-    - {trigger: false,                            get: bosh-concourse-ci }
+    - {trigger: false,                            get: director-state-file, resource: centos-manual-director-state-file}
     - {trigger: false,                            get: bosh-init}
     - {trigger: false,                            get: bosh-release}
     - {trigger: false,                            get: stemcell, resource: openstack-centos-stemcell}
@@ -269,17 +251,8 @@ jobs:
         openstack_net_cidr:            {{bats_manual_centos_primary_net_cidr}}
         openstack_net_gateway:         {{bats_manual_centos_primary_net_gateway}}
     ensure:
-      do:
-      - task: save-deployment
-        file: bosh-cpi-release/ci/tasks/save-deployment.yml
-        config:
-          params:
-            base_os: centos
-            network_type_to_test: manual
-      - put: bosh-concourse-ci
-        params:
-          repository: save-deployment/deploy/bosh-concourse-ci
-          rebase: true
+      put: centos-manual-director-state-file
+      params: {from: deploy/director-state-file/centos-manual-director-manifest-state.json}
 
 - name: bats-centos-manual
   serial_groups: [centos-director-manual] # can't run while deploying
@@ -323,7 +296,7 @@ jobs:
     - {trigger: true,  passed: [build-candidate], get: bosh-cpi-dev-artifacts}
     - {trigger: false, passed: [build-candidate], get: version-semver}
     - {trigger: false, passed: [build-candidate], get: bosh-cpi-release}
-    - {trigger: false,                            get: bosh-concourse-ci }
+    - {trigger: false,                            get: director-state-file, resource: centos-dynamic-director-state-file}
     - {trigger: false,                            get: bosh-init}
     - {trigger: false,                            get: bosh-release}
     - {trigger: false,                            get: stemcell, resource: openstack-centos-stemcell}
@@ -350,17 +323,8 @@ jobs:
         openstack_tenant:              {{openstack_tenant}}
         openstack_floating_ip:         {{bats_dynamic_centos_director_public_ip}}
     ensure:
-      do:
-      - task: save-deployment
-        file: bosh-cpi-release/ci/tasks/save-deployment.yml
-        config:
-          params:
-            base_os: centos
-            network_type_to_test: dynamic
-      - put: bosh-concourse-ci
-        params:
-          repository: save-deployment/deploy/bosh-concourse-ci
-          rebase: true
+      put: centos-dynamic-director-state-file
+      params: {from: deploy/director-state-file/centos-dynamic-director-manifest-state.json}
 
 - name: bats-centos-dynamic
   serial_groups: [centos-director-dynamic] # can't run while deploying
@@ -409,6 +373,42 @@ resources:
   source:
     regexp: bosh-openstack-cpi\.tgz
     bucket: bosh-openstack-cpi-pipeline # OpenStack CPI account
+    region_name: us-east-1
+    access_key_id: {{s3_openstack_cpi_access_key}}
+    secret_access_key: {{s3_openstack_cpi_secret_key}}
+
+- name: ubuntu-manual-director-state-file
+  type: s3
+  source:
+    bucket: bosh-openstack-cpi-state-files
+    versioned_file: ubuntu-manual-director-manifest-state.json
+    region_name: us-east-1
+    access_key_id: {{s3_openstack_cpi_access_key}}
+    secret_access_key: {{s3_openstack_cpi_secret_key}}
+
+- name: centos-manual-director-state-file
+  type: s3
+  source:
+    bucket: bosh-openstack-cpi-state-files
+    versioned_file: centos-manual-director-manifest-state.json
+    region_name: us-east-1
+    access_key_id: {{s3_openstack_cpi_access_key}}
+    secret_access_key: {{s3_openstack_cpi_secret_key}}
+
+- name: ubuntu-dynamic-director-state-file
+  type: s3
+  source:
+    bucket: bosh-openstack-cpi-state-files
+    versioned_file: ubuntu-dynamic-director-manifest-state.json
+    region_name: us-east-1
+    access_key_id: {{s3_openstack_cpi_access_key}}
+    secret_access_key: {{s3_openstack_cpi_secret_key}}
+
+- name: centos-dynamic-director-state-file
+  type: s3
+  source:
+    bucket: bosh-openstack-cpi-state-files
+    versioned_file: centos-dynamic-director-manifest-state.json
     region_name: us-east-1
     access_key_id: {{s3_openstack_cpi_access_key}}
     secret_access_key: {{s3_openstack_cpi_secret_key}}

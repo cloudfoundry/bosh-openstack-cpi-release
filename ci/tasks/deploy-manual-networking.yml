@@ -4,7 +4,7 @@ image: docker:///bosh/openstack-cpi-release
 inputs:
   - name: bosh-cpi-release       # --- location of task script to run
   - name: bosh-init              # --- bosh-init executable to do deploy
-  - name: bosh-concourse-ci      # --- repository to get manifest and store deployment state file
+  - name: director-state-file    # --- repository to get and store deployment state file
   - name: bosh-release           # -\
   - name: bosh-cpi-dev-artifacts # -++ used for deployment manifest referenced by manifest_path
   - name: version-semver         # -//
