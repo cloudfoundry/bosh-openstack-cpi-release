@@ -4,7 +4,6 @@ image: docker:///bosh/openstack-cpi-release
 inputs:
   - name: bosh-cpi-release
   - name: stemcell
-  - name: bosh-concourse-ci
   - name: bats
 run:
   path: bosh-cpi-release/ci/tasks/run-dynamic-networking-bats.sh

@@ -125,7 +125,6 @@ jobs:
     - {trigger: true,  passed: [deploy-ubuntu-manual], get: bosh-cpi-dev-artifacts}
     - {trigger: false, passed: [deploy-ubuntu-manual], get: bosh-cpi-release}
     - {trigger: false, passed: [deploy-ubuntu-manual], get: stemcell, resource: openstack-ubuntu-stemcell}
-    - {trigger: false, passed: [deploy-ubuntu-manual], get: bosh-concourse-ci}
     - {trigger: false,                                 get: bats}
 
   - task: test
@@ -197,7 +196,6 @@ jobs:
     - {trigger: true,  passed: [deploy-ubuntu-dynamic], get: bosh-cpi-dev-artifacts}
     - {trigger: false, passed: [deploy-ubuntu-dynamic], get: bosh-cpi-release}
     - {trigger: false, passed: [deploy-ubuntu-dynamic], get: stemcell, resource: openstack-ubuntu-stemcell}
-    - {trigger: false, passed: [deploy-ubuntu-dynamic], get: bosh-concourse-ci}
     - {trigger: false,                                 get: bats}
 
   - task: test
@@ -260,7 +258,6 @@ jobs:
   - aggregate:
     - {trigger: true,  passed: [deploy-centos-manual], get: bosh-cpi-dev-artifacts}
     - {trigger: false, passed: [deploy-centos-manual], get: stemcell, resource: openstack-centos-stemcell}
-    - {trigger: false, passed: [deploy-centos-manual], get: bosh-concourse-ci}
     - {trigger: false, passed: [deploy-centos-manual], get: bosh-cpi-release}
     - {trigger: false,                                 get: bats}
 
@@ -332,7 +329,6 @@ jobs:
   - aggregate:
     - {trigger: true,  passed: [deploy-centos-dynamic], get: bosh-cpi-dev-artifacts}
     - {trigger: false, passed: [deploy-centos-dynamic], get: stemcell, resource: openstack-centos-stemcell}
-    - {trigger: false, passed: [deploy-centos-dynamic], get: bosh-concourse-ci}
     - {trigger: false, passed: [deploy-centos-dynamic], get: bosh-cpi-release}
     - {trigger: false,                                 get: bats}
 
@@ -412,13 +408,6 @@ resources:
     region_name: us-east-1
     access_key_id: {{s3_openstack_cpi_access_key}}
     secret_access_key: {{s3_openstack_cpi_secret_key}}
-
-- name: bosh-concourse-ci
-  type: git
-  source:
-    uri: git@github.com:cloudfoundry/bosh-concourse-ci.git
-    branch: master
-    private_key: {{github_deployment_key__bosh-concourse-ci}}
 
 - name: bosh-cpi-release
   type: git
