@@ -32,4 +32,4 @@ tar zxvf ruby_openstack_cpi/rubygems-2.3.0.tgz
   fi
 )
 
-${BOSH_INSTALL_TARGET}/bin/gem install ruby/bundler-1.6.3.gem --local --no-ri --no-rdoc
+${BOSH_INSTALL_TARGET}/bin/gem install ruby_openstack_cpi/bundler-1.6.3.gem --local --no-ri --no-rdoc
