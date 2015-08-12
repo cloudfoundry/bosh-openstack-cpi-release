@@ -24,7 +24,7 @@ PATH=$BOSH_PACKAGES_DIR/ruby_openstack_cpi/bin:$PATH
 export PATH
 
 export BUNDLE_GEMFILE=$BOSH_PACKAGES_DIR/bosh_openstack_cpi/Gemfile
-export GEM_HOME=$BOSH_PACKAGES_DIR/bosh_openstack_cpi/gem_home/ruby/1.9.1
+export GEM_HOME=$BOSH_PACKAGES_DIR/bosh_openstack_cpi/gem_home/ruby/2.1.0
 
 echo $INPUT | $BOSH_PACKAGES_DIR/bosh_openstack_cpi/bin/openstack_cpi \
   $BOSH_JOBS_DIR/cpi/config/cpi.json
