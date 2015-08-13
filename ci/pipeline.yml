@@ -76,9 +76,9 @@ jobs:
         BOSH_OPENSTACK_API_KEY:             {{openstack_api_key}}
         BOSH_CLI_SILENCE_SLOW_LOAD_WARNING: true
         BOSH_OPENSTACK_VOLUME_TYPE:         "SSD"
-        openstack_connection_timeout:       "600"
-        openstack_read_timeout:             "120"
-        openstack_write_timeout:            "120"
+        BOSH_OPENSTACK_CONNECT_TIMEOUT:     "600"
+        BOSH_OPENSTACK_READ_TIMEOUT:        "120"
+        BOSH_OPENSTACK_WRITE_TIMEOUT:       "120"
 
 - name: deploy-ubuntu-manual
   serial_groups: [ubuntu-director-manual] # shouldn't deploy while bats are running
