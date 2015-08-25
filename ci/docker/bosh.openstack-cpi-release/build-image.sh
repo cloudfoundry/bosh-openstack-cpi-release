@@ -2,7 +2,7 @@
 
 set -e
 
-DOCKER_IMAGE=${DOCKER_IMAGE:-bosh/openstack-cpi-release}
+DOCKER_IMAGE=${DOCKER_IMAGE:-boshcpi/openstack-cpi-release}
 
 docker login
 
