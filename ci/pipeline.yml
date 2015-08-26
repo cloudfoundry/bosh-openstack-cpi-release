@@ -359,8 +359,8 @@ jobs:
     file: bosh-cpi-release/ci/tasks/promote-candidate.yml
     config:
       params:
-        aws_access_key_id: {{s3_openstack_cpi_access_key}}
-        aws_secret_access_key: {{s3_openstack_cpi_secret_key}}
+        aws_access_key_id: {{s3_openstack_cpi_blobs_access_key}}
+        aws_secret_access_key: {{s3_openstack_cpi_blobs_secret_key}}
 
   - put: bosh-cpi-release
     params: {repository: promote/bosh-cpi-release, rebase: true}
@@ -372,8 +372,8 @@ resources:
     regexp: bosh-openstack-cpi\.tgz
     bucket: bosh-openstack-cpi-pipeline # OpenStack CPI account
     region_name: us-east-1
-    access_key_id: {{s3_openstack_cpi_access_key}}
-    secret_access_key: {{s3_openstack_cpi_secret_key}}
+    access_key_id:      {{s3_openstack_cpi_pipeline_access_key}}
+    secret_access_key:  {{s3_openstack_cpi_pipeline_secret_key}}
 
 - name: ubuntu-manual-director-state-file
   type: s3
@@ -381,8 +381,8 @@ resources:
     bucket: bosh-openstack-cpi-state-files
     versioned_file: ubuntu-manual-director-manifest-state.json
     region_name: us-east-1
-    access_key_id: {{s3_openstack_cpi_access_key}}
-    secret_access_key: {{s3_openstack_cpi_secret_key}}
+    access_key_id: {{s3_openstack_cpi_state_files_access_key}}
+    secret_access_key: {{s3_openstack_cpi_state_files_secret_key}}
 
 - name: centos-manual-director-state-file
   type: s3
@@ -390,8 +390,8 @@ resources:
     bucket: bosh-openstack-cpi-state-files
     versioned_file: centos-manual-director-manifest-state.json
     region_name: us-east-1
-    access_key_id: {{s3_openstack_cpi_access_key}}
-    secret_access_key: {{s3_openstack_cpi_secret_key}}
+    access_key_id: {{s3_openstack_cpi_state_files_access_key}}
+    secret_access_key: {{s3_openstack_cpi_state_files_secret_key}}
 
 - name: ubuntu-dynamic-director-state-file
   type: s3
@@ -399,8 +399,8 @@ resources:
     bucket: bosh-openstack-cpi-state-files
     versioned_file: ubuntu-dynamic-director-manifest-state.json
     region_name: us-east-1
-    access_key_id: {{s3_openstack_cpi_access_key}}
-    secret_access_key: {{s3_openstack_cpi_secret_key}}
+    access_key_id: {{s3_openstack_cpi_state_files_access_key}}
+    secret_access_key: {{s3_openstack_cpi_state_files_secret_key}}
 
 - name: centos-dynamic-director-state-file
   type: s3
@@ -408,8 +408,8 @@ resources:
     bucket: bosh-openstack-cpi-state-files
     versioned_file: centos-dynamic-director-manifest-state.json
     region_name: us-east-1
-    access_key_id: {{s3_openstack_cpi_access_key}}
-    secret_access_key: {{s3_openstack_cpi_secret_key}}
+    access_key_id: {{s3_openstack_cpi_state_files_access_key}}
+    secret_access_key: {{s3_openstack_cpi_state_files_secret_key}}
 
 - name: bosh-cpi-release
   type: git
@@ -423,8 +423,8 @@ resources:
   source:
     key:                current-version
     bucket:             bosh-openstack-cpi-pipeline
-    access_key_id:      {{s3_openstack_cpi_access_key}}
-    secret_access_key:  {{s3_openstack_cpi_secret_key}}
+    access_key_id:      {{s3_openstack_cpi_pipeline_access_key}}
+    secret_access_key:  {{s3_openstack_cpi_pipeline_secret_key}}
 
 - name: bosh-init
   type: s3
