@@ -3,4 +3,4 @@ name: bosh_openstack_cpi
 dependencies:
 - ruby_openstack_cpi
 files:
-- bosh_openstack_cpi/vendor/cache/*.gem
+- bosh_openstack_cpi/**/*

@@ -1,9 +1,12 @@
 #!/usr/bin/env ruby
 
+require 'yaml'
 require 'ostruct'
-require 'bosh_openstack_cpi'
 require 'bosh/cpi'
-require 'bosh/cpi/cli'
+require 'bundler'
+
+Bundler.setup(:default)
+require 'cloud/openstack'
 
 cpi_config = YAML.load_file(ARGV.shift)
 

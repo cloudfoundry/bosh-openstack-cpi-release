@@ -1,0 +1,204 @@
+PATH
+  remote: .
+  specs:
+    bosh_openstack_cpi (2.0.0)
+      bosh-registry
+      bosh_common
+      bosh_cpi
+      fog (~> 1.31.0)
+      fog-aws (<= 0.1.1)
+      httpclient (= 2.4.0)
+      membrane (~> 1.1.0)
+      yajl-ruby (>= 0.8.2)
+
+GEM
+  remote: https://rubygems.org/
+  specs:
+    CFPropertyList (2.3.1)
+    aws-sdk (1.60.2)
+      aws-sdk-v1 (= 1.60.2)
+    aws-sdk-v1 (1.60.2)
+      json (~> 1.4)
+      nokogiri (>= 1.4.4)
+    bosh-registry (1.3062.0)
+      aws-sdk (= 1.60.2)
+      bosh_cpi (~> 1.3062.0)
+      fog (~> 1.31.0)
+      fog-aws (<= 0.1.1)
+      sequel (~> 3.43.0)
+      sinatra (~> 1.4.2)
+      thin (~> 1.5.0)
+      yajl-ruby (~> 1.2.0)
+    bosh_common (1.3062.0)
+      logging (~> 1.8.2)
+      semi_semantic (~> 1.1.0)
+    bosh_cpi (1.3062.0)
+      bosh_common (~> 1.3062.0)
+      logging (~> 1.8.2)
+      membrane (~> 1.1.0)
+    builder (3.2.2)
+    daemons (1.2.3)
+    diff-lcs (1.2.5)
+    eventmachine (1.0.8)
+    excon (0.45.4)
+    fission (0.5.0)
+      CFPropertyList (~> 2.2)
+    fog (1.31.0)
+      fog-atmos
+      fog-aws (~> 0.0)
+      fog-brightbox (~> 0.4)
+      fog-core (~> 1.30)
+      fog-ecloud
+      fog-google (>= 0.0.2)
+      fog-json
+      fog-local
+      fog-powerdns (>= 0.1.1)
+      fog-profitbricks
+      fog-radosgw (>= 0.0.2)
+      fog-riakcs
+      fog-sakuracloud (>= 0.0.4)
+      fog-serverlove
+      fog-softlayer
+      fog-storm_on_demand
+      fog-terremark
+      fog-vmfusion
+      fog-voxel
+      fog-xml (~> 0.1.1)
+      ipaddress (~> 0.5)
+      nokogiri (~> 1.5, >= 1.5.11)
+    fog-atmos (0.1.0)
+      fog-core
+      fog-xml
+    fog-aws (0.1.1)
+      fog-core (~> 1.27)
+      fog-json (~> 1.0)
+      fog-xml (~> 0.1)
+      ipaddress (~> 0.8)
+    fog-brightbox (0.9.0)
+      fog-core (~> 1.22)
+      fog-json
+      inflecto (~> 0.0.2)
+    fog-core (1.32.1)
+      builder
+      excon (~> 0.45)
+      formatador (~> 0.2)
+      mime-types
+      net-scp (~> 1.1)
+      net-ssh (>= 2.1.3)
+    fog-ecloud (0.3.0)
+      fog-core
+      fog-xml
+    fog-google (0.0.7)
+      fog-core
+      fog-json
+      fog-xml
+    fog-json (1.0.2)
+      fog-core (~> 1.0)
+      multi_json (~> 1.10)
+    fog-local (0.2.1)
+      fog-core (~> 1.27)
+    fog-powerdns (0.1.1)
+      fog-core (~> 1.27)
+      fog-json (~> 1.0)
+      fog-xml (~> 0.1)
+    fog-profitbricks (0.0.5)
+      fog-core
+      fog-xml
+      nokogiri
+    fog-radosgw (0.0.4)
+      fog-core (>= 1.21.0)
+      fog-json
+      fog-xml (>= 0.0.1)
+    fog-riakcs (0.1.0)
+      fog-core
+      fog-json
+      fog-xml
+    fog-sakuracloud (1.0.1)
+      fog-core
+      fog-json
+    fog-serverlove (0.1.2)
+      fog-core
+      fog-json
+    fog-softlayer (0.4.7)
+      fog-core
+      fog-json
+    fog-storm_on_demand (0.1.1)
+      fog-core
+      fog-json
+    fog-terremark (0.1.0)
+      fog-core
+      fog-xml
+    fog-vmfusion (0.1.0)
+      fission
+      fog-core
+    fog-voxel (0.1.0)
+      fog-core
+      fog-xml
+    fog-xml (0.1.2)
+      fog-core
+      nokogiri (~> 1.5, >= 1.5.11)
+    formatador (0.2.5)
+    httpclient (2.4.0)
+    inflecto (0.0.2)
+    ipaddress (0.8.0)
+    json (1.8.3)
+    little-plugger (1.1.4)
+    logging (1.8.2)
+      little-plugger (>= 1.1.3)
+      multi_json (>= 1.8.4)
+    membrane (1.1.0)
+    mime-types (2.6.1)
+    mini_portile (0.6.2)
+    minitar (0.5.4)
+    multi_json (1.11.2)
+    net-scp (1.2.1)
+      net-ssh (>= 2.6.5)
+    net-ssh (2.9.2)
+    nokogiri (1.6.6.2)
+      mini_portile (~> 0.6.0)
+    rack (1.6.4)
+    rack-protection (1.5.3)
+      rack
+    rake (10.3.2)
+    rspec (3.0.0)
+      rspec-core (~> 3.0.0)
+      rspec-expectations (~> 3.0.0)
+      rspec-mocks (~> 3.0.0)
+    rspec-core (3.0.4)
+      rspec-support (~> 3.0.0)
+    rspec-expectations (3.0.4)
+      diff-lcs (>= 1.2.0, < 2.0)
+      rspec-support (~> 3.0.0)
+    rspec-its (1.0.1)
+      rspec-core (>= 2.99.0.beta1)
+      rspec-expectations (>= 2.99.0.beta1)
+    rspec-mocks (3.0.4)
+      rspec-support (~> 3.0.0)
+    rspec-support (3.0.4)
+    semi_semantic (1.1.0)
+    sequel (3.43.0)
+    sinatra (1.4.6)
+      rack (~> 1.4)
+      rack-protection (~> 1.4)
+      tilt (>= 1.3, < 3)
+    thin (1.5.1)
+      daemons (>= 1.0.9)
+      eventmachine (>= 0.12.6)
+      rack (>= 1.0.0)
+    tilt (2.0.1)
+    timecop (0.7.4)
+    yajl-ruby (1.2.1)
+
+PLATFORMS
+  ruby
+
+DEPENDENCIES
+  bosh_openstack_cpi!
+  minitar (~> 0.5.4)
+  rake (~> 10.3.2)
+  rspec (~> 3.0.0)
+  rspec-its (~> 1.0.1)
+  timecop (~> 0.7.1)
+
+BUNDLED WITH
+   1.10.6
