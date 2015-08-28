@@ -23,7 +23,6 @@ require "cloud"
 require "cloud/openstack/helpers"
 require "cloud/openstack/cloud"
 require "cloud/openstack/tag_manager"
-require "cloud/openstack/version"
 
 require "cloud/openstack/network_configurator"
 require "cloud/openstack/network"
