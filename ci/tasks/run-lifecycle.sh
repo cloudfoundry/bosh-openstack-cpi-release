@@ -14,7 +14,7 @@ ensure_not_replace_value BOSH_OPENSTACK_STEMCELL_ID
 
 source /etc/profile.d/chruby-with-ruby-2.1.2.sh
 
-cd bosh-src/bosh_openstack_cpi
+cd bosh-cpi-release/src/bosh_openstack_cpi
 
 bundle install
-bundle exec rake spec:lifecycle
+bundle exec rspec spec/integration

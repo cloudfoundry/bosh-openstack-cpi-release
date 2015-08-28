@@ -61,7 +61,6 @@ jobs:
   - aggregate:
     - {trigger: true,  passed: [build-candidate], get: bosh-cpi-dev-artifacts} # used for job chaining only not for tasks
     - {trigger: false, passed: [build-candidate], get: bosh-cpi-release}
-    - {trigger: false,                            get: bosh-src}
 
   - task: test
     file: bosh-cpi-release/ci/tasks/run-lifecycle.yml
@@ -432,12 +431,6 @@ resources:
     regexp: bosh-init-([0-9.]+)-linux-amd64
     bucket: bosh-init-artifacts
     region_name: us-east-1
-
-- name: bosh-src
-  type: git
-  source:
-    uri: https://github.com/cloudfoundry/bosh.git
-    branch: develop
 
 - name: bats
   type: git
