@@ -1,10 +1,10 @@
 PATH
   remote: .
   specs:
-    bosh_openstack_cpi (1.3062.0)
-      bosh-registry (>= 1.3062.0)
-      bosh_common (>= 1.3062.0)
-      bosh_cpi (>= 1.3062.0)
+    bosh_openstack_cpi (2.0.0)
+      bosh-registry
+      bosh_common
+      bosh_cpi
       fog (~> 1.31.0)
       fog-aws (<= 0.1.1)
       httpclient (= 2.4.0)
