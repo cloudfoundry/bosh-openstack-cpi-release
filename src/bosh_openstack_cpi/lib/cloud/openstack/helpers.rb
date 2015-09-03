@@ -29,7 +29,6 @@ module Bosh::OpenStackCloud
         # If we find a rate limit error, parse message, wait, and retry
         overlimit = parse_openstack_response(e.response, "overLimit", "overLimitFault")
         unless overlimit.nil? || retries >= MAX_RETRIES
-          task_checkpoint
           wait_time = overlimit["retryAfter"] || e.response.headers["Retry-After"] || DEFAULT_RETRY_TIMEOUT
           details = "#{overlimit["message"]} - #{overlimit["details"]}"
           @logger.debug("OpenStack API Over Limit (#{details}), waiting #{wait_time} seconds before retrying") if @logger
@@ -98,8 +97,6 @@ module Bosh::OpenStackCloud
       state_timeout = @state_timeout || DEFAULT_STATE_TIMEOUT
 
       loop do
-        task_checkpoint
-
         duration = Time.now - started_at
 
         if duration > state_timeout
@@ -140,11 +137,6 @@ module Bosh::OpenStackCloud
         @logger.info("#{desc} is now #{target_state.join(", ")}, took #{total}s")
       end
     end
-
-    def task_checkpoint
-      Bosh::Clouds::Config.task_checkpoint
-    end
-
   end
 
 end

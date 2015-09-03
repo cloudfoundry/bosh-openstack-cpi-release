@@ -10,10 +10,6 @@ describe Bosh::OpenStackCloud::Helpers do
   let(:resource) { double('resource', id: 'foobar', reload: cloud) }
   before { allow(resource).to receive(:status).and_return(:start, :stop) }
 
-  before(:each) do
-    allow(Bosh::Clouds::Config).to receive(:task_checkpoint)
-  end
-
   describe 'wait_resource' do
     it 'does not raise if one of the target states is reached' do
       expect {
