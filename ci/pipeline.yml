@@ -66,7 +66,7 @@ jobs:
     file: bosh-cpi-release/ci/tasks/run-lifecycle.yml
     config:
       params:
-        BOSH_OPENSTACK_TENANT:              {{openstack_tenant}}
+        BOSH_OPENSTACK_TENANT:              {{lifecycle_openstack_tenant}}
         BOSH_OPENSTACK_MANUAL_IP:           {{lifecycle_manual_ip}}
         BOSH_OPENSTACK_NET_ID:              {{lifecycle_openstack_net_id}}
         BOSH_OPENSTACK_STEMCELL_ID:         {{lifecycle_stemcell_id}}
