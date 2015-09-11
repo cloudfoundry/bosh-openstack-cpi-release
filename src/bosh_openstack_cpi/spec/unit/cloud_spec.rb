@@ -7,18 +7,7 @@ describe Bosh::OpenStackCloud::Cloud do
 
   describe :new do
     let(:cloud_options) { mock_cloud_options }
-    let(:openstack_parms) {
-      {
-        :provider => 'OpenStack',
-        :openstack_auth_url => 'http://127.0.0.1:5000/v2.0/tokens',
-        :openstack_username => 'admin',
-        :openstack_api_key => 'nova',
-        :openstack_tenant => 'admin',
-        :openstack_region => 'RegionOne',
-        :openstack_endpoint_type => nil,
-        :connection_options => merged_connection_options,
-      }
-    }
+
     let(:connection_options) { nil }
     let(:merged_connection_options) { default_connection_options }
 
@@ -120,7 +109,7 @@ describe Bosh::OpenStackCloud::Cloud do
     end
 
     it 'creates a Fog connection' do
-      cloud = Bosh::OpenStackCloud::Cloud.new(mock_cloud_options['properties'])
+      cloud = Bosh::OpenStackCloud::Cloud.new(cloud_options['properties'])
 
       expect(cloud.openstack).to eql(compute)
       expect(cloud.glance).to eql(image)
@@ -139,7 +128,7 @@ describe Bosh::OpenStackCloud::Cloud do
       allow(Fog::Image).to receive(:new).and_return(instance_double(Fog::Image))
       allow(Fog::Volume).to receive(:new).and_return(instance_double(Fog::Volume))
       expect {
-        Bosh::OpenStackCloud::Cloud.new(mock_cloud_options['properties'])
+        Bosh::OpenStackCloud::Cloud.new(cloud_options['properties'])
       }.to_not raise_error
 
       retry_count = 0
@@ -154,7 +143,7 @@ describe Bosh::OpenStackCloud::Cloud do
       allow(Fog::Compute).to receive(:new).and_return(instance_double(Fog::Compute))
       allow(Fog::Volume).to receive(:new).and_return(instance_double(Fog::Volume))
       expect {
-        Bosh::OpenStackCloud::Cloud.new(mock_cloud_options['properties'])
+        Bosh::OpenStackCloud::Cloud.new(cloud_options['properties'])
       }.to_not raise_error
 
       retry_count = 0
@@ -169,7 +158,7 @@ describe Bosh::OpenStackCloud::Cloud do
       allow(Fog::Compute).to receive(:new).and_return(instance_double(Fog::Compute))
       allow(Fog::Image).to receive(:new).and_return(instance_double(Fog::Image))
       expect {
-        Bosh::OpenStackCloud::Cloud.new(mock_cloud_options['properties'])
+        Bosh::OpenStackCloud::Cloud.new(cloud_options['properties'])
       }.to_not raise_error
     end
 
@@ -178,7 +167,7 @@ describe Bosh::OpenStackCloud::Cloud do
       allow(Fog::Image).to receive(:new).and_return(instance_double(Fog::Image))
       allow(Fog::Volume).to receive(:new).and_return(instance_double(Fog::Volume))
       expect {
-        Bosh::OpenStackCloud::Cloud.new(mock_cloud_options['properties'])
+        Bosh::OpenStackCloud::Cloud.new(cloud_options['properties'])
       }.to raise_error(Bosh::Clouds::CloudError,
         'Unable to connect to the OpenStack Compute API. Check task debug log for details.')
     end
@@ -188,7 +177,7 @@ describe Bosh::OpenStackCloud::Cloud do
       allow(Fog::Image).to receive(:new).and_raise(Excon::Errors::Unauthorized, 'Unauthorized')
       allow(Fog::Volume).to receive(:new).and_return(instance_double(Fog::Volume))
       expect {
-        Bosh::OpenStackCloud::Cloud.new(mock_cloud_options['properties'])
+        Bosh::OpenStackCloud::Cloud.new(cloud_options['properties'])
       }.to raise_error(Bosh::Clouds::CloudError,
         'Unable to connect to the OpenStack Image Service API. Check task debug log for details.')
     end
