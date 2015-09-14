@@ -13,7 +13,7 @@ cd bosh-cpi-release
 
 echo "running unit tests"
 pushd src/bosh_openstack_cpi
-  bundle install
+  ./scripts/bundle_from_local_cache
   bundle exec rspec spec/unit/*
 popd
 
