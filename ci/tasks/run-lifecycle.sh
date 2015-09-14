@@ -16,5 +16,5 @@ source /etc/profile.d/chruby-with-ruby-2.1.2.sh
 
 cd bosh-cpi-release/src/bosh_openstack_cpi
 
-./scripts/bundle_from_local_cache
+bundle install
 bundle exec rspec spec/integration
