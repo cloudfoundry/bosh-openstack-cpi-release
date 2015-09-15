@@ -12,16 +12,18 @@ These options are passed to the OpenStack CPI when it is instantiated.
 
 The registry options are passed to the Openstack CPI by the BOSH director based on the settings in `director.yml`:
 
-* `auth_url` (required)
+* `auth_url` (required, either API version 2 or version 3)
   URL of the OpenStack Identity endpoint to connect to
 * `username` (required)
   OpenStack user name
 * `api_key` (required)
   OpenStack API key
-* `tenant` (required)
+* `tenant` (required for API version 2)
   OpenStack tenant name
-* `domain` (optional)
+* `domain` (required for API version 3)
   OpenStack domain name
+* `project` (required for API version 3)
+  OpenStack project name
 * `region` (optional)
   OpenStack region
 * `endpoint_type` (optional)
