@@ -57,23 +57,23 @@ module Bosh::OpenStackCloud
       @extra_connection_options = {'instrumentor' => Bosh::OpenStackCloud::ExconLoggingInstrumentor}
 
       openstack_params = {
-        :provider => 'OpenStack',
-        :openstack_auth_url => @openstack_properties['auth_url'],
-        :openstack_username => @openstack_properties['username'],
-        :openstack_api_key => @openstack_properties['api_key'],
-        :openstack_tenant => @openstack_properties['tenant'],
-        :openstack_domain_name => @openstack_properties['domain'],
-        :openstack_region => @openstack_properties['region'],
-        :openstack_endpoint_type => @openstack_properties['endpoint_type'],
-        :connection_options => @openstack_properties['connection_options'].merge(@extra_connection_options)
+          :provider => 'OpenStack',
+          :openstack_auth_url => @openstack_properties['auth_url'],
+          :openstack_username => @openstack_properties['username'],
+          :openstack_api_key => @openstack_properties['api_key'],
+          :openstack_tenant => @openstack_properties['tenant'],
+          :openstack_domain_name => @openstack_properties['domain'],
+          :openstack_region => @openstack_properties['region'],
+          :openstack_endpoint_type => @openstack_properties['endpoint_type'],
+          :connection_options => @openstack_properties['connection_options'].merge(@extra_connection_options)
       }
 
       connect_retry_errors = [Excon::Errors::GatewayTimeout, Excon::Errors::SocketError]
 
       @connect_retry_options = {
-        sleep: CONNECT_RETRY_DELAY,
-        tries: CONNECT_RETRY_COUNT,
-        on: connect_retry_errors,
+          sleep: CONNECT_RETRY_DELAY,
+          tries: CONNECT_RETRY_COUNT,
+          on: connect_retry_errors,
       }
 
       begin
@@ -86,19 +86,19 @@ module Bosh::OpenStackCloud
       end
 
       @az_provider = Bosh::OpenStackCloud::AvailabilityZoneProvider.new(
-        @openstack,
-        @openstack_properties["ignore_server_availability_zone"])
+          @openstack,
+          @openstack_properties["ignore_server_availability_zone"])
 
       glance_params = {
-        :provider => 'OpenStack',
-        :openstack_auth_url => @openstack_properties['auth_url'],
-        :openstack_username => @openstack_properties['username'],
-        :openstack_api_key => @openstack_properties['api_key'],
-        :openstack_tenant => @openstack_properties['tenant'],
-        :openstack_domain_name => @openstack_properties['domain'],
-        :openstack_region => @openstack_properties['region'],
-        :openstack_endpoint_type => @openstack_properties['endpoint_type'],
-        :connection_options => @openstack_properties['connection_options'].merge(@extra_connection_options)
+          :provider => 'OpenStack',
+          :openstack_auth_url => @openstack_properties['auth_url'],
+          :openstack_username => @openstack_properties['username'],
+          :openstack_api_key => @openstack_properties['api_key'],
+          :openstack_tenant => @openstack_properties['tenant'],
+          :openstack_domain_name => @openstack_properties['domain'],
+          :openstack_region => @openstack_properties['region'],
+          :openstack_endpoint_type => @openstack_properties['endpoint_type'],
+          :connection_options => @openstack_properties['connection_options'].merge(@extra_connection_options)
       }
 
       begin
@@ -135,17 +135,17 @@ module Bosh::OpenStackCloud
           Dir.mktmpdir do |tmp_dir|
             @logger.info('Creating new image...')
             image_params = {
-              :name => "BOSH-#{generate_unique_name}",
-              :disk_format => cloud_properties['disk_format'],
-              :container_format => cloud_properties['container_format'],
-              :is_public => @stemcell_public_visibility.nil? ? false : @stemcell_public_visibility,
+                :name => "BOSH-#{generate_unique_name}",
+                :disk_format => cloud_properties['disk_format'],
+                :container_format => cloud_properties['container_format'],
+                :is_public => @stemcell_public_visibility.nil? ? false : @stemcell_public_visibility,
             }
 
             image_properties = {}
             vanilla_options = ['name', 'version', 'os_type', 'os_distro', 'architecture', 'auto_disk_config',
                                'hw_vif_model', 'hypervisor_type', 'vmware_adaptertype', 'vmware_disktype',
                                'vmware_linked_clone', 'vmware_ostype']
-            vanilla_options.reject{ |o| cloud_properties[o].nil? }.each do |key|
+            vanilla_options.reject { |o| cloud_properties[o].nil? }.each do |key|
               image_properties[key.to_sym] = cloud_properties[key]
             end
             image_params[:properties] = image_properties unless image_properties.empty?
@@ -254,7 +254,7 @@ module Bosh::OpenStackCloud
             min_ephemeral_size = (flavor.ram / 1024) * 2
             if flavor.ephemeral < min_ephemeral_size
               cloud_error("Flavor `#{resource_pool['instance_type']}' should have at least #{min_ephemeral_size}Gb " +
-                'of ephemeral disk')
+                              'of ephemeral disk')
             end
           end
         end
@@ -272,15 +272,15 @@ module Bosh::OpenStackCloud
         end
 
         server_params = {
-          :name => server_name,
-          :image_ref => image.id,
-          :flavor_ref => flavor.id,
-          :key_name => keypair.name,
-          :security_groups => security_groups,
-          :os_scheduler_hints => resource_pool['scheduler_hints'],
-          :nics => nics,
-          :config_drive => use_config_drive,
-          :user_data => Yajl::Encoder.encode(user_data(server_name, network_spec))
+            :name => server_name,
+            :image_ref => image.id,
+            :flavor_ref => flavor.id,
+            :key_name => keypair.name,
+            :security_groups => security_groups,
+            :os_scheduler_hints => resource_pool['scheduler_hints'],
+            :nics => nics,
+            :config_drive => use_config_drive,
+            :user_data => Yajl::Encoder.encode(user_data(server_name, network_spec))
         }
 
         availability_zone = @az_provider.select(disk_locality, resource_pool['availability_zone'])
@@ -294,11 +294,11 @@ module Bosh::OpenStackCloud
           @logger.debug("Using boot volume: `#{boot_vol_id}'")
 
           server_params[:block_device_mapping] = [{
-                                                   :volume_size => boot_vol_size,
-                                                   :volume_id => boot_vol_id,
-                                                   :delete_on_termination => "1",
-                                                   :device_name => "/dev/vda"
-                                                 }]
+                                                      :volume_size => boot_vol_size,
+                                                      :volume_id => boot_vol_id,
+                                                      :delete_on_termination => "1",
+                                                      :device_name => "/dev/vda"
+                                                  }]
         end
 
         @logger.debug("Using boot parms: `#{server_params.inspect}'")
@@ -420,16 +420,16 @@ module Bosh::OpenStackCloud
         cloud_error('Minimum disk size is 1 GiB') if (size < 1024)
 
         volume_params = {
-          :display_name => "volume-#{generate_unique_name}",
-          :display_description => '',
-          :size => (size / 1024.0).ceil
+            :display_name => "volume-#{generate_unique_name}",
+            :display_description => '',
+            :size => (size / 1024.0).ceil
         }
 
         if cloud_properties.has_key?('type')
           volume_params[:volume_type] = cloud_properties['type']
         end
 
-        if server_id  && @az_provider.constrain_to_server_availability_zone?
+        if server_id && @az_provider.constrain_to_server_availability_zone?
           server = with_openstack { @openstack.servers.get(server_id) }
           if server && server.availability_zone
             volume_params[:availability_zone] = server.availability_zone
@@ -462,9 +462,9 @@ module Bosh::OpenStackCloud
         cloud_error("Minimum disk size is 1 GiB") if (size < 1024)
 
         volume_params = {
-          :display_name => "volume-#{generate_unique_name}",
-          :size => (size / 1024.0).ceil,
-          :imageRef => stemcell_id
+            :display_name => "volume-#{generate_unique_name}",
+            :size => (size / 1024.0).ceil,
+            :imageRef => stemcell_id
         }
 
         if availability_zone && @az_provider.constrain_to_server_availability_zone?
@@ -579,7 +579,7 @@ module Bosh::OpenStackCloud
     # @raise [Bosh::Clouds::CloudError] if volume is not found
     def snapshot_disk(disk_id, metadata)
       with_thread_name("snapshot_disk(#{disk_id})") do
-        metadata = Hash[metadata.map{|key,value| [key.to_s, value] }]
+        metadata = Hash[metadata.map { |key, value| [key.to_s, value] }]
         volume = with_openstack { @openstack.volumes.get(disk_id) }
         cloud_error("Volume `#{disk_id}' not found") unless volume
 
@@ -589,9 +589,9 @@ module Bosh::OpenStackCloud
         description = ['deployment', 'job', 'index'].collect { |key| metadata[key] }
         description << devices.first.split('/').last unless devices.empty?
         snapshot_params = {
-          :name => "snapshot-#{generate_unique_name}",
-          :description => description.join('/'),
-          :volume_id => volume.id
+            :name => "snapshot-#{generate_unique_name}",
+            :description => description.join('/'),
+            :volume_id => volume.id
         }
 
         @logger.info("Creating new snapshot for volume `#{disk_id}'...")
@@ -671,15 +671,15 @@ module Bosh::OpenStackCloud
     #
     def connect_to_volume_service
       volume_params = {
-        :provider => "OpenStack",
-        :openstack_auth_url => @openstack_properties['auth_url'],
-        :openstack_username => @openstack_properties['username'],
-        :openstack_api_key => @openstack_properties['api_key'],
-        :openstack_tenant => @openstack_properties['tenant'],
-        :openstack_domain_name => @openstack_properties['domain'],
-        :openstack_region => @openstack_properties['region'],
-        :openstack_endpoint_type => @openstack_properties['endpoint_type'],
-        :connection_options => @openstack_properties['connection_options'].merge(@extra_connection_options)
+          :provider => "OpenStack",
+          :openstack_auth_url => @openstack_properties['auth_url'],
+          :openstack_username => @openstack_properties['username'],
+          :openstack_api_key => @openstack_properties['api_key'],
+          :openstack_tenant => @openstack_properties['tenant'],
+          :openstack_domain_name => @openstack_properties['domain'],
+          :openstack_region => @openstack_properties['region'],
+          :openstack_endpoint_type => @openstack_properties['endpoint_type'],
+          :connection_options => @openstack_properties['connection_options'].merge(@extra_connection_options)
       }
 
       begin
@@ -711,13 +711,13 @@ module Bosh::OpenStackCloud
     def user_data(server_name, network_spec, public_key = nil)
       data = {}
 
-      data['registry'] = { 'endpoint' => @registry.endpoint }
-      data['server'] = { 'name' => server_name }
-      data['openssh'] = { 'public_key' => public_key } if public_key
+      data['registry'] = {'endpoint' => @registry.endpoint}
+      data['server'] = {'name' => server_name}
+      data['openssh'] = {'public_key' => public_key} if public_key
       data['networks'] = agent_network_spec(network_spec)
 
       with_dns(network_spec) do |servers|
-        data['dns'] = { 'nameserver' => servers }
+        data['dns'] = {'nameserver' => servers}
       end
 
       data
@@ -755,15 +755,15 @@ module Bosh::OpenStackCloud
     # @return [Hash] Agent settings
     def initial_agent_settings(server_name, agent_id, network_spec, environment, has_ephemeral)
       settings = {
-        'vm' => {
-          'name' => server_name
-        },
-        'agent_id' => agent_id,
-        'networks' => agent_network_spec(network_spec),
-        'disks' => {
-          'system' => '/dev/sda',
-          'persistent' => {}
-        }
+          'vm' => {
+              'name' => server_name
+          },
+          'agent_id' => agent_id,
+          'networks' => agent_network_spec(network_spec),
+          'disks' => {
+              'system' => '/dev/sda',
+              'persistent' => {}
+          }
       }
 
       settings['disks']['ephemeral'] = has_ephemeral ? '/dev/sdb' : nil
@@ -773,9 +773,9 @@ module Bosh::OpenStackCloud
 
     def agent_network_spec(network_spec)
       Hash[*network_spec.map do |name, settings|
-        settings['use_dhcp'] = @use_dhcp
-        [name, settings]
-      end.flatten]
+             settings['use_dhcp'] = @use_dhcp
+             [name, settings]
+           end.flatten]
     end
 
     ##
@@ -850,7 +850,7 @@ module Bosh::OpenStackCloud
         # Some kernels remap device names (from sd* to vd* or xvd*).
         device_names = ["/dev/sd#{char}", "/dev/vd#{char}", "/dev/xvd#{char}"]
         # Bosh Agent will lookup for the proper device name if we set it initially to sd*.
-        return "/dev/sd#{char}" if volume_attachments.select { |v| device_names.include?( v['device']) }.empty?
+        return "/dev/sd#{char}" if volume_attachments.select { |v| device_names.include?(v['device']) }.empty?
         @logger.warn("`/dev/sd#{char}' is already taken")
       end
 
@@ -907,7 +907,7 @@ module Bosh::OpenStackCloud
       unless actual_sg_names.sort == specified_sg_names.sort
         raise Bosh::Clouds::NotSupported,
               'security groups change requires VM recreation: %s to %s' %
-              [actual_sg_names.join(', '), specified_sg_names.join(', ')]
+                  [actual_sg_names.join(', '), specified_sg_names.join(', ')]
       end
     end
 
@@ -925,7 +925,7 @@ module Bosh::OpenStackCloud
       unless specified_ip_addresses.empty? || actual_ip_addresses.sort == specified_ip_addresses.sort
         raise Bosh::Clouds::NotSupported,
               'IP address change requires VM recreation: %s to %s' %
-              [actual_ip_addresses.join(', '), specified_ip_addresses.join(', ')]
+                  [actual_ip_addresses.join(', '), specified_ip_addresses.join(', ')]
       end
     end
 
@@ -957,7 +957,7 @@ module Bosh::OpenStackCloud
       result = Bosh::Exec.sh("tar -C #{tmp_dir} -xzf #{image_path} 2>&1", :on_error => :return)
       if result.failed?
         @logger.error("Extracting stemcell root image failed in dir #{tmp_dir}, " +
-                      "tar returned #{result.exit_status}, output: #{result.output}")
+                          "tar returned #{result.exit_status}, output: #{result.output}")
         cloud_error('Extracting stemcell root image failed. Check task debug log for details.')
       end
       root_image = File.join(tmp_dir, 'root.img')
@@ -975,29 +975,29 @@ module Bosh::OpenStackCloud
     def validate_options
       schema = Membrane::SchemaParser.parse do
         {
-          'openstack' => {
-            'auth_url' => String,
-            'username' => String,
-            'api_key' => String,
-            'tenant' => String,
-            optional('domain') => String,
-            optional('region') => String,
-            optional('endpoint_type') => String,
-            optional('state_timeout') => Numeric,
-            optional('stemcell_public_visibility') => enum(String, bool),
-            optional('connection_options') => Hash,
-            optional('boot_from_volume') => bool,
-            optional('default_key_name') => String,
-            optional('default_security_groups') => [String],
-            optional('wait_resource_poll_interval') => Integer,
-            optional('config_drive') => enum('disk', 'cdrom'),
-          },
-          'registry' => {
-            'endpoint' => String,
-            'user' => String,
-            'password' => String,
-          },
-          optional('agent') => Hash,
+            'openstack' => {
+                'auth_url' => String,
+                'username' => String,
+                'api_key' => String,
+                'tenant' => String,
+                optional('domain') => String,
+                optional('region') => String,
+                optional('endpoint_type') => String,
+                optional('state_timeout') => Numeric,
+                optional('stemcell_public_visibility') => enum(String, bool),
+                optional('connection_options') => Hash,
+                optional('boot_from_volume') => bool,
+                optional('default_key_name') => String,
+                optional('default_security_groups') => [String],
+                optional('wait_resource_poll_interval') => Integer,
+                optional('config_drive') => enum('disk', 'cdrom'),
+            },
+            'registry' => {
+                'endpoint' => String,
+                'user' => String,
+                'password' => String,
+            },
+            optional('agent') => Hash,
         }
       end
       schema.validate(@options)
@@ -1007,9 +1007,9 @@ module Bosh::OpenStackCloud
 
     def initialize_registry
       registry_properties = @options.fetch('registry')
-      registry_endpoint   = registry_properties.fetch('endpoint')
-      registry_user       = registry_properties.fetch('user')
-      registry_password   = registry_properties.fetch('password')
+      registry_endpoint = registry_properties.fetch('endpoint')
+      registry_user = registry_properties.fetch('user')
+      registry_password = registry_properties.fetch('password')
 
       @registry = Bosh::Registry::Client.new(registry_endpoint,
                                              registry_user,

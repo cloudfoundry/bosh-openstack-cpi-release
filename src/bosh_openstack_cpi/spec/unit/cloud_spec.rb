@@ -2,7 +2,7 @@ require 'spec_helper'
 
 describe Bosh::OpenStackCloud::Cloud do
   let(:default_connection_options) {
-    { "instrumentor" => Bosh::OpenStackCloud::ExconLoggingInstrumentor }
+    {"instrumentor" => Bosh::OpenStackCloud::ExconLoggingInstrumentor}
   }
 
   describe :new do
@@ -20,17 +20,17 @@ describe Bosh::OpenStackCloud::Cloud do
     describe 'validation' do
       let(:options) do
         {
-          'openstack' => {
-            'auth_url' => 'fake-auth-url',
-            'username' => 'fake-username',
-            'api_key' => 'fake-api-key',
-            'tenant' => 'fake-tenant'
-          },
-          'registry' => {
-            'endpoint' => 'fake-registry',
-            'user' => 'fake-user',
-            'password' => 'fake-password',
-          }
+            'openstack' => {
+                'auth_url' => 'fake-auth-url',
+                'username' => 'fake-username',
+                'api_key' => 'fake-api-key',
+                'tenant' => 'fake-tenant'
+            },
+            'registry' => {
+                'endpoint' => 'fake-registry',
+                'user' => 'fake-user',
+                'password' => 'fake-password',
+            }
         }
       end
       subject(:subject) { Bosh::OpenStackCloud::Cloud.new(options) }
@@ -43,7 +43,7 @@ describe Bosh::OpenStackCloud::Cloud do
 
       context 'when connection_options are specified' do
         it 'expects connection_options to be a hash' do
-          options['openstack']['connection_options'] = { 'any-key' => 'any-value' }
+          options['openstack']['connection_options'] = {'any-key' => 'any-value'}
 
           expect { subject }.to_not raise_error
         end
@@ -169,7 +169,7 @@ describe Bosh::OpenStackCloud::Cloud do
       expect {
         Bosh::OpenStackCloud::Cloud.new(cloud_options['properties'])
       }.to raise_error(Bosh::Clouds::CloudError,
-        'Unable to connect to the OpenStack Compute API. Check task debug log for details.')
+                       'Unable to connect to the OpenStack Compute API. Check task debug log for details.')
     end
 
     it 'raises a CloudError exception if cannot connect to the OpenStack Image Service API 5 times' do
@@ -179,7 +179,7 @@ describe Bosh::OpenStackCloud::Cloud do
       expect {
         Bosh::OpenStackCloud::Cloud.new(cloud_options['properties'])
       }.to raise_error(Bosh::Clouds::CloudError,
-        'Unable to connect to the OpenStack Image Service API. Check task debug log for details.')
+                       'Unable to connect to the OpenStack Image Service API. Check task debug log for details.')
     end
 
     context 'with connection options' do
