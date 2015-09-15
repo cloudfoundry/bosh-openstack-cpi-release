@@ -17,14 +17,15 @@ describe Bosh::OpenStackCloud::Cloud do
     let(:image) { instance_double('Fog::Image') }
     before { allow(Fog::Image).to receive(:new).and_return(image) }
 
+    let(:volume) { instance_double('Fog::Volume') }
+    before { allow(Fog::Volume).to receive(:new).and_return(volume) }
+
     describe 'validation' do
       let(:options) do
         {
             'openstack' => {
-                'auth_url' => 'fake-auth-url',
                 'username' => 'fake-username',
-                'api_key' => 'fake-api-key',
-                'tenant' => 'fake-tenant'
+                'api_key' => 'fake-api-key'
             },
             'registry' => {
                 'endpoint' => 'fake-registry',
@@ -35,59 +36,93 @@ describe Bosh::OpenStackCloud::Cloud do
       end
       subject(:subject) { Bosh::OpenStackCloud::Cloud.new(options) }
 
-      context 'when all required options are specified' do
+      context 'when keystone V2 API is used' do
+        before do
+          options['openstack']['auth_url'] = 'http://fake-auth-url/v2.0'
+          options['openstack']['tenant'] = 'fake-tenant'
+        end
+
         it 'does not raise an error' do
           expect { subject }.to_not raise_error
         end
+
+        context 'when connection_options are specified' do
+          it 'expects connection_options to be a hash' do
+            options['openstack']['connection_options'] = {'any-key' => 'any-value'}
+
+            expect { subject }.to_not raise_error
+          end
+
+          it 'raises an error if connection_options is not a Hash' do
+            options['openstack']['connection_options'] = 'connection_options'
+
+            expect { subject }.to raise_error(ArgumentError, /Invalid OpenStack cloud properties/)
+          end
+        end
+
+        context 'when boot_from_volume is specified' do
+          it 'expects boot_from_volume to be a boolean' do
+            options['openstack']['boot_from_volume'] = true
+
+            expect { subject }.to_not raise_error
+          end
+
+          it 'raises an error if boot_from_volume is not a boolean' do
+            options['openstack']['boot_from_volume'] = 'boot_from_volume'
+
+            expect { subject }.to raise_error(ArgumentError, /Invalid OpenStack cloud properties/)
+          end
+        end
+
+        context 'config_drive' do
+          it 'accepts cdrom as a value' do
+            options['openstack']['config_drive'] = 'cdrom'
+            expect { subject }.to_not raise_error
+          end
+
+          it 'accepts disk as a value' do
+            options['openstack']['config_drive'] = 'disk'
+            expect { subject }.to_not raise_error
+          end
+
+          it 'accepts nil as a value' do
+            options['openstack']['config_drive'] = nil
+            expect { subject }.to_not raise_error
+          end
+
+          it 'raises an error if config_drive is not cdrom or disk or nil' do
+            options['openstack']['config_drive'] = 'incorrect-value'
+            expect { subject }.to raise_error(ArgumentError, /Invalid OpenStack cloud properties/)
+          end
+        end
       end
 
-      context 'when connection_options are specified' do
-        it 'expects connection_options to be a hash' do
-          options['openstack']['connection_options'] = {'any-key' => 'any-value'}
+      context 'when keystone V3 API is used' do
+        before do
 
-          expect { subject }.to_not raise_error
+          options['openstack']['auth_url'] = 'http://127.0.0.1:5000/v3.0'
         end
 
-        it 'raises an error if connection_options is not a Hash' do
-          options['openstack']['connection_options'] = 'connection_options'
-
-          expect { subject }.to raise_error(ArgumentError, /Invalid OpenStack cloud properties/)
-        end
-      end
-
-      context 'when boot_from_volume is specified' do
-        it 'expects boot_from_volume to be a boolean' do
-          options['openstack']['boot_from_volume'] = true
-
-          expect { subject }.to_not raise_error
+        it 'raises an error when no project is specified' do
+          options['openstack']['domain'] = 'fake_domain'
+          expect { subject }.to raise_error(ArgumentError, /Invalid OpenStack cloud properties: #<Membrane::SchemaValidationError: { openstack => { project => Missing key } }/)
         end
 
-        it 'raises an error if boot_from_volume is not a boolean' do
-          options['openstack']['boot_from_volume'] = 'boot_from_volume'
-
-          expect { subject }.to raise_error(ArgumentError, /Invalid OpenStack cloud properties/)
-        end
-      end
-
-      context 'config_drive' do
-        it 'accepts cdrom as a value' do
-          options['openstack']['config_drive'] = 'cdrom'
-          expect { subject }.to_not raise_error
+        it 'raises an error when no domain is specified' do
+          options['openstack']['project'] = 'fake_project'
+          expect { subject }.to raise_error(ArgumentError, /Invalid OpenStack cloud properties: #<Membrane::SchemaValidationError: { openstack => { domain => Missing key } }/)
         end
 
-        it 'accepts disk as a value' do
-          options['openstack']['config_drive'] = 'disk'
-          expect { subject }.to_not raise_error
-        end
+        context 'when project and domain are specified' do
+          before do
+            options['openstack']['project'] = 'fake_project'
+            options['openstack']['domain'] = 'fake_domain'
+          end
 
-        it 'accepts nil as a value' do
-          options['openstack']['config_drive'] = nil
-          expect { subject }.to_not raise_error
-        end
+          it 'does not raise an error' do
 
-        it 'raises an error if config_drive is not cdrom or disk or nil' do
-          options['openstack']['config_drive'] = 'incorrect-value'
-          expect { subject }.to raise_error(ArgumentError, /Invalid OpenStack cloud properties/)
+            expect { subject }.to_not raise_error
+          end
         end
       end
 
@@ -196,6 +231,29 @@ describe Bosh::OpenStackCloud::Cloud do
 
         expect(Fog::Compute).to have_received(:new).with(hash_including(connection_options: merged_connection_options))
         expect(Fog::Image).to have_received(:new).with(hash_including(connection_options: merged_connection_options))
+      end
+    end
+
+    context 'when keystone V3 API is used' do
+      before do
+        cloud_options = mock_cloud_options(3)
+        allow(Fog::Compute).to receive(:new).and_return(compute)
+        allow(Fog::Image).to receive(:new).and_return(image)
+      end
+
+      it "should pass 'domain' and 'project' as options to the Fog::Compute connection" do
+        expect(Fog::Compute).to have_received(:new).with(hash_including(openstack_project: 'admin'))
+        expect(Fog::Compute).to have_received(:new).with(hash_including(openstack_domain_name: 'some_domain'))
+      end
+
+      it "should pass 'domain' and 'project' as options to the Fog::Image connection" do
+        expect(Fog::Image).to have_received(:new).with(hash_including(openstack_project: 'admin'))
+        expect(Fog::Image).to have_received(:new).with(hash_including(openstack_domain_name: 'some_domain'))
+      end
+
+      it "should pass 'domain' and 'project' as options to the Fog::Volume connection" do
+        expect(Fog::Volume).to have_received(:new).with(hash_including(openstack_project: 'admin'))
+        expect(Fog::Volume).to have_received(:new).with(hash_including(openstack_domain_name: 'some_domain'))
       end
     end
   end
