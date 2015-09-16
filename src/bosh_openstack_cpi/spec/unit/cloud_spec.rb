@@ -7,7 +7,6 @@ describe Bosh::OpenStackCloud::Cloud do
 
   describe :new do
     let(:cloud_options) { mock_cloud_options }
-
     let(:connection_options) { nil }
     let(:merged_connection_options) { default_connection_options }
 
@@ -16,9 +15,6 @@ describe Bosh::OpenStackCloud::Cloud do
 
     let(:image) { instance_double('Fog::Image') }
     before { allow(Fog::Image).to receive(:new).and_return(image) }
-
-    let(:volume) { instance_double('Fog::Volume') }
-    before { allow(Fog::Volume).to receive(:new).and_return(volume) }
 
     describe 'validation' do
       let(:options) do
@@ -235,24 +231,39 @@ describe Bosh::OpenStackCloud::Cloud do
     end
 
     context 'when keystone V3 API is used' do
+      let(:volume) { double('Fog::Volume') }
+      let(:volumes) { double('volumes') }
+      let(:new_volume) { double('new_volume') }
+      let(:cloud_options) { mock_cloud_options(3) }
       before do
-        cloud_options = mock_cloud_options(3)
+        allow(Fog::Volume).to receive(:new).and_return(volume)
+        allow(new_volume).to receive(:id).and_return(1)
+        allow(volumes).to receive(:create).and_return(new_volume)
+        allow(volume).to receive(:volumes).and_return(volumes)
+      end
+
+      before do
         allow(Fog::Compute).to receive(:new).and_return(compute)
         allow(Fog::Image).to receive(:new).and_return(image)
       end
 
       it "should pass 'domain' and 'project' as options to the Fog::Compute connection" do
-        expect(Fog::Compute).to have_received(:new).with(hash_including(openstack_project: 'admin'))
+        Bosh::OpenStackCloud::Cloud.new(cloud_options['properties'])
+        expect(Fog::Compute).to have_received(:new).with(hash_including(openstack_project_name: 'admin'))
         expect(Fog::Compute).to have_received(:new).with(hash_including(openstack_domain_name: 'some_domain'))
       end
 
       it "should pass 'domain' and 'project' as options to the Fog::Image connection" do
-        expect(Fog::Image).to have_received(:new).with(hash_including(openstack_project: 'admin'))
+        Bosh::OpenStackCloud::Cloud.new(cloud_options['properties'])
+        expect(Fog::Image).to have_received(:new).with(hash_including(openstack_project_name: 'admin'))
         expect(Fog::Image).to have_received(:new).with(hash_including(openstack_domain_name: 'some_domain'))
       end
 
       it "should pass 'domain' and 'project' as options to the Fog::Volume connection" do
-        expect(Fog::Volume).to have_received(:new).with(hash_including(openstack_project: 'admin'))
+        cpi = Bosh::OpenStackCloud::Cloud.new(cloud_options['properties'])
+        allow(cpi).to receive(:wait_resource).with(any_args).and_return(true)
+        cpi.create_disk(1024, {})
+        expect(Fog::Volume).to have_received(:new).with(hash_including(openstack_project_name: 'admin'))
         expect(Fog::Volume).to have_received(:new).with(hash_including(openstack_domain_name: 'some_domain'))
       end
     end
