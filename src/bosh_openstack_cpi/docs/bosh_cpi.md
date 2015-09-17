@@ -26,7 +26,7 @@ Implementation of `def initialize(options)` method.
 
 Figure below shows the flow of control.
 
-![openstack_cpi_initialize](https://raw.github.com/cloudfoundry/bosh/master/bosh_openstack_cpi/docs/images/openstack_cpi_initialize.png)
+![openstack_cpi_initialize](images/openstack_cpi_initialize.png)
 
 ##Create Stemcell ##
 
@@ -44,15 +44,15 @@ Steps outlined below are the flow control implemented to extract and upload kern
 
 Figure below shows the flow control for the method `create_stemcell(image_path, cloud_properties)`
 
-![openstack_cpi_createstemcell](https://raw.github.com/cloudfoundry/bosh/master/bosh_openstack_cpi/docs/images/openstack_cpi_createstemcell.png)
+![openstack_cpi_createstemcell](images/openstack_cpi_createstemcell.png)
 
 ##Delete Stemcell
 
-![openstack_cpi_deletestemcell](https://raw.github.com/cloudfoundry/bosh/master/bosh_openstack_cpi/docs/images/openstack_cpi_deletestemcell.png)
+![openstack_cpi_deletestemcell](images/openstack_cpi_deletestemcell.png)
 
 ##Create VM ##
 
-![openstack_cpi_create_vm](https://raw.github.com/cloudfoundry/bosh/master/bosh_openstack_cpi/docs/images/openstack_cpi_create_vm.png)
+![openstack_cpi_create_vm](images/openstack_cpi_create_vm.png)
 
 ##Delete VM ##
 
@@ -66,7 +66,7 @@ Implementation of `delete_vm(server_id)`. This method deletes the VM created in 
 
 Figure below shows the flow control for `delete_vm` method
 
-![openstack_cpi_delete_vm](https://raw.github.com/cloudfoundry/bosh/master/bosh_openstack_cpi/docs/images/openstack_cpi_delete_vm.png)
+![openstack_cpi_delete_vm](images/openstack_cpi_delete_vm.png)
 
 ##Create Disk ##
 
@@ -78,9 +78,9 @@ Figure below shows the flow control for `delete_vm` method
 
 Figure below shows the flow control of `create_disk` method
 
-![openstack_cpi_create_disk](https://raw.github.com/cloudfoundry/bosh/master/bosh_openstack_cpi/docs/images/openstack_cpi_create_disk.png)
+![openstack_cpi_create_disk](images/openstack_cpi_create_disk.png)
 
 ##Delete Disk##
 
 This method deletes the volume created in OpenStack Nova Volume 
-![openstack_cpi_delete_disk](https://raw.github.com/cloudfoundry/bosh/master/bosh_openstack_cpi/docs/images/openstack_cpi_delete_disk.png)
+![openstack_cpi_delete_disk](images/openstack_cpi_delete_disk.png)
