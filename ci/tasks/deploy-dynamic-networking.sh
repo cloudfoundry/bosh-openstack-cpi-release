@@ -82,6 +82,7 @@ jobs:
   - {name: director, release: bosh}
   - {name: health_monitor, release: bosh}
   - {name: registry, release: bosh}
+  - {name: powerdns, release: bosh}
   - {name: cpi, release: ${cpi_release_name}}
 
   instances: 1
@@ -140,6 +141,10 @@ jobs:
     hm:
       http: {user: hm, password: hm-password}
       director_account: {user: admin, password: admin}
+
+    dns:
+      address: 127.0.0.1
+      db: *db
 
     openstack: &openstack
       auth_url: ${openstack_auth_url}
