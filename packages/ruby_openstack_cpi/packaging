@@ -1,5 +1,13 @@
 set -e
 
+openssl_version=`PATH=/usr/local/opt/openssl/bin:$PATH openssl version`
+openssl_major_version=`echo $openssl_version | cut -f2 -d\ | cut -f1 -d.`
+if [ $openssl_major_version == 0 ]; then
+  echo "OpenSSL version 1 or greater is required."
+  echo "Currently available: ${openssl_version}"
+  exit 1
+fi
+
 tar xzf ruby_openstack_cpi/yaml-0.1.5.tar.gz
 (
   set -e
@@ -9,11 +17,11 @@ tar xzf ruby_openstack_cpi/yaml-0.1.5.tar.gz
   make install
 )
 
-tar xzf ruby_openstack_cpi/ruby-1.9.3-p545.tar.gz
+tar xzf ruby_openstack_cpi/ruby-2.1.7.tar.gz
 (
   set -e
-  cd ruby-1.9.3-p545
-  LDFLAGS="-Wl,-rpath -Wl,${BOSH_INSTALL_TARGET}" CFLAGS='-fPIC' ./configure --prefix=${BOSH_INSTALL_TARGET} --disable-install-doc --with-opt-dir=${BOSH_INSTALL_TARGET}
+  cd ruby-2.1.7
+  LDFLAGS="-Wl,-rpath -Wl,${BOSH_INSTALL_TARGET}" CFLAGS='-fPIC' ./configure --prefix=${BOSH_INSTALL_TARGET} --disable-install-doc --with-opt-dir=/usr/local/opt/openssl:${BOSH_INSTALL_TARGET}
   make 
   make install
 )
