@@ -1,8 +1,4 @@
 ---
-ruby_openstack_cpi/ruby-1.9.3-p545.tar.gz:
-  object_id: 3365e9d2-b873-44ad-9d8a-8dd7e216408d
-  sha: 03455364740914e8d2dfd6421f681b3fb68a4313
-  size: 12582277
 ruby_openstack_cpi/rubygems-2.1.11.tgz:
   object_id: d709e5e9-07bc-44ff-b7b5-747baa1a884c
   sha: ca3033432cae28deb7ced79cda271cb292b70e59
