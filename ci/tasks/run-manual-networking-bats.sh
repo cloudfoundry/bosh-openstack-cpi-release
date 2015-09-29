@@ -98,7 +98,7 @@ properties:
       security_groups: [${openstack_security_group}]
     cidr: ${secondary_network_cidr}
     reserved: []
-    static: [${secondary_network_manual_ip}]
+    static: [${secondary_network_range}]
     gateway: ${secondary_network_gateway}
 EOF
 

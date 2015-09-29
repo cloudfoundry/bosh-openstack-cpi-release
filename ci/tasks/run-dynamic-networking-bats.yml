@@ -8,12 +8,12 @@ inputs:
 run:
   path: bosh-cpi-release/ci/tasks/run-dynamic-networking-bats.sh
 params:
-  stemcell_name:                             replace-me
-  private_key_data:                          replace-me
+  bats_vm_floating_ip:                       replace-me
+  bosh_director_public_ip:                   replace-me
+  desired_vcap_user_password:                replace-me
   openstack_flavor_with_ephemeral_disk:      replace-me
   openstack_flavor_with_no_ephemeral_disk:   replace-me
   openstack_security_group:                  replace-me
   primary_network_id:                        replace-me
-  bosh_director_public_ip:                   replace-me
-  desired_vcap_user_password:                replace-me
-  bats_vm_floating_ip:                       replace-me
+  private_key_data:                          replace-me
+  stemcell_name:                             replace-me

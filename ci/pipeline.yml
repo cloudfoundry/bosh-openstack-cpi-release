@@ -204,14 +204,14 @@ jobs:
     config:
       params:
         stemcell_name:                            "bosh-openstack-kvm-ubuntu-trusty-go_agent"
-        private_key_data:                         {{bosh_private_key}} 
-        openstack_security_group:                 {{openstack_security_group}}
+        bats_vm_floating_ip:                      {{bats_dynamic_ubuntu_floating_ip}}
+        bosh_director_public_ip:                  {{bats_dynamic_ubuntu_director_public_ip}}
+        desired_vcap_user_password:               {{bosh_desired_vcap_user_password}}
         openstack_flavor_with_ephemeral_disk:     {{openstack_flavor_with_ephemeral_disk}}
         openstack_flavor_with_no_ephemeral_disk:  {{openstack_flavor_with_no_ephemeral_disk}}
-        desired_vcap_user_password:               {{bosh_desired_vcap_user_password}}
-        bosh_director_public_ip:                  {{bats_dynamic_ubuntu_director_public_ip}}
-        bats_vm_floating_ip:                      {{bats_dynamic_ubuntu_floating_ip}}
+        openstack_security_group:                 {{openstack_security_group}}
         primary_network_id:                       {{bats_dynamic_ubuntu_primary_net_id}}
+        private_key_data:                         {{bosh_private_key}} 
 
 - name: deploy-centos-manual
   serial_groups: [centos-director-manual] # shouldn't deploy while bats are running
@@ -338,14 +338,14 @@ jobs:
     config:
       params:
         stemcell_name:                            "bosh-openstack-kvm-centos-7-go_agent"
-        private_key_data:                         {{bosh_private_key}}
-        openstack_security_group:                 {{openstack_security_group}}
+        bats_vm_floating_ip:                      {{bats_dynamic_centos_floating_ip}}
+        bosh_director_public_ip:                  {{bats_dynamic_centos_director_public_ip}}
+        desired_vcap_user_password:               {{bosh_desired_vcap_user_password}}
         openstack_flavor_with_ephemeral_disk:     {{openstack_flavor_with_ephemeral_disk}}
         openstack_flavor_with_no_ephemeral_disk:  {{openstack_flavor_with_no_ephemeral_disk}}
-        desired_vcap_user_password:               {{bosh_desired_vcap_user_password}}
-        bosh_director_public_ip:                  {{bats_dynamic_centos_director_public_ip}}
-        bats_vm_floating_ip:                      {{bats_dynamic_centos_floating_ip}}
+        openstack_security_group:                 {{openstack_security_group}}
         primary_network_id:                       {{bats_dynamic_centos_primary_net_id}}
+        private_key_data:                         {{bosh_private_key}}
 
 - name: promote-candidate
   serial: true
