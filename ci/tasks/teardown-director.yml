@@ -1,0 +1,9 @@
+---
+platform: linux
+image: docker:///boshcpi/openstack-cpi-release
+inputs:
+- name: bosh-cpi-release
+- name: director-manifest
+- name: bosh-init
+run:
+  path: bosh-cpi-release/ci/tasks/teardown-director.sh

@@ -87,6 +87,7 @@ jobs:
     - {trigger: false, passed: [build-candidate], get: version-semver}
     - {trigger: false, passed: [build-candidate], get: bosh-cpi-release}
     - {trigger: false,                            get: director-state-file, resource: ubuntu-manual-director-state-file}
+    - {trigger: false,                            get: director-manifest, resource: ubuntu-manual-director-manifest}
     - {trigger: false,                            get: bosh-init}
     - {trigger: false,                            get: bosh-release}
     - {trigger: false,                            get: stemcell, resource: openstack-ubuntu-stemcell}
@@ -119,6 +120,9 @@ jobs:
       put: ubuntu-manual-director-state-file
       params: {from: deploy/director-state-file/ubuntu-manual-director-manifest-state.json}
 
+  - put: ubuntu-manual-director-manifest
+    params: {from: deploy/director-manifest/ubuntu-manual-director-manifest.yml}
+
 - name: bats-ubuntu-manual
   serial_groups: [ubuntu-director-manual] # can't run while deploying
   plan:
@@ -126,7 +130,9 @@ jobs:
     - {trigger: true,  passed: [deploy-ubuntu-manual], get: bosh-cpi-dev-artifacts}
     - {trigger: false, passed: [deploy-ubuntu-manual], get: bosh-cpi-release}
     - {trigger: false, passed: [deploy-ubuntu-manual], get: stemcell, resource: openstack-ubuntu-stemcell}
+    - {trigger: false, passed: [deploy-ubuntu-manual], get: director-manifest, resource: ubuntu-manual-director-manifest}
     - {trigger: false,                                 get: bats}
+    - {trigger: false,                                 get: bosh-init}
 
   - task: test
     file: bosh-cpi-release/ci/tasks/run-manual-networking-bats.yml
@@ -153,6 +159,12 @@ jobs:
         secondary_network_range:                  {{bats_manual_ubuntu_secondary_net_static_range}}
         secondary_network_manual_ip:              {{bats_manual_ubuntu_secondary_net_manual_ip}}
 
+  - task: teardown-director
+    file: bosh-cpi-release/ci/tasks/teardown-director.yml
+    config:
+      params:
+        director_manifest_filename: "ubuntu-manual-director-manifest.yml"
+
 - name: deploy-ubuntu-dynamic
   serial_groups: [ubuntu-director-dynamic] # shouldn't deploy while bats are running
   plan:
@@ -161,6 +173,7 @@ jobs:
     - {trigger: false, passed: [build-candidate], get: version-semver}
     - {trigger: false, passed: [build-candidate], get: bosh-cpi-release}
     - {trigger: false,                            get: director-state-file, resource: ubuntu-dynamic-director-state-file}
+    - {trigger: false,                            get: director-manifest, resource: ubuntu-dynamic-director-manifest}
     - {trigger: false,                            get: bosh-init}
     - {trigger: false,                            get: bosh-release}
     - {trigger: false,                            get: stemcell, resource: openstack-ubuntu-stemcell}
@@ -190,14 +203,19 @@ jobs:
       put: ubuntu-dynamic-director-state-file
       params: {from: deploy/director-state-file/ubuntu-dynamic-director-manifest-state.json}
 
+  - put: ubuntu-dynamic-director-manifest
+    params: {from: deploy/director-manifest/ubuntu-dynamic-director-manifest.yml}
+
 - name: bats-ubuntu-dynamic
   serial_groups: [ubuntu-director-dynamic] # can't run while deploying
   plan:
   - aggregate:
     - {trigger: true,  passed: [deploy-ubuntu-dynamic], get: bosh-cpi-dev-artifacts}
     - {trigger: false, passed: [deploy-ubuntu-dynamic], get: bosh-cpi-release}
+    - {trigger: false, passed: [deploy-ubuntu-dynamic], get: director-manifest, resource: ubuntu-dynamic-director-manifest}
     - {trigger: false, passed: [deploy-ubuntu-dynamic], get: stemcell, resource: openstack-ubuntu-stemcell}
-    - {trigger: false,                                 get: bats}
+    - {trigger: false,                                  get: bats}
+    - {trigger: false,                                  get: bosh-init}
 
   - task: test
     file: bosh-cpi-release/ci/tasks/run-dynamic-networking-bats.yml
@@ -213,6 +231,12 @@ jobs:
         primary_network_id:                       {{bats_dynamic_ubuntu_primary_net_id}}
         private_key_data:                         {{bosh_private_key}} 
 
+  - task: teardown-director
+    file: bosh-cpi-release/ci/tasks/teardown-director.yml
+    config:
+      params:
+        director_manifest_filename: "ubuntu-dynamic-director-manifest.yml"
+
 - name: deploy-centos-manual
   serial_groups: [centos-director-manual] # shouldn't deploy while bats are running
   plan:
@@ -221,6 +245,7 @@ jobs:
     - {trigger: false, passed: [build-candidate], get: version-semver}
     - {trigger: false, passed: [build-candidate], get: bosh-cpi-release}
     - {trigger: false,                            get: director-state-file, resource: centos-manual-director-state-file}
+    - {trigger: false,                            get: director-manifest, resource: centos-manual-director-manifest}
     - {trigger: false,                            get: bosh-init}
     - {trigger: false,                            get: bosh-release}
     - {trigger: false,                            get: stemcell, resource: openstack-centos-stemcell}
@@ -253,14 +278,19 @@ jobs:
       put: centos-manual-director-state-file
       params: {from: deploy/director-state-file/centos-manual-director-manifest-state.json}
 
+  - put: centos-manual-director-manifest
+    params: {from: deploy/director-manifest/centos-manual-director-manifest.yml}
+
 - name: bats-centos-manual
   serial_groups: [centos-director-manual] # can't run while deploying
   plan:
   - aggregate:
     - {trigger: true,  passed: [deploy-centos-manual], get: bosh-cpi-dev-artifacts}
     - {trigger: false, passed: [deploy-centos-manual], get: stemcell, resource: openstack-centos-stemcell}
+    - {trigger: false, passed: [deploy-centos-manual], get: director-manifest, resource: centos-manual-director-manifest}
     - {trigger: false, passed: [deploy-centos-manual], get: bosh-cpi-release}
     - {trigger: false,                                 get: bats}
+    - {trigger: false,                                 get: bosh-init}
 
   - task: test
     file: bosh-cpi-release/ci/tasks/run-manual-networking-bats.yml
@@ -287,6 +317,12 @@ jobs:
         secondary_network_range:                  {{bats_manual_centos_secondary_net_static_range}}
         secondary_network_manual_ip:              {{bats_manual_centos_secondary_net_manual_ip}}
 
+  - task: teardown-director
+    file: bosh-cpi-release/ci/tasks/teardown-director.yml
+    config:
+      params:
+        director_manifest_filename: "centos-manual-director-manifest.yml"
+
 - name: deploy-centos-dynamic
   serial_groups: [centos-director-dynamic] # shouldn't deploy while bats are running
   plan:
@@ -295,6 +331,7 @@ jobs:
     - {trigger: false, passed: [build-candidate], get: version-semver}
     - {trigger: false, passed: [build-candidate], get: bosh-cpi-release}
     - {trigger: false,                            get: director-state-file, resource: centos-dynamic-director-state-file}
+    - {trigger: false,                            get: director-manifest, resource: centos-dynamic-director-manifest}
     - {trigger: false,                            get: bosh-init}
     - {trigger: false,                            get: bosh-release}
     - {trigger: false,                            get: stemcell, resource: openstack-centos-stemcell}
@@ -324,14 +361,19 @@ jobs:
       put: centos-dynamic-director-state-file
       params: {from: deploy/director-state-file/centos-dynamic-director-manifest-state.json}
 
+  - put: centos-dynamic-director-manifest
+    params: {from: deploy/director-manifest/centos-dynamic-director-manifest.yml}
+
 - name: bats-centos-dynamic
   serial_groups: [centos-director-dynamic] # can't run while deploying
   plan:
   - aggregate:
     - {trigger: true,  passed: [deploy-centos-dynamic], get: bosh-cpi-dev-artifacts}
     - {trigger: false, passed: [deploy-centos-dynamic], get: stemcell, resource: openstack-centos-stemcell}
+    - {trigger: false, passed: [deploy-centos-dynamic], get: director-manifest, resource: centos-dynamic-director-manifest}
     - {trigger: false, passed: [deploy-centos-dynamic], get: bosh-cpi-release}
-    - {trigger: false,                                 get: bats}
+    - {trigger: false,                                  get: bats}
+    - {trigger: false,                                  get: bosh-init}
 
   - task: test
     file: bosh-cpi-release/ci/tasks/run-dynamic-networking-bats.yml
@@ -346,6 +388,12 @@ jobs:
         openstack_security_group:                 {{openstack_security_group}}
         primary_network_id:                       {{bats_dynamic_centos_primary_net_id}}
         private_key_data:                         {{bosh_private_key}}
+
+  - task: teardown-director
+    file: bosh-cpi-release/ci/tasks/teardown-director.yml
+    config:
+      params:
+        director_manifest_filename: "centos-dynamic-director-manifest.yml"
 
 - name: promote-candidate
   serial: true
@@ -387,11 +435,29 @@ resources:
     access_key_id: {{s3_openstack_cpi_state_files_access_key}}
     secret_access_key: {{s3_openstack_cpi_state_files_secret_key}}
 
+- name: ubuntu-manual-director-manifest
+  type: s3
+  source:
+    bucket: bosh-openstack-cpi-state-files
+    versioned_file: ubuntu-manual-director-manifest.yml
+    region_name: us-east-1
+    access_key_id: {{s3_openstack_cpi_state_files_access_key}}
+    secret_access_key: {{s3_openstack_cpi_state_files_secret_key}}
+
 - name: centos-manual-director-state-file
   type: s3
   source:
     bucket: bosh-openstack-cpi-state-files
     versioned_file: centos-manual-director-manifest-state.json
+    region_name: us-east-1
+    access_key_id: {{s3_openstack_cpi_state_files_access_key}}
+    secret_access_key: {{s3_openstack_cpi_state_files_secret_key}}
+
+- name: centos-manual-director-manifest
+  type: s3
+  source:
+    bucket: bosh-openstack-cpi-state-files
+    versioned_file: centos-manual-director-manifest.yml
     region_name: us-east-1
     access_key_id: {{s3_openstack_cpi_state_files_access_key}}
     secret_access_key: {{s3_openstack_cpi_state_files_secret_key}}
@@ -405,11 +471,29 @@ resources:
     access_key_id: {{s3_openstack_cpi_state_files_access_key}}
     secret_access_key: {{s3_openstack_cpi_state_files_secret_key}}
 
+- name: ubuntu-dynamic-director-manifest
+  type: s3
+  source:
+    bucket: bosh-openstack-cpi-state-files
+    versioned_file: ubuntu-dynamic-director-manifest.yml
+    region_name: us-east-1
+    access_key_id: {{s3_openstack_cpi_state_files_access_key}}
+    secret_access_key: {{s3_openstack_cpi_state_files_secret_key}}
+
 - name: centos-dynamic-director-state-file
   type: s3
   source:
     bucket: bosh-openstack-cpi-state-files
     versioned_file: centos-dynamic-director-manifest-state.json
+    region_name: us-east-1
+    access_key_id: {{s3_openstack_cpi_state_files_access_key}}
+    secret_access_key: {{s3_openstack_cpi_state_files_secret_key}}
+
+- name: centos-dynamic-director-manifest
+  type: s3
+  source:
+    bucket: bosh-openstack-cpi-state-files
+    versioned_file: centos-dynamic-director-manifest.yml
     region_name: us-east-1
     access_key_id: {{s3_openstack_cpi_state_files_access_key}}
     secret_access_key: {{s3_openstack_cpi_state_files_secret_key}}
