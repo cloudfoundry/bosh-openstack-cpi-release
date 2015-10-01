@@ -71,6 +71,28 @@ properties:
     default: []
     example: ["0.us.pool.ntp.org", "1.us.pool.ntp.org"]
 
+  agent.blobstore.access_key_id:
+    description: access_key_id for agent used by s3 blobstore plugin
+  agent.blobstore.secret_access_key:
+    description: secret_access_key for agent used by s3 blobstore plugin
+  agent.mbus:
+    description: Message bus endpoint for the agent to start accepting agent requests
+    example: https://user:password@192.168.0.1:5000
+  agent.blobstore.address:
+    description: Address for agent to connect to blobstore server used by simple blobstore plugin
+  agent.blobstore.use_ssl:
+    description: Whether the agent blobstore plugin should use SSL to connect to the blobstore server
+  agent.blobstore.s3_port:
+    description: Port of agent blobstore server used by s3 blobstore plugin
+  agent.blobstore.host:
+    description: Host of agent blobstore server used by simple blobstore plugin
+  agent.blobstore.s3_force_path_style:
+    description: Whether the agent blobstore plugin will always use path style for bucket access
+  agent.blobstore.ssl_verify_peer:
+    description: Whether the agent blobstore plugin should verify its peer when using SSL
+  agent.blobstore.s3_multipart_threshold:
+    description: Agent blobstore threshold for multipart uploads
+
   blobstore.address:
     description: Address for agent to connect to blobstore server used by 'simple' blobstore plugin
   blobstore.port:
@@ -85,12 +107,8 @@ properties:
     description: Path used by 'local' blobstore plugin
   blobstore.bucket_name:
     description: S3 Bucket used by s3 blobstore plugin
-  agent.blobstore.access_key_id:
-    description: access_key_id for agent used by s3 blobstore plugin
   blobstore.access_key_id:
     description: access_key_id used by s3 blobstore plugin
-  agent.blobstore.secret_access_key:
-    description: secret_access_key for agent used by s3 blobstore plugin
   blobstore.secret_access_key:
     description: secret_access_key used by s3 blobstore plugin
   blobstore.host:
@@ -104,10 +122,12 @@ properties:
   blobstore.ssl_verify_peer:
     description: Verify the SSL certificate used on the blobstore?
     default: true
+  blobstore.s3_force_path_style:
+    description: Whether s3 blobstore plugin will always use path style for bucket access
+    default: false
+  blobstore.s3_multipart_threshold:
+    description: Simple blobstore threshold for multipart uploads
 
-  agent.mbus:
-    description: Message bus endpoint for the agent to start accepting agent requests
-    example: https://user:password@192.168.0.1:5000
   nats.user:
     description: NATS username used by agent to subscribe to agent requests
   nats.password:
