@@ -87,7 +87,6 @@ jobs:
     - {trigger: false, passed: [build-candidate], get: version-semver}
     - {trigger: false, passed: [build-candidate], get: bosh-cpi-release}
     - {trigger: false,                            get: director-state-file, resource: ubuntu-manual-director-state-file}
-    - {trigger: false,                            get: director-manifest, resource: ubuntu-manual-director-manifest}
     - {trigger: false,                            get: bosh-init}
     - {trigger: false,                            get: bosh-release}
     - {trigger: false,                            get: stemcell, resource: openstack-ubuntu-stemcell}
@@ -173,7 +172,6 @@ jobs:
     - {trigger: false, passed: [build-candidate], get: version-semver}
     - {trigger: false, passed: [build-candidate], get: bosh-cpi-release}
     - {trigger: false,                            get: director-state-file, resource: ubuntu-dynamic-director-state-file}
-    - {trigger: false,                            get: director-manifest, resource: ubuntu-dynamic-director-manifest}
     - {trigger: false,                            get: bosh-init}
     - {trigger: false,                            get: bosh-release}
     - {trigger: false,                            get: stemcell, resource: openstack-ubuntu-stemcell}
@@ -245,7 +243,6 @@ jobs:
     - {trigger: false, passed: [build-candidate], get: version-semver}
     - {trigger: false, passed: [build-candidate], get: bosh-cpi-release}
     - {trigger: false,                            get: director-state-file, resource: centos-manual-director-state-file}
-    - {trigger: false,                            get: director-manifest, resource: centos-manual-director-manifest}
     - {trigger: false,                            get: bosh-init}
     - {trigger: false,                            get: bosh-release}
     - {trigger: false,                            get: stemcell, resource: openstack-centos-stemcell}
@@ -331,7 +328,6 @@ jobs:
     - {trigger: false, passed: [build-candidate], get: version-semver}
     - {trigger: false, passed: [build-candidate], get: bosh-cpi-release}
     - {trigger: false,                            get: director-state-file, resource: centos-dynamic-director-state-file}
-    - {trigger: false,                            get: director-manifest, resource: centos-dynamic-director-manifest}
     - {trigger: false,                            get: bosh-init}
     - {trigger: false,                            get: bosh-release}
     - {trigger: false,                            get: stemcell, resource: openstack-centos-stemcell}
