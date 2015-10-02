@@ -117,10 +117,10 @@ jobs:
         openstack_net_gateway:         {{bats_manual_ubuntu_primary_net_gateway}}
     ensure:
       put: ubuntu-manual-director-state-file
-      params: {from: deploy/director-state-file/ubuntu-manual-director-manifest-state.json}
+      params: {from: deploy/deployment/ubuntu-manual-director-manifest-state.json}
 
   - put: ubuntu-manual-director-manifest
-    params: {from: deploy/director-state-file/ubuntu-manual-director-manifest.yml}
+    params: {from: deploy/deployment/ubuntu-manual-director-manifest.yml}
 
 - name: bats-ubuntu-manual
   serial_groups: [ubuntu-director-manual] # can't run while deploying
@@ -131,6 +131,8 @@ jobs:
     - {trigger: false, passed: [deploy-ubuntu-manual], get: stemcell, resource: openstack-ubuntu-stemcell}
     - {trigger: false, passed: [deploy-ubuntu-manual], get: director-state-file, resource: ubuntu-manual-director-state-file}
     - {trigger: false, passed: [deploy-ubuntu-manual], get: director-manifest, resource: ubuntu-manual-director-manifest}
+    - {trigger: false, passed: [deploy-ubuntu-manual], get: version-semver}
+    - {trigger: false,                                 get: bosh-release}
     - {trigger: false,                                 get: bats}
     - {trigger: false,                                 get: bosh-init}
 
@@ -204,10 +206,10 @@ jobs:
         openstack_floating_ip:         {{bats_dynamic_ubuntu_director_public_ip}}
     ensure:
       put: ubuntu-dynamic-director-state-file
-      params: {from: deploy/director-state-file/ubuntu-dynamic-director-manifest-state.json}
+      params: {from: deploy/deployment/ubuntu-dynamic-director-manifest-state.json}
 
   - put: ubuntu-dynamic-director-manifest
-    params: {from: deploy/director-state-file/ubuntu-dynamic-director-manifest.yml}
+    params: {from: deploy/deployment/ubuntu-dynamic-director-manifest.yml}
 
 - name: bats-ubuntu-dynamic
   serial_groups: [ubuntu-director-dynamic] # can't run while deploying
@@ -218,6 +220,8 @@ jobs:
     - {trigger: false, passed: [deploy-ubuntu-dynamic], get: director-state-file, resource: ubuntu-dynamic-director-state-file}
     - {trigger: false, passed: [deploy-ubuntu-dynamic], get: director-manifest, resource: ubuntu-dynamic-director-manifest}
     - {trigger: false, passed: [deploy-ubuntu-dynamic], get: stemcell, resource: openstack-ubuntu-stemcell}
+    - {trigger: false, passed: [deploy-ubuntu-dynamic], get: version-semver}
+    - {trigger: false,                                  get: bosh-release}
     - {trigger: false,                                  get: bats}
     - {trigger: false,                                  get: bosh-init}
 
@@ -283,10 +287,10 @@ jobs:
         openstack_net_gateway:         {{bats_manual_centos_primary_net_gateway}}
     ensure:
       put: centos-manual-director-state-file
-      params: {from: deploy/director-state-file/centos-manual-director-manifest-state.json}
+      params: {from: deploy/deployment/centos-manual-director-manifest-state.json}
 
   - put: centos-manual-director-manifest
-    params: {from: deploy/director-state-file/centos-manual-director-manifest.yml}
+    params: {from: deploy/deployment/centos-manual-director-manifest.yml}
 
 - name: bats-centos-manual
   serial_groups: [centos-director-manual] # can't run while deploying
@@ -297,6 +301,8 @@ jobs:
     - {trigger: false, passed: [deploy-centos-manual], get: director-state-file, resource: centos-manual-director-state-file}
     - {trigger: false, passed: [deploy-centos-manual], get: director-manifest, resource: centos-manual-director-manifest}
     - {trigger: false, passed: [deploy-centos-manual], get: bosh-cpi-release}
+    - {trigger: false, passed: [deploy-centos-manual], get: version-semver}
+    - {trigger: false,                                 get: bosh-release}
     - {trigger: false,                                 get: bats}
     - {trigger: false,                                 get: bosh-init}
 
@@ -370,10 +376,10 @@ jobs:
         openstack_floating_ip:         {{bats_dynamic_centos_director_public_ip}}
     ensure:
       put: centos-dynamic-director-state-file
-      params: {from: deploy/director-state-file/centos-dynamic-director-manifest-state.json}
+      params: {from: deploy/deployment/centos-dynamic-director-manifest-state.json}
 
   - put: centos-dynamic-director-manifest
-    params: {from: deploy/director-state-file/centos-dynamic-director-manifest.yml}
+    params: {from: deploy/deployment/centos-dynamic-director-manifest.yml}
 
 - name: bats-centos-dynamic
   serial_groups: [centos-director-dynamic] # can't run while deploying
@@ -384,6 +390,8 @@ jobs:
     - {trigger: false, passed: [deploy-centos-dynamic], get: director-state-file, resource: centos-dynamic-director-state-file}
     - {trigger: false, passed: [deploy-centos-dynamic], get: director-manifest, resource: centos-dynamic-director-manifest}
     - {trigger: false, passed: [deploy-centos-dynamic], get: bosh-cpi-release}
+    - {trigger: false, passed: [deploy-centos-dynamic], get: version-semver}
+    - {trigger: false,                                  get: bosh-release}
     - {trigger: false,                                  get: bats}
     - {trigger: false,                                  get: bosh-init}
 

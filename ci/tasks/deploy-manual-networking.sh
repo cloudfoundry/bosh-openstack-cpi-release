@@ -31,27 +31,29 @@ export BOSH_INIT_LOG_LEVEL=DEBUG
 
 semver=`cat version-semver/number`
 cpi_release_name="bosh-openstack-cpi"
-working_dir=$PWD
+deployment_dir="${PWD}/deployment"
+manifest_filename="${base_os}-${network_type_to_test}-director-manifest.yml"
+private_key=${deployment_dir}/bats.pem
 
-mkdir -p $working_dir/keys
-echo "$private_key_data" > $working_dir/keys/bats.pem
-
-manifest_dir="${working_dir}/director-state-file"
-manifest_filename=${base_os}-${network_type_to_test}-director-manifest.yml
-
+echo "setting up artifacts used in $manifest_filename"
+mkdir -p ${deployment_dir}
+cp ./bosh-cpi-dev-artifacts/${cpi_release_name}-${semver}.tgz ${deployment_dir}/${cpi_release_name}.tgz
+cp ./bosh-release/release.tgz ${deployment_dir}/bosh-release.tgz
+cp ./stemcell/stemcell.tgz ${deployment_dir}/stemcell.tgz
+echo "${private_key_data}" > ${private_key}
+chmod go-r ${private_key}
 eval $(ssh-agent)
-chmod go-r $working_dir/keys/bats.pem
-ssh-add $working_dir/keys/bats.pem
+ssh-add ${private_key}
 
-cat > "${manifest_dir}/${manifest_filename}" <<EOF
+cat > "${deployment_dir}/${manifest_filename}" <<EOF
 ---
 name: bosh
 
 releases:
   - name: bosh
-    url: file://${working_dir}/bosh-release/release.tgz
+    url: file://bosh-release.tgz
   - name: ${cpi_release_name}
-    url: file://${working_dir}/bosh-cpi-dev-artifacts/${cpi_release_name}-${semver}.tgz
+    url: file://${cpi_release_name}.tgz
 
 networks:
 - name: private
@@ -71,7 +73,7 @@ resource_pools:
 - name: default
   network: private
   stemcell:
-    url: file://${working_dir}/stemcell/stemcell.tgz
+    url: file://stemcell.tgz
   cloud_properties:
     instance_type: $openstack_flavor
 
@@ -186,7 +188,7 @@ cloud_provider:
     host: ${openstack_floating_ip}
     port: 22
     user: vcap
-    private_key: $working_dir/keys/bats.pem
+    private_key: bats.pem
 
   # Tells bosh-micro how to contact remote agent
   mbus: https://mbus-user:mbus-password@${openstack_floating_ip}:6868
@@ -205,12 +207,11 @@ cloud_provider:
 EOF
 
 initver=$(cat bosh-init/version)
-bosh_init="${working_dir}/bosh-init/bosh-init-${initver}-linux-amd64"
+bosh_init="${PWD}/bosh-init/bosh-init-${initver}-linux-amd64"
 chmod +x $bosh_init
 
 echo "deleting existing BOSH Director VM..."
-$bosh_init delete ${manifest_dir}/${manifest_filename}
+$bosh_init delete ${deployment_dir}/${manifest_filename}
 
 echo "deploying BOSH..."
-$bosh_init deploy ${manifest_dir}/${manifest_filename}
-
+$bosh_init deploy ${deployment_dir}/${manifest_filename}
