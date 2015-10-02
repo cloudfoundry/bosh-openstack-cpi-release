@@ -120,7 +120,7 @@ jobs:
       params: {from: deploy/director-state-file/ubuntu-manual-director-manifest-state.json}
 
   - put: ubuntu-manual-director-manifest
-    params: {from: deploy/director-manifest/ubuntu-manual-director-manifest.yml}
+    params: {from: deploy/director-state-file/ubuntu-manual-director-manifest.yml}
 
 - name: bats-ubuntu-manual
   serial_groups: [ubuntu-director-manual] # can't run while deploying
@@ -202,7 +202,7 @@ jobs:
       params: {from: deploy/director-state-file/ubuntu-dynamic-director-manifest-state.json}
 
   - put: ubuntu-dynamic-director-manifest
-    params: {from: deploy/director-manifest/ubuntu-dynamic-director-manifest.yml}
+    params: {from: deploy/director-state-file/ubuntu-dynamic-director-manifest.yml}
 
 - name: bats-ubuntu-dynamic
   serial_groups: [ubuntu-director-dynamic] # can't run while deploying
@@ -276,7 +276,7 @@ jobs:
       params: {from: deploy/director-state-file/centos-manual-director-manifest-state.json}
 
   - put: centos-manual-director-manifest
-    params: {from: deploy/director-manifest/centos-manual-director-manifest.yml}
+    params: {from: deploy/director-state-file/centos-manual-director-manifest.yml}
 
 - name: bats-centos-manual
   serial_groups: [centos-director-manual] # can't run while deploying
@@ -358,7 +358,7 @@ jobs:
       params: {from: deploy/director-state-file/centos-dynamic-director-manifest-state.json}
 
   - put: centos-dynamic-director-manifest
-    params: {from: deploy/director-manifest/centos-dynamic-director-manifest.yml}
+    params: {from: deploy/director-state-file/centos-dynamic-director-manifest.yml}
 
 - name: bats-centos-dynamic
   serial_groups: [centos-director-dynamic] # can't run while deploying

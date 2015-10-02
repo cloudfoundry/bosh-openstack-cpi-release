@@ -5,8 +5,8 @@ set -e
 source /etc/profile.d/chruby.sh
 chruby 2.1.2
 
-initver=$(cat teardown-director/bosh-init/version)
-initexe="${PWD}/teardown-director/bosh-init/bosh-init-${initver}-linux-amd64"
+initver=$(cat bosh-init/version)
+initexe="${PWD}/bosh-init/bosh-init-${initver}-linux-amd64"
 chmod +x ${initexe}
 
 echo "using bosh-init CLI version..."
