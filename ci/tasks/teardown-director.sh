@@ -30,3 +30,5 @@ $initexe version
 
 echo "deleting existing BOSH Director VM..."
 $initexe delete ${director_manifest_filename}
+
+echo "{}" >> ${working_dir}/${base_os}-${network_type}-director-manifest-state.json
