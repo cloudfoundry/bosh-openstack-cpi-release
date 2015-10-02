@@ -129,6 +129,7 @@ jobs:
     - {trigger: true,  passed: [deploy-ubuntu-manual], get: bosh-cpi-dev-artifacts}
     - {trigger: false, passed: [deploy-ubuntu-manual], get: bosh-cpi-release}
     - {trigger: false, passed: [deploy-ubuntu-manual], get: stemcell, resource: openstack-ubuntu-stemcell}
+    - {trigger: false, passed: [deploy-ubuntu-manual], get: director-state-file, resource: ubuntu-manual-director-state-file}
     - {trigger: false, passed: [deploy-ubuntu-manual], get: director-manifest, resource: ubuntu-manual-director-manifest}
     - {trigger: false,                                 get: bats}
     - {trigger: false,                                 get: bosh-init}
@@ -162,7 +163,11 @@ jobs:
     file: bosh-cpi-release/ci/tasks/teardown-director.yml
     config:
       params:
-        director_manifest_filename: "ubuntu-manual-director-manifest.yml"
+        base_os:      "ubuntu"
+        network_type: "manual"
+    ensure:
+      put: ubuntu-manual-director-state-file
+      params: {from: teardown-director/director-manifest/ubuntu-manual-director-manifest-state.json}
 
 - name: deploy-ubuntu-dynamic
   serial_groups: [ubuntu-director-dynamic] # shouldn't deploy while bats are running
@@ -210,6 +215,7 @@ jobs:
   - aggregate:
     - {trigger: true,  passed: [deploy-ubuntu-dynamic], get: bosh-cpi-dev-artifacts}
     - {trigger: false, passed: [deploy-ubuntu-dynamic], get: bosh-cpi-release}
+    - {trigger: false, passed: [deploy-ubuntu-dynamic], get: director-state-file, resource: ubuntu-dynamic-director-state-file}
     - {trigger: false, passed: [deploy-ubuntu-dynamic], get: director-manifest, resource: ubuntu-dynamic-director-manifest}
     - {trigger: false, passed: [deploy-ubuntu-dynamic], get: stemcell, resource: openstack-ubuntu-stemcell}
     - {trigger: false,                                  get: bats}
@@ -233,7 +239,11 @@ jobs:
     file: bosh-cpi-release/ci/tasks/teardown-director.yml
     config:
       params:
-        director_manifest_filename: "ubuntu-dynamic-director-manifest.yml"
+        base_os:      "ubuntu"
+        network_type: "dynamic"
+    ensure:
+      put: ubuntu-dynamic-director-state-file
+      params: {from: teardown-director/director-manifest/ubuntu-dynamic-director-manifest-state.json}
 
 - name: deploy-centos-manual
   serial_groups: [centos-director-manual] # shouldn't deploy while bats are running
@@ -284,6 +294,7 @@ jobs:
   - aggregate:
     - {trigger: true,  passed: [deploy-centos-manual], get: bosh-cpi-dev-artifacts}
     - {trigger: false, passed: [deploy-centos-manual], get: stemcell, resource: openstack-centos-stemcell}
+    - {trigger: false, passed: [deploy-centos-manual], get: director-state-file, resource: centos-manual-director-state-file}
     - {trigger: false, passed: [deploy-centos-manual], get: director-manifest, resource: centos-manual-director-manifest}
     - {trigger: false, passed: [deploy-centos-manual], get: bosh-cpi-release}
     - {trigger: false,                                 get: bats}
@@ -318,7 +329,11 @@ jobs:
     file: bosh-cpi-release/ci/tasks/teardown-director.yml
     config:
       params:
-        director_manifest_filename: "centos-manual-director-manifest.yml"
+        base_os:      "centos"
+        network_type: "manual"
+    ensure:
+      put: centos-manual-director-state-file
+      params: {from: teardown-director/director-manifest/centos-manual-director-manifest-state.json}
 
 - name: deploy-centos-dynamic
   serial_groups: [centos-director-dynamic] # shouldn't deploy while bats are running
@@ -366,6 +381,7 @@ jobs:
   - aggregate:
     - {trigger: true,  passed: [deploy-centos-dynamic], get: bosh-cpi-dev-artifacts}
     - {trigger: false, passed: [deploy-centos-dynamic], get: stemcell, resource: openstack-centos-stemcell}
+    - {trigger: false, passed: [deploy-centos-dynamic], get: director-state-file, resource: centos-dynamic-director-state-file}
     - {trigger: false, passed: [deploy-centos-dynamic], get: director-manifest, resource: centos-dynamic-director-manifest}
     - {trigger: false, passed: [deploy-centos-dynamic], get: bosh-cpi-release}
     - {trigger: false,                                  get: bats}
@@ -389,7 +405,11 @@ jobs:
     file: bosh-cpi-release/ci/tasks/teardown-director.yml
     config:
       params:
-        director_manifest_filename: "centos-dynamic-director-manifest.yml"
+        base_os:      "centos"
+        network_type: "dynamic"
+    ensure:
+      put: centos-dynamic-director-state-file
+      params: {from: teardown-director/director-manifest/centos-dynamic-director-manifest-state.json}
 
 - name: promote-candidate
   serial: true
