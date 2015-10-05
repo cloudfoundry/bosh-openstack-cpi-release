@@ -110,6 +110,7 @@ jobs:
         BOSH_OPENSTACK_AUTH_URL:            {{openstack_auth_url}}
         BOSH_OPENSTACK_USERNAME:            {{lifecycle_openstack_username}}
         BOSH_OPENSTACK_API_KEY:             {{lifecycle_openstack_api_key}}
+        BOSH_OPENSTACK_DEFAULT_KEY_NAME:    {{lifecycle_openstack_default_key_name}}
         BOSH_CLI_SILENCE_SLOW_LOAD_WARNING: true
         BOSH_OPENSTACK_VOLUME_TYPE:         "SSD"
         BOSH_OPENSTACK_CONNECT_TIMEOUT:     "600"
