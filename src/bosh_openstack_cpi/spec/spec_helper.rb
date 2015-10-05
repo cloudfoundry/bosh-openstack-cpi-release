@@ -5,30 +5,57 @@ include Archive::Tar
 
 require 'cloud/openstack'
 
-def mock_cloud_options
-  {
-    'plugin' => 'openstack',
-    'properties' => {
-      'openstack' => {
-        'auth_url' => 'http://127.0.0.1:5000/v2.0',
-        'username' => 'admin',
-        'api_key' => 'nova',
-        'tenant' => 'admin',
-        'region' => 'RegionOne',
-        'state_timeout' => 1,
-        'wait_resource_poll_interval' => 3
-      },
-      'registry' => {
-        'endpoint' => 'localhost:42288',
-        'user' => 'admin',
-        'password' => 'admin'
-      },
-      'agent' => {
-        'foo' => 'bar',
-        'baz' => 'zaz'
-      }
+def mock_cloud_options(api_version=2)
+  if api_version == 2
+    {
+        'plugin' => 'openstack',
+        'properties' => {
+            'openstack' => {
+                'auth_url' => 'http://127.0.0.1:5000/v2.0',
+                'username' => 'admin',
+                'api_key' => 'nova',
+                'tenant' => 'admin',
+                'region' => 'RegionOne',
+                'state_timeout' => 1,
+                'wait_resource_poll_interval' => 3
+            },
+            'registry' => {
+                'endpoint' => 'localhost:42288',
+                'user' => 'admin',
+                'password' => 'admin'
+            },
+            'agent' => {
+                'foo' => 'bar',
+                'baz' => 'zaz'
+            }
+        }
     }
-  }
+  elsif api_version == 3
+    {
+        'plugin' => 'openstack',
+        'properties' => {
+            'openstack' => {
+                'auth_url' => 'http://127.0.0.1:5000/v3.0',
+                'username' => 'admin',
+                'api_key' => 'nova',
+                'project' => 'admin',
+                'domain' => 'some_domain',
+                'region' => 'RegionOne',
+                'state_timeout' => 1,
+                'wait_resource_poll_interval' => 3
+            },
+            'registry' => {
+                'endpoint' => 'localhost:42288',
+                'user' => 'admin',
+                'password' => 'admin'
+            },
+            'agent' => {
+                'foo' => 'bar',
+                'baz' => 'zaz'
+            }
+        }
+    }
+  end
 end
 
 def make_cloud(options = nil)
@@ -97,67 +124,67 @@ end
 
 def dynamic_network_spec
   {
-    'type' => 'dynamic',
-    'cloud_properties' => {
-      'security_groups' => %w[default]
-    },
-    'use_dhcp' => true
+      'type' => 'dynamic',
+      'cloud_properties' => {
+          'security_groups' => %w[default]
+      },
+      'use_dhcp' => true
   }
 end
 
 def manual_network_spec
   {
-    'type' => 'manual',
-    'cloud_properties' => {
-      'security_groups' => %w[default],
-      'net_id' => 'net'
-    },
-    'use_dhcp' => true
+      'type' => 'manual',
+      'cloud_properties' => {
+          'security_groups' => %w[default],
+          'net_id' => 'net'
+      },
+      'use_dhcp' => true
   }
 end
 
 def manual_network_without_netid_spec
   {
-    'type' => 'manual',
-    'cloud_properties' => {
-      'security_groups' => %w[default],
-    }
+      'type' => 'manual',
+      'cloud_properties' => {
+          'security_groups' => %w[default],
+      }
   }
 end
 
 def dynamic_network_with_netid_spec
   {
-    'type' => 'dynamic',
-    'cloud_properties' => {
-      'security_groups' => %w[default],
-      'net_id' => 'net'
-    }
+      'type' => 'dynamic',
+      'cloud_properties' => {
+          'security_groups' => %w[default],
+          'net_id' => 'net'
+      }
   }
 end
 
 def vip_network_spec
   {
-    'type' => 'vip',
-    'ip' => '10.0.0.1',
-    'use_dhcp' => true
+      'type' => 'vip',
+      'ip' => '10.0.0.1',
+      'use_dhcp' => true
   }
 end
 
 def combined_network_spec
   {
-    'network_a' => dynamic_network_spec,
-    'network_b' => vip_network_spec
+      'network_a' => dynamic_network_spec,
+      'network_b' => vip_network_spec
   }
 end
 
 def resource_pool_spec
   {
-    'key_name' => 'test_key',
-    'availability_zone' => 'foobar-1a',
-    'instance_type' => 'm1.tiny'
+      'key_name' => 'test_key',
+      'availability_zone' => 'foobar-1a',
+      'instance_type' => 'm1.tiny'
   }
 end
 
 RSpec.configure do |config|
-  config.before(:each) { allow(Bosh::Clouds::Config).to receive(:logger).and_return(double.as_null_object)  }
+  config.before(:each) { allow(Bosh::Clouds::Config).to receive(:logger).and_return(double.as_null_object) }
 end
