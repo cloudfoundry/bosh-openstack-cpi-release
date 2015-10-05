@@ -13,6 +13,8 @@ groups:
   - deploy-centos-dynamic
   - bats-centos-dynamic
   - promote-candidate
+  - cleanup
+  - release-lock
 
 - name: lifecycle
   jobs:
@@ -55,11 +57,44 @@ jobs:
   - put: bosh-cpi-dev-artifacts
     params: {from: build/out/.*\.tgz}
 
+  - put: openstack-pipeline-lock
+    params:
+      acquire: true
+      
+- name: cleanup
+  plan:
+  - put: openstack-pipeline-lock
+    params:
+      acquire: true
+
+  - task: cleanup-lifecycle
+    file: bosh-cpi-release/ci/tasks/cleanup.yml
+    config:
+      params:
+        BOSH_OPENSTACK_AUTH_URL:	{{openstack_auth_url}}
+        BOSH_OPENSTACK_USERNAME:	{{lifecycle_openstack_username}}
+        BOSH_OPENSTACK_API_KEY: 	{{lifecycle_openstack_api_key}}
+        BOSH_OPENSTACK_TENANT:  	{{lifecycle_openstack_tenant}}
+        
+  - task: cleanup-bats
+    file: bosh-cpi-release/ci/tasks/cleanup.yml
+    config:
+      params:
+        BOSH_OPENSTACK_AUTH_URL:	{{openstack_auth_url}}
+        BOSH_OPENSTACK_USERNAME:	{{openstack_username}}
+        BOSH_OPENSTACK_API_KEY: 	{{openstack_api_key}}
+        BOSH_OPENSTACK_TENANT:  	{{openstack_tenant}}
+
+  - put: openstack-pipeline-lock
+    params:
+      release: openstack-pipeline-lock
+
 - name: lifecycle
   serial: true
   plan:
   - aggregate:
-    - {trigger: true,  passed: [build-candidate], get: bosh-cpi-dev-artifacts} # used for job chaining only not for tasks
+    - {trigger: true, passed:  [build-candidate], get: bosh-cpi-dev-artifacts} # used for job chaining only not for tasks
+    - {trigger: false, passed: [build-candidate], get: openstack-pipeline-lock}
     - {trigger: false, passed: [build-candidate], get: bosh-cpi-release}
 
   - task: test
@@ -71,8 +106,8 @@ jobs:
         BOSH_OPENSTACK_NET_ID:              {{lifecycle_openstack_net_id}}
         BOSH_OPENSTACK_STEMCELL_ID:         {{lifecycle_stemcell_id}}
         BOSH_OPENSTACK_AUTH_URL:            {{openstack_auth_url}}
-        BOSH_OPENSTACK_USERNAME:            {{openstack_username}}
-        BOSH_OPENSTACK_API_KEY:             {{openstack_api_key}}
+        BOSH_OPENSTACK_USERNAME:            {{lifecycle_openstack_username}}
+        BOSH_OPENSTACK_API_KEY:             {{lifecycle_openstack_api_key}}
         BOSH_CLI_SILENCE_SLOW_LOAD_WARNING: true
         BOSH_OPENSTACK_VOLUME_TYPE:         "SSD"
         BOSH_OPENSTACK_CONNECT_TIMEOUT:     "600"
@@ -86,6 +121,7 @@ jobs:
     - {trigger: true,  passed: [build-candidate], get: bosh-cpi-dev-artifacts}
     - {trigger: false, passed: [build-candidate], get: version-semver}
     - {trigger: false, passed: [build-candidate], get: bosh-cpi-release}
+    - {trigger: false, passed: [build-candidate], get: openstack-pipeline-lock}
     - {trigger: false,                            get: director-state-file, resource: ubuntu-manual-director-state-file}
     - {trigger: false,                            get: bosh-init}
     - {trigger: false,                            get: bosh-release}
@@ -132,6 +168,7 @@ jobs:
     - {trigger: false, passed: [deploy-ubuntu-manual], get: director-state-file, resource: ubuntu-manual-director-state-file}
     - {trigger: false, passed: [deploy-ubuntu-manual], get: director-manifest, resource: ubuntu-manual-director-manifest}
     - {trigger: false, passed: [deploy-ubuntu-manual], get: version-semver}
+    - {trigger: false, passed: [deploy-ubuntu-manual], get: openstack-pipeline-lock}
     - {trigger: false,                                 get: bosh-release}
     - {trigger: false,                                 get: bats}
     - {trigger: false,                                 get: bosh-init}
@@ -178,6 +215,7 @@ jobs:
     - {trigger: true,  passed: [build-candidate], get: bosh-cpi-dev-artifacts}
     - {trigger: false, passed: [build-candidate], get: version-semver}
     - {trigger: false, passed: [build-candidate], get: bosh-cpi-release}
+    - {trigger: false, passed: [build-candidate], get: openstack-pipeline-lock}
     - {trigger: false,                            get: director-state-file, resource: ubuntu-dynamic-director-state-file}
     - {trigger: false,                            get: bosh-init}
     - {trigger: false,                            get: bosh-release}
@@ -221,6 +259,7 @@ jobs:
     - {trigger: false, passed: [deploy-ubuntu-dynamic], get: director-manifest, resource: ubuntu-dynamic-director-manifest}
     - {trigger: false, passed: [deploy-ubuntu-dynamic], get: stemcell, resource: openstack-ubuntu-stemcell}
     - {trigger: false, passed: [deploy-ubuntu-dynamic], get: version-semver}
+    - {trigger: false, passed: [deploy-ubuntu-dynamic], get: openstack-pipeline-lock}
     - {trigger: false,                                  get: bosh-release}
     - {trigger: false,                                  get: bats}
     - {trigger: false,                                  get: bosh-init}
@@ -256,6 +295,7 @@ jobs:
     - {trigger: true,  passed: [build-candidate], get: bosh-cpi-dev-artifacts}
     - {trigger: false, passed: [build-candidate], get: version-semver}
     - {trigger: false, passed: [build-candidate], get: bosh-cpi-release}
+    - {trigger: false, passed: [build-candidate], get: openstack-pipeline-lock}
     - {trigger: false,                            get: director-state-file, resource: centos-manual-director-state-file}
     - {trigger: false,                            get: bosh-init}
     - {trigger: false,                            get: bosh-release}
@@ -302,6 +342,7 @@ jobs:
     - {trigger: false, passed: [deploy-centos-manual], get: director-manifest, resource: centos-manual-director-manifest}
     - {trigger: false, passed: [deploy-centos-manual], get: bosh-cpi-release}
     - {trigger: false, passed: [deploy-centos-manual], get: version-semver}
+    - {trigger: false, passed: [deploy-centos-manual], get: openstack-pipeline-lock}
     - {trigger: false,                                 get: bosh-release}
     - {trigger: false,                                 get: bats}
     - {trigger: false,                                 get: bosh-init}
@@ -348,6 +389,7 @@ jobs:
     - {trigger: true,  passed: [build-candidate], get: bosh-cpi-dev-artifacts}
     - {trigger: false, passed: [build-candidate], get: version-semver}
     - {trigger: false, passed: [build-candidate], get: bosh-cpi-release}
+    - {trigger: false, passed: [build-candidate], get: openstack-pipeline-lock}
     - {trigger: false,                            get: director-state-file, resource: centos-dynamic-director-state-file}
     - {trigger: false,                            get: bosh-init}
     - {trigger: false,                            get: bosh-release}
@@ -391,6 +433,7 @@ jobs:
     - {trigger: false, passed: [deploy-centos-dynamic], get: director-manifest, resource: centos-dynamic-director-manifest}
     - {trigger: false, passed: [deploy-centos-dynamic], get: bosh-cpi-release}
     - {trigger: false, passed: [deploy-centos-dynamic], get: version-semver}
+    - {trigger: false, passed: [deploy-centos-dynamic], get: openstack-pipeline-lock}
     - {trigger: false,                                  get: bosh-release}
     - {trigger: false,                                  get: bats}
     - {trigger: false,                                  get: bosh-init}
@@ -418,6 +461,15 @@ jobs:
     ensure:
       put: centos-dynamic-director-state-file
       params: {from: teardown-director/director-manifest/centos-dynamic-director-manifest-state.json}
+
+- name: release-lock
+  serial: true
+  plan:
+  - {trigger: true, passed: [lifecycle, bats-ubuntu-manual, bats-centos-manual, bats-ubuntu-dynamic, bats-centos-dynamic], get: openstack-pipeline-lock}
+
+  - put: openstack-pipeline-lock
+    params: 
+      release: openstack-pipeline-lock
 
 - name: promote-candidate
   serial: true
@@ -572,3 +624,11 @@ resources:
   type: bosh-io-stemcell
   source:
     name: bosh-openstack-kvm-centos-7-go_agent
+
+- name: openstack-pipeline-lock
+  type: pool
+  source:
+    uri: git@github.com:cloudfoundry/bosh-cpi-environments.git
+    branch: master
+    pool: openstack
+    private_key: {{github_deployment_key__bosh-cpi-environments}}

@@ -1,0 +1,10 @@
+---
+platform: linux
+image: docker:///boshcpi/openstack-cpi-release
+run:
+  path: bosh-cpi-release/ci/tasks/cleanup.sh
+params:
+  BOSH_OPENSTACK_AUTH_URL:            replace-me
+  BOSH_OPENSTACK_USERNAME:            replace-me
+  BOSH_OPENSTACK_API_KEY:             replace-me
+  BOSH_OPENSTACK_TENANT:              replace-me
