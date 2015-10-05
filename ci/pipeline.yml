@@ -63,6 +63,8 @@ jobs:
       
 - name: cleanup
   plan:
+  - {trigger: false, get: bosh-cpi-release}
+
   - put: openstack-pipeline-lock
     params:
       acquire: true
