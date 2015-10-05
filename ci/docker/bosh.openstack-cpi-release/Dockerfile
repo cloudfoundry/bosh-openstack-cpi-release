@@ -15,6 +15,10 @@ RUN apt-get install -y mysql-client libmysqlclient-dev; apt-get clean
 
 RUN apt-get install -y postgresql-9.3 postgresql-client-9.3 libpq-dev; apt-get clean
 
+RUN apt-get install -y python python-pip libyaml-dev libpython-dev jq; apt-get clean
+
+RUN pip install python-openstackclient
+
 # chruby
 RUN mkdir /tmp/chruby && \
     cd /tmp && \
