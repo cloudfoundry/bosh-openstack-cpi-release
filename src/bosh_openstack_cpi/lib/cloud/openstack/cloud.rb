@@ -62,6 +62,7 @@ module Bosh::OpenStackCloud
         :openstack_username => @openstack_properties['username'],
         :openstack_api_key => @openstack_properties['api_key'],
         :openstack_tenant => @openstack_properties['tenant'],
+        :openstack_project_name => @openstack_properties['project'],
         :openstack_domain_name => @openstack_properties['domain'],
         :openstack_region => @openstack_properties['region'],
         :openstack_endpoint_type => @openstack_properties['endpoint_type'],
@@ -89,22 +90,10 @@ module Bosh::OpenStackCloud
         @openstack,
         @openstack_properties["ignore_server_availability_zone"])
 
-      glance_params = {
-        :provider => 'OpenStack',
-        :openstack_auth_url => @openstack_properties['auth_url'],
-        :openstack_username => @openstack_properties['username'],
-        :openstack_api_key => @openstack_properties['api_key'],
-        :openstack_tenant => @openstack_properties['tenant'],
-        :openstack_domain_name => @openstack_properties['domain'],
-        :openstack_region => @openstack_properties['region'],
-        :openstack_endpoint_type => @openstack_properties['endpoint_type'],
-        :connection_options => @openstack_properties['connection_options'].merge(@extra_connection_options)
-      }
-
       begin
         Bosh::Common.retryable(@connect_retry_options) do |tries, error|
           @logger.error("Failed #{tries} times, last failure due to: #{error.inspect}") unless error.nil?
-          @glance = Fog::Image.new(glance_params)
+          @glance = Fog::Image.new(openstack_params)
         end
       rescue Bosh::Common::RetryCountExceeded, Excon::Errors::ClientError, Excon::Errors::ServerError
         cloud_error('Unable to connect to the OpenStack Image Service API. Check task debug log for details.')
@@ -676,6 +665,7 @@ module Bosh::OpenStackCloud
         :openstack_username => @openstack_properties['username'],
         :openstack_api_key => @openstack_properties['api_key'],
         :openstack_tenant => @openstack_properties['tenant'],
+        :openstack_project_name => @openstack_properties['project'],
         :openstack_domain_name => @openstack_properties['domain'],
         :openstack_region => @openstack_properties['region'],
         :openstack_endpoint_type => @openstack_properties['endpoint_type'],
@@ -973,32 +963,62 @@ module Bosh::OpenStackCloud
     # @return [void]
     # @raise [ArgumentError] if options are not valid
     def validate_options
-      schema = Membrane::SchemaParser.parse do
-        {
-          'openstack' => {
-            'auth_url' => String,
-            'username' => String,
-            'api_key' => String,
-            'tenant' => String,
-            optional('domain') => String,
-            optional('region') => String,
-            optional('endpoint_type') => String,
-            optional('state_timeout') => Numeric,
-            optional('stemcell_public_visibility') => enum(String, bool),
-            optional('connection_options') => Hash,
-            optional('boot_from_volume') => bool,
-            optional('default_key_name') => String,
-            optional('default_security_groups') => [String],
-            optional('wait_resource_poll_interval') => Integer,
-            optional('config_drive') => enum('disk', 'cdrom'),
-          },
-          'registry' => {
-            'endpoint' => String,
-            'user' => String,
-            'password' => String,
-          },
-          optional('agent') => Hash,
-        }
+      if @options['openstack'] && @options['openstack']['auth_url'].match(/\/v3\/?$/)
+        schema = Membrane::SchemaParser.parse do
+          {
+            'openstack' => {
+              'auth_url' => String,
+              'username' => String,
+              'api_key' => String,
+              'project' => String,
+              'domain' => String,
+              optional('region') => String,
+              optional('endpoint_type') => String,
+              optional('state_timeout') => Numeric,
+              optional('stemcell_public_visibility') => enum(String, bool),
+              optional('connection_options') => Hash,
+              optional('boot_from_volume') => bool,
+              optional('default_key_name') => String,
+              optional('default_security_groups') => [String],
+              optional('wait_resource_poll_interval') => Integer,
+              optional('config_drive') => enum('disk', 'cdrom'),
+            },
+            'registry' => {
+              'endpoint' => String,
+              'user' => String,
+              'password' => String,
+            },
+            optional('agent') => Hash,
+          }
+        end
+      else
+        schema = Membrane::SchemaParser.parse do
+          {
+            'openstack' => {
+              'auth_url' => String,
+              'username' => String,
+              'api_key' => String,
+              'tenant' => String,
+              optional('domain') => String,
+              optional('region') => String,
+              optional('endpoint_type') => String,
+              optional('state_timeout') => Numeric,
+              optional('stemcell_public_visibility') => enum(String, bool),
+              optional('connection_options') => Hash,
+              optional('boot_from_volume') => bool,
+              optional('default_key_name') => String,
+              optional('default_security_groups') => [String],
+              optional('wait_resource_poll_interval') => Integer,
+              optional('config_drive') => enum('disk', 'cdrom'),
+            },
+            'registry' => {
+              'endpoint' => String,
+              'user' => String,
+              'password' => String,
+            },
+            optional('agent') => Hash,
+          }
+        end
       end
       schema.validate(@options)
     rescue Membrane::SchemaValidationError => e

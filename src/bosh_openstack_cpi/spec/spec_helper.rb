@@ -5,30 +5,57 @@ include Archive::Tar
 
 require 'cloud/openstack'
 
-def mock_cloud_options
-  {
-    'plugin' => 'openstack',
-    'properties' => {
-      'openstack' => {
-        'auth_url' => 'http://127.0.0.1:5000/v2.0',
-        'username' => 'admin',
-        'api_key' => 'nova',
-        'tenant' => 'admin',
-        'region' => 'RegionOne',
-        'state_timeout' => 1,
-        'wait_resource_poll_interval' => 3
-      },
-      'registry' => {
-        'endpoint' => 'localhost:42288',
-        'user' => 'admin',
-        'password' => 'admin'
-      },
-      'agent' => {
-        'foo' => 'bar',
-        'baz' => 'zaz'
+def mock_cloud_options(api_version=2)
+  if api_version == 2
+    {
+      'plugin' => 'openstack',
+      'properties' => {
+        'openstack' => {
+          'auth_url' => 'http://127.0.0.1:5000/v2.0',
+          'username' => 'admin',
+          'api_key' => 'nova',
+          'tenant' => 'admin',
+          'region' => 'RegionOne',
+          'state_timeout' => 1,
+          'wait_resource_poll_interval' => 3
+        },
+        'registry' => {
+          'endpoint' => 'localhost:42288',
+          'user' => 'admin',
+          'password' => 'admin'
+        },
+        'agent' => {
+          'foo' => 'bar',
+          'baz' => 'zaz'
+        }
       }
     }
-  }
+  elsif api_version == 3
+    {
+      'plugin' => 'openstack',
+      'properties' => {
+        'openstack' => {
+          'auth_url' => 'http://127.0.0.1:5000/v3',
+          'username' => 'admin',
+          'api_key' => 'nova',
+          'project' => 'admin',
+          'domain' => 'some_domain',
+          'region' => 'RegionOne',
+          'state_timeout' => 1,
+          'wait_resource_poll_interval' => 3
+        },
+        'registry' => {
+          'endpoint' => 'localhost:42288',
+          'user' => 'admin',
+          'password' => 'admin'
+        },
+        'agent' => {
+          'foo' => 'bar',
+          'baz' => 'zaz'
+        }
+      }
+    }
+  end
 end
 
 def make_cloud(options = nil)
