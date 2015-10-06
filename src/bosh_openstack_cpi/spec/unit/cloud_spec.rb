@@ -2,7 +2,7 @@ require 'spec_helper'
 
 describe Bosh::OpenStackCloud::Cloud do
   let(:default_connection_options) {
-    { "instrumentor" => Bosh::OpenStackCloud::ExconLoggingInstrumentor }
+    {"instrumentor" => Bosh::OpenStackCloud::ExconLoggingInstrumentor}
   }
 
   describe :new do
@@ -40,6 +40,29 @@ describe Bosh::OpenStackCloud::Cloud do
 
         it 'does not raise an error' do
           expect { subject }.to_not raise_error
+        end
+
+        it 'to be v2' do
+          expect(subject.is_v3).to be nil
+        end
+
+        it 'auth_url updated with tokens' do
+          expect(subject.auth_url).to eq('http://fake-auth-url/v2.0/tokens')
+        end
+
+        context 'when the full auth_url was specified' do
+          before do
+            options['openstack']['auth_url'] = 'http://fake-auth-url/v2.0/tokens'
+          end
+
+          it 'to be v2' do
+            expect(subject.is_v3).to be nil
+          end
+
+          it 'does not change auth_url option' do
+            expect(subject.auth_url).to eq('http://fake-auth-url/v2.0/tokens')
+          end
+
         end
 
         context 'when connection_options are specified' do
@@ -116,6 +139,35 @@ describe Bosh::OpenStackCloud::Cloud do
 
           it 'does not raise an error' do
             expect { subject }.to_not raise_error
+          end
+
+          context 'when api url is specified' do
+            before do
+              options['openstack']['auth_url'] = 'http://127.0.0.1:5000/v3'
+            end
+
+            it 'to be v3' do
+              expect(subject.is_v3).to_not be nil
+            end
+
+            it 'auth_url updated with auth/tokens' do
+              expect(subject.auth_url).to eq('http://127.0.0.1:5000/v3/auth/tokens')
+            end
+          end
+
+          context 'when the full auth_url was specified' do
+            before do
+              options['openstack']['auth_url'] = 'http://127.0.0.1:5000/v3/auth/tokens'
+            end
+
+            it 'to be v3' do
+              expect(subject.is_v3).to_not be nil
+            end
+
+            it 'does not change auth_url option' do
+              expect(subject.is_v3).to_not be nil
+            end
+
           end
         end
       end
@@ -267,3 +319,4 @@ describe Bosh::OpenStackCloud::Cloud do
     end
   end
 end
+

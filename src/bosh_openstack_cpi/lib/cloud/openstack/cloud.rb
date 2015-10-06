@@ -49,7 +49,11 @@ module Bosh::OpenStackCloud
       @use_dhcp = @openstack_properties.fetch('use_dhcp', true)
 
       unless @openstack_properties['auth_url'].match(/\/tokens$/)
-        @openstack_properties['auth_url'] = @openstack_properties['auth_url'] + '/tokens'
+        if is_v3
+          @openstack_properties['auth_url'] += '/auth/tokens'
+        else
+          @openstack_properties['auth_url'] += '/tokens'
+        end
       end
 
       @openstack_properties['connection_options'] ||= {}
@@ -100,6 +104,10 @@ module Bosh::OpenStackCloud
       end
 
       @metadata_lock = Mutex.new
+    end
+
+    def auth_url
+      @openstack_properties['auth_url']
     end
 
     ##
@@ -651,6 +659,10 @@ module Bosh::OpenStackCloud
       @az_provider.select(volumes, resource_pool_az)
     end
 
+    def is_v3
+      @options['openstack']['auth_url'].match(/\/v3(?=\/|$)/)
+    end
+
     private
 
     ##
@@ -963,7 +975,7 @@ module Bosh::OpenStackCloud
     # @return [void]
     # @raise [ArgumentError] if options are not valid
     def validate_options
-      if @options['openstack'] && @options['openstack']['auth_url'].match(/\/v3\/?$/)
+      if @options['openstack'] && is_v3
         schema = Membrane::SchemaParser.parse do
           {
             'openstack' => {
