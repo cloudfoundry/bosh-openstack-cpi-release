@@ -6,10 +6,15 @@ inputs:
 run:
   path: bosh-cpi-release/ci/tasks/run-lifecycle.sh
 params:
-  BOSH_OPENSTACK_AUTH_URL:            replace-me
+  BOSH_OPENSTACK_DOMAIN:              replace-me
+  BOSH_OPENSTACK_AUTH_URL_V2:         replace-me
+  BOSH_OPENSTACK_AUTH_URL_V3:         replace-me
   BOSH_OPENSTACK_USERNAME:            replace-me
   BOSH_OPENSTACK_API_KEY:             replace-me
+  BOSH_OPENSTACK_USERNAME_V3:         replace-me
+  BOSH_OPENSTACK_API_KEY_V3:          replace-me
   BOSH_OPENSTACK_TENANT:              replace-me
+  BOSH_OPENSTACK_PROJECT:             replace-me
   BOSH_OPENSTACK_MANUAL_IP:           replace-me
   BOSH_OPENSTACK_NET_ID:              replace-me
   BOSH_OPENSTACK_STEMCELL_ID:         replace-me

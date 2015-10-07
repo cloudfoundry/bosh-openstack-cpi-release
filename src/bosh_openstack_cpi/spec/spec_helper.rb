@@ -188,3 +188,28 @@ end
 RSpec.configure do |config|
   config.before(:each) { allow(Bosh::Clouds::Config).to receive(:logger).and_return(double.as_null_object)  }
 end
+
+class LifecycleHelper
+  def self.get_config(key, env_key, default=:none)
+    env_file = ENV['LIFECYCLE_ENV_FILE']
+    env_name = ENV['LIFECYCLE_ENV_NAME']
+
+    if env_file && env_name
+      @configs ||= YAML.load_file(env_file)
+      config = @configs[env_name]
+      raise "no such env #{env_name} in #{env_file} (available: #{@configs.keys.sort.join(", ")})" unless config
+
+      value = config[key.to_s]
+      present = config.has_key?(key.to_s)
+    else
+      value = ENV[env_key]
+      present = ENV.has_key?(env_key)
+    end
+
+    if !present && default == :none
+      raise("Missing #{key}/#{env_key}; use LIFECYCLE_ENV_FILE=file.yml and LIFECYCLE_ENV_NAME=xxx or set in ENV")
+    end
+    present ? value : default
+  end
+end
+

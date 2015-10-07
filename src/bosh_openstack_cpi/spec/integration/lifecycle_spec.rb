@@ -5,25 +5,25 @@ require 'logger'
 
 describe Bosh::OpenStackCloud::Cloud do
   before do
-    @auth_url          = get_config(:auth_url, 'BOSH_OPENSTACK_AUTH_URL')
-    @username          = get_config(:username, 'BOSH_OPENSTACK_USERNAME')
-    @api_key           = get_config(:api_key, 'BOSH_OPENSTACK_API_KEY')
-    @tenant            = get_config(:tenant, 'BOSH_OPENSTACK_TENANT')
-    @stemcell_id       = get_config(:stemcell_id, 'BOSH_OPENSTACK_STEMCELL_ID')
-    @net_id            = get_config(:net_id, 'BOSH_OPENSTACK_NET_ID')
-    @boot_volume_type  = get_config(:volume_type, 'BOSH_OPENSTACK_VOLUME_TYPE')
-    @manual_ip         = get_config(:manual_ip, 'BOSH_OPENSTACK_MANUAL_IP')
-    @disable_snapshots = get_config(:disable_snapshots, 'BOSH_OPENSTACK_DISABLE_SNAPSHOTS', false)
-    @default_key_name  = get_config(:default_key_name, 'BOSH_OPENSTACK_DEFAULT_KEY_NAME', 'jenkins')
-    @config_drive      = get_config(:config_drive, 'BOSH_OPENSTACK_CONFIG_DRIVE', 'cdrom')
-    @ignore_server_az  = get_config(:ignore_server_az, 'BOSH_OPENSTACK_IGNORE_SERVER_AZ', 'false')
-    @instance_type     = get_config(:instance_type, 'BOSH_OPENSTACK_INSTANCE_TYPE', 'm1.small')
-    @connect_timeout   = get_config(:instance_type, 'BOSH_OPENSTACK_CONNECT_TIMEOUT', '120')
-    @read_timeout      = get_config(:instance_type, 'BOSH_OPENSTACK_READ_TIMEOUT', '120')
-    @write_timeout     = get_config(:instance_type, 'BOSH_OPENSTACK_WRITE_TIMEOUT', '120')
+    @auth_url          = LifecycleHelper.get_config(:auth_url, 'BOSH_OPENSTACK_AUTH_URL_V2')
+    @username          = LifecycleHelper.get_config(:username, 'BOSH_OPENSTACK_USERNAME')
+    @api_key           = LifecycleHelper.get_config(:api_key, 'BOSH_OPENSTACK_API_KEY')
+    @tenant            = LifecycleHelper.get_config(:tenant, 'BOSH_OPENSTACK_TENANT')
+    @stemcell_id       = LifecycleHelper.get_config(:stemcell_id, 'BOSH_OPENSTACK_STEMCELL_ID')
+    @net_id            = LifecycleHelper.get_config(:net_id, 'BOSH_OPENSTACK_NET_ID')
+    @boot_volume_type  = LifecycleHelper.get_config(:volume_type, 'BOSH_OPENSTACK_VOLUME_TYPE')
+    @manual_ip         = LifecycleHelper.get_config(:manual_ip, 'BOSH_OPENSTACK_MANUAL_IP')
+    @disable_snapshots = LifecycleHelper.get_config(:disable_snapshots, 'BOSH_OPENSTACK_DISABLE_SNAPSHOTS', false)
+    @default_key_name  = LifecycleHelper.get_config(:default_key_name, 'BOSH_OPENSTACK_DEFAULT_KEY_NAME', 'jenkins')
+    @config_drive      = LifecycleHelper.get_config(:config_drive, 'BOSH_OPENSTACK_CONFIG_DRIVE', 'cdrom')
+    @ignore_server_az  = LifecycleHelper.get_config(:ignore_server_az, 'BOSH_OPENSTACK_IGNORE_SERVER_AZ', 'false')
+    @instance_type     = LifecycleHelper.get_config(:instance_type, 'BOSH_OPENSTACK_INSTANCE_TYPE', 'm1.small')
+    @connect_timeout   = LifecycleHelper.get_config(:instance_type, 'BOSH_OPENSTACK_CONNECT_TIMEOUT', '120')
+    @read_timeout      = LifecycleHelper.get_config(:instance_type, 'BOSH_OPENSTACK_READ_TIMEOUT', '120')
+    @write_timeout     = LifecycleHelper.get_config(:instance_type, 'BOSH_OPENSTACK_WRITE_TIMEOUT', '120')
 
     # some environments may not have this set, and it isn't strictly necessary so don't raise if it isn't set
-    @region             = get_config(:region, 'BOSH_OPENSTACK_REGION', nil)
+    @region             = LifecycleHelper.get_config(:region, 'BOSH_OPENSTACK_REGION', nil)
   end
 
   let(:boot_from_volume) { false }
@@ -407,27 +407,5 @@ describe Bosh::OpenStackCloud::Cloud do
     # Prints all exceptions but raises original exception
     exceptions.each { |e| logger.info("Failed with: #{e.inspect}\n#{e.backtrace.join("\n")}\n") }
     raise exceptions.first if exceptions.any?
-  end
-
-  def get_config(key, env_key, default=:none)
-    env_file = ENV['LIFECYCLE_ENV_FILE']
-    env_name = ENV['LIFECYCLE_ENV_NAME']
-
-    if env_file && env_name
-      @configs ||= YAML.load_file(env_file)
-      config = @configs[env_name]
-      raise "no such env #{env_name} in #{env_file} (available: #{@configs.keys.sort.join(", ")})" unless config
-
-      value = config[key.to_s]
-      present = config.has_key?(key.to_s)
-    else
-      value = ENV[env_key]
-      present = ENV.has_key?(env_key)
-    end
-
-    if !present && default == :none
-      raise("Missing #{key}/#{env_key}; use LIFECYCLE_ENV_FILE=file.yml and LIFECYCLE_ENV_NAME=xxx or set in ENV")
-    end
-    present ? value : default
   end
 end
