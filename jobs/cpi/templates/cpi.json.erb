@@ -7,7 +7,6 @@
           'auth_url' => p('openstack.auth_url'),
           'username' => p('openstack.username'),
           'api_key' => p('openstack.api_key'),
-          'tenant' => p('openstack.tenant'),
           'default_key_name' => p('openstack.default_key_name'),
           'default_security_groups' => p('openstack.default_security_groups'),
           'wait_resource_poll_interval' => p('openstack.wait_resource_poll_interval'),
@@ -40,7 +39,8 @@
   if_p('openstack.config_drive')               { |value| openstack_params['config_drive'] = value }
   if_p('openstack.use_dhcp')                   { |value| openstack_params['use_dhcp'] = value }
   if_p('openstack.domain')                     { |value| openstack_params['domain'] = value }
-
+  if_p('openstack.project')                    { |value| openstack_params['project'] = value }
+  if_p('openstack.tenant')                     { |value| openstack_params['tenant'] = value }
 
   if_p('registry.endpoint') do |endpoint|
     params['cloud']['properties']['registry']['endpoint'] = endpoint
