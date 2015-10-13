@@ -10,12 +10,16 @@ packages:
 
 properties:
   openstack.auth_url:
-    description: URL of the OpenStack Identity endpoint to connect to
-    example: http://192.168.0.1:5000/v2.0
+    description: URL of the OpenStack Identity endpoint to connect to (required)
+    examples:
+    - description: Keystone V2 endpoint
+      value: http://192.168.0.1:5000/v2.0
+    - description: Keystone V3 endpoint
+      value: http://192.168.0.1:5000/v3
   openstack.username:
-    description: OpenStack user name
+    description: OpenStack user name (required)
   openstack.api_key:
-    description: OpenStack API key
+    description: OpenStack API key (required)
   openstack.tenant:
     description: OpenStack tenant name (required for Keystone API V2)
   openstack.project:
@@ -24,24 +28,30 @@ properties:
     description: OpenStack domain (optional)
   openstack.region:
     description: OpenStack region (optional)
+    example: nova
   openstack.endpoint_type:
-    description: OpenStack endpoint type (optional, by default publicURL)
+    description: OpenStack endpoint type
     default: publicURL
   openstack.state_timeout:
-    description: Timeout (in seconds) for OpenStack resources desired state (optional, by default 300)
+    description: Timeout (in seconds) for OpenStack resources desired state
     default: 300
   openstack.boot_from_volume:
-    description: Boot from volume (optional, false by default)
+    description: Boot from volume
     default: false
   openstack.stemcell_public_visibility:
-    description: Set public visibility for stemcells (optional, false by default)
+    description: Set public visibility for stemcells
     default: false
   openstack.connection_options:
-    description: Hash containing optional connection parameters to the OpenStack API
+    description: Hash containing optional connection parameters to the OpenStack API (optional)
+    examples:
+    - description: Disable SSL verification for DevStack
+      value: {ssl_verify_peer: false}
   openstack.default_key_name:
-    description: Default OpenStack keypair to use when spinning up new vms
+    description: Default OpenStack keypair to use when spinning up new VMs (required)
+    example: bosh
   openstack.default_security_groups:
-    description: Default OpenStack security groups to use when spinning up new vms
+    description: Default OpenStack security groups to use when spinning up new VMs (required)
+    example: [bosh-grp]
   openstack.wait_resource_poll_interval:
     description: Changes the delay (in seconds) between each status check to OpenStack when creating a resource (optional, by default 5)
     default: 5
@@ -52,11 +62,11 @@ properties:
     description: Whether to use DHCP when configuring networking on VM (for both manual and dynamic)
     default: true
   openstack.ignore_server_availability_zone:
-    description: "when creating a disk, do not use the availability zone of the server, fall back to Openstacks default"
+    description: When creating a disk, do not use the availability zone of the server, fall back to Openstacks default
     default: false
 
   registry.host:
-    description: Address of the Registry to connect to
+    description: Address of the Registry to connect to (required)
   registry.port:
     description: Port of the Registry for CPI and agent to connect to
     default: 25777
@@ -69,7 +79,7 @@ properties:
     example: http://admin:admin-password@some-ip:port
 
   ntp:
-    description: List of ntp server URIs
+    description: List of NTP servers
     default: []
     example: ["0.us.pool.ntp.org", "1.us.pool.ntp.org"]
 
