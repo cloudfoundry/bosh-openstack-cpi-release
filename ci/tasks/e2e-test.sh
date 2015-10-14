@@ -32,6 +32,9 @@ manifest_filename="director-manifest.yml"
 
 echo "setting up artifacts used in $manifest_filename"
 mkdir -p ${deployment_dir}
+
+private_key=${deployment_dir}/e2e.pem
+
 cp ./bosh-cpi-dev-artifacts/bosh-openstack-cpi-${semver}.tgz ${deployment_dir}/bosh-openstack-cpi.tgz
 cp ./bosh-release/release.tgz ${deployment_dir}/bosh-release.tgz
 cp ./stemcell/stemcell.tgz ${deployment_dir}/stemcell.tgz
@@ -156,7 +159,6 @@ jobs:
       auth_url: ${v3_e2e_auth_url}
       username: ${v3_e2e_username}
       api_key: ${v3_e2e_api_key}
-      project: ${v3_e2e_tenant}
       tenant: ${v3_e2e_tenant}
       domain: "Default"
       region: #leave this blank
@@ -186,7 +188,7 @@ cloud_provider:
     host: ${v3_e2e_floating_ip}
     port: 22
     user: vcap
-    private_key: e2e.pem 
+    private_key: ${private_key}
 
   # Tells bosh-micro how to contact remote agent
   mbus: https://mbus-user:mbus-password@${v3_e2e_floating_ip}:6868
