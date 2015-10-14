@@ -35,7 +35,7 @@ mkdir -p ${deployment_dir}
 
 private_key=${deployment_dir}/e2e.pem
 
-cp ./bosh-cpi-dev-artifacts/bosh-openstack-cpi-${semver}.tgz ${deployment_dir}/bosh-openstack-cpi.tgz
+cp ./bosh-cpi-dev-artifacts/bosh-openstack-cpi-*.tgz ${deployment_dir}/bosh-openstack-cpi.tgz
 cp ./bosh-release/release.tgz ${deployment_dir}/bosh-release.tgz
 cp ./stemcell/stemcell.tgz ${deployment_dir}/stemcell.tgz
 echo "${v3_e2e_private_key_data}" > ${private_key}
