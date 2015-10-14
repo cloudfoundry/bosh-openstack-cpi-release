@@ -12,6 +12,7 @@ groups:
   - bats-ubuntu-dynamic
   - deploy-centos-dynamic
   - bats-centos-dynamic
+  - e2e
   - promote-candidate
   - cleanup
   - release-lock
@@ -38,6 +39,12 @@ groups:
   - bats-centos-manual
   - deploy-centos-dynamic
   - bats-centos-dynamic
+  - promote-candidate
+
+- name: e2e
+  jobs:
+  - build-candidate
+  - e2e
   - promote-candidate
 
 jobs:
@@ -478,6 +485,40 @@ jobs:
   - put: openstack-pipeline-lock
     params: 
       release: openstack-pipeline-lock
+
+- name: e2e
+  serial: true
+  plan:
+    - aggregate:
+      - {trigger: true,  passed: [build-candidate], get: bosh-cpi-dev-artifacts}
+      - {trigger: false,                            get: stemcell, resource: openstack-ubuntu-stemcell }
+      - {trigger: false, passed: [build-candidate], get: bosh-cpi-release, resource: bosh-cpi-release}
+      - {trigger: false,                            get: bosh-init}
+      - {trigger: false, passed: [build-candidate], get: version-semver}
+      - {trigger: false,                            get: bosh-release}
+
+    - task: e2e-test
+      file: bosh-cpi-release/ci/tasks/e2e-test.yml
+      config:
+        params:
+          v3_e2e_bosh_registry_port:               {{v3_e2e_bosh_registry_port}}
+          v3_e2e_api_key:                          {{v3_e2e_api_key}}
+          v3_e2e_auth_url:                         {{v3_e2e_auth_url}}
+          v3_e2e_connection_timeout:               {{v3_e2e_connection_timeout}}
+          v3_e2e_default_key_name:                 {{v3_e2e_default_key_name}}
+          v3_e2e_flavor:                           {{v3_e2e_flavor}}
+          v3_e2e_floating_ip:                      {{v3_e2e_floating_ip}}
+          v3_e2e_manual_ip:                        {{v3_e2e_manual_ip}}
+          v3_e2e_net_cidr:                         {{v3_e2e_net_cidr}}
+          v3_e2e_net_gateway:                      {{v3_e2e_net_gateway}}
+          v3_e2e_net_id:                           {{v3_e2e_net_id}}
+          v3_e2e_read_timeout:                     {{v3_e2e_read_timeout}}
+          v3_e2e_security_group:                   {{v3_e2e_security_group}}
+          v3_e2e_state_timeout:                    {{v3_e2e_state_timeout}}
+          v3_e2e_tenant:                           {{v3_e2e_tenant}}
+          v3_e2e_username:                         {{v3_e2e_username}}
+          v3_e2e_write_timeout:                    {{v3_e2e_write_timeout}}
+          v3_e2e_private_key_data:                 {{v3_e2e_private_key_data}}
 
 - name: promote-candidate
   serial: true

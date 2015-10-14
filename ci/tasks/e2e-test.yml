@@ -1,0 +1,32 @@
+---
+platform: linux
+image: docker:///boshcpi/aws-cpi-release
+inputs:
+  - name: bosh-cpi-dev-artifacts # -++ used for deployment manifest referenced by manifest_path
+  - name: version-semver         # -//
+  - name: bosh-cpi-release
+  - name: bosh-init              # --- bosh-init executable to do deploy
+  - name: bosh-release           # -\
+  - name: stemcell               # -/
+run:
+  path: bosh-cpi-release/ci/tasks/e2e-test.sh
+params:
+  BOSH_INIT_LOG_LEVEL:                  warn
+  v3_e2e_bosh_registry_port:            replace-me                         
+  v3_e2e_api_key:             replace-me  
+  v3_e2e_auth_url:            replace-me
+  v3_e2e_connection_timeout:  replace-me   
+  v3_e2e_default_key_name:    replace-me  
+  v3_e2e_flavor:              replace-me 
+  v3_e2e_floating_ip:         replace-me
+  v3_e2e_manual_ip:           replace-me   
+  v3_e2e_net_cidr:            replace-me 
+  v3_e2e_net_gateway:         replace-me  
+  v3_e2e_net_id:              replace-me
+  v3_e2e_read_timeout:        replace-me
+  v3_e2e_security_group:      replace-me 
+  v3_e2e_state_timeout:       replace-me
+  v3_e2e_tenant:              replace-me 
+  v3_e2e_username:            replace-me 
+  v3_e2e_write_timeout:       replace-me   
+  v3_e2e_private_key_data:    replace-me 
