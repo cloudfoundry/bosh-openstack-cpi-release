@@ -22,6 +22,10 @@ ensure_not_replace_value v3_e2e_tenant
 ensure_not_replace_value v3_e2e_username
 ensure_not_replace_value v3_e2e_write_timeout
 ensure_not_replace_value v3_e2e_private_key_data
+ensure_not_replace_value v3_e2e_blobstore_bucket
+ensure_not_replace_value v3_e2e_blobstore_host
+ensure_not_replace_value v3_e2e_blobstore_access_key
+ensure_not_replace_value v3_e2e_blobstore_secret_key
 
 source /etc/profile.d/chruby.sh
 chruby 2.1.2
@@ -35,6 +39,7 @@ mkdir -p ${deployment_dir}
 
 private_key=${deployment_dir}/e2e.pem
 
+#cp ./bosh-cpi-dev-artifacts/bosh-openstack-cpi-${semver}.tgz ${deployment_dir}/bosh-openstack-cpi.tgz
 cp ./bosh-cpi-dev-artifacts/*.tgz ${deployment_dir}/bosh-openstack-cpi.tgz
 cp ./bosh-release/release.tgz ${deployment_dir}/bosh-release.tgz
 cp ./stemcell/stemcell.tgz ${deployment_dir}/stemcell.tgz
@@ -135,11 +140,11 @@ jobs:
 
     # Tells the Director/agents how to contact blobstore
     blobstore:
-      address: ${v3_e2e_floating_ip}
-      port: 25250
-      provider: dav
-      director: {user: director, password: director-password}
-      agent: {user: agent, password: agent-password}
+      provider: s3
+      access_key_id: ${v3_e2e_blobstore_access_key}
+      secret_access_key: ${v3_e2e_blobstore_secret_key}
+      bucket_name: ${v3_e2e_blobstore_bucket}
+      host: ${v3_e2e_blobstore_host}
 
     director:
       address: 127.0.0.1
@@ -222,5 +227,5 @@ pushd ${deployment_dir}
   echo
   echo "=========================================="
 
-  $initexe delete ${manifest_filename}
+#  $initexe delete ${manifest_filename}
 popd

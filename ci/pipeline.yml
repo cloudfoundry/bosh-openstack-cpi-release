@@ -490,9 +490,11 @@ jobs:
   serial: true
   plan:
     - aggregate:
-      - {trigger: true,  passed: [build-candidate], get: bosh-cpi-dev-artifacts}
+#      - {trigger: true,  passed: [build-candidate], get: bosh-cpi-dev-artifacts}
       - {trigger: false,                            get: stemcell, resource: openstack-ubuntu-stemcell }
-      - {trigger: false, passed: [build-candidate], get: bosh-cpi-release, resource: bosh-cpi-release}
+#      - {trigger: false, passed: [build-candidate], get: bosh-cpi-release, resource: bosh-cpi-release}
+      - {trigger: false,                            get: bosh-cpi-release, resource: bosh-cpi-release} # wip
+      - {trigger: false,                            get: bosh-cpi-dev-artifacts, resource: published-bosh-cpi-release}
       - {trigger: false,                            get: bosh-init}
       - {trigger: false, passed: [build-candidate], get: version-semver}
       - {trigger: false,                            get: bosh-release}
@@ -519,6 +521,10 @@ jobs:
           v3_e2e_username:                         {{v3_e2e_username}}
           v3_e2e_write_timeout:                    {{v3_e2e_write_timeout}}
           v3_e2e_private_key_data:                 {{v3_e2e_private_key_data}}
+          v3_e2e_blobstore_bucket:                 {{v3_e2e_blobstore_bucket}}
+          v3_e2e_blobstore_host:                   {{v3_e2e_blobstore_host}}
+          v3_e2e_blobstore_access_key:             {{v3_e2e_blobstore_access_key}}
+          v3_e2e_blobstore_secret_key:             {{v3_e2e_blobstore_secret_key}}
 
 - name: promote-candidate
   serial: true
@@ -629,6 +635,11 @@ resources:
     uri: git@github.com:cloudfoundry-incubator/bosh-openstack-cpi-release.git
     branch: master
     private_key: {{github_deployment_key__bosh-openstack-cpi-release}}
+
+- name: published-bosh-cpi-release
+  type: bosh-io-release
+  source:
+    repository: cloudfoundry-incubator/bosh-openstack-cpi-release
 
 - name: version-semver
   type: semver
