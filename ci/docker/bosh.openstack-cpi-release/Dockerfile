@@ -7,7 +7,7 @@ ENV LC_ALL en_US.UTF-8
 
 RUN apt-get update; apt-get -y upgrade; apt-get clean
 
-RUN apt-get install -y git curl wget tar make; apt-get clean
+RUN apt-get install -y git curl wget tar make uuid-runtime; apt-get clean
 
 RUN apt-get install -y sqlite3 libsqlite3-dev; apt-get clean
 
