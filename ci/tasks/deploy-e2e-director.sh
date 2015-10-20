@@ -4,6 +4,8 @@ set -e
 
 source bosh-cpi-release/ci/tasks/utils.sh
 
+ensure_not_replace_value bosh_director_username
+ensure_not_replace_value bosh_director_password
 ensure_not_replace_value v3_e2e_bosh_registry_port
 ensure_not_replace_value v3_e2e_api_key
 ensure_not_replace_value v3_e2e_auth_url
@@ -32,7 +34,7 @@ chruby 2.1.2
 
 semver=`cat version-semver/number`
 deployment_dir="${PWD}/deployment"
-manifest_filename="director-manifest.yml"
+manifest_filename="e2e-director-manifest.yml"
 
 echo "setting up artifacts used in $manifest_filename"
 mkdir -p ${deployment_dir}
@@ -91,7 +93,6 @@ jobs:
   - {name: nats, release: bosh}
   - {name: redis, release: bosh}
   - {name: postgres, release: bosh}
-  - {name: blobstore, release: bosh}
   - {name: director, release: bosh}
   - {name: health_monitor, release: bosh}
   - {name: powerdns, release: bosh}
@@ -132,11 +133,11 @@ jobs:
       address: ${v3_e2e_manual_ip}
       host: ${v3_e2e_manual_ip}
       db: *db
-      http: {user: admin, password: admin, port: ${v3_e2e_bosh_registry_port}}
-      username: admin
-      password: admin
+      http: {user: ${bosh_director_username}, password: ${bosh_director_password}, port: ${v3_e2e_bosh_registry_port}}
+      username: ${bosh_director_username}
+      password: ${bosh_director_password}
       port: ${v3_e2e_bosh_registry_port}
-      endpoint: http://admin:admin@${v3_e2e_floating_ip}:${v3_e2e_bosh_registry_port}
+      endpoint: http://${bosh_director_username}:${bosh_director_password}@${v3_e2e_manual_ip}:${v3_e2e_bosh_registry_port}
 
     # Tells the Director/agents how to contact blobstore
     blobstore:
@@ -151,10 +152,15 @@ jobs:
       name: micro
       db: *db
       cpi_job: cpi
+      user_management:
+        provider: local
+        local:
+          users:
+          - {name: ${bosh_director_username}, password: ${bosh_director_password}}
 
     hm:
       http: {user: hm, password: hm-password}
-      director_account: {user: admin, password: admin}
+      director_account: {user: ${bosh_director_username}, password: ${bosh_director_password}}
 
     dns:
       address: 127.0.0.1
@@ -179,7 +185,7 @@ jobs:
         write_timeout: ${v3_e2e_write_timeout}
 
     # Tells agents how to contact nats
-    agent: {mbus: "nats://nats:nats-password@${v3_e2e_floating_ip}:4222"}
+    agent: {mbus: "nats://nats:nats-password@${v3_e2e_manual_ip}:4222"}
 
     ntp: &ntp
     - 0.north-america.pool.ntp.org
@@ -221,11 +227,4 @@ $initexe version
 pushd ${deployment_dir}
   echo "deploying BOSH..."
   $initexe deploy ${manifest_filename}
-  echo "Final state of director deployment:"
-  echo "=========================================="
-  cat director-manifest-state.json
-  echo
-  echo "=========================================="
-
-#  $initexe delete ${manifest_filename}
 popd

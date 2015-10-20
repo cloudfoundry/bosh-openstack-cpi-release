@@ -12,7 +12,8 @@ groups:
   - bats-ubuntu-dynamic
   - deploy-centos-dynamic
   - bats-centos-dynamic
-  - e2e
+  - deploy-e2e-director
+  - deploy-test-release
   - promote-candidate
   - cleanup
   - release-lock
@@ -44,7 +45,8 @@ groups:
 - name: e2e
   jobs:
   - build-candidate
-  - e2e
+  - deploy-e2e-director
+  - deploy-test-release
   - promote-candidate
 
 jobs:
@@ -67,7 +69,7 @@ jobs:
   - put: openstack-pipeline-lock
     params:
       acquire: true
-      
+
 - name: cleanup
   plan:
   - {trigger: false, get: bosh-cpi-release}
@@ -84,7 +86,7 @@ jobs:
         BOSH_OPENSTACK_USERNAME:	{{lifecycle_openstack_username}}
         BOSH_OPENSTACK_API_KEY: 	{{lifecycle_openstack_api_key}}
         BOSH_OPENSTACK_TENANT:  	{{lifecycle_openstack_tenant}}
-        
+
   - task: cleanup-bats
     file: bosh-cpi-release/ci/tasks/cleanup.yml
     config:
@@ -217,8 +219,8 @@ jobs:
     file: bosh-cpi-release/ci/tasks/teardown-director.yml
     config:
       params:
-        base_os:      "ubuntu"
-        network_type: "manual"
+        director_manifest_file:  "ubuntu-manual-director-manifest.yml"
+        director_state_file:     "ubuntu-manual-director-manifest-state.json"
     ensure:
       put: ubuntu-manual-director-state-file
       params: {from: teardown-director/director-manifest/ubuntu-manual-director-manifest-state.json}
@@ -291,14 +293,14 @@ jobs:
         openstack_flavor_with_no_ephemeral_disk:  {{openstack_flavor_with_no_ephemeral_disk}}
         openstack_security_group:                 {{openstack_security_group}}
         primary_network_id:                       {{bats_dynamic_ubuntu_primary_net_id}}
-        private_key_data:                         {{bosh_private_key}} 
+        private_key_data:                         {{bosh_private_key}}
 
   - task: teardown-director
     file: bosh-cpi-release/ci/tasks/teardown-director.yml
     config:
       params:
-        base_os:      "ubuntu"
-        network_type: "dynamic"
+        director_manifest_file: "ubuntu-dynamic-director-manifest.yml"
+        director_state_file:    "ubuntu-dynamic-director-manifest-state.json"
     ensure:
       put: ubuntu-dynamic-director-state-file
       params: {from: teardown-director/director-manifest/ubuntu-dynamic-director-manifest-state.json}
@@ -391,8 +393,8 @@ jobs:
     file: bosh-cpi-release/ci/tasks/teardown-director.yml
     config:
       params:
-        base_os:      "centos"
-        network_type: "manual"
+        director_manifest_file:   "centos-manual-director-manifest.yml"
+        director_state_file:      "centos-manual-director-manifest-state.json"
     ensure:
       put: centos-manual-director-state-file
       params: {from: teardown-director/director-manifest/centos-manual-director-manifest-state.json}
@@ -471,38 +473,30 @@ jobs:
     file: bosh-cpi-release/ci/tasks/teardown-director.yml
     config:
       params:
-        base_os:      "centos"
-        network_type: "dynamic"
+        director_manifest_file:  "centos-dynamic-director-manifest.yml"
+        director_state_file:     "centos-dynamic-director-manifest-state.json"
     ensure:
       put: centos-dynamic-director-state-file
       params: {from: teardown-director/director-manifest/centos-dynamic-director-manifest-state.json}
 
-- name: release-lock
-  serial: true
-  plan:
-  - {trigger: true, passed: [lifecycle, bats-ubuntu-manual, bats-centos-manual, bats-ubuntu-dynamic, bats-centos-dynamic], get: openstack-pipeline-lock}
-
-  - put: openstack-pipeline-lock
-    params: 
-      release: openstack-pipeline-lock
-
-- name: e2e
-  serial: true
+- name: deploy-e2e-director
+  serial_groups: [e2e-integration] # can't run while deploying
   plan:
     - aggregate:
-#      - {trigger: true,  passed: [build-candidate], get: bosh-cpi-dev-artifacts}
-      - {trigger: false,                            get: stemcell, resource: openstack-ubuntu-stemcell }
-#      - {trigger: false, passed: [build-candidate], get: bosh-cpi-release, resource: bosh-cpi-release}
-      - {trigger: false,                            get: bosh-cpi-release, resource: bosh-cpi-release} # wip
-      - {trigger: false,                            get: bosh-cpi-dev-artifacts, resource: published-bosh-cpi-release}
-      - {trigger: false,                            get: bosh-init}
+      - {trigger: true,  passed: [build-candidate], get: bosh-cpi-dev-artifacts}
+      - {trigger: false, passed: [build-candidate], get: bosh-cpi-release, resource: bosh-cpi-release}
       - {trigger: false, passed: [build-candidate], get: version-semver}
+      - {trigger: true,                             get: stemcell, resource: e2e-stemcell }
+      - {trigger: false,                            get: bosh-init}
       - {trigger: false,                            get: bosh-release}
+      - {trigger: false, passed: [build-candidate], get: openstack-pipeline-lock}
 
-    - task: e2e-test
-      file: bosh-cpi-release/ci/tasks/e2e-test.yml
+    - task: deploy-integration-director
+      file: bosh-cpi-release/ci/tasks/deploy-e2e-director.yml
       config:
         params:
+          bosh_director_username:                  {{v3_e2e_director_username}}
+          bosh_director_password:                  {{v3_e2e_director_password}}
           v3_e2e_bosh_registry_port:               {{v3_e2e_bosh_registry_port}}
           v3_e2e_api_key:                          {{v3_e2e_api_key}}
           v3_e2e_auth_url:                         {{v3_e2e_auth_url}}
@@ -525,6 +519,60 @@ jobs:
           v3_e2e_blobstore_host:                   {{v3_e2e_blobstore_host}}
           v3_e2e_blobstore_access_key:             {{v3_e2e_blobstore_access_key}}
           v3_e2e_blobstore_secret_key:             {{v3_e2e_blobstore_secret_key}}
+      ensure:
+        put: e2e-director-state-file
+        params: {from: deploy-integration-director/deployment/e2e-director-manifest-state.json}
+
+    - put: e2e-director-manifest-file
+      params: {from: deploy-integration-director/deployment/e2e-director-manifest.yml}
+
+
+- name: deploy-test-release
+  serial_groups: [e2e-integration] # can't run while deploying
+  plan:
+    - aggregate:
+      - {trigger: false, passed: [deploy-e2e-director],  get: bosh-cpi-release, resource: bosh-cpi-release}
+      - {trigger: true,  passed: [deploy-e2e-director],  get: stemcell, resource: e2e-stemcell }
+      - {trigger: true,  passed: [deploy-e2e-director],  get: bosh-cpi-dev-artifacts}
+      - {trigger: false, passed: [deploy-e2e-director],  get: director-state-file, resource: e2e-director-state-file}
+      - {trigger: false, passed: [deploy-e2e-director],  get: director-manifest, resource: e2e-director-manifest-file}
+      - {trigger: false,                                 get: dummy-release, resource: dummy-release}
+      - {trigger: false, passed: [deploy-ubuntu-manual], get: version-semver}
+      - {trigger: false,                                 get: bosh-release}
+      - {trigger: false,                                 get: bosh-init}
+      - {trigger: false, passed: [deploy-e2e-director],  get: openstack-pipeline-lock}
+
+
+    - task: deploy-dummy-release
+      file: bosh-cpi-release/ci/tasks/deploy-dummy-release.yml
+      config:
+        params:
+          bosh_director_ip:                        {{v3_e2e_floating_ip}}
+          bosh_director_username:                  {{v3_e2e_director_username}}
+          bosh_director_password:                  {{v3_e2e_director_password}}
+          stemcell_name:                           {{v3_e2e_stemcell_name}}
+          network_id:                              {{v3_e2e_net_id}}
+          instance_flavor:                         {{v3_e2e_flavor}}
+
+    - task: teardown-director
+      file: bosh-cpi-release/ci/tasks/teardown-director.yml
+      config:
+        params:
+          director_manifest_file:  "e2e-director-manifest.yml"
+          director_state_file:     "e2e-director-manifest-state.json"
+      ensure:
+        put: e2e-director-state-file
+        params: {from: teardown-director/director-manifest/e2e-director-manifest-state.json}
+
+- name: release-lock
+  serial: true
+  plan:
+  - {trigger: true, passed: [lifecycle, bats-ubuntu-manual, bats-centos-manual, bats-ubuntu-dynamic, bats-centos-dynamic, deploy-test-release], get: openstack-pipeline-lock}
+
+  - put: openstack-pipeline-lock
+    params:
+      release: openstack-pipeline-lock
+
 
 - name: promote-candidate
   serial: true
@@ -540,7 +588,6 @@ jobs:
       params:
         aws_access_key_id: {{s3_openstack_cpi_blobs_access_key}}
         aws_secret_access_key: {{s3_openstack_cpi_blobs_secret_key}}
-
   - put: release-version-semver
     params: {file: release-version-semver/number}
 
@@ -629,12 +676,36 @@ resources:
     access_key_id: {{s3_openstack_cpi_state_files_access_key}}
     secret_access_key: {{s3_openstack_cpi_state_files_secret_key}}
 
+- name: e2e-director-state-file
+  type: s3
+  source:
+    bucket: bosh-openstack-cpi-state-files
+    versioned_file: e2e-director-manifest-state.json
+    region_name: us-east-1
+    access_key_id: {{s3_openstack_cpi_state_files_access_key}}
+    secret_access_key: {{s3_openstack_cpi_state_files_secret_key}}
+
+- name: e2e-director-manifest-file
+  type: s3
+  source:
+    bucket: bosh-openstack-cpi-state-files
+    versioned_file: e2e-director-manifest.yml
+    region_name: us-east-1
+    access_key_id: {{s3_openstack_cpi_state_files_access_key}}
+    secret_access_key: {{s3_openstack_cpi_state_files_secret_key}}
+
 - name: bosh-cpi-release
   type: git
   source:
     uri: git@github.com:cloudfoundry-incubator/bosh-openstack-cpi-release.git
     branch: master
     private_key: {{github_deployment_key__bosh-openstack-cpi-release}}
+
+- name: dummy-release
+  type: git
+  source:
+    uri: https://github.com/pivotal-cf-experimental/dummy-boshrelease.git
+    branch: master
 
 - name: published-bosh-cpi-release
   type: bosh-io-release
@@ -679,6 +750,11 @@ resources:
   type: bosh-io-stemcell
   source:
     name: bosh-openstack-kvm-ubuntu-trusty-go_agent
+
+- name: e2e-stemcell
+  type: bosh-io-stemcell
+  source:
+    name: {{v3_e2e_stemcell_name}}
 
 - name: openstack-centos-stemcell
   type: bosh-io-stemcell

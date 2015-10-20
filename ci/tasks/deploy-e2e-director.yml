@@ -1,6 +1,6 @@
 ---
 platform: linux
-image: docker:///boshcpi/aws-cpi-release
+image: docker:///boshcpi/openstack-cpi-release
 inputs:
   - name: bosh-cpi-dev-artifacts # -++ used for deployment manifest referenced by manifest_path
   - name: version-semver         # -//
@@ -8,11 +8,13 @@ inputs:
   - name: bosh-init              # --- bosh-init executable to do deploy
   - name: bosh-release           # -\
   - name: stemcell               # -/
+
 run:
-  path: bosh-cpi-release/ci/tasks/e2e-test.sh
+  path: bosh-cpi-release/ci/tasks/deploy-e2e-director.sh
 params:
   BOSH_INIT_LOG_LEVEL:            warn
   v3_e2e_bosh_registry_port:      replace-me
+  v3_e2e_bosh_user_password:      replace-me
   v3_e2e_api_key:                 replace-me
   v3_e2e_auth_url:                replace-me
   v3_e2e_connection_timeout:      replace-me

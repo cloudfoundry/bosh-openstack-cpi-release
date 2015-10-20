@@ -13,5 +13,5 @@ inputs:
 run:
   path: bosh-cpi-release/ci/tasks/teardown-director.sh
 params:
-  base_os:      replace-me
-  network_type: replace-me
+  director-state-file:    replace-me
+  director-manifest-file: replace-me
