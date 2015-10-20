@@ -7,12 +7,14 @@ source bosh-cpi-release/ci/tasks/utils.sh
 ensure_not_replace_value BOSH_OPENSTACK_AUTH_URL
 ensure_not_replace_value BOSH_OPENSTACK_USERNAME
 ensure_not_replace_value BOSH_OPENSTACK_API_KEY
-ensure_not_replace_value BOSH_OPENSTACK_TENANT
+ensure_not_replace_value BOSH_OPENSTACK_PROJECT
 
+export OS_IDENTITY_API_VERSION=$BOSH_OPENSTACK_IDENTITY_API_VERSION
+export OS_DEFAULT_DOMAIN=$BOSH_OPENSTACK_DOMAIN_NAME
 export OS_AUTH_URL=$BOSH_OPENSTACK_AUTH_URL
 export OS_USERNAME=$BOSH_OPENSTACK_USERNAME
 export OS_PASSWORD=$BOSH_OPENSTACK_API_KEY
-export OS_PROJECT_NAME=$BOSH_OPENSTACK_TENANT
+export OS_PROJECT_NAME=$BOSH_OPENSTACK_PROJECT
 
 openstack_delete_entities() {
   local entity=$1
@@ -34,15 +36,6 @@ do
   do
     echo "Detaching volume $volume from $instance ..."
     openstack server remove volume $instance $volume
-
-    # Plan to delete all volumes in one pass anyway. If that does not work:
-    #
-    # OpenStack does not allow to delete a volume
-    # until its status becomes 'available'.
-    # Status turns from 'in-use' to 'available'
-    # some time after deleting all attachments.
-    # options = { tries: 10, sleep: 5, on: [Excon::Errors::BadRequest] }
-    # Bosh::Retryable.new(options).retryer { volume.destroy }
   done
   echo "Deleting server $instance ..."
   openstack server delete $instance --wait

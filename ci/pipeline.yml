@@ -82,19 +82,30 @@ jobs:
     file: bosh-cpi-release/ci/tasks/cleanup.yml
     config:
       params:
-        BOSH_OPENSTACK_AUTH_URL:	{{openstack_auth_url_v2}}
-        BOSH_OPENSTACK_USERNAME:	{{lifecycle_openstack_username}}
-        BOSH_OPENSTACK_API_KEY: 	{{lifecycle_openstack_api_key}}
-        BOSH_OPENSTACK_TENANT:  	{{lifecycle_openstack_tenant}}
+        BOSH_OPENSTACK_AUTH_URL:    {{openstack_auth_url_v2}}
+        BOSH_OPENSTACK_USERNAME:    {{lifecycle_openstack_username}}
+        BOSH_OPENSTACK_API_KEY:     {{lifecycle_openstack_api_key}}
+        BOSH_OPENSTACK_PROJECT:     {{lifecycle_openstack_tenant}}
 
   - task: cleanup-bats
     file: bosh-cpi-release/ci/tasks/cleanup.yml
     config:
       params:
-        BOSH_OPENSTACK_AUTH_URL:	{{openstack_auth_url_v2}}
-        BOSH_OPENSTACK_USERNAME:	{{openstack_username}}
-        BOSH_OPENSTACK_API_KEY: 	{{openstack_api_key}}
-        BOSH_OPENSTACK_TENANT:  	{{openstack_tenant}}
+        BOSH_OPENSTACK_AUTH_URL:    {{openstack_auth_url_v2}}
+        BOSH_OPENSTACK_USERNAME:    {{openstack_username}}
+        BOSH_OPENSTACK_API_KEY:     {{openstack_api_key}}
+        BOSH_OPENSTACK_PROJECT:     {{openstack_tenant}}
+
+  - task: cleanup-e2e
+    file: bosh-cpi-release/ci/tasks/cleanup.yml
+    config:
+      params:
+        BOSH_OPENSTACK_IDENTITY_API_VERSION: 3
+        BOSH_OPENSTACK_DOMAIN_NAME:          {{v3_e2e_domain}}
+        BOSH_OPENSTACK_AUTH_URL:             {{openstack_auth_url_v3}}
+        BOSH_OPENSTACK_USERNAME:             {{v3_e2e_username}}
+        BOSH_OPENSTACK_API_KEY:              {{v3_e2e_api_key}}
+        BOSH_OPENSTACK_PROJECT:              {{v3_e2e_project}}
 
   - put: openstack-pipeline-lock
     params:
@@ -553,7 +564,7 @@ jobs:
           bosh_director_password:                  {{v3_e2e_director_password}}
           stemcell_name:                           {{v3_e2e_stemcell_name}}
           network_id:                              {{v3_e2e_net_id}}
-          instance_flavor:                         {{v3_e2e_flavor}}
+          instance_flavor:                         "m1.medium"
 
     - task: teardown-director
       file: bosh-cpi-release/ci/tasks/teardown-director.yml
@@ -568,7 +579,7 @@ jobs:
 - name: release-lock
   serial: true
   plan:
-  - {trigger: true, passed: [lifecycle, bats-ubuntu-manual, bats-centos-manual, bats-ubuntu-dynamic, bats-centos-dynamic, deploy-test-release], get: openstack-pipeline-lock}
+  - {trigger: true, passed: [lifecycle, bats-ubuntu-manual, bats-centos-manual, bats-ubuntu-dynamic, bats-centos-dynamic], get: openstack-pipeline-lock}
 
   - put: openstack-pipeline-lock
     params:
