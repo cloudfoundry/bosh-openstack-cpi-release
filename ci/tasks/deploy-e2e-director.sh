@@ -4,25 +4,26 @@ set -e
 
 source bosh-cpi-release/ci/tasks/utils.sh
 
+ensure_not_replace_value v3_e2e_flavor
+ensure_not_replace_value v3_e2e_connection_timeout
+ensure_not_replace_value v3_e2e_read_timeout
+ensure_not_replace_value v3_e2e_state_timeout
+ensure_not_replace_value v3_e2e_write_timeout
 ensure_not_replace_value bosh_director_username
 ensure_not_replace_value bosh_director_password
 ensure_not_replace_value v3_e2e_bosh_registry_port
 ensure_not_replace_value v3_e2e_api_key
 ensure_not_replace_value v3_e2e_auth_url
-ensure_not_replace_value v3_e2e_connection_timeout
 ensure_not_replace_value v3_e2e_default_key_name
-ensure_not_replace_value v3_e2e_flavor
 ensure_not_replace_value v3_e2e_floating_ip
 ensure_not_replace_value v3_e2e_manual_ip
 ensure_not_replace_value v3_e2e_net_cidr
 ensure_not_replace_value v3_e2e_net_gateway
 ensure_not_replace_value v3_e2e_net_id
-ensure_not_replace_value v3_e2e_read_timeout
 ensure_not_replace_value v3_e2e_security_group
-ensure_not_replace_value v3_e2e_state_timeout
-ensure_not_replace_value v3_e2e_tenant
+ensure_not_replace_value v3_e2e_project
+ensure_not_replace_value v3_e2e_domain
 ensure_not_replace_value v3_e2e_username
-ensure_not_replace_value v3_e2e_write_timeout
 ensure_not_replace_value v3_e2e_private_key_data
 ensure_not_replace_value v3_e2e_blobstore_bucket
 ensure_not_replace_value v3_e2e_blobstore_host
@@ -169,9 +170,9 @@ jobs:
     openstack: &openstack
       auth_url: ${v3_e2e_auth_url}
       username: ${v3_e2e_username}
-      api_key: ${v3_e2e_api_key}
-      tenant: ${v3_e2e_tenant}
-      domain: "Default"
+      api_key:  ${v3_e2e_api_key}
+      project:  ${v3_e2e_project}
+      domain:   ${v3_e2e_domain}
       region: #leave this blank
       endpoint_type: publicURL
       default_key_name: ${v3_e2e_default_key_name}
