@@ -98,7 +98,7 @@ jobs:
   - {name: health_monitor, release: bosh}
   - {name: powerdns, release: bosh}
   - {name: registry, release: bosh}
-  - {name: cpi, release: bosh-openstack-cpi}
+  - {name: openstack_cpi, release: bosh-openstack-cpi}
 
   instances: 1
   resource_pool: default
@@ -152,7 +152,7 @@ jobs:
       address: 127.0.0.1
       name: micro
       db: *db
-      cpi_job: cpi
+      cpi_job: openstack_cpi
       user_management:
         provider: local
         local:
@@ -193,7 +193,7 @@ jobs:
     - 1.north-america.pool.ntp.org
 
 cloud_provider:
-  template: {name: cpi, release: bosh-openstack-cpi}
+  template: {name: openstack_cpi, release: bosh-openstack-cpi}
 
   # Tells bosh-micro how to SSH into deployed VM
   ssh_tunnel:

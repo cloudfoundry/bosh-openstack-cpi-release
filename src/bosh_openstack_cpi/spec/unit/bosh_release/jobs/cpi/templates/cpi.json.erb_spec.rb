@@ -3,7 +3,7 @@ require 'json'
 require 'yaml'
 
 describe 'cpi.json.erb' do
-  let(:cpi_specification_file) { File.absolute_path(File.join(jobs_root, 'cpi/spec')) }
+  let(:cpi_specification_file) { File.absolute_path(File.join(jobs_root, 'openstack_cpi/spec')) }
 
   subject(:parsed_json) do
     context_hash = YAML.load_file(cpi_specification_file)
@@ -14,7 +14,7 @@ describe 'cpi.json.erb' do
   end
 
   let(:jobs_root) { File.join(File.dirname(__FILE__), '../../../../../../../../', 'jobs') }
-  let(:cpi_json_erb) { File.read(File.absolute_path(File.join(jobs_root, 'cpi/templates/cpi.json.erb'))) }
+  let(:cpi_json_erb) { File.read(File.absolute_path(File.join(jobs_root, 'openstack_cpi/templates/cpi.json.erb'))) }
   let(:manifest) do
     {
       'properties' => {
