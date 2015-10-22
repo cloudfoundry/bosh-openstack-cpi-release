@@ -149,35 +149,95 @@ describe Bosh::OpenStackCloud::Cloud, "create_vm" do
   end
 
   context "with security groups" do
-    let(:security_groups) { %w[bar foo] }
+    let(:network_with_security_group_spec) {
+      ns = dynamic_network_spec
+      ns["cloud_properties"] ||= {}
+      ns["cloud_properties"]["security_groups"] = %w[net-group-1 net-group-2]
+      ns
+    }
 
-    it "creates an OpenStack server with security groups" do
-      network_spec = dynamic_network_spec
-      network_spec["cloud_properties"] ||= {}
-      network_spec["cloud_properties"]["security_groups"] = security_groups
-      address = double("address", :id => "a-test", :ip => "10.0.0.1",
-        :instance_id => nil)
+    let(:resource_pool_with_security_group_spec) {
+      rps = resource_pool_spec
+      rps["security_groups"] = %w[pool-group-1 pool-group-2]
+      rps
+    }
 
-      cloud = mock_cloud do |openstack|
-        expect(openstack.servers).to receive(:create).with(openstack_params("network_a" => network_spec)).and_return(server)
-        expect(openstack.security_groups).to receive(:collect).and_return(security_groups)
-        expect(openstack.images).to receive(:find).and_return(image)
-        expect(openstack.flavors).to receive(:find).and_return(flavor)
-        expect(openstack.key_pairs).to receive(:find).and_return(key_pair)
-        expect(openstack.addresses).to receive(:each).and_yield(address)
+    context "defined in both network or resource_pools spec" do
+      let(:security_groups) { %w[security-group-1 security-group-2] }
+
+      it "raises an error when attempting to create an OpenStack server" do
+        address = double("address", :id => "a-test", :ip => "10.0.0.1", :instance_id => nil)
+
+        cloud = mock_cloud
+        expect(cloud).to receive(:generate_unique_name).and_return(unique_name)
+
+        expect {
+          cloud.create_vm("agent-id", "sc-id",
+            resource_pool_with_security_group_spec,
+            { "network_a" => network_with_security_group_spec },
+            nil, { "test_env" => "value" })
+        }.to raise_error('Cannot define security groups in both network and resource pool.')
+      end
+    end
+
+    context "defined in network spec" do
+      let(:security_groups) { %w[net-group-1 net-group-2] }
+
+      it "creates an OpenStack server" do
+        address = double("address", :id => "a-test", :ip => "10.0.0.1", :instance_id => nil)
+
+        cloud = mock_cloud do |openstack|
+          expect(openstack.servers).to receive(:create).with(openstack_params("network_a" => network_with_security_group_spec)).and_return(server)
+          expect(openstack.security_groups).to receive(:collect).and_return(security_groups)
+          expect(openstack.images).to receive(:find).and_return(image)
+          expect(openstack.flavors).to receive(:find).and_return(flavor)
+          expect(openstack.key_pairs).to receive(:find).and_return(key_pair)
+          expect(openstack.addresses).to receive(:each).and_yield(address)
+        end
+
+        expect(cloud).to receive(:generate_unique_name).and_return(unique_name)
+        expect(cloud).to receive(:wait_resource).with(server, :active, :state)
+        expect(@registry).to receive(:update_settings).with("i-test", agent_settings(unique_name, network_with_security_group_spec))
+
+        vm_id = cloud.create_vm("agent-id", "sc-id",
+          resource_pool_spec,
+          { "network_a" => network_with_security_group_spec },
+          nil, { "test_env" => "value" })
+        expect(vm_id).to eq("i-test")
+      end
+    end
+
+    context "defined in resource_pools spec" do
+      let(:security_groups) { %w[pool-group-1 pool-group-2] }
+
+      let(:dynamic_network_without_security_group_spec) do
+        ns = dynamic_network_spec
+        ns["cloud_properties"] = {}
+        ns
       end
 
-      expect(cloud).to receive(:generate_unique_name).and_return(unique_name)
-      expect(cloud).to receive(:wait_resource).with(server, :active, :state)
+      it "creates an OpenStack server" do
+        address = double("address", :id => "a-test", :ip => "10.0.0.1", :instance_id => nil)
 
-      expect(@registry).to receive(:update_settings).
-        with("i-test", agent_settings(unique_name, network_spec))
+        cloud = mock_cloud do |openstack|
+          expect(openstack.servers).to receive(:create).with(openstack_params("network_a" => dynamic_network_without_security_group_spec)).and_return(server)
+          expect(openstack.security_groups).to receive(:collect).and_return(security_groups)
+          expect(openstack.images).to receive(:find).and_return(image)
+          expect(openstack.flavors).to receive(:find).and_return(flavor)
+          expect(openstack.key_pairs).to receive(:find).and_return(key_pair)
+          expect(openstack.addresses).to receive(:each).and_yield(address)
+        end
 
-      vm_id = cloud.create_vm("agent-id", "sc-id",
-        resource_pool_spec,
-        { "network_a" => network_spec },
-        nil, { "test_env" => "value" })
-      expect(vm_id).to eq("i-test")
+        expect(cloud).to receive(:generate_unique_name).and_return(unique_name)
+        expect(cloud).to receive(:wait_resource).with(server, :active, :state)
+        expect(@registry).to receive(:update_settings).with("i-test", agent_settings(unique_name, dynamic_network_without_security_group_spec))
+
+        vm_id = cloud.create_vm("agent-id", "sc-id",
+          resource_pool_with_security_group_spec,
+          { "network_a" => dynamic_network_without_security_group_spec },
+          nil, { "test_env" => "value" })
+        expect(vm_id).to eq("i-test")
+      end
     end
   end
 

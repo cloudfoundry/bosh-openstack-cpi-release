@@ -110,7 +110,7 @@ module Bosh::OpenStackCloud
     #
     # @param [Array] default Default security groups
     # @return [Array] security groups
-    def security_groups(default)
+    def security_groups(default = nil)
       if @security_groups.empty? && default
         default
       else

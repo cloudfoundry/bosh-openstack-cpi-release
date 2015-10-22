@@ -86,7 +86,7 @@ describe Bosh::OpenStackCloud::NetworkConfigurator do
       set_security_groups(spec["network_b"], %w[bar])
 
       nc = Bosh::OpenStackCloud::NetworkConfigurator.new(spec)
-      expect(nc.security_groups(nil)).to eq(%w[bar foo])
+      expect(nc.security_groups).to eq(%w[bar foo])
     end
 
     it "should be extracted from both manual and vip network" do
@@ -97,7 +97,7 @@ describe Bosh::OpenStackCloud::NetworkConfigurator do
       set_security_groups(spec["network_b"], %w[bar])
 
       nc = Bosh::OpenStackCloud::NetworkConfigurator.new(spec)
-      expect(nc.security_groups(nil)).to eq(%w[bar foo])
+      expect(nc.security_groups).to eq(%w[bar foo])
     end
 
     it "should return the default groups if none are extracted" do
@@ -113,7 +113,7 @@ describe Bosh::OpenStackCloud::NetworkConfigurator do
       spec["network_a"] = {"type" => "dynamic"}
 
       nc = Bosh::OpenStackCloud::NetworkConfigurator.new(spec)
-      expect(nc.security_groups(nil)).to eq([])
+      expect(nc.security_groups).to eq([])
     end
 
     it "should raise an error when it isn't an array" do

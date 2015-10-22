@@ -219,12 +219,21 @@ module Bosh::OpenStackCloud
 
         network_configurator = NetworkConfigurator.new(network_spec)
 
+        network_spec_security_groups = network_configurator.security_groups
+        resource_pool_spec_security_groups = resource_pool_spec_security_groups(resource_pool)
+
+        if network_spec_security_groups.size > 0 && resource_pool_spec_security_groups.size > 0
+          cloud_error('Cannot define security groups in both network and resource pool.')
+        end
+
         openstack_security_groups = with_openstack { @openstack.security_groups }.collect { |sg| sg.name }
-        security_groups = network_configurator.security_groups(@default_security_groups)
-        security_groups.each do |sg|
+        network_security_groups = network_configurator.security_groups(@default_security_groups)
+        security_groups_to_be_used = resource_pool_spec_security_groups.size > 0 ? resource_pool_spec_security_groups : network_security_groups
+
+        security_groups_to_be_used.each do |sg|
           cloud_error("Security group `#{sg}' not found") unless openstack_security_groups.include?(sg)
         end
-        @logger.debug("Using security groups: `#{security_groups.join(', ')}'")
+        @logger.debug("Using security groups: `#{security_groups_to_be_used.join(', ')}'")
 
         nics = network_configurator.nics
         @logger.debug("Using NICs: `#{nics.join(', ')}'")
@@ -273,7 +282,7 @@ module Bosh::OpenStackCloud
           :image_ref => image.id,
           :flavor_ref => flavor.id,
           :key_name => keypair.name,
-          :security_groups => security_groups,
+          :security_groups => security_groups_to_be_used,
           :os_scheduler_hints => resource_pool['scheduler_hints'],
           :nics => nics,
           :config_drive => use_config_drive,
@@ -1037,6 +1046,17 @@ module Bosh::OpenStackCloud
       rescue Bosh::Clouds::CloudError => delete_server_error
         @logger.warn("Failed to destroy server: #{delete_server_error.inspect}\n#{delete_server_error.backtrace.join('\n')}")
       end
+    end
+
+    def resource_pool_spec_security_groups(resource_pool_spec)
+      if resource_pool_spec && resource_pool_spec.has_key?("security_groups")
+        unless resource_pool_spec["security_groups"].is_a?(Array)
+          raise ArgumentError, "security groups must be an Array"
+        end
+        return resource_pool_spec["security_groups"]
+      end
+
+      []
     end
   end
 end
