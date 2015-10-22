@@ -384,22 +384,9 @@ module Bosh::OpenStackCloud
     # @raise [Bosh::Clouds:NotSupported] If there's a network change that requires the recreation of the VM
     def configure_networks(server_id, network_spec)
       with_thread_name("configure_networks(#{server_id}, ...)") do
-        @logger.info("Configuring `#{server_id}' to use the following " \
-                     "network settings: #{network_spec.pretty_inspect}")
-        network_configurator = NetworkConfigurator.new(network_spec)
+        raise Bosh::Clouds::NotSupported,
+          'network configuration change requires VM recreation: %s' % [network_spec]
 
-        server = with_openstack { @openstack.servers.get(server_id) }
-        cloud_error("Server `#{server_id}' not found") unless server
-
-        compare_security_groups(server, network_configurator.security_groups(@default_security_groups))
-
-        compare_private_ip_addresses(server, network_configurator.private_ips)
-
-        network_configurator.configure(@openstack, server)
-
-        update_agent_settings(server) do |settings|
-          settings['networks'] = agent_network_spec(network_spec)
-        end
       end
     end
 
@@ -892,42 +879,6 @@ module Bosh::OpenStackCloud
         wait_resource(volume, :available)
       else
         @logger.info("Disk `#{volume.id}' is not attached to server `#{server.id}'. Skipping.")
-      end
-    end
-
-    ##
-    # Compares actual server security groups with those specified at the network spec
-    #
-    # @param [Fog::Compute::OpenStack::Server] server OpenStack server
-    # @param [Array] specified_sg_names Security groups specified at the network spec
-    # @return [void]
-    # @raise [Bosh::Clouds:NotSupported] If the security groups change, we need to recreate the VM as you can't
-    # change the security group of a running server, so we need to send the InstanceUpdater a request to do it for us
-    def compare_security_groups(server, specified_sg_names)
-      actual_sg_names = with_openstack { server.security_groups }.collect { |sg| sg.name }
-
-      unless actual_sg_names.sort == specified_sg_names.sort
-        raise Bosh::Clouds::NotSupported,
-              'security groups change requires VM recreation: %s to %s' %
-              [actual_sg_names.join(', '), specified_sg_names.join(', ')]
-      end
-    end
-
-    ##
-    # Compares actual server private IP addresses with the IP address specified at the network spec
-    #
-    # @param [Fog::Compute::OpenStack::Server] server OpenStack server
-    # @param [Array] specified_ip_addresses IP addresses specified at the network spec (if Manual network)
-    # @return [void]
-    # @raise [Bosh::Clouds:NotSupported] If the IP address change, we need to recreate the VM as you can't
-    # change the IP address of a running server, so we need to send the InstanceUpdater a request to do it for us
-    def compare_private_ip_addresses(server, specified_ip_addresses)
-      actual_ip_addresses = with_openstack { server.private_ip_addresses }
-
-      unless specified_ip_addresses.empty? || actual_ip_addresses.sort == specified_ip_addresses.sort
-        raise Bosh::Clouds::NotSupported,
-              'IP address change requires VM recreation: %s to %s' %
-              [actual_ip_addresses.join(', '), specified_ip_addresses.join(', ')]
       end
     end
 

@@ -58,6 +58,25 @@ describe Bosh::OpenStackCloud::NetworkConfigurator do
     }.to raise_error Bosh::Clouds::CloudError, "Only one dynamic network per instance should be defined"
   end
 
+  it "should raise a CloudError if several VIP networks are defined" do
+    spec = {}
+    spec["network_a"] = vip_network_spec
+    spec["network_b"] = vip_network_spec
+
+    expect {
+      Bosh::OpenStackCloud::NetworkConfigurator.new(spec)
+    }.to raise_error Bosh::Clouds::CloudError, "Only one VIP network per instance should be defined"
+  end
+
+  it "should raise a CloudError if no dynamic or manual networks are defined" do
+    spec = {}
+    spec["network_a"] = vip_network_spec
+
+    expect {
+      Bosh::OpenStackCloud::NetworkConfigurator.new(spec)
+    }.to raise_error Bosh::Clouds::CloudError, "At least one dynamic or manual network should be defined"
+  end
+
   describe "security groups" do
     it "should be extracted from both dynamic and vip network" do
       spec = {}
@@ -123,7 +142,7 @@ describe Bosh::OpenStackCloud::NetworkConfigurator do
       spec["network_a"] = vip_network_spec
       spec["network_a"]["ip"] = "10.0.0.1"
       spec["network_b"] = manual_network_spec
-      spec["network_b"]["ip"] = "10.0.0.2"      
+      spec["network_b"]["ip"] = "10.0.0.2"
 
       nc = Bosh::OpenStackCloud::NetworkConfigurator.new(spec)
       expect(nc.private_ips).to eq(%w[10.0.0.2])
@@ -133,7 +152,7 @@ describe Bosh::OpenStackCloud::NetworkConfigurator do
       nc = Bosh::OpenStackCloud::NetworkConfigurator.new(several_manual_networks)
       expect(nc.private_ips).to eq(%w[10.0.0.1 10.0.0.2])
     end
-    
+
     it "should not extract private ip address for dynamic network" do
       spec = {}
       spec["network_a"] = dynamic_network_spec
@@ -141,7 +160,7 @@ describe Bosh::OpenStackCloud::NetworkConfigurator do
 
       nc = Bosh::OpenStackCloud::NetworkConfigurator.new(spec)
       expect(nc.private_ips).to be_empty
-    end     
+    end
   end
 
   describe "nics" do
@@ -151,15 +170,15 @@ describe Bosh::OpenStackCloud::NetworkConfigurator do
       spec["network_a"]["cloud_properties"]["net_id"] = "foo"
 
       nc = Bosh::OpenStackCloud::NetworkConfigurator.new(spec)
-      expect(nc.nics).to eq([{ "net_id" => "foo" }])
+      expect(nc.nics).to eq([{"net_id" => "foo"}])
     end
 
     it "should extract net_id and IP address from all manual networks" do
       nc = Bosh::OpenStackCloud::NetworkConfigurator.new(several_manual_networks)
       expect(nc.nics).to eq([
-        { "net_id" => "net", "v4_fixed_ip" => "10.0.0.1" },
-        { "net_id" => "bar", "v4_fixed_ip" => "10.0.0.2" },
-      ])
+            {"net_id" => "net", "v4_fixed_ip" => "10.0.0.1"},
+            {"net_id" => "bar", "v4_fixed_ip" => "10.0.0.2"},
+          ])
     end
 
     it "should not extract ip address for dynamic network" do
@@ -169,7 +188,105 @@ describe Bosh::OpenStackCloud::NetworkConfigurator do
       spec["network_a"]["cloud_properties"]["net_id"] = "foo"
 
       nc = Bosh::OpenStackCloud::NetworkConfigurator.new(spec)
-      expect(nc.nics).to eq([{ "net_id" => "foo" }])
+      expect(nc.nics).to eq([{"net_id" => "foo"}])
+    end
+  end
+
+  describe "configure" do
+    let(:vip_network) do
+      network = double('vip_network')
+      allow(Bosh::OpenStackCloud::VipNetwork).to receive(:new).and_return(network)
+      network
+    end
+    let(:dynamic_network) do
+      network = double('dynamic_network')
+      allow(Bosh::OpenStackCloud::DynamicNetwork).to receive(:new).and_return(network)
+      network
+    end
+    let(:manual_network) do
+      network = double('manual_network')
+      allow(Bosh::OpenStackCloud::ManualNetwork).to receive(:new).and_return(network)
+      network
+    end
+
+    context "With vip network" do
+      let(:network_spec) do
+        {
+          'network_a' => dynamic_network_spec,
+          'network_b' => manual_network_spec,
+          'network_c' => vip_network_spec
+        }
+      end
+
+      it "configures the vip network if it exists" do
+        expect(vip_network).to receive(:configure)
+        network_configurator = Bosh::OpenStackCloud::NetworkConfigurator.new(network_spec)
+        network_configurator.configure(nil, nil)
+      end
+
+      it "configures the other networks too" do
+        allow(vip_network).to receive(:configure)
+        expect(manual_network).to receive(:configure)
+        expect(dynamic_network).to receive(:configure)
+        network_configurator = Bosh::OpenStackCloud::NetworkConfigurator.new(network_spec)
+        network_configurator.configure(nil, nil)
+      end
+    end
+
+    context "No vip network" do
+      let(:network_spec) do
+        {
+          'network_a' => dynamic_network_spec,
+          'network_b' => manual_network_spec,
+        }
+      end
+
+      it "disassociate allocated floating IP" do
+        server = double("server", :id => "i-test")
+        address = double("address", :id => "a-test", :ip => "10.0.0.1",
+          :instance_id => "i-test")
+
+        expect(manual_network).to receive(:configure)
+        expect(dynamic_network).to receive(:configure)
+        expect(vip_network).to_not receive(:configure)
+        cloud = mock_cloud do |openstack|
+          expect(openstack).to receive(:addresses).and_return([address])
+        end
+        expect(address).to receive(:server=).with(nil)
+
+        network_configurator = Bosh::OpenStackCloud::NetworkConfigurator.new(network_spec)
+        network_configurator.configure(cloud.openstack, server)
+      end
+
+      it "floating IPs allocated to other servers" do
+        other_server = double("server", :id => "i-test2")
+        address = double("address", :id => "a-test", :ip => "10.0.0.1",
+          :instance_id => "i-test")
+
+        expect(manual_network).to receive(:configure)
+        expect(dynamic_network).to receive(:configure)
+        expect(vip_network).to_not receive(:configure)
+
+        cloud = mock_cloud do |openstack|
+          expect(openstack).to receive(:addresses).and_return([address])
+        end
+        expect(address).to_not receive(:server=).with(nil)
+
+        network_configurator = Bosh::OpenStackCloud::NetworkConfigurator.new(network_spec)
+        network_configurator.configure(cloud.openstack, other_server)
+      end
+
+      it "no floating IPs allocated" do
+        expect(manual_network).to receive(:configure)
+        expect(dynamic_network).to receive(:configure)
+        expect(vip_network).to_not receive(:configure)
+        cloud = mock_cloud do |openstack|
+          expect(openstack).to receive(:addresses).and_return([])
+        end
+
+        network_configurator = Bosh::OpenStackCloud::NetworkConfigurator.new(network_spec)
+        network_configurator.configure(cloud.openstack, nil)
+      end
     end
   end
 end
