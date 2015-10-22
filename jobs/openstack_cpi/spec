@@ -25,7 +25,7 @@ properties:
   openstack.project:
     description: OpenStack project name (required for Keystone API V3)
   openstack.domain:
-    description: OpenStack domain (optional)
+    description: OpenStack domain (required for Keystone API V3)
   openstack.region:
     description: OpenStack region (optional)
     example: nova
