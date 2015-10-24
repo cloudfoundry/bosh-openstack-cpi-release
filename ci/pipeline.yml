@@ -579,7 +579,7 @@ jobs:
 - name: release-lock
   serial: true
   plan:
-  - {trigger: true, passed: [lifecycle, bats-ubuntu-manual, bats-centos-manual, bats-ubuntu-dynamic, bats-centos-dynamic], get: openstack-pipeline-lock}
+  - {trigger: true, passed: [lifecycle, bats-ubuntu-manual, bats-centos-manual, bats-ubuntu-dynamic, bats-centos-dynamic, deploy-test-release], get: openstack-pipeline-lock}
 
   - put: openstack-pipeline-lock
     params:
