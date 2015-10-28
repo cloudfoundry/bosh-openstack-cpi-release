@@ -138,7 +138,6 @@ jobs:
       username: ${bosh_director_username}
       password: ${bosh_director_password}
       port: ${v3_e2e_bosh_registry_port}
-      endpoint: http://${bosh_director_username}:${bosh_director_password}@${v3_e2e_manual_ip}:${v3_e2e_bosh_registry_port}
 
     # Tells the Director/agents how to contact blobstore
     blobstore:
