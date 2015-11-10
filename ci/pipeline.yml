@@ -497,7 +497,7 @@ jobs:
       - {trigger: true,  passed: [build-candidate], get: bosh-cpi-dev-artifacts}
       - {trigger: false, passed: [build-candidate], get: bosh-cpi-release, resource: bosh-cpi-release}
       - {trigger: false, passed: [build-candidate], get: version-semver}
-      - {trigger: true,                             get: stemcell, resource: e2e-stemcell }
+      - {trigger: false,                            get: stemcell, resource: e2e-stemcell }
       - {trigger: false,                            get: bosh-init}
       - {trigger: false,                            get: bosh-release}
       - {trigger: false, passed: [build-candidate], get: openstack-pipeline-lock}
