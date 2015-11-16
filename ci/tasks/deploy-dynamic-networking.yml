@@ -21,6 +21,7 @@ params:
   openstack_state_timeout:       replace-me
   private_key_data:              replace-me
   bosh_registry_port:            replace-me
+  bosh_openstack_ssl_verify:     replace-me
   openstack_net_id:              replace-me
   openstack_security_group:      replace-me
   openstack_default_key_name:    replace-me

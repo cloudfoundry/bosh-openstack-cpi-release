@@ -24,3 +24,4 @@ params:
   BOSH_OPENSTACK_READ_TIMEOUT:        replace-me
   BOSH_OPENSTACK_WRITE_TIMEOUT:       replace-me
   BOSH_OPENSTACK_DEFAULT_KEY_NAME:    replace-me
+  BOSH_OPENSTACK_SSL_VERIFY:          replace-me

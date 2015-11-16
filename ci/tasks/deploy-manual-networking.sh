@@ -13,6 +13,7 @@ ensure_not_replace_value openstack_write_timeout
 ensure_not_replace_value openstack_state_timeout
 ensure_not_replace_value private_key_data
 ensure_not_replace_value bosh_registry_port
+ensure_not_replace_value bosh_openstack_ssl_verify
 ensure_not_replace_value openstack_net_id
 ensure_not_replace_value openstack_security_group
 ensure_not_replace_value openstack_default_key_name
@@ -172,6 +173,7 @@ jobs:
         state_timeout: ${openstack_state_timeout}
         wait_resource_poll_interval: 5
         connection_options:
+          ssl_verify_peer: ${bosh_openstack_ssl_verify}
           connect_timeout: ${openstack_connection_timeout}
           read_timeout: ${openstack_read_timeout}
           write_timeout: ${openstack_write_timeout}

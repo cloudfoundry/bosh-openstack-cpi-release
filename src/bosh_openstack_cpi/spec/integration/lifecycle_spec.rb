@@ -21,6 +21,7 @@ describe Bosh::OpenStackCloud::Cloud do
     @connect_timeout   = LifecycleHelper.get_config(:instance_type, 'BOSH_OPENSTACK_CONNECT_TIMEOUT', '120')
     @read_timeout      = LifecycleHelper.get_config(:instance_type, 'BOSH_OPENSTACK_READ_TIMEOUT', '120')
     @write_timeout     = LifecycleHelper.get_config(:instance_type, 'BOSH_OPENSTACK_WRITE_TIMEOUT', '120')
+    @ssl_verify        = LifecycleHelper.get_config(:instance_type, 'BOSH_OPENSTACK_SSL_VERIFY', 'true')
 
     # some environments may not have this set, and it isn't strictly necessary so don't raise if it isn't set
     @region             = LifecycleHelper.get_config(:region, 'BOSH_OPENSTACK_REGION', nil)
@@ -49,6 +50,7 @@ describe Bosh::OpenStackCloud::Cloud do
         'config_drive' => config_drive,
         'ignore_server_availability_zone' => @ignore_server_az,
         'connection_options' => {
+          'ssl_verify_peer' => str_to_bool(@ssl_verify),
           'connect_timeout' => @connect_timeout.to_i,
           'read_timeout' => @read_timeout.to_i,
           'write_timeout' => @write_timeout.to_i,
@@ -407,5 +409,13 @@ describe Bosh::OpenStackCloud::Cloud do
     # Prints all exceptions but raises original exception
     exceptions.each { |e| logger.info("Failed with: #{e.inspect}\n#{e.backtrace.join("\n")}\n") }
     raise exceptions.first if exceptions.any?
+  end
+
+  def str_to_bool(string)
+    if string == 'true'
+      true
+    else
+      false
+    end
   end
 end

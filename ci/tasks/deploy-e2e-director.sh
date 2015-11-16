@@ -12,6 +12,7 @@ ensure_not_replace_value v3_e2e_write_timeout
 ensure_not_replace_value bosh_director_username
 ensure_not_replace_value bosh_director_password
 ensure_not_replace_value v3_e2e_bosh_registry_port
+ensure_not_replace_value bosh_openstack_ssl_verify
 ensure_not_replace_value v3_e2e_api_key
 ensure_not_replace_value v3_e2e_auth_url
 ensure_not_replace_value v3_e2e_default_key_name
@@ -180,6 +181,7 @@ jobs:
         state_timeout: ${v3_e2e_state_timeout}
         wait_resource_poll_interval: 5
         connection_options:
+          ssl_verify_peer: ${bosh_openstack_ssl_verify}
           connect_timeout: ${v3_e2e_connection_timeout}
           read_timeout: ${v3_e2e_read_timeout}
           write_timeout: ${v3_e2e_write_timeout}
