@@ -7,7 +7,6 @@ inputs:
   - name: director-state-file
   - name: dummy-release
   - name: stemcell
-
 run:
   path: bosh-cpi-release/ci/tasks/deploy-dummy-release.sh
 params:
@@ -18,4 +17,4 @@ params:
   network_id:              replace-me
   instance_flavor:         replace-me
 
-  
+

@@ -2,13 +2,12 @@
 platform: linux
 image: docker:///boshcpi/openstack-cpi-release
 inputs:
-  - name: bosh-cpi-dev-artifacts # -++ used for deployment manifest referenced by manifest_path
-  - name: version-semver         # -//
+  - name: bosh-cpi-dev-artifacts
+  - name: version-semver
   - name: bosh-cpi-release
-  - name: bosh-init              # --- bosh-init executable to do deploy
-  - name: bosh-release           # -\
-  - name: stemcell               # -/
-
+  - name: bosh-init
+  - name: bosh-release
+  - name: stemcell
 run:
   path: bosh-cpi-release/ci/tasks/deploy-e2e-director.sh
 params:

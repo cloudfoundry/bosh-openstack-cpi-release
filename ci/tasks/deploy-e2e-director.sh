@@ -57,139 +57,139 @@ cat > "${deployment_dir}/${manifest_filename}"<<EOF
 name: bosh
 
 releases:
-- name: bosh
-  url: file://bosh-release.tgz
-- name: bosh-openstack-cpi
-  url: file://bosh-openstack-cpi.tgz
+  - name: bosh
+    url: file://bosh-release.tgz
+  - name: bosh-openstack-cpi
+    url: file://bosh-openstack-cpi.tgz
 
 networks:
-- name: private
-  type: manual
-  subnets:
-  - range:    ${v3_e2e_net_cidr}
-    gateway:  ${v3_e2e_net_gateway}
-    dns:     [8.8.8.8]
-    static:  [${v3_e2e_manual_ip}]
-    cloud_properties:
-      net_id: ${v3_e2e_net_id}
-      security_groups: [${v3_e2e_security_group}]
-- name: public
-  type: vip
+  - name: private
+    type: manual
+    subnets:
+      - range:    ${v3_e2e_net_cidr}
+        gateway:  ${v3_e2e_net_gateway}
+        dns:     [8.8.8.8]
+        static:  [${v3_e2e_manual_ip}]
+        cloud_properties:
+          net_id: ${v3_e2e_net_id}
+          security_groups: [${v3_e2e_security_group}]
+  - name: public
+    type: vip
 
 resource_pools:
-- name: default
-  network: private
-  stemcell:
-    url: file://stemcell.tgz
-  cloud_properties:
-    instance_type: ${v3_e2e_flavor}
+  - name: default
+    network: private
+    stemcell:
+      url: file://stemcell.tgz
+    cloud_properties:
+      instance_type: ${v3_e2e_flavor}
 
 disk_pools:
-- name: default
-  disk_size: 25_000
+  - name: default
+    disk_size: 25_000
 
 jobs:
-- name: bosh
-  templates:
-  - {name: nats, release: bosh}
-  - {name: redis, release: bosh}
-  - {name: postgres, release: bosh}
-  - {name: director, release: bosh}
-  - {name: health_monitor, release: bosh}
-  - {name: powerdns, release: bosh}
-  - {name: registry, release: bosh}
-  - {name: openstack_cpi, release: bosh-openstack-cpi}
+  - name: bosh
+    templates:
+      - {name: nats, release: bosh}
+      - {name: redis, release: bosh}
+      - {name: postgres, release: bosh}
+      - {name: director, release: bosh}
+      - {name: health_monitor, release: bosh}
+      - {name: powerdns, release: bosh}
+      - {name: registry, release: bosh}
+      - {name: openstack_cpi, release: bosh-openstack-cpi}
 
-  instances: 1
-  resource_pool: default
-  persistent_disk_pool: default
+    instances: 1
+    resource_pool: default
+    persistent_disk_pool: default
 
-  networks:
-  - name: private
-    static_ips: [${v3_e2e_manual_ip}]
-    default: [dns, gateway]
-  - name: public
-    static_ips: [${v3_e2e_floating_ip}]
+    networks:
+      - name: private
+        static_ips: [${v3_e2e_manual_ip}]
+        default: [dns, gateway]
+      - name: public
+        static_ips: [${v3_e2e_floating_ip}]
 
-  properties:
-    nats:
-      address: 127.0.0.1
-      user: nats
-      password: nats-password
+    properties:
+      nats:
+        address: 127.0.0.1
+        user: nats
+        password: nats-password
 
-    redis:
-      listen_addresss: 127.0.0.1
-      address: 127.0.0.1
-      password: redis-password
+      redis:
+        listen_addresss: 127.0.0.1
+        address: 127.0.0.1
+        password: redis-password
 
-    postgres: &db
-      host: 127.0.0.1
-      user: postgres
-      password: postgres-password
-      database: bosh
-      adapter: postgres
+      postgres: &db
+        host: 127.0.0.1
+        user: postgres
+        password: postgres-password
+        database: bosh
+        adapter: postgres
 
-    # Tells the Director/agents how to contact registry
-    registry:
-      address: ${v3_e2e_manual_ip}
-      host: ${v3_e2e_manual_ip}
-      db: *db
-      http: {user: ${bosh_director_username}, password: ${bosh_director_password}, port: ${v3_e2e_bosh_registry_port}}
-      username: ${bosh_director_username}
-      password: ${bosh_director_password}
-      port: ${v3_e2e_bosh_registry_port}
+      # Tells the Director/agents how to contact registry
+      registry:
+        address: ${v3_e2e_manual_ip}
+        host: ${v3_e2e_manual_ip}
+        db: *db
+        http: {user: ${bosh_director_username}, password: ${bosh_director_password}, port: ${v3_e2e_bosh_registry_port}}
+        username: ${bosh_director_username}
+        password: ${bosh_director_password}
+        port: ${v3_e2e_bosh_registry_port}
 
-    # Tells the Director/agents how to contact blobstore
-    blobstore:
-      provider: s3
-      access_key_id: ${v3_e2e_blobstore_access_key}
-      secret_access_key: ${v3_e2e_blobstore_secret_key}
-      bucket_name: ${v3_e2e_blobstore_bucket}
-      host: ${v3_e2e_blobstore_host}
+      # Tells the Director/agents how to contact blobstore
+      blobstore:
+        provider: s3
+        access_key_id: ${v3_e2e_blobstore_access_key}
+        secret_access_key: ${v3_e2e_blobstore_secret_key}
+        bucket_name: ${v3_e2e_blobstore_bucket}
+        host: ${v3_e2e_blobstore_host}
 
-    director:
-      address: 127.0.0.1
-      name: micro
-      db: *db
-      cpi_job: openstack_cpi
-      user_management:
-        provider: local
-        local:
-          users:
-          - {name: ${bosh_director_username}, password: ${bosh_director_password}}
+      director:
+        address: 127.0.0.1
+        name: micro
+        db: *db
+        cpi_job: openstack_cpi
+        user_management:
+          provider: local
+          local:
+            users:
+              - {name: ${bosh_director_username}, password: ${bosh_director_password}}
 
-    hm:
-      http: {user: hm, password: hm-password}
-      director_account: {user: ${bosh_director_username}, password: ${bosh_director_password}}
+      hm:
+        http: {user: hm, password: hm-password}
+        director_account: {user: ${bosh_director_username}, password: ${bosh_director_password}}
 
-    dns:
-      address: 127.0.0.1
-      db: *db
+      dns:
+        address: 127.0.0.1
+        db: *db
 
-    openstack: &openstack
-      auth_url: ${v3_e2e_auth_url}
-      username: ${v3_e2e_username}
-      api_key:  ${v3_e2e_api_key}
-      project:  ${v3_e2e_project}
-      domain:   ${v3_e2e_domain}
-      region: #leave this blank
-      endpoint_type: publicURL
-      default_key_name: ${v3_e2e_default_key_name}
-      default_security_groups:
-      - ${v3_e2e_security_group}
-      state_timeout: ${v3_e2e_state_timeout}
-      wait_resource_poll_interval: 5
-      connection_options:
-        connect_timeout: ${v3_e2e_connection_timeout}
-        read_timeout: ${v3_e2e_read_timeout}
-        write_timeout: ${v3_e2e_write_timeout}
+      openstack: &openstack
+        auth_url: ${v3_e2e_auth_url}
+        username: ${v3_e2e_username}
+        api_key:  ${v3_e2e_api_key}
+        project:  ${v3_e2e_project}
+        domain:   ${v3_e2e_domain}
+        region: #leave this blank
+        endpoint_type: publicURL
+        default_key_name: ${v3_e2e_default_key_name}
+        default_security_groups:
+          - ${v3_e2e_security_group}
+        state_timeout: ${v3_e2e_state_timeout}
+        wait_resource_poll_interval: 5
+        connection_options:
+          connect_timeout: ${v3_e2e_connection_timeout}
+          read_timeout: ${v3_e2e_read_timeout}
+          write_timeout: ${v3_e2e_write_timeout}
 
-    # Tells agents how to contact nats
-    agent: {mbus: "nats://nats:nats-password@${v3_e2e_manual_ip}:4222"}
+      # Tells agents how to contact nats
+      agent: {mbus: "nats://nats:nats-password@${v3_e2e_manual_ip}:4222"}
 
-    ntp: &ntp
-    - 0.north-america.pool.ntp.org
-    - 1.north-america.pool.ntp.org
+      ntp: &ntp
+        - 0.north-america.pool.ntp.org
+        - 1.north-america.pool.ntp.org
 
 cloud_provider:
   template: {name: openstack_cpi, release: bosh-openstack-cpi}

@@ -1,782 +1,780 @@
 ---
 groups:
-- name: bosh-openstack-cpi-release
-  jobs:
-  - build-candidate
-  - lifecycle
-  - deploy-ubuntu-manual
-  - bats-ubuntu-manual
-  - deploy-centos-manual
-  - bats-centos-manual
-  - deploy-ubuntu-dynamic
-  - bats-ubuntu-dynamic
-  - deploy-centos-dynamic
-  - bats-centos-dynamic
-  - deploy-e2e-director
-  - deploy-test-release
-  - promote-candidate
-  - cleanup
-  - release-lock
+  - name: bosh-openstack-cpi-release
+    jobs:
+      - build-candidate
+      - lifecycle
+      - deploy-ubuntu-manual
+      - bats-ubuntu-manual
+      - deploy-centos-manual
+      - bats-centos-manual
+      - deploy-ubuntu-dynamic
+      - bats-ubuntu-dynamic
+      - deploy-centos-dynamic
+      - bats-centos-dynamic
+      - deploy-e2e-director
+      - deploy-test-release
+      - promote-candidate
+      - cleanup
+      - release-lock
 
-- name: lifecycle
-  jobs:
-  - build-candidate
-  - lifecycle
-  - promote-candidate
+  - name: lifecycle
+    jobs:
+      - build-candidate
+      - lifecycle
+      - promote-candidate
 
-- name: ubuntu
-  jobs:
-  - build-candidate
-  - deploy-ubuntu-manual
-  - bats-ubuntu-manual
-  - deploy-ubuntu-dynamic
-  - bats-ubuntu-dynamic
-  - promote-candidate
+  - name: ubuntu
+    jobs:
+      - build-candidate
+      - deploy-ubuntu-manual
+      - bats-ubuntu-manual
+      - deploy-ubuntu-dynamic
+      - bats-ubuntu-dynamic
+      - promote-candidate
 
-- name: centos
-  jobs:
-  - build-candidate
-  - deploy-centos-manual
-  - bats-centos-manual
-  - deploy-centos-dynamic
-  - bats-centos-dynamic
-  - promote-candidate
+  - name: centos
+    jobs:
+      - build-candidate
+      - deploy-centos-manual
+      - bats-centos-manual
+      - deploy-centos-dynamic
+      - bats-centos-dynamic
+      - promote-candidate
 
-- name: e2e
-  jobs:
-  - build-candidate
-  - deploy-e2e-director
-  - deploy-test-release
-  - promote-candidate
+  - name: e2e
+    jobs:
+      - build-candidate
+      - deploy-e2e-director
+      - deploy-test-release
+      - promote-candidate
 
 jobs:
-- name: build-candidate
-  serial: true
-  plan:
-  - aggregate:
-    - {trigger: false, get: bosh-cpi-release}
-    - {trigger: false, get: version-semver, params: {bump: patch}}
+  - name: build-candidate
+    serial: true
+    plan:
+      - aggregate:
+        - {trigger: false, get: bosh-cpi-release}
+        - {trigger: false, get: version-semver, params: {bump: patch}}
 
-  - put: version-semver
-    params: {file: version-semver/number}
+      - put: version-semver
+        params: {file: version-semver/number}
 
-  - task: build
-    file: bosh-cpi-release/ci/tasks/build-candidate.yml
+      - task: build
+        file: bosh-cpi-release/ci/tasks/build-candidate.yml
 
-  - put: bosh-cpi-dev-artifacts
-    params: {from: build/out/.*\.tgz}
+      - put: bosh-cpi-dev-artifacts
+        params: {from: build/out/.*\.tgz}
 
-  - put: openstack-pipeline-lock
-    params:
-      acquire: true
-
-- name: cleanup
-  plan:
-  - {trigger: false, get: bosh-cpi-release}
-
-  - put: openstack-pipeline-lock
-    params:
-      acquire: true
-
-  - task: cleanup-lifecycle
-    file: bosh-cpi-release/ci/tasks/cleanup.yml
-    config:
-      params:
-        BOSH_OPENSTACK_AUTH_URL:    {{openstack_auth_url_v2}}
-        BOSH_OPENSTACK_USERNAME:    {{lifecycle_openstack_username}}
-        BOSH_OPENSTACK_API_KEY:     {{lifecycle_openstack_api_key}}
-        BOSH_OPENSTACK_PROJECT:     {{lifecycle_openstack_tenant}}
-
-  - task: cleanup-bats
-    file: bosh-cpi-release/ci/tasks/cleanup.yml
-    config:
-      params:
-        BOSH_OPENSTACK_AUTH_URL:    {{openstack_auth_url_v2}}
-        BOSH_OPENSTACK_USERNAME:    {{openstack_username}}
-        BOSH_OPENSTACK_API_KEY:     {{openstack_api_key}}
-        BOSH_OPENSTACK_PROJECT:     {{openstack_tenant}}
-
-  - task: cleanup-e2e
-    file: bosh-cpi-release/ci/tasks/cleanup.yml
-    config:
-      params:
-        BOSH_OPENSTACK_IDENTITY_API_VERSION: 3
-        BOSH_OPENSTACK_DOMAIN_NAME:          {{v3_e2e_domain}}
-        BOSH_OPENSTACK_AUTH_URL:             {{openstack_auth_url_v3}}
-        BOSH_OPENSTACK_USERNAME:             {{v3_e2e_username}}
-        BOSH_OPENSTACK_API_KEY:              {{v3_e2e_api_key}}
-        BOSH_OPENSTACK_PROJECT:              {{v3_e2e_project}}
-
-  - put: openstack-pipeline-lock
-    params:
-      release: openstack-pipeline-lock
-
-- name: lifecycle
-  serial: true
-  plan:
-  - aggregate:
-    - {trigger: true, passed:  [build-candidate], get: bosh-cpi-dev-artifacts} # used for job chaining only not for tasks
-    - {trigger: false, passed: [build-candidate], get: openstack-pipeline-lock}
-    - {trigger: false, passed: [build-candidate], get: bosh-cpi-release}
-
-  - task: test
-    file: bosh-cpi-release/ci/tasks/run-lifecycle.yml
-    config:
-      params:
-        BOSH_OPENSTACK_DOMAIN:              {{lifecycle_openstack_domain}}
-        BOSH_OPENSTACK_TENANT:              {{lifecycle_openstack_tenant}}
-        BOSH_OPENSTACK_PROJECT:             {{lifecycle_openstack_tenant}}
-        BOSH_OPENSTACK_MANUAL_IP:           {{lifecycle_manual_ip}}
-        BOSH_OPENSTACK_NET_ID:              {{lifecycle_openstack_net_id}}
-        BOSH_OPENSTACK_STEMCELL_ID:         {{lifecycle_stemcell_id}}
-        BOSH_OPENSTACK_AUTH_URL_V2:         {{openstack_auth_url_v2}}
-        BOSH_OPENSTACK_AUTH_URL_V3:         {{openstack_auth_url_v3}}
-        BOSH_OPENSTACK_USERNAME:            {{lifecycle_openstack_username}}
-        BOSH_OPENSTACK_API_KEY:             {{lifecycle_openstack_api_key}}
-        BOSH_OPENSTACK_USERNAME_V3:         {{lifecycle_openstack_username_v3}}
-        BOSH_OPENSTACK_API_KEY_V3:          {{lifecycle_openstack_api_key_v3}}
-        BOSH_OPENSTACK_DEFAULT_KEY_NAME:    {{lifecycle_openstack_default_key_name}}
-        BOSH_CLI_SILENCE_SLOW_LOAD_WARNING: true
-        BOSH_OPENSTACK_VOLUME_TYPE:         "SSD"
-        BOSH_OPENSTACK_CONNECT_TIMEOUT:     "600"
-        BOSH_OPENSTACK_READ_TIMEOUT:        "120"
-        BOSH_OPENSTACK_WRITE_TIMEOUT:       "120"
-
-- name: deploy-ubuntu-manual
-  serial_groups: [ubuntu-director-manual] # shouldn't deploy while bats are running
-  plan:
-  - aggregate:
-    - {trigger: true,  passed: [build-candidate], get: bosh-cpi-dev-artifacts}
-    - {trigger: false, passed: [build-candidate], get: version-semver}
-    - {trigger: false, passed: [build-candidate], get: bosh-cpi-release}
-    - {trigger: false, passed: [build-candidate], get: openstack-pipeline-lock}
-    - {trigger: false,                            get: director-state-file, resource: ubuntu-manual-director-state-file}
-    - {trigger: false,                            get: bosh-init}
-    - {trigger: false,                            get: bosh-release}
-    - {trigger: false,                            get: stemcell, resource: openstack-ubuntu-stemcell}
-
-  - task: deploy
-    file: bosh-cpi-release/ci/tasks/deploy-manual-networking.yml
-    config:
-      params:
-        base_os:                       "ubuntu"
-        network_type_to_test:          "manual"
-        openstack_flavor:              "m1.small"
-        openstack_connection_timeout:  "600"
-        openstack_read_timeout:        "180"
-        openstack_write_timeout:       "180"
-        openstack_state_timeout:       "900"
-        private_key_data:              {{bosh_private_key}}
-        bosh_registry_port:            {{bosh_director_registry_port}}
-        openstack_net_id:              {{bats_manual_ubuntu_primary_net_id}}
-        openstack_security_group:      {{openstack_security_group}}
-        openstack_default_key_name:    {{openstack_default_key_name}}
-        openstack_auth_url:            {{openstack_auth_url_v2}}
-        openstack_username:            {{openstack_username}}
-        openstack_api_key:             {{openstack_api_key}}
-        openstack_tenant:              {{openstack_tenant}}
-        openstack_floating_ip:         {{bats_manual_ubuntu_director_public_ip}}
-        openstack_manual_ip:           {{bats_manual_ubuntu_director_private_ip}}
-        openstack_net_cidr:            {{bats_manual_ubuntu_primary_net_cidr}}
-        openstack_net_gateway:         {{bats_manual_ubuntu_primary_net_gateway}}
-    ensure:
-      put: ubuntu-manual-director-state-file
-      params: {from: deploy/deployment/ubuntu-manual-director-manifest-state.json}
-
-  - put: ubuntu-manual-director-manifest
-    params: {from: deploy/deployment/ubuntu-manual-director-manifest.yml}
-
-- name: bats-ubuntu-manual
-  serial_groups: [ubuntu-director-manual] # can't run while deploying
-  plan:
-  - aggregate:
-    - {trigger: true,  passed: [deploy-ubuntu-manual], get: bosh-cpi-dev-artifacts}
-    - {trigger: false, passed: [deploy-ubuntu-manual], get: bosh-cpi-release}
-    - {trigger: false, passed: [deploy-ubuntu-manual], get: stemcell, resource: openstack-ubuntu-stemcell}
-    - {trigger: false, passed: [deploy-ubuntu-manual], get: director-state-file, resource: ubuntu-manual-director-state-file}
-    - {trigger: false, passed: [deploy-ubuntu-manual], get: director-manifest, resource: ubuntu-manual-director-manifest}
-    - {trigger: false, passed: [deploy-ubuntu-manual], get: version-semver}
-    - {trigger: false, passed: [deploy-ubuntu-manual], get: openstack-pipeline-lock}
-    - {trigger: false,                                 get: bosh-release}
-    - {trigger: false,                                 get: bats}
-    - {trigger: false,                                 get: bosh-init}
-
-  - task: test
-    file: bosh-cpi-release/ci/tasks/run-manual-networking-bats.yml
-    config:
-      params:
-        stemcell_name:                            "bosh-openstack-kvm-ubuntu-trusty-go_agent"
-        private_key_data:                         {{bosh_private_key}}
-        openstack_security_group:                 {{openstack_security_group}}
-        openstack_flavor_with_ephemeral_disk:     {{openstack_flavor_with_ephemeral_disk}}
-        openstack_flavor_with_no_ephemeral_disk:  {{openstack_flavor_with_no_ephemeral_disk}}
-        desired_vcap_user_password:               {{bosh_desired_vcap_user_password}}
-        bosh_director_public_ip:                  {{bats_manual_ubuntu_director_public_ip}}
-        bosh_director_private_ip:                 {{bats_manual_ubuntu_director_private_ip}}
-        bats_vm_floating_ip:                      {{bats_manual_ubuntu_floating_ip}}
-        primary_network_id:                       {{bats_manual_ubuntu_primary_net_id}}
-        primary_network_cidr:                     {{bats_manual_ubuntu_primary_net_cidr}}
-        primary_network_gateway:                  {{bats_manual_ubuntu_primary_net_gateway}}
-        primary_network_range:                    {{bats_manual_ubuntu_primary_net_static_range}}
-        primary_network_manual_ip:                {{bats_manual_ubuntu_primary_net_manual_ip}}
-        primary_network_second_manual_ip:         {{bats_manual_ubuntu_primary_net_second_manual_ip}}
-        secondary_network_id:                     {{bats_manual_ubuntu_secondary_net_id}}
-        secondary_network_cidr:                   {{bats_manual_ubuntu_secondary_net_cidr}}
-        secondary_network_gateway:                {{bats_manual_ubuntu_secondary_net_gateway}}
-        secondary_network_range:                  {{bats_manual_ubuntu_secondary_net_static_range}}
-        secondary_network_manual_ip:              {{bats_manual_ubuntu_secondary_net_manual_ip}}
-
-  - task: teardown-director
-    file: bosh-cpi-release/ci/tasks/teardown-director.yml
-    config:
-      params:
-        director_manifest_file:  "ubuntu-manual-director-manifest.yml"
-        director_state_file:     "ubuntu-manual-director-manifest-state.json"
-    ensure:
-      put: ubuntu-manual-director-state-file
-      params: {from: teardown-director/director-manifest/ubuntu-manual-director-manifest-state.json}
-
-- name: deploy-ubuntu-dynamic
-  serial_groups: [ubuntu-director-dynamic] # shouldn't deploy while bats are running
-  plan:
-  - aggregate:
-    - {trigger: true,  passed: [build-candidate], get: bosh-cpi-dev-artifacts}
-    - {trigger: false, passed: [build-candidate], get: version-semver}
-    - {trigger: false, passed: [build-candidate], get: bosh-cpi-release}
-    - {trigger: false, passed: [build-candidate], get: openstack-pipeline-lock}
-    - {trigger: false,                            get: director-state-file, resource: ubuntu-dynamic-director-state-file}
-    - {trigger: false,                            get: bosh-init}
-    - {trigger: false,                            get: bosh-release}
-    - {trigger: false,                            get: stemcell, resource: openstack-ubuntu-stemcell}
-
-  - task: deploy
-    file: bosh-cpi-release/ci/tasks/deploy-dynamic-networking.yml
-    config:
-      params:
-        base_os:                       "ubuntu"
-        network_type_to_test:          "dynamic"
-        openstack_flavor:              "m1.small"
-        openstack_connection_timeout:  "600"
-        openstack_read_timeout:        "180"
-        openstack_write_timeout:       "180"
-        openstack_state_timeout:       "900"
-        private_key_data:              {{bosh_private_key}}
-        bosh_registry_port:            {{bosh_director_registry_port}}
-        openstack_net_id:              {{bats_dynamic_ubuntu_primary_net_id}}
-        openstack_security_group:      {{openstack_security_group}}
-        openstack_default_key_name:    {{openstack_default_key_name}}
-        openstack_auth_url:            {{openstack_auth_url_v2}}
-        openstack_username:            {{openstack_username}}
-        openstack_api_key:             {{openstack_api_key}}
-        openstack_tenant:              {{openstack_tenant}}
-        openstack_floating_ip:         {{bats_dynamic_ubuntu_director_public_ip}}
-    ensure:
-      put: ubuntu-dynamic-director-state-file
-      params: {from: deploy/deployment/ubuntu-dynamic-director-manifest-state.json}
-
-  - put: ubuntu-dynamic-director-manifest
-    params: {from: deploy/deployment/ubuntu-dynamic-director-manifest.yml}
-
-- name: bats-ubuntu-dynamic
-  serial_groups: [ubuntu-director-dynamic] # can't run while deploying
-  plan:
-  - aggregate:
-    - {trigger: true,  passed: [deploy-ubuntu-dynamic], get: bosh-cpi-dev-artifacts}
-    - {trigger: false, passed: [deploy-ubuntu-dynamic], get: bosh-cpi-release}
-    - {trigger: false, passed: [deploy-ubuntu-dynamic], get: director-state-file, resource: ubuntu-dynamic-director-state-file}
-    - {trigger: false, passed: [deploy-ubuntu-dynamic], get: director-manifest, resource: ubuntu-dynamic-director-manifest}
-    - {trigger: false, passed: [deploy-ubuntu-dynamic], get: stemcell, resource: openstack-ubuntu-stemcell}
-    - {trigger: false, passed: [deploy-ubuntu-dynamic], get: version-semver}
-    - {trigger: false, passed: [deploy-ubuntu-dynamic], get: openstack-pipeline-lock}
-    - {trigger: false,                                  get: bosh-release}
-    - {trigger: false,                                  get: bats}
-    - {trigger: false,                                  get: bosh-init}
-
-  - task: test
-    file: bosh-cpi-release/ci/tasks/run-dynamic-networking-bats.yml
-    config:
-      params:
-        stemcell_name:                            "bosh-openstack-kvm-ubuntu-trusty-go_agent"
-        bats_vm_floating_ip:                      {{bats_dynamic_ubuntu_floating_ip}}
-        bosh_director_public_ip:                  {{bats_dynamic_ubuntu_director_public_ip}}
-        desired_vcap_user_password:               {{bosh_desired_vcap_user_password}}
-        openstack_flavor_with_ephemeral_disk:     {{openstack_flavor_with_ephemeral_disk}}
-        openstack_flavor_with_no_ephemeral_disk:  {{openstack_flavor_with_no_ephemeral_disk}}
-        openstack_security_group:                 {{openstack_security_group}}
-        primary_network_id:                       {{bats_dynamic_ubuntu_primary_net_id}}
-        private_key_data:                         {{bosh_private_key}}
-
-  - task: teardown-director
-    file: bosh-cpi-release/ci/tasks/teardown-director.yml
-    config:
-      params:
-        director_manifest_file: "ubuntu-dynamic-director-manifest.yml"
-        director_state_file:    "ubuntu-dynamic-director-manifest-state.json"
-    ensure:
-      put: ubuntu-dynamic-director-state-file
-      params: {from: teardown-director/director-manifest/ubuntu-dynamic-director-manifest-state.json}
-
-- name: deploy-centos-manual
-  serial_groups: [centos-director-manual] # shouldn't deploy while bats are running
-  plan:
-  - aggregate:
-    - {trigger: true,  passed: [build-candidate], get: bosh-cpi-dev-artifacts}
-    - {trigger: false, passed: [build-candidate], get: version-semver}
-    - {trigger: false, passed: [build-candidate], get: bosh-cpi-release}
-    - {trigger: false, passed: [build-candidate], get: openstack-pipeline-lock}
-    - {trigger: false,                            get: director-state-file, resource: centos-manual-director-state-file}
-    - {trigger: false,                            get: bosh-init}
-    - {trigger: false,                            get: bosh-release}
-    - {trigger: false,                            get: stemcell, resource: openstack-centos-stemcell}
-
-  - task: deploy
-    file: bosh-cpi-release/ci/tasks/deploy-manual-networking.yml
-    config:
-      params:
-        base_os:                       "centos"
-        network_type_to_test:          "manual"
-        openstack_flavor:              "m1.small"
-        openstack_connection_timeout:  "600"
-        openstack_read_timeout:        "180"
-        openstack_write_timeout:       "180"
-        openstack_state_timeout:       "900"
-        private_key_data:              {{bosh_private_key}}
-        bosh_registry_port:            {{bosh_director_registry_port}}
-        openstack_net_id:              {{bats_manual_ubuntu_primary_net_id}}
-        openstack_security_group:      {{openstack_security_group}}
-        openstack_default_key_name:    {{openstack_default_key_name}}
-        openstack_auth_url:            {{openstack_auth_url_v2}}
-        openstack_username:            {{openstack_username}}
-        openstack_api_key:             {{openstack_api_key}}
-        openstack_tenant:              {{openstack_tenant}}
-        openstack_floating_ip:         {{bats_manual_centos_director_public_ip}}
-        openstack_manual_ip:           {{bats_manual_centos_director_private_ip}}
-        openstack_net_cidr:            {{bats_manual_centos_primary_net_cidr}}
-        openstack_net_gateway:         {{bats_manual_centos_primary_net_gateway}}
-    ensure:
-      put: centos-manual-director-state-file
-      params: {from: deploy/deployment/centos-manual-director-manifest-state.json}
-
-  - put: centos-manual-director-manifest
-    params: {from: deploy/deployment/centos-manual-director-manifest.yml}
-
-- name: bats-centos-manual
-  serial_groups: [centos-director-manual] # can't run while deploying
-  plan:
-  - aggregate:
-    - {trigger: true,  passed: [deploy-centos-manual], get: bosh-cpi-dev-artifacts}
-    - {trigger: false, passed: [deploy-centos-manual], get: stemcell, resource: openstack-centos-stemcell}
-    - {trigger: false, passed: [deploy-centos-manual], get: director-state-file, resource: centos-manual-director-state-file}
-    - {trigger: false, passed: [deploy-centos-manual], get: director-manifest, resource: centos-manual-director-manifest}
-    - {trigger: false, passed: [deploy-centos-manual], get: bosh-cpi-release}
-    - {trigger: false, passed: [deploy-centos-manual], get: version-semver}
-    - {trigger: false, passed: [deploy-centos-manual], get: openstack-pipeline-lock}
-    - {trigger: false,                                 get: bosh-release}
-    - {trigger: false,                                 get: bats}
-    - {trigger: false,                                 get: bosh-init}
-
-  - task: test
-    file: bosh-cpi-release/ci/tasks/run-manual-networking-bats.yml
-    config:
-      params:
-        stemcell_name:                            "bosh-openstack-kvm-centos-7-go_agent"
-        private_key_data:                         {{bosh_private_key}}
-        openstack_security_group:                 {{openstack_security_group}}
-        openstack_flavor_with_ephemeral_disk:     {{openstack_flavor_with_ephemeral_disk}}
-        openstack_flavor_with_no_ephemeral_disk:  {{openstack_flavor_with_no_ephemeral_disk}}
-        desired_vcap_user_password:               {{bosh_desired_vcap_user_password}}
-        bosh_director_public_ip:                  {{bats_manual_centos_director_public_ip}}
-        bosh_director_private_ip:                 {{bats_manual_centos_director_private_ip}}
-        bats_vm_floating_ip:                      {{bats_manual_centos_floating_ip}}
-        primary_network_id:                       {{bats_manual_centos_primary_net_id}}
-        primary_network_cidr:                     {{bats_manual_centos_primary_net_cidr}}
-        primary_network_gateway:                  {{bats_manual_centos_primary_net_gateway}}
-        primary_network_range:                    {{bats_manual_centos_primary_net_static_range}}
-        primary_network_manual_ip:                {{bats_manual_centos_primary_net_manual_ip}}
-        primary_network_second_manual_ip:         {{bats_manual_centos_primary_net_second_manual_ip}}
-        secondary_network_id:                     {{bats_manual_centos_secondary_net_id}}
-        secondary_network_cidr:                   {{bats_manual_centos_secondary_net_cidr}}
-        secondary_network_gateway:                {{bats_manual_centos_secondary_net_gateway}}
-        secondary_network_range:                  {{bats_manual_centos_secondary_net_static_range}}
-        secondary_network_manual_ip:              {{bats_manual_centos_secondary_net_manual_ip}}
-
-  - task: teardown-director
-    file: bosh-cpi-release/ci/tasks/teardown-director.yml
-    config:
-      params:
-        director_manifest_file:   "centos-manual-director-manifest.yml"
-        director_state_file:      "centos-manual-director-manifest-state.json"
-    ensure:
-      put: centos-manual-director-state-file
-      params: {from: teardown-director/director-manifest/centos-manual-director-manifest-state.json}
-
-- name: deploy-centos-dynamic
-  serial_groups: [centos-director-dynamic] # shouldn't deploy while bats are running
-  plan:
-  - aggregate:
-    - {trigger: true,  passed: [build-candidate], get: bosh-cpi-dev-artifacts}
-    - {trigger: false, passed: [build-candidate], get: version-semver}
-    - {trigger: false, passed: [build-candidate], get: bosh-cpi-release}
-    - {trigger: false, passed: [build-candidate], get: openstack-pipeline-lock}
-    - {trigger: false,                            get: director-state-file, resource: centos-dynamic-director-state-file}
-    - {trigger: false,                            get: bosh-init}
-    - {trigger: false,                            get: bosh-release}
-    - {trigger: false,                            get: stemcell, resource: openstack-centos-stemcell}
-
-  - task: deploy
-    file: bosh-cpi-release/ci/tasks/deploy-dynamic-networking.yml
-    config:
-      params:
-        base_os:                       "centos"
-        network_type_to_test:          "dynamic"
-        openstack_flavor:              "m1.small"
-        openstack_connection_timeout:  "600"
-        openstack_read_timeout:        "180"
-        openstack_write_timeout:       "180"
-        openstack_state_timeout:       "900"
-        private_key_data:              {{bosh_private_key}}
-        bosh_registry_port:            {{bosh_director_registry_port}}
-        openstack_net_id:              {{bats_dynamic_centos_primary_net_id}}
-        openstack_security_group:      {{openstack_security_group}}
-        openstack_default_key_name:    {{openstack_default_key_name}}
-        openstack_auth_url:            {{openstack_auth_url_v2}}
-        openstack_username:            {{openstack_username}}
-        openstack_api_key:             {{openstack_api_key}}
-        openstack_tenant:              {{openstack_tenant}}
-        openstack_floating_ip:         {{bats_dynamic_centos_director_public_ip}}
-    ensure:
-      put: centos-dynamic-director-state-file
-      params: {from: deploy/deployment/centos-dynamic-director-manifest-state.json}
-
-  - put: centos-dynamic-director-manifest
-    params: {from: deploy/deployment/centos-dynamic-director-manifest.yml}
-
-- name: bats-centos-dynamic
-  serial_groups: [centos-director-dynamic] # can't run while deploying
-  plan:
-  - aggregate:
-    - {trigger: true,  passed: [deploy-centos-dynamic], get: bosh-cpi-dev-artifacts}
-    - {trigger: false, passed: [deploy-centos-dynamic], get: stemcell, resource: openstack-centos-stemcell}
-    - {trigger: false, passed: [deploy-centos-dynamic], get: director-state-file, resource: centos-dynamic-director-state-file}
-    - {trigger: false, passed: [deploy-centos-dynamic], get: director-manifest, resource: centos-dynamic-director-manifest}
-    - {trigger: false, passed: [deploy-centos-dynamic], get: bosh-cpi-release}
-    - {trigger: false, passed: [deploy-centos-dynamic], get: version-semver}
-    - {trigger: false, passed: [deploy-centos-dynamic], get: openstack-pipeline-lock}
-    - {trigger: false,                                  get: bosh-release}
-    - {trigger: false,                                  get: bats}
-    - {trigger: false,                                  get: bosh-init}
-
-  - task: test
-    file: bosh-cpi-release/ci/tasks/run-dynamic-networking-bats.yml
-    config:
-      params:
-        stemcell_name:                            "bosh-openstack-kvm-centos-7-go_agent"
-        bats_vm_floating_ip:                      {{bats_dynamic_centos_floating_ip}}
-        bosh_director_public_ip:                  {{bats_dynamic_centos_director_public_ip}}
-        desired_vcap_user_password:               {{bosh_desired_vcap_user_password}}
-        openstack_flavor_with_ephemeral_disk:     {{openstack_flavor_with_ephemeral_disk}}
-        openstack_flavor_with_no_ephemeral_disk:  {{openstack_flavor_with_no_ephemeral_disk}}
-        openstack_security_group:                 {{openstack_security_group}}
-        primary_network_id:                       {{bats_dynamic_centos_primary_net_id}}
-        private_key_data:                         {{bosh_private_key}}
-
-  - task: teardown-director
-    file: bosh-cpi-release/ci/tasks/teardown-director.yml
-    config:
-      params:
-        director_manifest_file:  "centos-dynamic-director-manifest.yml"
-        director_state_file:     "centos-dynamic-director-manifest-state.json"
-    ensure:
-      put: centos-dynamic-director-state-file
-      params: {from: teardown-director/director-manifest/centos-dynamic-director-manifest-state.json}
-
-- name: deploy-e2e-director
-  serial_groups: [e2e-integration] # can't run while deploying
-  plan:
-    - aggregate:
-      - {trigger: true,  passed: [build-candidate], get: bosh-cpi-dev-artifacts}
-      - {trigger: false, passed: [build-candidate], get: bosh-cpi-release, resource: bosh-cpi-release}
-      - {trigger: false, passed: [build-candidate], get: version-semver}
-      - {trigger: false,                            get: stemcell, resource: e2e-stemcell }
-      - {trigger: false,                            get: bosh-init}
-      - {trigger: false,                            get: bosh-release}
-      - {trigger: false, passed: [build-candidate], get: openstack-pipeline-lock}
-
-    - task: deploy-integration-director
-      file: bosh-cpi-release/ci/tasks/deploy-e2e-director.yml
-      config:
+      - put: openstack-pipeline-lock
         params:
-          v3_e2e_flavor:                           "m1.medium"
-          v3_e2e_connection_timeout:               "600"
-          v3_e2e_read_timeout:                     "180"
-          v3_e2e_state_timeout:                    "900"
-          v3_e2e_write_timeout:                    "180"
-          bosh_director_username:                  {{v3_e2e_director_username}}
-          bosh_director_password:                  {{v3_e2e_director_password}}
-          v3_e2e_bosh_registry_port:               {{v3_e2e_bosh_registry_port}}
-          v3_e2e_api_key:                          {{v3_e2e_api_key}}
-          v3_e2e_auth_url:                         {{openstack_auth_url_v3}}
-          v3_e2e_default_key_name:                 {{v3_e2e_default_key_name}}
-          v3_e2e_floating_ip:                      {{v3_e2e_floating_ip}}
-          v3_e2e_manual_ip:                        {{v3_e2e_manual_ip}}
-          v3_e2e_net_cidr:                         {{v3_e2e_net_cidr}}
-          v3_e2e_net_gateway:                      {{v3_e2e_net_gateway}}
-          v3_e2e_net_id:                           {{v3_e2e_net_id}}
-          v3_e2e_security_group:                   {{v3_e2e_security_group}}
-          v3_e2e_project:                          {{v3_e2e_project}}
-          v3_e2e_domain:                           {{v3_e2e_domain}}
-          v3_e2e_username:                         {{v3_e2e_username}}
-          v3_e2e_private_key_data:                 {{v3_e2e_private_key_data}}
-          v3_e2e_blobstore_bucket:                 {{v3_e2e_blobstore_bucket}}
-          v3_e2e_blobstore_host:                   {{v3_e2e_blobstore_host}}
-          v3_e2e_blobstore_access_key:             {{v3_e2e_blobstore_access_key}}
-          v3_e2e_blobstore_secret_key:             {{v3_e2e_blobstore_secret_key}}
-      ensure:
-        put: e2e-director-state-file
-        params: {from: deploy-integration-director/deployment/e2e-director-manifest-state.json}
+          acquire: true
 
-    - put: e2e-director-manifest-file
-      params: {from: deploy-integration-director/deployment/e2e-director-manifest.yml}
+  - name: cleanup
+    plan:
+      - {trigger: false, get: bosh-cpi-release}
 
-
-- name: deploy-test-release
-  serial_groups: [e2e-integration] # can't run while deploying
-  plan:
-    - aggregate:
-      - {trigger: false, passed: [deploy-e2e-director],  get: bosh-cpi-release, resource: bosh-cpi-release}
-      - {trigger: true,  passed: [deploy-e2e-director],  get: stemcell, resource: e2e-stemcell }
-      - {trigger: true,  passed: [deploy-e2e-director],  get: bosh-cpi-dev-artifacts}
-      - {trigger: false, passed: [deploy-e2e-director],  get: director-state-file, resource: e2e-director-state-file}
-      - {trigger: false, passed: [deploy-e2e-director],  get: director-manifest, resource: e2e-director-manifest-file}
-      - {trigger: false,                                 get: dummy-release, resource: dummy-release}
-      - {trigger: false, passed: [deploy-ubuntu-manual], get: version-semver}
-      - {trigger: false,                                 get: bosh-release}
-      - {trigger: false,                                 get: bosh-init}
-      - {trigger: false, passed: [deploy-e2e-director],  get: openstack-pipeline-lock}
-
-
-    - task: deploy-dummy-release
-      file: bosh-cpi-release/ci/tasks/deploy-dummy-release.yml
-      config:
+      - put: openstack-pipeline-lock
         params:
-          bosh_director_ip:                        {{v3_e2e_floating_ip}}
-          bosh_director_username:                  {{v3_e2e_director_username}}
-          bosh_director_password:                  {{v3_e2e_director_password}}
-          stemcell_name:                           {{v3_e2e_stemcell_name}}
-          network_id:                              {{v3_e2e_net_id}}
-          instance_flavor:                         "m1.medium"
+          acquire: true
 
-    - task: teardown-director
-      file: bosh-cpi-release/ci/tasks/teardown-director.yml
-      config:
+      - task: cleanup-lifecycle
+        file: bosh-cpi-release/ci/tasks/cleanup.yml
+        config:
+          params:
+            BOSH_OPENSTACK_AUTH_URL:    {{openstack_auth_url_v2}}
+            BOSH_OPENSTACK_USERNAME:    {{lifecycle_openstack_username}}
+            BOSH_OPENSTACK_API_KEY:     {{lifecycle_openstack_api_key}}
+            BOSH_OPENSTACK_PROJECT:     {{lifecycle_openstack_tenant}}
+
+      - task: cleanup-bats
+        file: bosh-cpi-release/ci/tasks/cleanup.yml
+        config:
+          params:
+            BOSH_OPENSTACK_AUTH_URL:    {{openstack_auth_url_v2}}
+            BOSH_OPENSTACK_USERNAME:    {{openstack_username}}
+            BOSH_OPENSTACK_API_KEY:     {{openstack_api_key}}
+            BOSH_OPENSTACK_PROJECT:     {{openstack_tenant}}
+
+      - task: cleanup-e2e
+        file: bosh-cpi-release/ci/tasks/cleanup.yml
+        config:
+          params:
+            BOSH_OPENSTACK_IDENTITY_API_VERSION: 3
+            BOSH_OPENSTACK_DOMAIN_NAME:          {{v3_e2e_domain}}
+            BOSH_OPENSTACK_AUTH_URL:             {{openstack_auth_url_v3}}
+            BOSH_OPENSTACK_USERNAME:             {{v3_e2e_username}}
+            BOSH_OPENSTACK_API_KEY:              {{v3_e2e_api_key}}
+            BOSH_OPENSTACK_PROJECT:              {{v3_e2e_project}}
+
+      - put: openstack-pipeline-lock
         params:
-          director_manifest_file:  "e2e-director-manifest.yml"
-          director_state_file:     "e2e-director-manifest-state.json"
-      ensure:
-        put: e2e-director-state-file
-        params: {from: teardown-director/director-manifest/e2e-director-manifest-state.json}
+          release: openstack-pipeline-lock
 
-- name: release-lock
-  serial: true
-  plan:
-  - {trigger: true, passed: [lifecycle, bats-ubuntu-manual, bats-centos-manual, bats-ubuntu-dynamic, bats-centos-dynamic, deploy-test-release], get: openstack-pipeline-lock}
+  - name: lifecycle
+    serial: true
+    plan:
+      - aggregate:
+        - {trigger: true, passed:  [build-candidate], get: bosh-cpi-dev-artifacts} # used for job chaining only not for tasks
+        - {trigger: false, passed: [build-candidate], get: openstack-pipeline-lock}
+        - {trigger: false, passed: [build-candidate], get: bosh-cpi-release}
 
-  - put: openstack-pipeline-lock
-    params:
-      release: openstack-pipeline-lock
+      - task: test
+        file: bosh-cpi-release/ci/tasks/run-lifecycle.yml
+        config:
+          params:
+            BOSH_OPENSTACK_DOMAIN:              {{lifecycle_openstack_domain}}
+            BOSH_OPENSTACK_TENANT:              {{lifecycle_openstack_tenant}}
+            BOSH_OPENSTACK_PROJECT:             {{lifecycle_openstack_tenant}}
+            BOSH_OPENSTACK_MANUAL_IP:           {{lifecycle_manual_ip}}
+            BOSH_OPENSTACK_NET_ID:              {{lifecycle_openstack_net_id}}
+            BOSH_OPENSTACK_STEMCELL_ID:         {{lifecycle_stemcell_id}}
+            BOSH_OPENSTACK_AUTH_URL_V2:         {{openstack_auth_url_v2}}
+            BOSH_OPENSTACK_AUTH_URL_V3:         {{openstack_auth_url_v3}}
+            BOSH_OPENSTACK_USERNAME:            {{lifecycle_openstack_username}}
+            BOSH_OPENSTACK_API_KEY:             {{lifecycle_openstack_api_key}}
+            BOSH_OPENSTACK_USERNAME_V3:         {{lifecycle_openstack_username_v3}}
+            BOSH_OPENSTACK_API_KEY_V3:          {{lifecycle_openstack_api_key_v3}}
+            BOSH_OPENSTACK_DEFAULT_KEY_NAME:    {{lifecycle_openstack_default_key_name}}
+            BOSH_CLI_SILENCE_SLOW_LOAD_WARNING: true
+            BOSH_OPENSTACK_VOLUME_TYPE:         "SSD"
+            BOSH_OPENSTACK_CONNECT_TIMEOUT:     "600"
+            BOSH_OPENSTACK_READ_TIMEOUT:        "120"
+            BOSH_OPENSTACK_WRITE_TIMEOUT:       "120"
+
+  - name: deploy-ubuntu-manual
+    serial_groups: [ubuntu-director-manual] # shouldn't deploy while bats are running
+    plan:
+      - aggregate:
+        - {trigger: true,  passed: [build-candidate], get: bosh-cpi-dev-artifacts}
+        - {trigger: false, passed: [build-candidate], get: version-semver}
+        - {trigger: false, passed: [build-candidate], get: bosh-cpi-release}
+        - {trigger: false, passed: [build-candidate], get: openstack-pipeline-lock}
+        - {trigger: false,                            get: director-state-file, resource: ubuntu-manual-director-state-file}
+        - {trigger: false,                            get: bosh-init}
+        - {trigger: false,                            get: bosh-release}
+        - {trigger: false,                            get: stemcell, resource: openstack-ubuntu-stemcell}
+
+      - task: deploy
+        file: bosh-cpi-release/ci/tasks/deploy-manual-networking.yml
+        config:
+          params:
+            base_os:                       "ubuntu"
+            network_type_to_test:          "manual"
+            openstack_flavor:              "m1.small"
+            openstack_connection_timeout:  "600"
+            openstack_read_timeout:        "180"
+            openstack_write_timeout:       "180"
+            openstack_state_timeout:       "900"
+            private_key_data:              {{bosh_private_key}}
+            bosh_registry_port:            {{bosh_director_registry_port}}
+            openstack_net_id:              {{bats_manual_ubuntu_primary_net_id}}
+            openstack_security_group:      {{openstack_security_group}}
+            openstack_default_key_name:    {{openstack_default_key_name}}
+            openstack_auth_url:            {{openstack_auth_url_v2}}
+            openstack_username:            {{openstack_username}}
+            openstack_api_key:             {{openstack_api_key}}
+            openstack_tenant:              {{openstack_tenant}}
+            openstack_floating_ip:         {{bats_manual_ubuntu_director_public_ip}}
+            openstack_manual_ip:           {{bats_manual_ubuntu_director_private_ip}}
+            openstack_net_cidr:            {{bats_manual_ubuntu_primary_net_cidr}}
+            openstack_net_gateway:         {{bats_manual_ubuntu_primary_net_gateway}}
+        ensure:
+          put: ubuntu-manual-director-state-file
+          params: {from: deploy/deployment/ubuntu-manual-director-manifest-state.json}
+
+      - put: ubuntu-manual-director-manifest
+        params: {from: deploy/deployment/ubuntu-manual-director-manifest.yml}
+
+  - name: bats-ubuntu-manual
+    serial_groups: [ubuntu-director-manual] # can't run while deploying
+    plan:
+      - aggregate:
+        - {trigger: true,  passed: [deploy-ubuntu-manual], get: bosh-cpi-dev-artifacts}
+        - {trigger: false, passed: [deploy-ubuntu-manual], get: bosh-cpi-release}
+        - {trigger: false, passed: [deploy-ubuntu-manual], get: stemcell, resource: openstack-ubuntu-stemcell}
+        - {trigger: false, passed: [deploy-ubuntu-manual], get: director-state-file, resource: ubuntu-manual-director-state-file}
+        - {trigger: false, passed: [deploy-ubuntu-manual], get: director-manifest, resource: ubuntu-manual-director-manifest}
+        - {trigger: false, passed: [deploy-ubuntu-manual], get: version-semver}
+        - {trigger: false, passed: [deploy-ubuntu-manual], get: openstack-pipeline-lock}
+        - {trigger: false,                                 get: bosh-release}
+        - {trigger: false,                                 get: bats}
+        - {trigger: false,                                 get: bosh-init}
+
+      - task: test
+        file: bosh-cpi-release/ci/tasks/run-manual-networking-bats.yml
+        config:
+          params:
+            stemcell_name:                            "bosh-openstack-kvm-ubuntu-trusty-go_agent"
+            private_key_data:                         {{bosh_private_key}}
+            openstack_security_group:                 {{openstack_security_group}}
+            openstack_flavor_with_ephemeral_disk:     {{openstack_flavor_with_ephemeral_disk}}
+            openstack_flavor_with_no_ephemeral_disk:  {{openstack_flavor_with_no_ephemeral_disk}}
+            desired_vcap_user_password:               {{bosh_desired_vcap_user_password}}
+            bosh_director_public_ip:                  {{bats_manual_ubuntu_director_public_ip}}
+            bosh_director_private_ip:                 {{bats_manual_ubuntu_director_private_ip}}
+            bats_vm_floating_ip:                      {{bats_manual_ubuntu_floating_ip}}
+            primary_network_id:                       {{bats_manual_ubuntu_primary_net_id}}
+            primary_network_cidr:                     {{bats_manual_ubuntu_primary_net_cidr}}
+            primary_network_gateway:                  {{bats_manual_ubuntu_primary_net_gateway}}
+            primary_network_range:                    {{bats_manual_ubuntu_primary_net_static_range}}
+            primary_network_manual_ip:                {{bats_manual_ubuntu_primary_net_manual_ip}}
+            primary_network_second_manual_ip:         {{bats_manual_ubuntu_primary_net_second_manual_ip}}
+            secondary_network_id:                     {{bats_manual_ubuntu_secondary_net_id}}
+            secondary_network_cidr:                   {{bats_manual_ubuntu_secondary_net_cidr}}
+            secondary_network_gateway:                {{bats_manual_ubuntu_secondary_net_gateway}}
+            secondary_network_range:                  {{bats_manual_ubuntu_secondary_net_static_range}}
+            secondary_network_manual_ip:              {{bats_manual_ubuntu_secondary_net_manual_ip}}
+
+      - task: teardown-director
+        file: bosh-cpi-release/ci/tasks/teardown-director.yml
+        config:
+          params:
+            director_manifest_file:  "ubuntu-manual-director-manifest.yml"
+            director_state_file:     "ubuntu-manual-director-manifest-state.json"
+        ensure:
+          put: ubuntu-manual-director-state-file
+          params: {from: teardown-director/director-manifest/ubuntu-manual-director-manifest-state.json}
+
+  - name: deploy-ubuntu-dynamic
+    serial_groups: [ubuntu-director-dynamic] # shouldn't deploy while bats are running
+    plan:
+      - aggregate:
+        - {trigger: true,  passed: [build-candidate], get: bosh-cpi-dev-artifacts}
+        - {trigger: false, passed: [build-candidate], get: version-semver}
+        - {trigger: false, passed: [build-candidate], get: bosh-cpi-release}
+        - {trigger: false, passed: [build-candidate], get: openstack-pipeline-lock}
+        - {trigger: false,                            get: director-state-file, resource: ubuntu-dynamic-director-state-file}
+        - {trigger: false,                            get: bosh-init}
+        - {trigger: false,                            get: bosh-release}
+        - {trigger: false,                            get: stemcell, resource: openstack-ubuntu-stemcell}
+
+      - task: deploy
+        file: bosh-cpi-release/ci/tasks/deploy-dynamic-networking.yml
+        config:
+          params:
+            base_os:                       "ubuntu"
+            network_type_to_test:          "dynamic"
+            openstack_flavor:              "m1.small"
+            openstack_connection_timeout:  "600"
+            openstack_read_timeout:        "180"
+            openstack_write_timeout:       "180"
+            openstack_state_timeout:       "900"
+            private_key_data:              {{bosh_private_key}}
+            bosh_registry_port:            {{bosh_director_registry_port}}
+            openstack_net_id:              {{bats_dynamic_ubuntu_primary_net_id}}
+            openstack_security_group:      {{openstack_security_group}}
+            openstack_default_key_name:    {{openstack_default_key_name}}
+            openstack_auth_url:            {{openstack_auth_url_v2}}
+            openstack_username:            {{openstack_username}}
+            openstack_api_key:             {{openstack_api_key}}
+            openstack_tenant:              {{openstack_tenant}}
+            openstack_floating_ip:         {{bats_dynamic_ubuntu_director_public_ip}}
+        ensure:
+          put: ubuntu-dynamic-director-state-file
+          params: {from: deploy/deployment/ubuntu-dynamic-director-manifest-state.json}
+
+      - put: ubuntu-dynamic-director-manifest
+        params: {from: deploy/deployment/ubuntu-dynamic-director-manifest.yml}
+
+  - name: bats-ubuntu-dynamic
+    serial_groups: [ubuntu-director-dynamic] # can't run while deploying
+    plan:
+      - aggregate:
+        - {trigger: true,  passed: [deploy-ubuntu-dynamic], get: bosh-cpi-dev-artifacts}
+        - {trigger: false, passed: [deploy-ubuntu-dynamic], get: bosh-cpi-release}
+        - {trigger: false, passed: [deploy-ubuntu-dynamic], get: director-state-file, resource: ubuntu-dynamic-director-state-file}
+        - {trigger: false, passed: [deploy-ubuntu-dynamic], get: director-manifest, resource: ubuntu-dynamic-director-manifest}
+        - {trigger: false, passed: [deploy-ubuntu-dynamic], get: stemcell, resource: openstack-ubuntu-stemcell}
+        - {trigger: false, passed: [deploy-ubuntu-dynamic], get: version-semver}
+        - {trigger: false, passed: [deploy-ubuntu-dynamic], get: openstack-pipeline-lock}
+        - {trigger: false,                                  get: bosh-release}
+        - {trigger: false,                                  get: bats}
+        - {trigger: false,                                  get: bosh-init}
+
+      - task: test
+        file: bosh-cpi-release/ci/tasks/run-dynamic-networking-bats.yml
+        config:
+          params:
+            stemcell_name:                            "bosh-openstack-kvm-ubuntu-trusty-go_agent"
+            bats_vm_floating_ip:                      {{bats_dynamic_ubuntu_floating_ip}}
+            bosh_director_public_ip:                  {{bats_dynamic_ubuntu_director_public_ip}}
+            desired_vcap_user_password:               {{bosh_desired_vcap_user_password}}
+            openstack_flavor_with_ephemeral_disk:     {{openstack_flavor_with_ephemeral_disk}}
+            openstack_flavor_with_no_ephemeral_disk:  {{openstack_flavor_with_no_ephemeral_disk}}
+            openstack_security_group:                 {{openstack_security_group}}
+            primary_network_id:                       {{bats_dynamic_ubuntu_primary_net_id}}
+            private_key_data:                         {{bosh_private_key}}
+
+      - task: teardown-director
+        file: bosh-cpi-release/ci/tasks/teardown-director.yml
+        config:
+          params:
+            director_manifest_file: "ubuntu-dynamic-director-manifest.yml"
+            director_state_file:    "ubuntu-dynamic-director-manifest-state.json"
+        ensure:
+          put: ubuntu-dynamic-director-state-file
+          params: {from: teardown-director/director-manifest/ubuntu-dynamic-director-manifest-state.json}
+
+  - name: deploy-centos-manual
+    serial_groups: [centos-director-manual] # shouldn't deploy while bats are running
+    plan:
+      - aggregate:
+        - {trigger: true,  passed: [build-candidate], get: bosh-cpi-dev-artifacts}
+        - {trigger: false, passed: [build-candidate], get: version-semver}
+        - {trigger: false, passed: [build-candidate], get: bosh-cpi-release}
+        - {trigger: false, passed: [build-candidate], get: openstack-pipeline-lock}
+        - {trigger: false,                            get: director-state-file, resource: centos-manual-director-state-file}
+        - {trigger: false,                            get: bosh-init}
+        - {trigger: false,                            get: bosh-release}
+        - {trigger: false,                            get: stemcell, resource: openstack-centos-stemcell}
+
+      - task: deploy
+        file: bosh-cpi-release/ci/tasks/deploy-manual-networking.yml
+        config:
+          params:
+            base_os:                       "centos"
+            network_type_to_test:          "manual"
+            openstack_flavor:              "m1.small"
+            openstack_connection_timeout:  "600"
+            openstack_read_timeout:        "180"
+            openstack_write_timeout:       "180"
+            openstack_state_timeout:       "900"
+            private_key_data:              {{bosh_private_key}}
+            bosh_registry_port:            {{bosh_director_registry_port}}
+            openstack_net_id:              {{bats_manual_ubuntu_primary_net_id}}
+            openstack_security_group:      {{openstack_security_group}}
+            openstack_default_key_name:    {{openstack_default_key_name}}
+            openstack_auth_url:            {{openstack_auth_url_v2}}
+            openstack_username:            {{openstack_username}}
+            openstack_api_key:             {{openstack_api_key}}
+            openstack_tenant:              {{openstack_tenant}}
+            openstack_floating_ip:         {{bats_manual_centos_director_public_ip}}
+            openstack_manual_ip:           {{bats_manual_centos_director_private_ip}}
+            openstack_net_cidr:            {{bats_manual_centos_primary_net_cidr}}
+            openstack_net_gateway:         {{bats_manual_centos_primary_net_gateway}}
+        ensure:
+          put: centos-manual-director-state-file
+          params: {from: deploy/deployment/centos-manual-director-manifest-state.json}
+
+      - put: centos-manual-director-manifest
+        params: {from: deploy/deployment/centos-manual-director-manifest.yml}
+
+  - name: bats-centos-manual
+    serial_groups: [centos-director-manual] # can't run while deploying
+    plan:
+      - aggregate:
+        - {trigger: true,  passed: [deploy-centos-manual], get: bosh-cpi-dev-artifacts}
+        - {trigger: false, passed: [deploy-centos-manual], get: stemcell, resource: openstack-centos-stemcell}
+        - {trigger: false, passed: [deploy-centos-manual], get: director-state-file, resource: centos-manual-director-state-file}
+        - {trigger: false, passed: [deploy-centos-manual], get: director-manifest, resource: centos-manual-director-manifest}
+        - {trigger: false, passed: [deploy-centos-manual], get: bosh-cpi-release}
+        - {trigger: false, passed: [deploy-centos-manual], get: version-semver}
+        - {trigger: false, passed: [deploy-centos-manual], get: openstack-pipeline-lock}
+        - {trigger: false,                                 get: bosh-release}
+        - {trigger: false,                                 get: bats}
+        - {trigger: false,                                 get: bosh-init}
+
+      - task: test
+        file: bosh-cpi-release/ci/tasks/run-manual-networking-bats.yml
+        config:
+          params:
+            stemcell_name:                            "bosh-openstack-kvm-centos-7-go_agent"
+            private_key_data:                         {{bosh_private_key}}
+            openstack_security_group:                 {{openstack_security_group}}
+            openstack_flavor_with_ephemeral_disk:     {{openstack_flavor_with_ephemeral_disk}}
+            openstack_flavor_with_no_ephemeral_disk:  {{openstack_flavor_with_no_ephemeral_disk}}
+            desired_vcap_user_password:               {{bosh_desired_vcap_user_password}}
+            bosh_director_public_ip:                  {{bats_manual_centos_director_public_ip}}
+            bosh_director_private_ip:                 {{bats_manual_centos_director_private_ip}}
+            bats_vm_floating_ip:                      {{bats_manual_centos_floating_ip}}
+            primary_network_id:                       {{bats_manual_centos_primary_net_id}}
+            primary_network_cidr:                     {{bats_manual_centos_primary_net_cidr}}
+            primary_network_gateway:                  {{bats_manual_centos_primary_net_gateway}}
+            primary_network_range:                    {{bats_manual_centos_primary_net_static_range}}
+            primary_network_manual_ip:                {{bats_manual_centos_primary_net_manual_ip}}
+            primary_network_second_manual_ip:         {{bats_manual_centos_primary_net_second_manual_ip}}
+            secondary_network_id:                     {{bats_manual_centos_secondary_net_id}}
+            secondary_network_cidr:                   {{bats_manual_centos_secondary_net_cidr}}
+            secondary_network_gateway:                {{bats_manual_centos_secondary_net_gateway}}
+            secondary_network_range:                  {{bats_manual_centos_secondary_net_static_range}}
+            secondary_network_manual_ip:              {{bats_manual_centos_secondary_net_manual_ip}}
+
+      - task: teardown-director
+        file: bosh-cpi-release/ci/tasks/teardown-director.yml
+        config:
+          params:
+            director_manifest_file:   "centos-manual-director-manifest.yml"
+            director_state_file:      "centos-manual-director-manifest-state.json"
+        ensure:
+          put: centos-manual-director-state-file
+          params: {from: teardown-director/director-manifest/centos-manual-director-manifest-state.json}
+
+  - name: deploy-centos-dynamic
+    serial_groups: [centos-director-dynamic] # shouldn't deploy while bats are running
+    plan:
+      - aggregate:
+        - {trigger: true,  passed: [build-candidate], get: bosh-cpi-dev-artifacts}
+        - {trigger: false, passed: [build-candidate], get: version-semver}
+        - {trigger: false, passed: [build-candidate], get: bosh-cpi-release}
+        - {trigger: false, passed: [build-candidate], get: openstack-pipeline-lock}
+        - {trigger: false,                            get: director-state-file, resource: centos-dynamic-director-state-file}
+        - {trigger: false,                            get: bosh-init}
+        - {trigger: false,                            get: bosh-release}
+        - {trigger: false,                            get: stemcell, resource: openstack-centos-stemcell}
+
+      - task: deploy
+        file: bosh-cpi-release/ci/tasks/deploy-dynamic-networking.yml
+        config:
+          params:
+            base_os:                       "centos"
+            network_type_to_test:          "dynamic"
+            openstack_flavor:              "m1.small"
+            openstack_connection_timeout:  "600"
+            openstack_read_timeout:        "180"
+            openstack_write_timeout:       "180"
+            openstack_state_timeout:       "900"
+            private_key_data:              {{bosh_private_key}}
+            bosh_registry_port:            {{bosh_director_registry_port}}
+            openstack_net_id:              {{bats_dynamic_centos_primary_net_id}}
+            openstack_security_group:      {{openstack_security_group}}
+            openstack_default_key_name:    {{openstack_default_key_name}}
+            openstack_auth_url:            {{openstack_auth_url_v2}}
+            openstack_username:            {{openstack_username}}
+            openstack_api_key:             {{openstack_api_key}}
+            openstack_tenant:              {{openstack_tenant}}
+            openstack_floating_ip:         {{bats_dynamic_centos_director_public_ip}}
+        ensure:
+          put: centos-dynamic-director-state-file
+          params: {from: deploy/deployment/centos-dynamic-director-manifest-state.json}
+
+      - put: centos-dynamic-director-manifest
+        params: {from: deploy/deployment/centos-dynamic-director-manifest.yml}
+
+  - name: bats-centos-dynamic
+    serial_groups: [centos-director-dynamic] # can't run while deploying
+    plan:
+      - aggregate:
+        - {trigger: true,  passed: [deploy-centos-dynamic], get: bosh-cpi-dev-artifacts}
+        - {trigger: false, passed: [deploy-centos-dynamic], get: stemcell, resource: openstack-centos-stemcell}
+        - {trigger: false, passed: [deploy-centos-dynamic], get: director-state-file, resource: centos-dynamic-director-state-file}
+        - {trigger: false, passed: [deploy-centos-dynamic], get: director-manifest, resource: centos-dynamic-director-manifest}
+        - {trigger: false, passed: [deploy-centos-dynamic], get: bosh-cpi-release}
+        - {trigger: false, passed: [deploy-centos-dynamic], get: version-semver}
+        - {trigger: false, passed: [deploy-centos-dynamic], get: openstack-pipeline-lock}
+        - {trigger: false,                                  get: bosh-release}
+        - {trigger: false,                                  get: bats}
+        - {trigger: false,                                  get: bosh-init}
+
+      - task: test
+        file: bosh-cpi-release/ci/tasks/run-dynamic-networking-bats.yml
+        config:
+          params:
+            stemcell_name:                            "bosh-openstack-kvm-centos-7-go_agent"
+            bats_vm_floating_ip:                      {{bats_dynamic_centos_floating_ip}}
+            bosh_director_public_ip:                  {{bats_dynamic_centos_director_public_ip}}
+            desired_vcap_user_password:               {{bosh_desired_vcap_user_password}}
+            openstack_flavor_with_ephemeral_disk:     {{openstack_flavor_with_ephemeral_disk}}
+            openstack_flavor_with_no_ephemeral_disk:  {{openstack_flavor_with_no_ephemeral_disk}}
+            openstack_security_group:                 {{openstack_security_group}}
+            primary_network_id:                       {{bats_dynamic_centos_primary_net_id}}
+            private_key_data:                         {{bosh_private_key}}
+
+      - task: teardown-director
+        file: bosh-cpi-release/ci/tasks/teardown-director.yml
+        config:
+          params:
+            director_manifest_file:  "centos-dynamic-director-manifest.yml"
+            director_state_file:     "centos-dynamic-director-manifest-state.json"
+        ensure:
+          put: centos-dynamic-director-state-file
+          params: {from: teardown-director/director-manifest/centos-dynamic-director-manifest-state.json}
+
+  - name: deploy-e2e-director
+    serial_groups: [e2e-integration] # can't run while deploying
+    plan:
+      - aggregate:
+        - {trigger: true,  passed: [build-candidate], get: bosh-cpi-dev-artifacts}
+        - {trigger: false, passed: [build-candidate], get: bosh-cpi-release, resource: bosh-cpi-release}
+        - {trigger: false, passed: [build-candidate], get: version-semver}
+        - {trigger: false,                            get: stemcell, resource: e2e-stemcell }
+        - {trigger: false,                            get: bosh-init}
+        - {trigger: false,                            get: bosh-release}
+        - {trigger: false, passed: [build-candidate], get: openstack-pipeline-lock}
+
+      - task: deploy-integration-director
+        file: bosh-cpi-release/ci/tasks/deploy-e2e-director.yml
+        config:
+          params:
+            v3_e2e_flavor:                           "m1.medium"
+            v3_e2e_connection_timeout:               "600"
+            v3_e2e_read_timeout:                     "180"
+            v3_e2e_state_timeout:                    "900"
+            v3_e2e_write_timeout:                    "180"
+            bosh_director_username:                  {{v3_e2e_director_username}}
+            bosh_director_password:                  {{v3_e2e_director_password}}
+            v3_e2e_bosh_registry_port:               {{v3_e2e_bosh_registry_port}}
+            v3_e2e_api_key:                          {{v3_e2e_api_key}}
+            v3_e2e_auth_url:                         {{openstack_auth_url_v3}}
+            v3_e2e_default_key_name:                 {{v3_e2e_default_key_name}}
+            v3_e2e_floating_ip:                      {{v3_e2e_floating_ip}}
+            v3_e2e_manual_ip:                        {{v3_e2e_manual_ip}}
+            v3_e2e_net_cidr:                         {{v3_e2e_net_cidr}}
+            v3_e2e_net_gateway:                      {{v3_e2e_net_gateway}}
+            v3_e2e_net_id:                           {{v3_e2e_net_id}}
+            v3_e2e_security_group:                   {{v3_e2e_security_group}}
+            v3_e2e_project:                          {{v3_e2e_project}}
+            v3_e2e_domain:                           {{v3_e2e_domain}}
+            v3_e2e_username:                         {{v3_e2e_username}}
+            v3_e2e_private_key_data:                 {{v3_e2e_private_key_data}}
+            v3_e2e_blobstore_bucket:                 {{v3_e2e_blobstore_bucket}}
+            v3_e2e_blobstore_host:                   {{v3_e2e_blobstore_host}}
+            v3_e2e_blobstore_access_key:             {{v3_e2e_blobstore_access_key}}
+            v3_e2e_blobstore_secret_key:             {{v3_e2e_blobstore_secret_key}}
+        ensure:
+          put: e2e-director-state-file
+          params: {from: deploy-integration-director/deployment/e2e-director-manifest-state.json}
+
+      - put: e2e-director-manifest-file
+        params: {from: deploy-integration-director/deployment/e2e-director-manifest.yml}
+
+  - name: deploy-test-release
+    serial_groups: [e2e-integration] # can't run while deploying
+    plan:
+      - aggregate:
+        - {trigger: false, passed: [deploy-e2e-director],  get: bosh-cpi-release, resource: bosh-cpi-release}
+        - {trigger: true,  passed: [deploy-e2e-director],  get: stemcell, resource: e2e-stemcell }
+        - {trigger: true,  passed: [deploy-e2e-director],  get: bosh-cpi-dev-artifacts}
+        - {trigger: false, passed: [deploy-e2e-director],  get: director-state-file, resource: e2e-director-state-file}
+        - {trigger: false, passed: [deploy-e2e-director],  get: director-manifest, resource: e2e-director-manifest-file}
+        - {trigger: false,                                 get: dummy-release, resource: dummy-release}
+        - {trigger: false, passed: [deploy-ubuntu-manual], get: version-semver}
+        - {trigger: false,                                 get: bosh-release}
+        - {trigger: false,                                 get: bosh-init}
+        - {trigger: false, passed: [deploy-e2e-director],  get: openstack-pipeline-lock}
 
 
-- name: promote-candidate
-  serial: true
-  plan:
-  - aggregate:
-    - {trigger: false,  passed: [lifecycle, bats-ubuntu-manual, bats-centos-manual, bats-ubuntu-dynamic, bats-centos-dynamic], get: bosh-cpi-dev-artifacts}
-    - {trigger: false, passed: [lifecycle, bats-ubuntu-manual, bats-centos-manual, bats-ubuntu-dynamic, bats-centos-dynamic], get: bosh-cpi-release}
-    - {trigger: false, get: release-version-semver, params: {bump: major}}
+      - task: deploy-dummy-release
+        file: bosh-cpi-release/ci/tasks/deploy-dummy-release.yml
+        config:
+          params:
+            bosh_director_ip:                        {{v3_e2e_floating_ip}}
+            bosh_director_username:                  {{v3_e2e_director_username}}
+            bosh_director_password:                  {{v3_e2e_director_password}}
+            stemcell_name:                           {{v3_e2e_stemcell_name}}
+            network_id:                              {{v3_e2e_net_id}}
+            instance_flavor:                         "m1.medium"
 
-  - task: promote
-    file: bosh-cpi-release/ci/tasks/promote-candidate.yml
-    config:
-      params:
-        aws_access_key_id: {{s3_openstack_cpi_blobs_access_key}}
-        aws_secret_access_key: {{s3_openstack_cpi_blobs_secret_key}}
-  - put: release-version-semver
-    params: {file: release-version-semver/number}
+      - task: teardown-director
+        file: bosh-cpi-release/ci/tasks/teardown-director.yml
+        config:
+          params:
+            director_manifest_file:  "e2e-director-manifest.yml"
+            director_state_file:     "e2e-director-manifest-state.json"
+        ensure:
+          put: e2e-director-state-file
+          params: {from: teardown-director/director-manifest/e2e-director-manifest-state.json}
 
-  - put: bosh-cpi-release
-    params: {repository: promote/bosh-cpi-release, rebase: true, tag: promote/integer_version, tag_prefix: "v"}
+  - name: release-lock
+    serial: true
+    plan:
+      - {trigger: true, passed: [lifecycle, bats-ubuntu-manual, bats-centos-manual, bats-ubuntu-dynamic, bats-centos-dynamic, deploy-test-release], get: openstack-pipeline-lock}
+
+      - put: openstack-pipeline-lock
+        params:
+          release: openstack-pipeline-lock
+
+  - name: promote-candidate
+    serial: true
+    plan:
+      - aggregate:
+        - {trigger: false,  passed: [lifecycle, bats-ubuntu-manual, bats-centos-manual, bats-ubuntu-dynamic, bats-centos-dynamic], get: bosh-cpi-dev-artifacts}
+        - {trigger: false, passed: [lifecycle, bats-ubuntu-manual, bats-centos-manual, bats-ubuntu-dynamic, bats-centos-dynamic], get: bosh-cpi-release}
+        - {trigger: false, get: release-version-semver, params: {bump: major}}
+
+      - task: promote
+        file: bosh-cpi-release/ci/tasks/promote-candidate.yml
+        config:
+          params:
+            aws_access_key_id: {{s3_openstack_cpi_blobs_access_key}}
+            aws_secret_access_key: {{s3_openstack_cpi_blobs_secret_key}}
+      - put: release-version-semver
+        params: {file: release-version-semver/number}
+
+      - put: bosh-cpi-release
+        params: {repository: promote/bosh-cpi-release, rebase: true, tag: promote/integer_version, tag_prefix: "v"}
 
 resources:
-- name: bosh-cpi-dev-artifacts
-  type: s3
-  source:
-    regexp: bosh-openstack-cpi\.tgz
-    bucket: bosh-openstack-cpi-pipeline # OpenStack CPI account
-    region_name: us-east-1
-    access_key_id:      {{s3_openstack_cpi_pipeline_access_key}}
-    secret_access_key:  {{s3_openstack_cpi_pipeline_secret_key}}
+  - name: bosh-cpi-dev-artifacts
+    type: s3
+    source:
+      regexp: bosh-openstack-cpi\.tgz
+      bucket: bosh-openstack-cpi-pipeline # OpenStack CPI account
+      region_name: us-east-1
+      access_key_id:      {{s3_openstack_cpi_pipeline_access_key}}
+      secret_access_key:  {{s3_openstack_cpi_pipeline_secret_key}}
 
-- name: ubuntu-manual-director-state-file
-  type: s3
-  source:
-    bucket: bosh-openstack-cpi-state-files
-    versioned_file: ubuntu-manual-director-manifest-state.json
-    region_name: us-east-1
-    access_key_id: {{s3_openstack_cpi_state_files_access_key}}
-    secret_access_key: {{s3_openstack_cpi_state_files_secret_key}}
+  - name: ubuntu-manual-director-state-file
+    type: s3
+    source:
+      bucket: bosh-openstack-cpi-state-files
+      versioned_file: ubuntu-manual-director-manifest-state.json
+      region_name: us-east-1
+      access_key_id: {{s3_openstack_cpi_state_files_access_key}}
+      secret_access_key: {{s3_openstack_cpi_state_files_secret_key}}
 
-- name: ubuntu-manual-director-manifest
-  type: s3
-  source:
-    bucket: bosh-openstack-cpi-state-files
-    versioned_file: ubuntu-manual-director-manifest.yml
-    region_name: us-east-1
-    access_key_id: {{s3_openstack_cpi_state_files_access_key}}
-    secret_access_key: {{s3_openstack_cpi_state_files_secret_key}}
+  - name: ubuntu-manual-director-manifest
+    type: s3
+    source:
+      bucket: bosh-openstack-cpi-state-files
+      versioned_file: ubuntu-manual-director-manifest.yml
+      region_name: us-east-1
+      access_key_id: {{s3_openstack_cpi_state_files_access_key}}
+      secret_access_key: {{s3_openstack_cpi_state_files_secret_key}}
 
-- name: centos-manual-director-state-file
-  type: s3
-  source:
-    bucket: bosh-openstack-cpi-state-files
-    versioned_file: centos-manual-director-manifest-state.json
-    region_name: us-east-1
-    access_key_id: {{s3_openstack_cpi_state_files_access_key}}
-    secret_access_key: {{s3_openstack_cpi_state_files_secret_key}}
+  - name: centos-manual-director-state-file
+    type: s3
+    source:
+      bucket: bosh-openstack-cpi-state-files
+      versioned_file: centos-manual-director-manifest-state.json
+      region_name: us-east-1
+      access_key_id: {{s3_openstack_cpi_state_files_access_key}}
+      secret_access_key: {{s3_openstack_cpi_state_files_secret_key}}
 
-- name: centos-manual-director-manifest
-  type: s3
-  source:
-    bucket: bosh-openstack-cpi-state-files
-    versioned_file: centos-manual-director-manifest.yml
-    region_name: us-east-1
-    access_key_id: {{s3_openstack_cpi_state_files_access_key}}
-    secret_access_key: {{s3_openstack_cpi_state_files_secret_key}}
+  - name: centos-manual-director-manifest
+    type: s3
+    source:
+      bucket: bosh-openstack-cpi-state-files
+      versioned_file: centos-manual-director-manifest.yml
+      region_name: us-east-1
+      access_key_id: {{s3_openstack_cpi_state_files_access_key}}
+      secret_access_key: {{s3_openstack_cpi_state_files_secret_key}}
 
-- name: ubuntu-dynamic-director-state-file
-  type: s3
-  source:
-    bucket: bosh-openstack-cpi-state-files
-    versioned_file: ubuntu-dynamic-director-manifest-state.json
-    region_name: us-east-1
-    access_key_id: {{s3_openstack_cpi_state_files_access_key}}
-    secret_access_key: {{s3_openstack_cpi_state_files_secret_key}}
+  - name: ubuntu-dynamic-director-state-file
+    type: s3
+    source:
+      bucket: bosh-openstack-cpi-state-files
+      versioned_file: ubuntu-dynamic-director-manifest-state.json
+      region_name: us-east-1
+      access_key_id: {{s3_openstack_cpi_state_files_access_key}}
+      secret_access_key: {{s3_openstack_cpi_state_files_secret_key}}
 
-- name: ubuntu-dynamic-director-manifest
-  type: s3
-  source:
-    bucket: bosh-openstack-cpi-state-files
-    versioned_file: ubuntu-dynamic-director-manifest.yml
-    region_name: us-east-1
-    access_key_id: {{s3_openstack_cpi_state_files_access_key}}
-    secret_access_key: {{s3_openstack_cpi_state_files_secret_key}}
+  - name: ubuntu-dynamic-director-manifest
+    type: s3
+    source:
+      bucket: bosh-openstack-cpi-state-files
+      versioned_file: ubuntu-dynamic-director-manifest.yml
+      region_name: us-east-1
+      access_key_id: {{s3_openstack_cpi_state_files_access_key}}
+      secret_access_key: {{s3_openstack_cpi_state_files_secret_key}}
 
-- name: centos-dynamic-director-state-file
-  type: s3
-  source:
-    bucket: bosh-openstack-cpi-state-files
-    versioned_file: centos-dynamic-director-manifest-state.json
-    region_name: us-east-1
-    access_key_id: {{s3_openstack_cpi_state_files_access_key}}
-    secret_access_key: {{s3_openstack_cpi_state_files_secret_key}}
+  - name: centos-dynamic-director-state-file
+    type: s3
+    source:
+      bucket: bosh-openstack-cpi-state-files
+      versioned_file: centos-dynamic-director-manifest-state.json
+      region_name: us-east-1
+      access_key_id: {{s3_openstack_cpi_state_files_access_key}}
+      secret_access_key: {{s3_openstack_cpi_state_files_secret_key}}
 
-- name: centos-dynamic-director-manifest
-  type: s3
-  source:
-    bucket: bosh-openstack-cpi-state-files
-    versioned_file: centos-dynamic-director-manifest.yml
-    region_name: us-east-1
-    access_key_id: {{s3_openstack_cpi_state_files_access_key}}
-    secret_access_key: {{s3_openstack_cpi_state_files_secret_key}}
+  - name: centos-dynamic-director-manifest
+    type: s3
+    source:
+      bucket: bosh-openstack-cpi-state-files
+      versioned_file: centos-dynamic-director-manifest.yml
+      region_name: us-east-1
+      access_key_id: {{s3_openstack_cpi_state_files_access_key}}
+      secret_access_key: {{s3_openstack_cpi_state_files_secret_key}}
 
-- name: e2e-director-state-file
-  type: s3
-  source:
-    bucket: bosh-openstack-cpi-state-files
-    versioned_file: e2e-director-manifest-state.json
-    region_name: us-east-1
-    access_key_id: {{s3_openstack_cpi_state_files_access_key}}
-    secret_access_key: {{s3_openstack_cpi_state_files_secret_key}}
+  - name: e2e-director-state-file
+    type: s3
+    source:
+      bucket: bosh-openstack-cpi-state-files
+      versioned_file: e2e-director-manifest-state.json
+      region_name: us-east-1
+      access_key_id: {{s3_openstack_cpi_state_files_access_key}}
+      secret_access_key: {{s3_openstack_cpi_state_files_secret_key}}
 
-- name: e2e-director-manifest-file
-  type: s3
-  source:
-    bucket: bosh-openstack-cpi-state-files
-    versioned_file: e2e-director-manifest.yml
-    region_name: us-east-1
-    access_key_id: {{s3_openstack_cpi_state_files_access_key}}
-    secret_access_key: {{s3_openstack_cpi_state_files_secret_key}}
+  - name: e2e-director-manifest-file
+    type: s3
+    source:
+      bucket: bosh-openstack-cpi-state-files
+      versioned_file: e2e-director-manifest.yml
+      region_name: us-east-1
+      access_key_id: {{s3_openstack_cpi_state_files_access_key}}
+      secret_access_key: {{s3_openstack_cpi_state_files_secret_key}}
 
-- name: bosh-cpi-release
-  type: git
-  source:
-    uri: git@github.com:cloudfoundry-incubator/bosh-openstack-cpi-release.git
-    branch: master
-    private_key: {{github_deployment_key__bosh-openstack-cpi-release}}
+  - name: bosh-cpi-release
+    type: git
+    source:
+      uri: git@github.com:cloudfoundry-incubator/bosh-openstack-cpi-release.git
+      branch: master
+      private_key: {{github_deployment_key__bosh-openstack-cpi-release}}
 
-- name: dummy-release
-  type: git
-  source:
-    uri: https://github.com/pivotal-cf-experimental/dummy-boshrelease.git
-    branch: master
+  - name: dummy-release
+    type: git
+    source:
+      uri: https://github.com/pivotal-cf-experimental/dummy-boshrelease.git
+      branch: master
 
-- name: published-bosh-cpi-release
-  type: bosh-io-release
-  source:
-    repository: cloudfoundry-incubator/bosh-openstack-cpi-release
+  - name: published-bosh-cpi-release
+    type: bosh-io-release
+    source:
+      repository: cloudfoundry-incubator/bosh-openstack-cpi-release
 
-- name: version-semver
-  type: semver
-  source:
-    key:                current-version
-    bucket:             bosh-openstack-cpi-pipeline
-    access_key_id:      {{s3_openstack_cpi_pipeline_access_key}}
-    secret_access_key:  {{s3_openstack_cpi_pipeline_secret_key}}
+  - name: version-semver
+    type: semver
+    source:
+      key:                current-version
+      bucket:             bosh-openstack-cpi-pipeline
+      access_key_id:      {{s3_openstack_cpi_pipeline_access_key}}
+      secret_access_key:  {{s3_openstack_cpi_pipeline_secret_key}}
 
-- name: release-version-semver
-  type: semver
-  source:
-    key:                release-current-version
-    bucket:             bosh-openstack-cpi-pipeline
-    access_key_id:      {{s3_openstack_cpi_pipeline_access_key}}
-    secret_access_key:  {{s3_openstack_cpi_pipeline_secret_key}}
+  - name: release-version-semver
+    type: semver
+    source:
+      key:                release-current-version
+      bucket:             bosh-openstack-cpi-pipeline
+      access_key_id:      {{s3_openstack_cpi_pipeline_access_key}}
+      secret_access_key:  {{s3_openstack_cpi_pipeline_secret_key}}
 
-- name: bosh-init
-  type: s3
-  source:
-    regexp: bosh-init-([0-9.]+)-linux-amd64
-    bucket: bosh-init-artifacts
-    region_name: us-east-1
+  - name: bosh-init
+    type: s3
+    source:
+      regexp: bosh-init-([0-9.]+)-linux-amd64
+      bucket: bosh-init-artifacts
+      region_name: us-east-1
 
-- name: bats
-  type: git
-  source:
-    uri: https://github.com/cloudfoundry/bosh-acceptance-tests.git
-    branch: master
+  - name: bats
+    type: git
+    source:
+      uri: https://github.com/cloudfoundry/bosh-acceptance-tests.git
+      branch: master
 
-- name: bosh-release
-  type: bosh-io-release
-  source:
-    repository: cloudfoundry/bosh
+  - name: bosh-release
+    type: bosh-io-release
+    source:
+      repository: cloudfoundry/bosh
 
-- name: openstack-ubuntu-stemcell
-  type: bosh-io-stemcell
-  source:
-    name: bosh-openstack-kvm-ubuntu-trusty-go_agent
+  - name: openstack-ubuntu-stemcell
+    type: bosh-io-stemcell
+    source:
+      name: bosh-openstack-kvm-ubuntu-trusty-go_agent
 
-- name: e2e-stemcell
-  type: bosh-io-stemcell
-  source:
-    name: {{v3_e2e_stemcell_name}}
+  - name: e2e-stemcell
+    type: bosh-io-stemcell
+    source:
+      name: {{v3_e2e_stemcell_name}}
 
-- name: openstack-centos-stemcell
-  type: bosh-io-stemcell
-  source:
-    name: bosh-openstack-kvm-centos-7-go_agent
+  - name: openstack-centos-stemcell
+    type: bosh-io-stemcell
+    source:
+      name: bosh-openstack-kvm-centos-7-go_agent
 
-- name: openstack-pipeline-lock
-  type: pool
-  source:
-    uri: git@github.com:cloudfoundry/bosh-cpi-environments.git
-    branch: master
-    pool: openstack
-    private_key: {{github_deployment_key__bosh-cpi-environments}}
+  - name: openstack-pipeline-lock
+    type: pool
+    source:
+      uri: git@github.com:cloudfoundry/bosh-cpi-environments.git
+      branch: master
+      pool: openstack
+      private_key: {{github_deployment_key__bosh-cpi-environments}}

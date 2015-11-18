@@ -2,7 +2,7 @@
 platform: linux
 image: docker:///boshcpi/openstack-cpi-release
 inputs:
-- name: bosh-cpi-release
+  - name: bosh-cpi-release
 run:
   path: bosh-cpi-release/ci/tasks/run-lifecycle.sh
 params:

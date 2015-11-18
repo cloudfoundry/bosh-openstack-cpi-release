@@ -56,129 +56,129 @@ releases:
     url: file://${cpi_release_name}.tgz
 
 networks:
-- name: private
-  type: manual
-  subnets:
-   - range:   ${openstack_net_cidr}
-     gateway: ${openstack_net_gateway}
-     dns:     [8.8.8.8]
-     static:  [${openstack_manual_ip}]
-     cloud_properties:
-       net_id: ${openstack_net_id}
-       security_groups: [${openstack_security_group}]
-- name: public
-  type: vip
+  - name: private
+    type: manual
+    subnets:
+      - range:   ${openstack_net_cidr}
+        gateway: ${openstack_net_gateway}
+        dns:     [8.8.8.8]
+        static:  [${openstack_manual_ip}]
+        cloud_properties:
+          net_id: ${openstack_net_id}
+          security_groups: [${openstack_security_group}]
+  - name: public
+    type: vip
 
 resource_pools:
-- name: default
-  network: private
-  stemcell:
-    url: file://stemcell.tgz
-  cloud_properties:
-    instance_type: $openstack_flavor
+  - name: default
+    network: private
+    stemcell:
+      url: file://stemcell.tgz
+    cloud_properties:
+      instance_type: $openstack_flavor
 
 disk_pools:
-- name: default
-  disk_size: 25_000
+  - name: default
+    disk_size: 25_000
 
 jobs:
-- name: bosh
-  templates:
-  - {name: nats, release: bosh}
-  - {name: redis, release: bosh}
-  - {name: postgres, release: bosh}
-  - {name: blobstore, release: bosh}
-  - {name: director, release: bosh}
-  - {name: health_monitor, release: bosh}
-  - {name: registry, release: bosh}
-  - {name: powerdns, release: bosh}
-  - {name: openstack_cpi, release: ${cpi_release_name}}
+  - name: bosh
+    templates:
+      - {name: nats, release: bosh}
+      - {name: redis, release: bosh}
+      - {name: postgres, release: bosh}
+      - {name: blobstore, release: bosh}
+      - {name: director, release: bosh}
+      - {name: health_monitor, release: bosh}
+      - {name: registry, release: bosh}
+      - {name: powerdns, release: bosh}
+      - {name: openstack_cpi, release: ${cpi_release_name}}
 
-  instances: 1
-  resource_pool: default
-  persistent_disk_pool: default
+    instances: 1
+    resource_pool: default
+    persistent_disk_pool: default
 
-  networks:
-  - name: private
-    static_ips: [${openstack_manual_ip}]
-    default: [dns, gateway]
-  - name: public
-    static_ips: [${openstack_floating_ip}]
+    networks:
+      - name: private
+        static_ips: [${openstack_manual_ip}]
+        default: [dns, gateway]
+      - name: public
+        static_ips: [${openstack_floating_ip}]
 
-  properties:
-    nats:
-      address: 127.0.0.1
-      user: nats
-      password: nats-password
+    properties:
+      nats:
+        address: 127.0.0.1
+        user: nats
+        password: nats-password
 
-    redis:
-      listen_addresss: 127.0.0.1
-      address: 127.0.0.1
-      password: redis-password
+      redis:
+        listen_addresss: 127.0.0.1
+        address: 127.0.0.1
+        password: redis-password
 
-    postgres: &db
-      host: 127.0.0.1
-      user: postgres
-      password: postgres-password
-      database: bosh
-      adapter: postgres
+      postgres: &db
+        host: 127.0.0.1
+        user: postgres
+        password: postgres-password
+        database: bosh
+        adapter: postgres
 
-    # Tells the Director/agents how to contact registry
-    registry:
-      address: ${openstack_floating_ip}
-      host: ${openstack_floating_ip}
-      db: *db
-      http: {user: admin, password: admin, port: ${bosh_registry_port}}
-      username: admin
-      password: admin
-      port: ${bosh_registry_port}
-      endpoint: http://admin:admin@${openstack_floating_ip}:${bosh_registry_port}
+      # Tells the Director/agents how to contact registry
+      registry:
+        address: ${openstack_floating_ip}
+        host: ${openstack_floating_ip}
+        db: *db
+        http: {user: admin, password: admin, port: ${bosh_registry_port}}
+        username: admin
+        password: admin
+        port: ${bosh_registry_port}
+        endpoint: http://admin:admin@${openstack_floating_ip}:${bosh_registry_port}
 
-    # Tells the Director/agents how to contact blobstore
-    blobstore:
-      address: ${openstack_floating_ip}
-      port: 25250
-      provider: dav
-      director: {user: director, password: director-password}
-      agent: {user: agent, password: agent-password}
+      # Tells the Director/agents how to contact blobstore
+      blobstore:
+        address: ${openstack_floating_ip}
+        port: 25250
+        provider: dav
+        director: {user: director, password: director-password}
+        agent: {user: agent, password: agent-password}
 
-    director:
-      address: 127.0.0.1
-      name: micro
-      db: *db
-      cpi_job: openstack_cpi
+      director:
+        address: 127.0.0.1
+        name: micro
+        db: *db
+        cpi_job: openstack_cpi
 
-    hm:
-      http: {user: hm, password: hm-password}
-      director_account: {user: admin, password: admin}
+      hm:
+        http: {user: hm, password: hm-password}
+        director_account: {user: admin, password: admin}
 
-    dns:
-      address: 127.0.0.1
-      db: *db
+      dns:
+        address: 127.0.0.1
+        db: *db
 
-    openstack: &openstack
-      auth_url: ${openstack_auth_url}
-      username: ${openstack_username}
-      api_key: ${openstack_api_key}
-      tenant: ${openstack_tenant}
-      region: #leave this blank
-      endpoint_type: publicURL
-      default_key_name: ${openstack_default_key_name}
-      default_security_groups:
-      - ${openstack_security_group}
-      state_timeout: ${openstack_state_timeout}
-      wait_resource_poll_interval: 5
-      connection_options:
-        connect_timeout: ${openstack_connection_timeout}
-        read_timeout: ${openstack_read_timeout}
-        write_timeout: ${openstack_write_timeout}
+      openstack: &openstack
+        auth_url: ${openstack_auth_url}
+        username: ${openstack_username}
+        api_key: ${openstack_api_key}
+        tenant: ${openstack_tenant}
+        region: #leave this blank
+        endpoint_type: publicURL
+        default_key_name: ${openstack_default_key_name}
+        default_security_groups:
+          - ${openstack_security_group}
+        state_timeout: ${openstack_state_timeout}
+        wait_resource_poll_interval: 5
+        connection_options:
+          connect_timeout: ${openstack_connection_timeout}
+          read_timeout: ${openstack_read_timeout}
+          write_timeout: ${openstack_write_timeout}
 
-    # Tells agents how to contact nats
-    agent: {mbus: "nats://nats:nats-password@${openstack_floating_ip}:4222"}
+      # Tells agents how to contact nats
+      agent: {mbus: "nats://nats:nats-password@${openstack_floating_ip}:4222"}
 
-    ntp: &ntp
-    - 0.north-america.pool.ntp.org
-    - 1.north-america.pool.ntp.org
+      ntp: &ntp
+        - 0.north-america.pool.ntp.org
+        - 1.north-america.pool.ntp.org
 
 cloud_provider:
   template: {name: openstack_cpi, release: ${cpi_release_name}}

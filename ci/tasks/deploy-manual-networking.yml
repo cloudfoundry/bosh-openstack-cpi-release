@@ -2,13 +2,13 @@
 platform: linux
 image: docker:///boshcpi/openstack-cpi-release
 inputs:
-  - name: bosh-cpi-release       # --- location of task script to run
-  - name: bosh-init              # --- bosh-init executable to do deploy
-  - name: director-state-file    # --- repository to get and store deployment state file
-  - name: bosh-release           # -\
-  - name: bosh-cpi-dev-artifacts # -++ used for deployment manifest referenced by manifest_path
-  - name: version-semver         # -//
-  - name: stemcell               # -/
+  - name: bosh-cpi-release
+  - name: bosh-init
+  - name: director-state-file
+  - name: bosh-release
+  - name: bosh-cpi-dev-artifacts
+  - name: version-semver
+  - name: stemcell
 run:
   path: bosh-cpi-release/ci/tasks/deploy-manual-networking.sh
 params:

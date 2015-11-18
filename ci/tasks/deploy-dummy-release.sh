@@ -4,7 +4,7 @@ set -e
 
 source bosh-cpi-release/ci/tasks/utils.sh
 
-ensure_not_replace_value bosh_director_ip 
+ensure_not_replace_value bosh_director_ip
 ensure_not_replace_value bosh_director_username
 ensure_not_replace_value bosh_director_password
 ensure_not_replace_value stemcell_name
@@ -30,7 +30,7 @@ bosh -n target ${bosh_director_ip}
 bosh login ${bosh_director_username} ${bosh_director_password}
 
 echo "uploading stemcell to director..."
-bosh -n upload stemcell --skip-if-exists ./stemcell/stemcell.tgz 
+bosh -n upload stemcell --skip-if-exists ./stemcell/stemcell.tgz
 
 pushd dummy-release
   echo "creating release..."
@@ -48,35 +48,35 @@ name: ${deployment_name}
 director_uuid: $(bosh status --uuid)
 
 releases:
-- name: ${dummy_release_name}
-  version: latest
+  - name: ${dummy_release_name}
+    version: latest
 
 resource_pools:
-- name: default
-  stemcell:
-    name: ${stemcell_name}
-    version: latest
-  network: private
-  size: 1
-  cloud_properties:
-    instance_type: ${instance_flavor}
+  - name: default
+    stemcell:
+      name: ${stemcell_name}
+      version: latest
+    network: private
+    size: 1
+    cloud_properties:
+      instance_type: ${instance_flavor}
 
 networks:
-- name: private
-  type: dynamic
-  dns: [8.8.8.8]
-  cloud_properties: 
-    net_id: ${network_id}
-    security_groups: [${v3_e2e_security_group}]
+  - name: private
+    type: dynamic
+    dns: [8.8.8.8]
+    cloud_properties:
+      net_id: ${network_id}
+      security_groups: [${v3_e2e_security_group}]
 
 jobs:
-- name: dummy
-  template: dummy
-  instances: 1
-  resource_pool: default
-  networks:
-  - name : private
-    default: [dns, gateway]
+  - name: dummy
+    template: dummy
+    instances: 1
+    resource_pool: default
+    networks:
+      - name : private
+        default: [dns, gateway]
 
 compilation:
   reuse_compilation_vms: true
