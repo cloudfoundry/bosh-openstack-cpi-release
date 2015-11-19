@@ -51,7 +51,7 @@ describe Bosh::OpenStackCloud::Cloud do
           'type' => boot_volume_type
         },
         'config_drive' => config_drive,
-        'ignore_server_availability_zone' => @ignore_server_az,
+        'ignore_server_availability_zone' => str_to_bool(@ignore_server_az),
         'connection_options' => {
           'ssl_verify_peer' => str_to_bool(@ssl_verify),
           'connect_timeout' => @connect_timeout.to_i,
