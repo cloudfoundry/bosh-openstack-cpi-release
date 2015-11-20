@@ -349,7 +349,7 @@ jobs:
             private_key_data:              {{bosh_private_key}}
             bosh_registry_port:            {{bosh_director_registry_port}}
             bosh_openstack_ssl_verify:     {{bosh_openstack_ssl_verify}}
-            openstack_net_id:              {{bats_manual_ubuntu_primary_net_id}}
+            openstack_net_id:              {{bats_manual_centos_primary_net_id}}
             openstack_security_group:      {{openstack_security_group}}
             openstack_default_key_name:    {{openstack_default_key_name}}
             openstack_auth_url:            {{openstack_auth_url_v2}}
