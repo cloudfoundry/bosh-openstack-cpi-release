@@ -129,18 +129,18 @@ jobs:
 
       # Tells the Director/agents how to contact registry
       registry:
-        address: ${openstack_floating_ip}
-        host: ${openstack_floating_ip}
+        address: ${openstack_manual_ip}
+        host: ${openstack_manual_ip}
         db: *db
         http: {user: admin, password: admin, port: ${bosh_registry_port}}
         username: admin
         password: admin
         port: ${bosh_registry_port}
-        endpoint: http://admin:admin@${openstack_floating_ip}:${bosh_registry_port}
+        endpoint: http://admin:admin@${openstack_manual_ip}:${bosh_registry_port}
 
       # Tells the Director/agents how to contact blobstore
       blobstore:
-        address: ${openstack_floating_ip}
+        address: ${openstack_manual_ip}
         port: 25250
         provider: dav
         director: {user: director, password: director-password}
@@ -179,7 +179,7 @@ jobs:
           write_timeout: ${openstack_write_timeout}
 
       # Tells agents how to contact nats
-      agent: {mbus: "nats://nats:nats-password@${openstack_floating_ip}:4222"}
+      agent: {mbus: "nats://nats:nats-password@${openstack_manual_ip}:4222"}
 
       ntp: &ntp
         - 0.north-america.pool.ntp.org
