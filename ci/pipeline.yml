@@ -548,7 +548,7 @@ jobs:
         - {trigger: false, passed: [deploy-e2e-director],  get: director-state-file, resource: e2e-director-state-file}
         - {trigger: false, passed: [deploy-e2e-director],  get: director-manifest, resource: e2e-director-manifest-file}
         - {trigger: false,                                 get: dummy-release, resource: dummy-release}
-        - {trigger: false, passed: [deploy-ubuntu-manual], get: version-semver}
+        - {trigger: false, passed: [deploy-e2e-director],  get: version-semver}
         - {trigger: false,                                 get: bosh-release}
         - {trigger: false,                                 get: bosh-init}
         - {trigger: false, passed: [deploy-e2e-director],  get: openstack-pipeline-lock}
