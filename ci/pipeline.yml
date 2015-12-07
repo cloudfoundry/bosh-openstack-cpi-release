@@ -121,6 +121,7 @@ jobs:
         - {trigger: true, passed:  [build-candidate], get: bosh-cpi-dev-artifacts} # used for job chaining only not for tasks
         - {trigger: false, passed: [build-candidate], get: openstack-pipeline-lock}
         - {trigger: false, passed: [build-candidate], get: bosh-cpi-release}
+        - {trigger: false, get: openstack-lifecycle-stemcell}
 
       - task: test
         file: bosh-cpi-release/ci/tasks/run-lifecycle.yml
@@ -131,7 +132,6 @@ jobs:
             BOSH_OPENSTACK_PROJECT:             {{lifecycle_openstack_tenant}}
             BOSH_OPENSTACK_MANUAL_IP:           {{lifecycle_manual_ip}}
             BOSH_OPENSTACK_NET_ID:              {{lifecycle_openstack_net_id}}
-            BOSH_OPENSTACK_STEMCELL_ID:         {{lifecycle_stemcell_id}}
             BOSH_OPENSTACK_AUTH_URL_V2:         {{openstack_auth_url_v2}}
             BOSH_OPENSTACK_AUTH_URL_V3:         {{openstack_auth_url_v3}}
             BOSH_OPENSTACK_USERNAME:            {{lifecycle_openstack_username}}
@@ -788,6 +788,12 @@ resources:
     type: bosh-io-stemcell
     source:
       name: bosh-openstack-kvm-centos-7-go_agent
+
+  - name: openstack-lifecycle-stemcell
+    type: bosh-io-stemcell
+    source:
+      name: bosh-openstack-kvm-ubuntu-trusty-go_agent
+      version: 3147
 
   - name: openstack-pipeline-lock
     type: pool

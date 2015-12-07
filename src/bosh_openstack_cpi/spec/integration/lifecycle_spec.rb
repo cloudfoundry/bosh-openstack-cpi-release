@@ -4,12 +4,12 @@ require 'cloud'
 require 'logger'
 
 describe Bosh::OpenStackCloud::Cloud do
-  before do
+  before(:all) do
     @auth_url          = LifecycleHelper.get_config(:auth_url, 'BOSH_OPENSTACK_AUTH_URL_V2')
     @username          = LifecycleHelper.get_config(:username, 'BOSH_OPENSTACK_USERNAME')
     @api_key           = LifecycleHelper.get_config(:api_key, 'BOSH_OPENSTACK_API_KEY')
     @tenant            = LifecycleHelper.get_config(:tenant, 'BOSH_OPENSTACK_TENANT')
-    @stemcell_id       = LifecycleHelper.get_config(:stemcell_id, 'BOSH_OPENSTACK_STEMCELL_ID')
+    @stemcell_path     = LifecycleHelper.get_config(:stemcell_path, 'BOSH_OPENSTACK_STEMCELL_PATH')
     @net_id            = LifecycleHelper.get_config(:net_id, 'BOSH_OPENSTACK_NET_ID')
     @boot_volume_type  = LifecycleHelper.get_config(:volume_type, 'BOSH_OPENSTACK_VOLUME_TYPE')
     @manual_ip         = LifecycleHelper.get_config(:manual_ip, 'BOSH_OPENSTACK_MANUAL_IP')
@@ -25,6 +25,14 @@ describe Bosh::OpenStackCloud::Cloud do
 
     # some environments may not have this set, and it isn't strictly necessary so don't raise if it isn't set
     @region             = LifecycleHelper.get_config(:region, 'BOSH_OPENSTACK_REGION', nil)
+    @logger             = Logger.new(STDERR)
+    Bosh::Clouds::Config.configure(FakeDirectorConfig.new(@logger))
+    @cpi_for_stemcell   = create_cpi(false, nil, nil)
+    @stemcell_id        = upload_stemcell
+  end
+
+  after(:all) do
+    @cpi_for_stemcell.delete_stemcell(@stemcell_id)
   end
 
   let(:boot_from_volume) { false }
@@ -32,45 +40,41 @@ describe Bosh::OpenStackCloud::Cloud do
   let(:config_drive) { nil }
 
   subject(:cpi) do
+    create_cpi(boot_from_volume, boot_volume_type, config_drive)
+  end
+
+  def create_cpi(boot_from_value, boot_volume_type, config_drive)
     described_class.new(
-      'openstack' => {
-        'auth_url' => @auth_url,
-        'username' => @username,
-        'api_key' => @api_key,
-        'tenant' => @tenant,
-        'region' => @region,
-        'endpoint_type' => 'publicURL',
-        'default_key_name' => @default_key_name,
-        'default_security_groups' => %w(default),
-        'wait_resource_poll_interval' => 5,
-        'boot_from_volume' => boot_from_volume,
-        'boot_volume_cloud_properties' => {
-          'type' => boot_volume_type
+        'openstack' => {
+            'auth_url' => @auth_url,
+            'username' => @username,
+            'api_key' => @api_key,
+            'tenant' => @tenant,
+            'region' => @region,
+            'endpoint_type' => 'publicURL',
+            'default_key_name' => @default_key_name,
+            'default_security_groups' => %w(default),
+            'wait_resource_poll_interval' => 5,
+            'boot_from_volume' => boot_from_value,
+            'boot_volume_cloud_properties' => {
+                'type' => boot_volume_type
+            },
+            'config_drive' => config_drive,
+            'ignore_server_availability_zone' => str_to_bool(@ignore_server_az),
+            'connection_options' => {
+                'ssl_verify_peer' => str_to_bool(@ssl_verify),
+                'connect_timeout' => @connect_timeout.to_i,
+                'read_timeout' => @read_timeout.to_i,
+                'write_timeout' => @write_timeout.to_i,
+            }
         },
-        'config_drive' => config_drive,
-        'ignore_server_availability_zone' => str_to_bool(@ignore_server_az),
-        'connection_options' => {
-          'ssl_verify_peer' => str_to_bool(@ssl_verify),
-          'connect_timeout' => @connect_timeout.to_i,
-          'read_timeout' => @read_timeout.to_i,
-          'write_timeout' => @write_timeout.to_i,
+        'registry' => {
+            'endpoint' => 'fake',
+            'user' => 'fake',
+            'password' => 'fake'
         }
-      },
-      'registry' => {
-        'endpoint' => 'fake',
-        'user' => 'fake',
-        'password' => 'fake'
-      }
     )
   end
-
-  before do
-    delegate = double('delegate', logger: logger, cpi_task_log: nil)
-    Bosh::Clouds::Config.configure(delegate)
-  end
-
-  before { allow(Bosh::Clouds::Config).to receive(:logger).and_return(logger) }
-  let(:logger) { Logger.new(STDERR) }
 
   before { allow(Bosh::Registry::Client).to receive(:new).and_return(double('registry').as_null_object) }
 
@@ -279,7 +283,7 @@ describe Bosh::OpenStackCloud::Cloud do
       vm_id = create_vm(@stemcell_id, network_spec, [])
 
       expect {
-        logger.info("Detaching disk vm_id=#{vm_id} disk_id=non-existing-disk")
+        @logger.info("Detaching disk vm_id=#{vm_id} disk_id=non-existing-disk")
         cpi.detach_disk(vm_id, "non-existing-disk")
       }.to_not raise_error
 
@@ -303,7 +307,7 @@ describe Bosh::OpenStackCloud::Cloud do
   end
 
   def create_vm(stemcell_id, network_spec, disk_locality)
-    logger.info("Creating VM with stemcell_id=#{stemcell_id}")
+    @logger.info("Creating VM with stemcell_id=#{stemcell_id}")
     vm_id = cpi.create_vm(
       'agent-007',
       stemcell_id,
@@ -314,10 +318,10 @@ describe Bosh::OpenStackCloud::Cloud do
     )
     expect(vm_id).to be
 
-    logger.info("Checking VM existence vm_id=#{vm_id}")
+    @logger.info("Checking VM existence vm_id=#{vm_id}")
     expect(cpi).to have_vm(vm_id)
 
-    logger.info("Setting VM metadata vm_id=#{vm_id}")
+    @logger.info("Setting VM metadata vm_id=#{vm_id}")
     cpi.set_vm_metadata(vm_id, {
       :deployment => 'deployment',
       :job => 'openstack_cpi_spec',
@@ -329,10 +333,10 @@ describe Bosh::OpenStackCloud::Cloud do
 
   def clean_up_vm(vm_id, network_spec)
     if vm_id
-      logger.info("Deleting VM vm_id=#{vm_id}")
+      @logger.info("Deleting VM vm_id=#{vm_id}")
       cpi.delete_vm(vm_id)
 
-      logger.info("Checking VM existence vm_id=#{vm_id}")
+      @logger.info("Checking VM existence vm_id=#{vm_id}")
       expect(cpi).to_not have_vm(vm_id)
 
       if network_spec['default']['type'] == 'manual'
@@ -341,22 +345,22 @@ describe Bosh::OpenStackCloud::Cloud do
         sleep 120
       end
     else
-      logger.info('No VM to delete')
+      @logger.info('No VM to delete')
     end
   end
 
   def create_disk(vm_id, cloud_properties)
-    logger.info("Creating disk for VM vm_id=#{vm_id}")
+    @logger.info("Creating disk for VM vm_id=#{vm_id}")
     disk_id = cpi.create_disk(2048, cloud_properties, vm_id)
     expect(disk_id).to be
 
-    logger.info("Checking existence of disk vm_id=#{vm_id} disk_id=#{disk_id}")
+    @logger.info("Checking existence of disk vm_id=#{vm_id} disk_id=#{disk_id}")
     expect(cpi.has_disk?(disk_id)).to be(true)
 
-    logger.info("Attaching disk vm_id=#{vm_id} disk_id=#{disk_id}")
+    @logger.info("Attaching disk vm_id=#{vm_id} disk_id=#{disk_id}")
     cpi.attach_disk(vm_id, disk_id)
 
-    logger.info("Detaching disk vm_id=#{vm_id} disk_id=#{disk_id}")
+    @logger.info("Detaching disk vm_id=#{vm_id} disk_id=#{disk_id}")
     cpi.detach_disk(vm_id, disk_id)
 
     disk_id
@@ -364,15 +368,15 @@ describe Bosh::OpenStackCloud::Cloud do
 
   def clean_up_disk(disk_id)
     if disk_id
-      logger.info("Deleting disk disk_id=#{disk_id}")
+      @logger.info("Deleting disk disk_id=#{disk_id}")
       cpi.delete_disk(disk_id)
     else
-      logger.info('No disk to delete')
+      @logger.info('No disk to delete')
     end
   end
 
   def create_disk_snapshot(disk_id)
-    logger.info("Creating disk snapshot disk_id=#{disk_id}")
+    @logger.info("Creating disk snapshot disk_id=#{disk_id}")
     disk_snapshot_id = cpi.snapshot_disk(disk_id, {
       :deployment => 'deployment',
       :job => 'openstack_cpi_spec',
@@ -384,16 +388,16 @@ describe Bosh::OpenStackCloud::Cloud do
     })
     expect(disk_snapshot_id).to be
 
-    logger.info("Created disk snapshot disk_snapshot_id=#{disk_snapshot_id}")
+    @logger.info("Created disk snapshot disk_snapshot_id=#{disk_snapshot_id}")
     disk_snapshot_id
   end
 
   def clean_up_disk_snapshot(disk_snapshot_id)
     if disk_snapshot_id
-      logger.info("Deleting disk snapshot disk_snapshot_id=#{disk_snapshot_id}")
+      @logger.info("Deleting disk snapshot disk_snapshot_id=#{disk_snapshot_id}")
       cpi.delete_snapshot(disk_snapshot_id)
     else
-      logger.info('No disk snapshot to delete')
+      @logger.info('No disk snapshot to delete')
     end
   end
 
@@ -407,7 +411,7 @@ describe Bosh::OpenStackCloud::Cloud do
       end
     end
     # Prints all exceptions but raises original exception
-    exceptions.each { |e| logger.info("Failed with: #{e.inspect}\n#{e.backtrace.join("\n")}\n") }
+    exceptions.each { |e| @logger.info("Failed with: #{e.inspect}\n#{e.backtrace.join("\n")}\n") }
     raise exceptions.first if exceptions.any?
   end
 
@@ -416,6 +420,26 @@ describe Bosh::OpenStackCloud::Cloud do
       true
     else
       false
+    end
+  end
+
+  def upload_stemcell
+    stemcell_manifest = Psych.load_file(File.join(@stemcell_path, "stemcell.MF"))
+    @cpi_for_stemcell.create_stemcell(File.join(@stemcell_path, "image"), stemcell_manifest["cloud_properties"])
+  end
+
+  class FakeDirectorConfig
+
+    def logger
+      @logger
+    end
+
+    def cpi_task_log
+      nil
+    end
+
+    def initialize(logger)
+      @logger = logger
     end
   end
 end

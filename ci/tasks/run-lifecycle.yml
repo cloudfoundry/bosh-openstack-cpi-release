@@ -3,6 +3,7 @@ platform: linux
 image: docker:///boshcpi/openstack-cpi-release
 inputs:
   - name: bosh-cpi-release
+  - name: openstack-lifecycle-stemcell
 run:
   path: bosh-cpi-release/ci/tasks/run-lifecycle.sh
 params:
@@ -17,7 +18,6 @@ params:
   BOSH_OPENSTACK_PROJECT:             replace-me
   BOSH_OPENSTACK_MANUAL_IP:           replace-me
   BOSH_OPENSTACK_NET_ID:              replace-me
-  BOSH_OPENSTACK_STEMCELL_ID:         replace-me
   BOSH_CLI_SILENCE_SLOW_LOAD_WARNING: replace-me
   BOSH_OPENSTACK_VOLUME_TYPE:         replace-me
   BOSH_OPENSTACK_CONNECT_TIMEOUT:     replace-me

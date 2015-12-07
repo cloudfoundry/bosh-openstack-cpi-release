@@ -10,7 +10,6 @@ describe Bosh::OpenStackCloud::Cloud do
     @username          = LifecycleHelper.get_config(:username, 'BOSH_OPENSTACK_USERNAME_V3')
     @api_key           = LifecycleHelper.get_config(:api_key, 'BOSH_OPENSTACK_API_KEY_V3')
     @project           = LifecycleHelper.get_config(:tenant, 'BOSH_OPENSTACK_PROJECT')
-    @stemcell_id       = LifecycleHelper.get_config(:stemcell_id, 'BOSH_OPENSTACK_STEMCELL_ID')
     @net_id            = LifecycleHelper.get_config(:net_id, 'BOSH_OPENSTACK_NET_ID')
     @boot_volume_type  = LifecycleHelper.get_config(:volume_type, 'BOSH_OPENSTACK_VOLUME_TYPE')
     @manual_ip         = LifecycleHelper.get_config(:manual_ip, 'BOSH_OPENSTACK_MANUAL_IP')

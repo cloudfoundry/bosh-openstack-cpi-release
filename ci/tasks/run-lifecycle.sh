@@ -15,7 +15,6 @@ ensure_not_replace_value BOSH_OPENSTACK_TENANT
 ensure_not_replace_value BOSH_OPENSTACK_PROJECT
 ensure_not_replace_value BOSH_OPENSTACK_MANUAL_IP
 ensure_not_replace_value BOSH_OPENSTACK_NET_ID
-ensure_not_replace_value BOSH_OPENSTACK_STEMCELL_ID
 ensure_not_replace_value BOSH_OPENSTACK_DEFAULT_KEY_NAME
 ensure_not_replace_value BOSH_CLI_SILENCE_SLOW_LOAD_WARNING
 ensure_not_replace_value BOSH_OPENSTACK_VOLUME_TYPE
@@ -25,6 +24,12 @@ ensure_not_replace_value BOSH_OPENSTACK_WRITE_TIMEOUT
 ensure_not_replace_value BOSH_OPENSTACK_SSL_VERIFY
 
 source /etc/profile.d/chruby-with-ruby-2.1.2.sh
+
+mkdir "$PWD/openstack-lifecycle-stemcell/stemcell"
+tar -C "$PWD/openstack-lifecycle-stemcell/stemcell" -xzf "$PWD/openstack-lifecycle-stemcell/stemcell.tgz"
+export BOSH_OPENSTACK_STEMCELL_PATH="$PWD/openstack-lifecycle-stemcell/stemcell"
+
+echo "Stemcell path is: $BOSH_OPENSTACK_STEMCELL_PATH"
 
 cd bosh-cpi-release/src/bosh_openstack_cpi
 
