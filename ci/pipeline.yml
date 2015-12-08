@@ -505,6 +505,7 @@ jobs:
         - {trigger: true,  passed: [build-candidate], get: bosh-cpi-dev-artifacts}
         - {trigger: false, passed: [build-candidate], get: bosh-cpi-release, resource: bosh-cpi-release}
         - {trigger: false, passed: [build-candidate], get: version-semver}
+        - {trigger: false,                            get: director-state-file, resource: e2e-director-state-file}
         - {trigger: false,                            get: stemcell, resource: e2e-stemcell }
         - {trigger: false,                            get: bosh-init}
         - {trigger: false,                            get: bosh-release}

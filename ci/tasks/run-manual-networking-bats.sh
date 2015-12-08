@@ -68,7 +68,7 @@ cat > $BAT_DEPLOYMENT_SPEC <<EOF
 ---
 cpi: openstack
 properties:
-  key_name: 
+  key_name:
   pool_size: 1
   instances: 1
   uuid: $(bosh status --uuid)

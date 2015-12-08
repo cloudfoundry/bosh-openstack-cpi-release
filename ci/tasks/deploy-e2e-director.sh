@@ -31,22 +31,24 @@ ensure_not_replace_value v3_e2e_blobstore_host
 ensure_not_replace_value v3_e2e_blobstore_access_key
 ensure_not_replace_value v3_e2e_blobstore_secret_key
 
-source /etc/profile.d/chruby.sh
-chruby 2.1.2
+source /etc/profile.d/chruby-with-ruby-2.1.2.sh
+
+export BOSH_INIT_LOG_LEVEL=DEBUG
 
 semver=`cat version-semver/number`
+cpi_release_name="bosh-openstack-cpi"
 deployment_dir="${PWD}/deployment"
 manifest_filename="e2e-director-manifest.yml"
+director_state_filename="e2e-director-manifest-state.json"
+private_key=${deployment_dir}/e2e.pem
 
 echo "setting up artifacts used in $manifest_filename"
 mkdir -p ${deployment_dir}
-
-private_key=${deployment_dir}/e2e.pem
-
-#cp ./bosh-cpi-dev-artifacts/bosh-openstack-cpi-${semver}.tgz ${deployment_dir}/bosh-openstack-cpi.tgz
-cp ./bosh-cpi-dev-artifacts/*.tgz ${deployment_dir}/bosh-openstack-cpi.tgz
+cp ./bosh-cpi-dev-artifacts/${cpi_release_name}-${semver}.tgz ${deployment_dir}/${cpi_release_name}.tgz
 cp ./bosh-release/release.tgz ${deployment_dir}/bosh-release.tgz
 cp ./stemcell/stemcell.tgz ${deployment_dir}/stemcell.tgz
+cp ./director-state-file/${director_state_filename} ${deployment_dir}/${director_state_filename}
+
 echo "${v3_e2e_private_key_data}" > ${private_key}
 chmod go-r ${private_key}
 eval $(ssh-agent)
@@ -220,13 +222,11 @@ cloud_provider:
 EOF
 
 initver=$(cat bosh-init/version)
-initexe="$PWD/bosh-init/bosh-init-${initver}-linux-amd64"
-chmod +x ${initexe}
+bosh_init="${PWD}/bosh-init/bosh-init-${initver}-linux-amd64"
+chmod +x $bosh_init
 
-echo "using bosh-init CLI version..."
-$initexe version
+echo "deleting existing BOSH Director VM..."
+$bosh_init delete ${deployment_dir}/${manifest_filename}
 
-pushd ${deployment_dir}
-  echo "deploying BOSH..."
-  $initexe deploy ${manifest_filename}
-popd
+echo "deploying BOSH..."
+$bosh_init deploy ${deployment_dir}/${manifest_filename}
