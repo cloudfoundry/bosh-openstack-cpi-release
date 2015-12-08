@@ -618,7 +618,7 @@ resources:
     type: s3
     source:
       regexp: bosh-openstack-cpi\.tgz
-      bucket: bosh-openstack-cpi-pipeline # OpenStack CPI account
+      bucket: {{bosh_openstack_cpi_pipeline # OpenStack CPI account
       region_name: us-east-1
       access_key_id:      {{s3_openstack_cpi_pipeline_access_key}}
       secret_access_key:  {{s3_openstack_cpi_pipeline_secret_key}}
@@ -626,7 +626,7 @@ resources:
   - name: ubuntu-manual-director-state-file
     type: s3
     source:
-      bucket: bosh-openstack-cpi-state-files
+      bucket: {{bosh_openstack_cpi_state_files_bucket_name}}
       versioned_file: ubuntu-manual-director-manifest-state.json
       region_name: us-east-1
       access_key_id: {{s3_openstack_cpi_state_files_access_key}}
@@ -635,7 +635,7 @@ resources:
   - name: ubuntu-manual-director-manifest
     type: s3
     source:
-      bucket: bosh-openstack-cpi-state-files
+      bucket: {{bosh_openstack_cpi_state_files_bucket_name}}
       versioned_file: ubuntu-manual-director-manifest.yml
       region_name: us-east-1
       access_key_id: {{s3_openstack_cpi_state_files_access_key}}
@@ -644,7 +644,7 @@ resources:
   - name: centos-manual-director-state-file
     type: s3
     source:
-      bucket: bosh-openstack-cpi-state-files
+      bucket: {{bosh_openstack_cpi_state_files_bucket_name}}
       versioned_file: centos-manual-director-manifest-state.json
       region_name: us-east-1
       access_key_id: {{s3_openstack_cpi_state_files_access_key}}
@@ -653,7 +653,7 @@ resources:
   - name: centos-manual-director-manifest
     type: s3
     source:
-      bucket: bosh-openstack-cpi-state-files
+      bucket: {{bosh_openstack_cpi_state_files_bucket_name}}
       versioned_file: centos-manual-director-manifest.yml
       region_name: us-east-1
       access_key_id: {{s3_openstack_cpi_state_files_access_key}}
@@ -662,7 +662,7 @@ resources:
   - name: ubuntu-dynamic-director-state-file
     type: s3
     source:
-      bucket: bosh-openstack-cpi-state-files
+      bucket: {{bosh_openstack_cpi_state_files_bucket_name}}
       versioned_file: ubuntu-dynamic-director-manifest-state.json
       region_name: us-east-1
       access_key_id: {{s3_openstack_cpi_state_files_access_key}}
@@ -671,7 +671,7 @@ resources:
   - name: ubuntu-dynamic-director-manifest
     type: s3
     source:
-      bucket: bosh-openstack-cpi-state-files
+      bucket: {{bosh_openstack_cpi_state_files_bucket_name}}
       versioned_file: ubuntu-dynamic-director-manifest.yml
       region_name: us-east-1
       access_key_id: {{s3_openstack_cpi_state_files_access_key}}
@@ -680,7 +680,7 @@ resources:
   - name: centos-dynamic-director-state-file
     type: s3
     source:
-      bucket: bosh-openstack-cpi-state-files
+      bucket: {{bosh_openstack_cpi_state_files_bucket_name}}
       versioned_file: centos-dynamic-director-manifest-state.json
       region_name: us-east-1
       access_key_id: {{s3_openstack_cpi_state_files_access_key}}
@@ -689,7 +689,7 @@ resources:
   - name: centos-dynamic-director-manifest
     type: s3
     source:
-      bucket: bosh-openstack-cpi-state-files
+      bucket: {{bosh_openstack_cpi_state_files_bucket_name}}
       versioned_file: centos-dynamic-director-manifest.yml
       region_name: us-east-1
       access_key_id: {{s3_openstack_cpi_state_files_access_key}}
@@ -698,7 +698,7 @@ resources:
   - name: e2e-director-state-file
     type: s3
     source:
-      bucket: bosh-openstack-cpi-state-files
+      bucket: {{bosh_openstack_cpi_state_files_bucket_name}}
       versioned_file: e2e-director-manifest-state.json
       region_name: us-east-1
       access_key_id: {{s3_openstack_cpi_state_files_access_key}}
@@ -707,7 +707,7 @@ resources:
   - name: e2e-director-manifest-file
     type: s3
     source:
-      bucket: bosh-openstack-cpi-state-files
+      bucket: {{bosh_openstack_cpi_state_files_bucket_name}}
       versioned_file: e2e-director-manifest.yml
       region_name: us-east-1
       access_key_id: {{s3_openstack_cpi_state_files_access_key}}
@@ -735,7 +735,7 @@ resources:
     type: semver
     source:
       key:                current-version
-      bucket:             bosh-openstack-cpi-pipeline
+      bucket:             {{bosh_openstack_cpi_pipeline_bucket_name}}
       access_key_id:      {{s3_openstack_cpi_pipeline_access_key}}
       secret_access_key:  {{s3_openstack_cpi_pipeline_secret_key}}
 
@@ -743,7 +743,7 @@ resources:
     type: semver
     source:
       key:                release-current-version
-      bucket:             bosh-openstack-cpi-pipeline
+      bucket:             {{bosh_openstack_cpi_pipeline_bucket_name}}
       access_key_id:      {{s3_openstack_cpi_pipeline_access_key}}
       secret_access_key:  {{s3_openstack_cpi_pipeline_secret_key}}
 
