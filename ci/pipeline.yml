@@ -784,7 +784,7 @@ resources:
   - name: openstack-pipeline-lock
     type: pool
     source:
-      uri: git@github.com:cloudfoundry/bosh-cpi-environments.git
+      uri: {{pipeline_lock_repository_url}}
       branch: master
-      pool: openstack
-      private_key: {{github_deployment_key__bosh-cpi-environments}}
+      pool: {{pipeline_lock_pool_name}}
+      private_key: {{pipeline_lock_github_deployment_key}}
