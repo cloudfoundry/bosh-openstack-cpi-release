@@ -6,8 +6,13 @@ cp -a bosh_openstack_cpi/* ${BOSH_INSTALL_TARGET}
 
 bundle_cmd="$BOSH_PACKAGES_DIR/ruby_openstack_cpi/bin/bundle"
 
-cd ${BOSH_INSTALL_TARGET}
+if [ `uname -m` == "ppc64le" ]; then
+sudo apt-get install -y libxml2-dev
+sudo apt-get install -y libxslt-dev
+export NOKOGIRI_USE_SYSTEM_LIBRARIES=1
+fi
 
+cd ${BOSH_INSTALL_TARGET}
 $bundle_cmd install \
   --local           \
   --no-prune        \
