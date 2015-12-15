@@ -16,4 +16,5 @@ params:
   openstack_security_group:                  replace-me
   primary_network_id:                        replace-me
   private_key_data:                          replace-me
+  resource_pool_key_name:                    replace-me
   stemcell_name:                             replace-me

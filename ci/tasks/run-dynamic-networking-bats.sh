@@ -13,15 +13,7 @@ ensure_not_replace_value openstack_flavor_with_no_ephemeral_disk
 ensure_not_replace_value openstack_security_group
 ensure_not_replace_value primary_network_id
 ensure_not_replace_value private_key_data
-
-####
-# TODO:
-# - check that all environment variables defined in pipeline.yml are set
-# - reference stemcell like vCloud bats job does
-# - upload new keypair to bluebox/mirantis with `external-cpi` tag to tell which vms have been deployed by which ci
-# - use heredoc to generate deployment spec
-# - copy rogue vm check from vSphere pipeline
-####
+ensure_not_replace_value resource_pool_key_name
 
 working_dir=$PWD
 
@@ -54,7 +46,7 @@ cat > $BAT_DEPLOYMENT_SPEC <<EOF
 ---
 cpi: openstack
 properties:
-  key_name: external-cpi
+  key_name: ${resource_pool_key_name}
   uuid: $(bosh status --uuid)
   vip: ${bats_vm_floating_ip}
   instance_type: ${openstack_flavor_with_ephemeral_disk}

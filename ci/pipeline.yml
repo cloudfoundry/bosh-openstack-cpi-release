@@ -310,6 +310,7 @@ jobs:
             openstack_flavor_with_no_ephemeral_disk:  {{openstack_flavor_with_no_ephemeral_disk}}
             openstack_security_group:                 {{openstack_security_group}}
             primary_network_id:                       {{bats_dynamic_ubuntu_primary_net_id}}
+            resource_pool_key_name:                   {{resource_pool_key_name}}
             private_key_data:                         {{bosh_private_key}}
 
       - task: teardown-director
