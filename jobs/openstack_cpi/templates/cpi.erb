@@ -15,7 +15,7 @@ export NO_PROXY=<%= no_proxy %>
 export no_proxy=<%= no_proxy %>
 <% end %>
 
-read INPUT
+read -r INPUT
 
 BOSH_PACKAGES_DIR=${BOSH_PACKAGES_DIR:-/var/vcap/packages}
 BOSH_JOBS_DIR=${BOSH_JOBS_DIR:-/var/vcap/jobs}
