@@ -13,6 +13,7 @@ params:
   bosh_director_ip:        replace-me
   bosh_director_username:  replace-me
   bosh_director_password:  replace-me
+  dns:                     replace-me
   stemcell_name:           replace-me
   network_id:              replace-me
   instance_flavor:         replace-me

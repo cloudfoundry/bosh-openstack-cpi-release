@@ -5,6 +5,7 @@ set -e
 source bosh-cpi-release/ci/tasks/utils.sh
 
 ensure_not_replace_value base_os
+ensure_not_replace_value dns
 ensure_not_replace_value network_type_to_test
 ensure_not_replace_value openstack_flavor
 ensure_not_replace_value openstack_connection_timeout
@@ -59,7 +60,7 @@ releases:
 networks:
   - name: private
     type: dynamic
-    dns:     [8.8.8.8]
+    dns:     ${dns}
     cloud_properties:
       net_id: ${openstack_net_id}
       security_groups: [${openstack_security_group}]

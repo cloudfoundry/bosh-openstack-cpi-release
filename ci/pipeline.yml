@@ -173,6 +173,7 @@ jobs:
             private_key_data:              {{bosh_private_key}}
             bosh_registry_port:            {{bosh_director_registry_port}}
             bosh_openstack_ssl_verify:     {{bosh_openstack_ssl_verify}}
+            dns:                           {{dns}}
             openstack_net_id:              {{bats_manual_ubuntu_primary_net_id}}
             openstack_security_group:      {{openstack_security_group}}
             openstack_default_key_name:    {{openstack_default_key_name}}
@@ -265,9 +266,9 @@ jobs:
             openstack_read_timeout:        "180"
             openstack_write_timeout:       "180"
             openstack_state_timeout:       "900"
-            private_key_data:              {{bosh_private_key}}
             bosh_registry_port:            {{bosh_director_registry_port}}
             bosh_openstack_ssl_verify:     {{bosh_openstack_ssl_verify}}
+            dns:                           {{dns}}
             openstack_net_id:              {{bats_dynamic_ubuntu_primary_net_id}}
             openstack_security_group:      {{openstack_security_group}}
             openstack_default_key_name:    {{openstack_default_key_name}}
@@ -276,6 +277,7 @@ jobs:
             openstack_api_key:             {{openstack_api_key}}
             openstack_tenant:              {{openstack_tenant}}
             openstack_floating_ip:         {{bats_dynamic_ubuntu_director_public_ip}}
+            private_key_data:              {{bosh_private_key}}
         ensure:
           put: ubuntu-dynamic-director-state-file
           params: {from: deploy/deployment/ubuntu-dynamic-director-manifest-state.json}
@@ -347,9 +349,9 @@ jobs:
             openstack_read_timeout:        "180"
             openstack_write_timeout:       "180"
             openstack_state_timeout:       "900"
-            private_key_data:              {{bosh_private_key}}
             bosh_registry_port:            {{bosh_director_registry_port}}
             bosh_openstack_ssl_verify:     {{bosh_openstack_ssl_verify}}
+            dns:                           {{dns}}
             openstack_net_id:              {{bats_manual_centos_primary_net_id}}
             openstack_security_group:      {{openstack_security_group}}
             openstack_default_key_name:    {{openstack_default_key_name}}
@@ -361,6 +363,7 @@ jobs:
             openstack_manual_ip:           {{bats_manual_centos_director_private_ip}}
             openstack_net_cidr:            {{bats_manual_centos_primary_net_cidr}}
             openstack_net_gateway:         {{bats_manual_centos_primary_net_gateway}}
+            private_key_data:              {{bosh_private_key}}
         ensure:
           put: centos-manual-director-state-file
           params: {from: deploy/deployment/centos-manual-director-manifest-state.json}
@@ -442,9 +445,9 @@ jobs:
             openstack_read_timeout:        "180"
             openstack_write_timeout:       "180"
             openstack_state_timeout:       "900"
-            private_key_data:              {{bosh_private_key}}
             bosh_registry_port:            {{bosh_director_registry_port}}
             bosh_openstack_ssl_verify:     {{bosh_openstack_ssl_verify}}
+            dns:                           {{dns}}
             openstack_net_id:              {{bats_dynamic_centos_primary_net_id}}
             openstack_security_group:      {{openstack_security_group}}
             openstack_default_key_name:    {{openstack_default_key_name}}
@@ -453,6 +456,7 @@ jobs:
             openstack_api_key:             {{openstack_api_key}}
             openstack_tenant:              {{openstack_tenant}}
             openstack_floating_ip:         {{bats_dynamic_centos_director_public_ip}}
+            private_key_data:              {{bosh_private_key}}
         ensure:
           put: centos-dynamic-director-state-file
           params: {from: deploy/deployment/centos-dynamic-director-manifest-state.json}
@@ -525,6 +529,7 @@ jobs:
             bosh_openstack_ssl_verify:               {{bosh_openstack_ssl_verify}}
             bosh_director_username:                  {{v3_e2e_director_username}}
             bosh_director_password:                  {{v3_e2e_director_password}}
+            dns:                                     {{dns}}
             v3_e2e_bosh_registry_port:               {{v3_e2e_bosh_registry_port}}
             v3_e2e_api_key:                          {{v3_e2e_api_key}}
             v3_e2e_auth_url:                         {{openstack_auth_url_v3}}
@@ -570,12 +575,13 @@ jobs:
         file: bosh-cpi-release/ci/tasks/deploy-dummy-release.yml
         config:
           params:
+            instance_flavor:                         "m1.medium"
             bosh_director_ip:                        {{v3_e2e_floating_ip}}
             bosh_director_username:                  {{v3_e2e_director_username}}
             bosh_director_password:                  {{v3_e2e_director_password}}
-            stemcell_name:                           {{v3_e2e_stemcell_name}}
+            dns:                                     {{dns}}
             network_id:                              {{v3_e2e_net_id}}
-            instance_flavor:                         "m1.medium"
+            stemcell_name:                           {{v3_e2e_stemcell_name}}
 
       - task: teardown-director
         file: bosh-cpi-release/ci/tasks/teardown-director.yml

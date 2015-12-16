@@ -13,6 +13,7 @@ run:
   path: bosh-cpi-release/ci/tasks/deploy-manual-networking.sh
 params:
   base_os:                       replace-me
+  dns:                           replace-me
   network_type_to_test:          replace-me
   openstack_flavor:              replace-me
   openstack_connection_timeout:  replace-me

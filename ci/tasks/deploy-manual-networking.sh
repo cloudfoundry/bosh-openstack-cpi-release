@@ -5,6 +5,7 @@ set -e
 source bosh-cpi-release/ci/tasks/utils.sh
 
 ensure_not_replace_value base_os
+ensure_not_replace_value dns
 ensure_not_replace_value network_type_to_test
 ensure_not_replace_value openstack_flavor
 ensure_not_replace_value openstack_connection_timeout
@@ -25,6 +26,7 @@ ensure_not_replace_value openstack_floating_ip
 ensure_not_replace_value openstack_manual_ip
 ensure_not_replace_value openstack_net_cidr
 ensure_not_replace_value openstack_net_gateway
+
 
 source /etc/profile.d/chruby-with-ruby-2.1.2.sh
 
@@ -65,7 +67,7 @@ networks:
     subnets:
       - range:   ${openstack_net_cidr}
         gateway: ${openstack_net_gateway}
-        dns:     [8.8.8.8]
+        dns:     ${dns}
         static:  [${openstack_manual_ip}]
         cloud_properties:
           net_id: ${openstack_net_id}

@@ -4,6 +4,7 @@ set -e
 
 source bosh-cpi-release/ci/tasks/utils.sh
 
+ensure_not_replace_value dns
 ensure_not_replace_value v3_e2e_flavor
 ensure_not_replace_value v3_e2e_connection_timeout
 ensure_not_replace_value v3_e2e_read_timeout
@@ -71,7 +72,7 @@ networks:
     subnets:
       - range:    ${v3_e2e_net_cidr}
         gateway:  ${v3_e2e_net_gateway}
-        dns:     [8.8.8.8]
+        dns:     ${dns}
         static:  [${v3_e2e_manual_ip}]
         cloud_properties:
           net_id: ${v3_e2e_net_id}

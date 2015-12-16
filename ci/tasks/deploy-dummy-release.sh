@@ -7,6 +7,7 @@ source bosh-cpi-release/ci/tasks/utils.sh
 ensure_not_replace_value bosh_director_ip
 ensure_not_replace_value bosh_director_username
 ensure_not_replace_value bosh_director_password
+ensure_not_replace_value dns
 ensure_not_replace_value stemcell_name
 ensure_not_replace_value network_id
 ensure_not_replace_value instance_flavor
@@ -64,7 +65,7 @@ resource_pools:
 networks:
   - name: private
     type: dynamic
-    dns: [8.8.8.8]
+    dns: ${dns}
     cloud_properties:
       net_id: ${network_id}
       security_groups: [${v3_e2e_security_group}]
