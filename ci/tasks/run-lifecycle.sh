@@ -29,8 +29,6 @@ mkdir "$PWD/openstack-lifecycle-stemcell/stemcell"
 tar -C "$PWD/openstack-lifecycle-stemcell/stemcell" -xzf "$PWD/openstack-lifecycle-stemcell/stemcell.tgz"
 export BOSH_OPENSTACK_STEMCELL_PATH="$PWD/openstack-lifecycle-stemcell/stemcell"
 
-echo "Stemcell path is: $BOSH_OPENSTACK_STEMCELL_PATH"
-
 cd bosh-cpi-release/src/bosh_openstack_cpi
 
 bundle install

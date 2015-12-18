@@ -118,10 +118,10 @@ jobs:
     serial: true
     plan:
       - aggregate:
-        - {trigger: true, passed:  [build-candidate], get: bosh-cpi-dev-artifacts} # used for job chaining only not for tasks
+        - {trigger: true,  passed: [build-candidate], get: bosh-cpi-dev-artifacts} # used for job chaining only not for tasks
         - {trigger: false, passed: [build-candidate], get: openstack-pipeline-lock}
         - {trigger: false, passed: [build-candidate], get: bosh-cpi-release}
-        - {trigger: false, get: openstack-lifecycle-stemcell}
+        - {trigger: false,                            get: openstack-lifecycle-stemcell}
 
       - task: test
         file: bosh-cpi-release/ci/tasks/run-lifecycle.yml
@@ -129,7 +129,7 @@ jobs:
           params:
             BOSH_OPENSTACK_DOMAIN:              {{lifecycle_openstack_domain}}
             BOSH_OPENSTACK_TENANT:              {{lifecycle_openstack_tenant}}
-            BOSH_OPENSTACK_PROJECT:             {{lifecycle_openstack_tenant}}
+            BOSH_OPENSTACK_PROJECT:             {{lifecycle_openstack_project}}
             BOSH_OPENSTACK_MANUAL_IP:           {{lifecycle_manual_ip}}
             BOSH_OPENSTACK_NET_ID:              {{lifecycle_openstack_net_id}}
             BOSH_OPENSTACK_AUTH_URL_V2:         {{openstack_auth_url_v2}}
