@@ -2,7 +2,6 @@ require 'spec_helper'
 require 'tempfile'
 require 'cloud'
 require 'logger'
-require 'pry'
 
 describe Bosh::OpenStackCloud::Cloud do
   before(:all) do
