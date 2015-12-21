@@ -2,6 +2,7 @@ require 'spec_helper'
 require 'tempfile'
 require 'cloud'
 require 'logger'
+require 'pry'
 
 describe Bosh::OpenStackCloud::Cloud do
   before(:all) do
@@ -234,10 +235,11 @@ describe Bosh::OpenStackCloud::Cloud do
     let(:network_spec_that_fails) do
       {
         'default' => {
-          'type' => 'dynamic',
-          'cloud_properties' => {
-            'net_id' => @net_id
-          }
+            'type' => 'manual',
+            'ip' => @manual_ip,
+            'cloud_properties' => {
+                'net_id' => @net_id
+            }
         },
         'vip' => {
           'type' => 'vip',
@@ -246,23 +248,18 @@ describe Bosh::OpenStackCloud::Cloud do
       }
     end
 
-    def active_vms
-      cpi.openstack.servers.reject do |s|
-        if s.os_ext_sts_task_state && s.os_ext_sts_task_state.downcase.to_sym == :deleting
-          true
-        else
-          [:terminated, :deleted].include?(s.state.downcase.to_sym)
-        end
+    def no_active_vm_with_ip?(ip)
+      cpi.openstack.servers.none? do |s|
+        s.private_ip_address == ip && [:active].include?(s.state.downcase.to_sym)
       end
     end
 
     it 'cleans up vm' do
-      vms_size = active_vms.size
       expect {
         create_vm(@stemcell_id, network_spec_that_fails, [])
       }.to raise_error Bosh::Clouds::VMCreationFailed, /Floating IP 255.255.255.255 not allocated/
 
-      expect(active_vms.size).to eq(vms_size)
+      expect(no_active_vm_with_ip?(@manual_ip)).to be
     end
   end
 
