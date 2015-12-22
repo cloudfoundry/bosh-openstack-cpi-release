@@ -313,7 +313,6 @@ jobs:
             openstack_security_group:                 {{openstack_security_group}}
             primary_network_id:                       {{bats_dynamic_ubuntu_primary_net_id}}
             private_key_data:                         {{bosh_private_key}}
-            resource_pool_key_name:                   {{resource_pool_key_name}}
 
       - task: teardown-director
         file: bosh-cpi-release/ci/tasks/teardown-director.yml
@@ -492,7 +491,6 @@ jobs:
             openstack_security_group:                 {{openstack_security_group}}
             primary_network_id:                       {{bats_dynamic_centos_primary_net_id}}
             private_key_data:                         {{bosh_private_key}}
-            resource_pool_key_name:                   {{resource_pool_key_name}}
 
       - task: teardown-director
         file: bosh-cpi-release/ci/tasks/teardown-director.yml

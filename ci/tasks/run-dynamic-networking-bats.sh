@@ -46,7 +46,6 @@ cat > $BAT_DEPLOYMENT_SPEC <<EOF
 ---
 cpi: openstack
 properties:
-  key_name: ${resource_pool_key_name}
   uuid: $(bosh status --uuid)
   vip: ${bats_vm_floating_ip}
   instance_type: ${openstack_flavor_with_ephemeral_disk}

@@ -782,4 +782,95 @@ describe Bosh::OpenStackCloud::Cloud, "create_vm" do
       expect(vm_id).to eq("i-test")
     end
   end
+
+  describe 'key_name configuration' do
+
+    def resource_pool_spec_no_key
+      {
+          'availability_zone' => 'foobar-1a',
+          'instance_type' => 'm1.tiny'
+      }
+    end
+
+    def stub_cloud(cloud)
+      allow(cloud).to receive(:generate_unique_name).and_return(unique_name)
+      allow(cloud).to receive(:wait_resource).with(server, :active, :state)
+      allow(@registry).to receive(:update_settings).with("i-test", agent_settings(unique_name, dynamic_network_spec))
+    end
+
+    context 'when key_name is only defined in resource pool' do
+      it 'takes the key_name from resource pool' do
+        cloud = mock_cloud do |openstack|
+          expect(openstack.servers).to receive(:create).with(openstack_params).and_return(server)
+          stub_openstack(openstack)
+        end
+
+        stub_cloud(cloud)
+
+        cloud.create_vm("agent-id", "sc-id",
+                                resource_pool_spec,
+                                { "network_a" => dynamic_network_spec },
+                                nil, { "test_env" => "value" })
+      end
+    end
+
+    context 'when default_key_name is only defined in CPI cloud properties' do
+      it 'takes the key_name from CPI cloud properties' do
+        cloud_options_with_default_key_name = mock_cloud_options['properties']
+        cloud_options_with_default_key_name['openstack']['default_key_name'] = 'default_key_name'
+        expected_openstack_params = openstack_params
+        expected_openstack_params[:key_name] = 'default_key_name'
+
+        cloud = mock_cloud(cloud_options_with_default_key_name) do |openstack|
+          expect(openstack.servers).to receive(:create).with(expected_openstack_params).and_return(server)
+          stub_openstack(openstack)
+        end
+
+        stub_cloud(cloud)
+        expect(cloud).to receive(:validate_key_exists).with('default_key_name')
+
+        cloud.create_vm("agent-id", "sc-id",
+                                resource_pool_spec_no_key,
+                                { "network_a" => dynamic_network_spec },
+                                nil, { "test_env" => "value" })
+      end
+    end
+
+    context 'when default_key_name is defined in CPI cloud properties and key_name in resource pool' do
+      it 'takes the key_name from resource pool' do
+        cloud_options_with_default_key_name = mock_cloud_options['properties']
+        cloud_options_with_default_key_name['openstack']['default_key_name'] = 'default_key_name'
+
+        cloud = mock_cloud(cloud_options_with_default_key_name) do |openstack|
+          expect(openstack.servers).to receive(:create).with(openstack_params).and_return(server)
+          stub_openstack(openstack)
+        end
+
+        stub_cloud(cloud)
+        expect(cloud).to receive(:validate_key_exists).with('test_key')
+
+        cloud.create_vm("agent-id", "sc-id",
+                        resource_pool_spec,
+                        { "network_a" => dynamic_network_spec },
+                        nil, { "test_env" => "value" })
+      end
+    end
+
+    context 'when no key_name is defined' do
+      it 'raises cloud error' do
+        cloud = mock_cloud do |openstack|
+          stub_openstack(openstack)
+          allow(openstack).to receive(:key_pairs).and_return([key_pair])
+        end
+        stub_cloud(cloud)
+
+        expect {
+          cloud.create_vm("agent-id", "sc-id",
+                          resource_pool_spec_no_key,
+                          { "network_a" => dynamic_network_spec },
+                          nil, { "test_env" => "value" })
+        }.to raise_error(Bosh::Clouds::CloudError, "Key-pair `' not found")
+      end
+    end
+  end
 end

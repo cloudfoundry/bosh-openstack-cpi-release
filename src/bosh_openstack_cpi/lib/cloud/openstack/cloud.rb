@@ -267,9 +267,7 @@ module Bosh::OpenStackCloud
         @logger.debug("Using flavor: `#{resource_pool['instance_type']}'")
 
         keyname = resource_pool['key_name'] || @default_key_name
-        keypair = with_openstack { @openstack.key_pairs.find { |k| k.name == keyname } }
-        cloud_error("Key-pair `#{keyname}' not found") if keypair.nil?
-        @logger.debug("Using key-pair: `#{keypair.name}' (#{keypair.fingerprint})")
+        validate_key_exists(keyname)
 
         use_config_drive = !!@openstack_properties.fetch("config_drive", nil)
 
@@ -281,7 +279,7 @@ module Bosh::OpenStackCloud
           :name => server_name,
           :image_ref => image.id,
           :flavor_ref => flavor.id,
-          :key_name => keypair.name,
+          :key_name => keyname,
           :security_groups => security_groups_to_be_used,
           :os_scheduler_hints => resource_pool['scheduler_hints'],
           :nics => nics,
@@ -336,6 +334,7 @@ module Bosh::OpenStackCloud
         server.id.to_s
       end
     end
+
 
     ##
     # Terminates an OpenStack server and waits until it reports as terminated
@@ -1057,6 +1056,12 @@ module Bosh::OpenStackCloud
       end
 
       []
+    end
+
+    def validate_key_exists(keyname)
+      keypair = with_openstack { @openstack.key_pairs.find { |k| k.name == keyname } }
+      cloud_error("Key-pair `#{keyname}' not found") if keypair.nil?
+      @logger.debug("Using key-pair: `#{keypair.name}' (#{keypair.fingerprint})")
     end
   end
 end
