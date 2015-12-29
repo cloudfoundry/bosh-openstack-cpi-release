@@ -12,7 +12,11 @@ tar xzf ruby_openstack_cpi/yaml-0.1.5.tar.gz
 (
   set -e
   cd yaml-0.1.5
-  CFLAGS='-fPIC' ./configure --prefix=${BOSH_INSTALL_TARGET} --disable-shared
+  if [ `uname -m` == "ppc64le" ]; then
+    CFLAGS='-fPIC' ./configure --build=ppc64le --prefix=${BOSH_INSTALL_TARGET} --disable-shared
+  else
+    CFLAGS='-fPIC' ./configure --prefix=${BOSH_INSTALL_TARGET} --disable-shared
+  fi
   make
   make install
 )
