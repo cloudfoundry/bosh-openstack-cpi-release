@@ -10,6 +10,7 @@ ensure_not_replace_value director_manifest_file
 source /etc/profile.d/chruby.sh
 chruby 2.1.2
 
+export BOSH_INIT_LOG_LEVEL=DEBUG
 
 semver=`cat version-semver/number`
 cpi_release_name="bosh-openstack-cpi"
