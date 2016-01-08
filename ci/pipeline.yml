@@ -579,6 +579,7 @@ jobs:
             bosh_director_username:                  {{v3_e2e_director_username}}
             bosh_director_password:                  {{v3_e2e_director_password}}
             dns:                                     {{dns}}
+            v3_e2e_security_group:                   {{v3_e2e_security_group}}
             network_id:                              {{v3_e2e_net_id}}
             stemcell_name:                           {{v3_e2e_stemcell_name}}
 

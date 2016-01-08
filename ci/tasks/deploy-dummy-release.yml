@@ -14,6 +14,7 @@ params:
   bosh_director_username:  replace-me
   bosh_director_password:  replace-me
   dns:                     replace-me
+  v3_e2e_security_group:   replace-me
   stemcell_name:           replace-me
   network_id:              replace-me
   instance_flavor:         replace-me
