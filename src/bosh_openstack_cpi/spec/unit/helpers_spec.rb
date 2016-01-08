@@ -180,7 +180,7 @@ describe Bosh::OpenStackCloud::Helpers do
             openstack.servers
           end
         }.to raise_error(Bosh::Clouds::CloudError,
-                         'OpenStack API Request Entity Too Large error. Check task debug log for details.')
+                         /OpenStack API Request Entity Too Large error:/)
       end
 
       context 'when the response includes a retryAfter in the body' do
@@ -204,6 +204,52 @@ describe Bosh::OpenStackCloud::Helpers do
           cloud.with_openstack do
             openstack.servers
           end
+        end
+      end
+
+      context 'when OpenStack error message contains overLimit,' do
+
+        let(:body) do
+          {
+              'overLimit' => {
+                  'message' => 'Specific OpenStack error message',
+                  'code' => 413,
+                  'details' => 'Only 10 POST request(s) can be made to * every minute.',
+                  'retryAfter' => 0
+              }
+          }
+        end
+
+        it 'enriches the BOSH error message' do
+          allow(openstack).to receive(:servers).and_raise(Excon::Errors::RequestEntityTooLarge.new('', '', response))
+
+          expected_message = "OpenStack API Request Entity Too Large error: Specific OpenStack error message\nCheck task debug log for details."
+
+          expect {
+            cloud.with_openstack do
+              openstack.servers
+            end
+          }.to raise_error(Bosh::Clouds::CloudError, expected_message)
+        end
+      end
+
+      context 'when OpenStack error message does not contain overLimit,' do
+
+        let(:body) do
+          {
+              "notOverLimit" => "arbitrary content"
+          }
+        end
+
+        it 'enriches the BOSH error message with the whole response body' do
+          expected_response_body = JSON.dump({"notOverLimit" => "arbitrary content"})
+          expected_message = "OpenStack API Request Entity Too Large error: #{expected_response_body}\nCheck task debug log for details."
+
+          expect {
+            cloud.with_openstack do
+              openstack.servers
+            end
+          }.to raise_error(Bosh::Clouds::CloudError, expected_message)
         end
       end
     end

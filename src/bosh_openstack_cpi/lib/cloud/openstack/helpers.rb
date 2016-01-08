@@ -26,17 +26,24 @@ module Bosh::OpenStackCloud
         yield
 
       rescue Excon::Errors::RequestEntityTooLarge => e
-        # If we find a rate limit error, parse message, wait, and retry
+        message = "OpenStack API Request Entity Too Large error: \nCheck task debug log for details."
         overlimit = parse_openstack_response(e.response, "overLimit", "overLimitFault")
-        unless overlimit.nil? || retries >= MAX_RETRIES
-          wait_time = overlimit["retryAfter"] || e.response.headers["Retry-After"] || DEFAULT_RETRY_TIMEOUT
+
+        if overlimit
+          message.insert(46, overlimit["message"])
           details = "#{overlimit["message"]} - #{overlimit["details"]}"
-          @logger.debug("OpenStack API Over Limit (#{details}), waiting #{wait_time} seconds before retrying") if @logger
-          sleep(wait_time.to_i)
-          retries += 1
-          retry
+
+          if retries < MAX_RETRIES
+            wait_time = overlimit["retryAfter"] || e.response.headers["Retry-After"] || DEFAULT_RETRY_TIMEOUT
+            @logger.debug("OpenStack API Over Limit (#{details}), waiting #{wait_time} seconds before retrying") if @logger
+            sleep(wait_time.to_i)
+            retries += 1
+            retry
+          end
+        else
+          message.insert(46, e.response.body)
         end
-        cloud_error("OpenStack API Request Entity Too Large error. Check task debug log for details.", e)
+        cloud_error(message, e)
 
       rescue Excon::Errors::ServiceUnavailable => e
         unless retries >= MAX_RETRIES
