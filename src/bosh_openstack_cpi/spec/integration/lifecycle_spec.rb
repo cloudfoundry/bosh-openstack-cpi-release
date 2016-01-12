@@ -2,6 +2,7 @@ require 'spec_helper'
 require 'tempfile'
 require 'cloud'
 require 'logger'
+require 'ostruct'
 
 describe Bosh::OpenStackCloud::Cloud do
   before(:all) do
@@ -26,10 +27,12 @@ describe Bosh::OpenStackCloud::Cloud do
     # some environments may not have this set, and it isn't strictly necessary so don't raise if it isn't set
     @region             = LifecycleHelper.get_config(:region, 'BOSH_OPENSTACK_REGION', nil)
     @logger             = Logger.new(STDERR)
-    Bosh::Clouds::Config.configure(FakeDirectorConfig.new(@logger))
+    Bosh::Clouds::Config.configure(OpenStruct.new(:logger => @logger, :cpi_task_log => nil))
     @cpi_for_stemcell   = create_cpi(false, nil, nil)
     @stemcell_id        = upload_stemcell
   end
+
+  before { allow(Bosh::Clouds::Config).to receive(:logger).and_return(@logger) }
 
   after(:all) do
     @cpi_for_stemcell.delete_stemcell(@stemcell_id)
@@ -422,20 +425,5 @@ describe Bosh::OpenStackCloud::Cloud do
   def upload_stemcell
     stemcell_manifest = Psych.load_file(File.join(@stemcell_path, "stemcell.MF"))
     @cpi_for_stemcell.create_stemcell(File.join(@stemcell_path, "image"), stemcell_manifest["cloud_properties"])
-  end
-
-  class FakeDirectorConfig
-
-    def logger
-      @logger
-    end
-
-    def cpi_task_log
-      nil
-    end
-
-    def initialize(logger)
-      @logger = logger
-    end
   end
 end
