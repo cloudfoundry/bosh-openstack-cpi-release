@@ -86,6 +86,8 @@ module Bosh::OpenStackCloud
           @logger.error("Failed #{tries} times, last failure due to: #{error.inspect}") unless error.nil?
           @openstack = Fog::Compute.new(openstack_params)
         end
+      rescue Excon::Errors::SocketError => e
+        cloud_error(socket_error_msg(openstack_params) + "#{e.message}")
       rescue Bosh::Common::RetryCountExceeded, Excon::Errors::ClientError, Excon::Errors::ServerError
         cloud_error('Unable to connect to the OpenStack Compute API. Check task debug log for details.')
       end
@@ -99,6 +101,8 @@ module Bosh::OpenStackCloud
           @logger.error("Failed #{tries} times, last failure due to: #{error.inspect}") unless error.nil?
           @glance = Fog::Image.new(openstack_params)
         end
+      rescue Excon::Errors::SocketError => e
+        cloud_error(socket_error_msg(openstack_params) + "#{e.message}")
       rescue Bosh::Common::RetryCountExceeded, Excon::Errors::ClientError, Excon::Errors::ServerError
         cloud_error('Unable to connect to the OpenStack Image Service API. Check task debug log for details.')
       end
@@ -1062,6 +1066,10 @@ module Bosh::OpenStackCloud
       keypair = with_openstack { @openstack.key_pairs.find { |k| k.name == keyname } }
       cloud_error("Key-pair `#{keyname}' not found") if keypair.nil?
       @logger.debug("Using key-pair: `#{keypair.name}' (#{keypair.fingerprint})")
+    end
+
+    def socket_error_msg(openstack_params)
+      "Unable to connect to the OpenStack Keystone API #{openstack_params[:openstack_auth_url]}\n"
     end
   end
 end

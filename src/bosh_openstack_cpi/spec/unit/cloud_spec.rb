@@ -263,6 +263,28 @@ describe Bosh::OpenStackCloud::Cloud do
         'Unable to connect to the OpenStack Image Service API. Check task debug log for details.')
     end
 
+    context 'when receiving a SocketError from Openstack' do
+      let(:socket_error) { Excon::Errors::SocketError.new(SocketError.new('getaddrinfo: nodename nor servname provided, or not known')) }
+      let(:expected_error_message) { "Unable to connect to the OpenStack Keystone API #{cloud_options['properties']['openstack']['auth_url']}/tokens\ngetaddrinfo: nodename nor servname provided, or not known (SocketError)" }
+
+      it 'raises a CloudError exception enriched with the targeted OpenStack KeyStone API url for Compute API' do
+        allow(Fog::Compute).to receive(:new).and_raise(socket_error)
+
+        expect {
+          Bosh::OpenStackCloud::Cloud.new(cloud_options['properties'])
+        }.to raise_error(Bosh::Clouds::CloudError, expected_error_message)
+      end
+
+      it 'raises a CloudError exception enriched with the targeted OpenStack KeyStone API url for Image API' do
+        allow(Fog::Compute).to receive(:new).and_return(instance_double(Fog::Compute))
+        allow(Fog::Image).to receive(:new).and_raise(socket_error)
+
+        expect {
+          Bosh::OpenStackCloud::Cloud.new(cloud_options['properties'])
+        }.to raise_error(Bosh::Clouds::CloudError, expected_error_message)
+      end
+    end
+
     context 'with connection options' do
       let(:connection_options) { {'ssl_verify_peer' => false} }
       let(:merged_connection_options) {
