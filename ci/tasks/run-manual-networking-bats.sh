@@ -20,12 +20,14 @@ ensure_not_replace_value primary_network_gateway
 ensure_not_replace_value primary_network_range
 ensure_not_replace_value primary_network_manual_ip
 ensure_not_replace_value primary_network_second_manual_ip
+ensure_not_replace_value primary_network_dhcp_pool
 
 ensure_not_replace_value secondary_network_id
 ensure_not_replace_value secondary_network_cidr
 ensure_not_replace_value secondary_network_gateway
 ensure_not_replace_value secondary_network_range
 ensure_not_replace_value secondary_network_manual_ip
+ensure_not_replace_value secondary_network_dhcp_pool
 
 ####
 #
@@ -86,7 +88,7 @@ properties:
       net_id: ${primary_network_id}
       security_groups: [${openstack_security_group}]
     cidr: ${primary_network_cidr}
-    reserved: [${bosh_director_private_ip}]
+    reserved: [${bosh_director_private_ip},${primary_network_dhcp_pool}]
     static: [${primary_network_range}]
     gateway: ${primary_network_gateway}
   - name: second
@@ -96,7 +98,7 @@ properties:
       net_id: ${secondary_network_id}
       security_groups: [${openstack_security_group}]
     cidr: ${secondary_network_cidr}
-    reserved: []
+    reserved: [${secondary_network_dhcp_pool}]
     static: [${secondary_network_range}]
     gateway: ${secondary_network_gateway}
 EOF
