@@ -1,12 +1,12 @@
 PATH
   remote: .
   specs:
-    bosh_openstack_cpi (2.1.0)
+    bosh_openstack_cpi (2.1.1)
       bosh-registry
       bosh_common
       bosh_cpi
       fog (~> 1.34.0)
-      httpclient (= 2.4.0)
+      httpclient (= 2.7.1)
       membrane (~> 1.1.0)
       yajl-ruby (>= 0.8.2)
 
@@ -142,7 +142,7 @@ GEM
       fog-core
       nokogiri (~> 1.5, >= 1.5.11)
     formatador (0.2.5)
-    httpclient (2.4.0)
+    httpclient (2.7.1)
     inflecto (0.0.2)
     ipaddress (0.8.0)
     jmespath (1.1.3)
