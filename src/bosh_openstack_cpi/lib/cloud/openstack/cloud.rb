@@ -310,7 +310,15 @@ module Bosh::OpenStackCloud
         end
 
         @logger.debug("Using boot parms: `#{server_params.inspect}'")
-        server = with_openstack { @openstack.servers.create(server_params) }
+        begin
+          server = with_openstack { @openstack.servers.create(server_params) }
+        rescue Excon::Errors::Timeout => e
+          @logger.debug(e.backtrace)
+          cloud_error_message = "VM creation with name \'#{server_params[:name]}\' received a timeout. " +
+                                "The VM might still have been created by OpenStack.\nOriginal message: "
+          raise Bosh::Clouds::VMCreationFailed.new(false), cloud_error_message + e.message
+        end
+
 
         @logger.info("Creating new server `#{server.id}'...")
         begin

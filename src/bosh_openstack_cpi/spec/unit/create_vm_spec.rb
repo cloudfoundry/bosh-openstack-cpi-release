@@ -507,6 +507,25 @@ describe Bosh::OpenStackCloud::Cloud, "create_vm" do
       end
     end
 
+    context "when OpenStack raises a Timeout error" do
+      let(:socket_error) { Excon::Errors::Timeout.new('read timeout reached') }
+      it "raises a Cloud error with vm information" do
+        allow(cloud).to receive(:generate_unique_name).and_return(unique_name)
+        allow(cloud.openstack.servers).to receive(:create).and_raise(socket_error)
+
+        expect {
+          cloud.create_vm(
+              "agent-id",
+              "sc-id",
+              resource_pool_spec,
+              {"network_a" => dynamic_network_spec},
+              nil,
+              {"test_env" => "value"}
+          )
+        }.to raise_error(Bosh::Clouds::VMCreationFailed, /'vm-#{unique_name}'.*?\nOriginal message: read timeout reached/)
+      end
+    end
+
     it "destroys the server successfully and raises a Retryable Error" do
       allow(server).to receive(:destroy)
 
