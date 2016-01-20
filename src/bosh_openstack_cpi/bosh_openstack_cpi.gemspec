@@ -11,7 +11,7 @@ Gem::Specification.new do |s|
   s.email       = 'support@cloudfoundry.com'
   s.required_ruby_version = Gem::Requirement.new('>= 1.9.3')
 
-  s.files        = Dir['lib/**/*'].select{ |f| File.file? f } + %w(README.md USAGE.md)
+  s.files        = Dir['README.md', 'USAGE.md', 'lib/**/*'].select{ |f| File.file? f }
   s.require_path = 'lib'
   s.bindir       = 'bin'
   s.executables  = %w(bosh_openstack_console openstack_cpi)
