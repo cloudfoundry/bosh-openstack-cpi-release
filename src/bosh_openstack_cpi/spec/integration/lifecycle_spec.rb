@@ -263,6 +263,20 @@ describe Bosh::OpenStackCloud::Cloud do
 
       expect(no_active_vm_with_ip?(@manual_ip)).to be
     end
+
+    it 'better error message for wrong net ID' do
+      network_spec_with_wrong_net_id = {
+          'default' => {
+              'type' => 'dynamic',
+              'cloud_properties' => {
+                  'net_id' => '00000000-0000-0000-0000-000000000000'
+              }
+          }
+      }
+      expect {
+        create_vm(@stemcell_id, network_spec_with_wrong_net_id, [])
+      }.to raise_error Bosh::Clouds::VMCreationFailed, /'00000000-0000-0000-0000-000000000000'/
+    end
   end
 
   context 'when detaching a non-existing disk' do

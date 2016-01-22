@@ -60,18 +60,7 @@ module Bosh::OpenStackCloud
 
       @extra_connection_options = {'instrumentor' => Bosh::OpenStackCloud::ExconLoggingInstrumentor}
 
-      openstack_params = {
-        :provider => 'OpenStack',
-        :openstack_auth_url => @openstack_properties['auth_url'],
-        :openstack_username => @openstack_properties['username'],
-        :openstack_api_key => @openstack_properties['api_key'],
-        :openstack_tenant => @openstack_properties['tenant'],
-        :openstack_project_name => @openstack_properties['project'],
-        :openstack_domain_name => @openstack_properties['domain'],
-        :openstack_region => @openstack_properties['region'],
-        :openstack_endpoint_type => @openstack_properties['endpoint_type'],
-        :connection_options => @openstack_properties['connection_options'].merge(@extra_connection_options)
-      }
+      @openstack_params = openstack_params
 
       connect_retry_errors = [Excon::Errors::GatewayTimeout, Excon::Errors::SocketError]
 
@@ -84,10 +73,10 @@ module Bosh::OpenStackCloud
       begin
         Bosh::Common.retryable(@connect_retry_options) do |tries, error|
           @logger.error("Failed #{tries} times, last failure due to: #{error.inspect}") unless error.nil?
-          @openstack = Fog::Compute.new(openstack_params)
+          @openstack = Fog::Compute.new(@openstack_params)
         end
       rescue Excon::Errors::SocketError => e
-        cloud_error(socket_error_msg(openstack_params) + "#{e.message}")
+        cloud_error(socket_error_msg + "#{e.message}")
       rescue Bosh::Common::RetryCountExceeded, Excon::Errors::ClientError, Excon::Errors::ServerError
         cloud_error('Unable to connect to the OpenStack Compute API. Check task debug log for details.')
       end
@@ -99,10 +88,10 @@ module Bosh::OpenStackCloud
       begin
         Bosh::Common.retryable(@connect_retry_options) do |tries, error|
           @logger.error("Failed #{tries} times, last failure due to: #{error.inspect}") unless error.nil?
-          @glance = Fog::Image.new(openstack_params)
+          @glance = Fog::Image.new(@openstack_params)
         end
       rescue Excon::Errors::SocketError => e
-        cloud_error(socket_error_msg(openstack_params) + "#{e.message}")
+        cloud_error(socket_error_msg + "#{e.message}")
       rescue Bosh::Common::RetryCountExceeded, Excon::Errors::ClientError, Excon::Errors::ServerError
         cloud_error('Unable to connect to the OpenStack Image Service API. Check task debug log for details.')
       end
@@ -314,11 +303,21 @@ module Bosh::OpenStackCloud
           server = with_openstack { @openstack.servers.create(server_params) }
         rescue Excon::Errors::Timeout => e
           @logger.debug(e.backtrace)
-          cloud_error_message = "VM creation with name \'#{server_params[:name]}\' received a timeout. " +
+          cloud_error_message = "VM creation with name '#{server_params[:name]}' received a timeout. " +
                                 "The VM might still have been created by OpenStack.\nOriginal message: "
           raise Bosh::Clouds::VMCreationFailed.new(false), cloud_error_message + e.message
+        rescue Excon::Errors::NotFound, Fog::Compute::OpenStack::NotFound => e
+          not_existing_net_ids = not_existing_net_ids(nics)
+          if not_existing_net_ids.empty?
+            raise e
+          else
+            @logger.debug(e.backtrace)
+            cloud_error_message = "VM creation with name '#{server_params[:name]}' failed. Following network " +
+            "IDs are not existing or not accessible from this project: '#{not_existing_net_ids.join(",")}'. " +
+            "Make sure you do not use subnet IDs"
+            raise Bosh::Clouds::VMCreationFailed.new(false), cloud_error_message
+          end
         end
-
 
         @logger.info("Creating new server `#{server.id}'...")
         begin
@@ -345,6 +344,21 @@ module Bosh::OpenStackCloud
 
         server.id.to_s
       end
+    end
+
+    def not_existing_net_ids(nics)
+      result = []
+      begin
+        network = connect_to_network_service
+        nics.each do |nic|
+          if nic["net_id"]
+            result << nic["net_id"] unless network.networks.get(nic["net_id"])
+          end
+        end
+      rescue Bosh::Clouds::CloudError => e
+        @logger.debug(e.backtrace)
+      end
+      result
     end
 
 
@@ -678,29 +692,42 @@ module Bosh::OpenStackCloud
     #
     #
     def connect_to_volume_service
-      volume_params = {
-        :provider => "OpenStack",
-        :openstack_auth_url => @openstack_properties['auth_url'],
-        :openstack_username => @openstack_properties['username'],
-        :openstack_api_key => @openstack_properties['api_key'],
-        :openstack_tenant => @openstack_properties['tenant'],
-        :openstack_project_name => @openstack_properties['project'],
-        :openstack_domain_name => @openstack_properties['domain'],
-        :openstack_region => @openstack_properties['region'],
-        :openstack_endpoint_type => @openstack_properties['endpoint_type'],
-        :connection_options => @openstack_properties['connection_options'].merge(@extra_connection_options)
-      }
-
       begin
         Bosh::Common.retryable(@connect_retry_options) do |tries, error|
           @logger.error("Failed #{tries} times, last failure due to: #{error.inspect}") unless error.nil?
-          @volume ||= Fog::Volume.new(volume_params)
+          @volume ||= Fog::Volume.new(@openstack_params)
         end
       rescue Bosh::Common::RetryCountExceeded, Excon::Errors::ClientError, Excon::Errors::ServerError => e
         cloud_error("Unable to connect to the OpenStack Volume API: #{e.message}. Check task debug log for details.")
       end
 
       @volume
+    end
+
+    def connect_to_network_service
+      begin
+        Bosh::Common.retryable(@connect_retry_options) do |tries, error|
+          @logger.error("Failed #{tries} times, last failure due to: #{error.inspect}") unless error.nil?
+          network ||= Fog::Network.new(@openstack_params)
+        end
+      rescue Bosh::Common::RetryCountExceeded, Excon::Errors::ClientError, Excon::Errors::ServerError => e
+        cloud_error("Unable to connect to the OpenStack Network API: #{e.message}. Check task debug log for details.")
+      end
+    end
+
+    def openstack_params
+      {
+          :provider => 'OpenStack',
+          :openstack_auth_url => @openstack_properties['auth_url'],
+          :openstack_username => @openstack_properties['username'],
+          :openstack_api_key => @openstack_properties['api_key'],
+          :openstack_tenant => @openstack_properties['tenant'],
+          :openstack_project_name => @openstack_properties['project'],
+          :openstack_domain_name => @openstack_properties['domain'],
+          :openstack_region => @openstack_properties['region'],
+          :openstack_endpoint_type => @openstack_properties['endpoint_type'],
+          :connection_options => @openstack_properties['connection_options'].merge(@extra_connection_options)
+      }
     end
 
     ##
@@ -1076,8 +1103,8 @@ module Bosh::OpenStackCloud
       @logger.debug("Using key-pair: `#{keypair.name}' (#{keypair.fingerprint})")
     end
 
-    def socket_error_msg(openstack_params)
-      "Unable to connect to the OpenStack Keystone API #{openstack_params[:openstack_auth_url]}\n"
+    def socket_error_msg
+      "Unable to connect to the OpenStack Keystone API #{@openstack_params[:openstack_auth_url]}\n"
     end
   end
 end

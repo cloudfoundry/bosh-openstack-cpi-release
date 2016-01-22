@@ -526,6 +526,66 @@ describe Bosh::OpenStackCloud::Cloud, "create_vm" do
       end
     end
 
+    context "when OpenStack raises a Not Found error" do
+      let(:networks) { double('networks') }
+      let(:not_found_error) { Excon::Errors::NotFound.new('not found: 814bc266-c6de-4fd0-a713-502da09edbe9') }
+
+      before(:each) do
+        network = double(Fog::Network)
+        allow(cloud).to receive(:generate_unique_name).and_return(unique_name)
+        allow(cloud.openstack.servers).to receive(:create).and_raise(not_found_error)
+        allow(network).to receive(:networks).and_return(networks)
+        allow(Fog::Network).to receive(:new).and_return(network)
+      end
+
+      it "raises a VMCreationFailed error with subnet ID" do
+        allow(networks).to receive(:get).and_return(nil)
+
+        expect {
+          cloud.create_vm(
+              "agent-id",
+              "sc-id",
+              resource_pool_spec,
+              {"network_a" => dynamic_network_with_netid_spec},
+              nil,
+              {"test_env" => "value"}
+          )
+        }.to raise_error(Bosh::Clouds::VMCreationFailed, /'vm-#{unique_name}'.*?'net'/)
+      end
+
+      it "raises a Not Found error with existing Net IDs" do
+        allow(networks).to receive(:get).and_return('some_network')
+        network_with_different_net_id = manual_network_spec
+        network_with_different_net_id['cloud_properties']['net_id'] = 'some_other_id'
+
+        expect {
+          cloud.create_vm(
+              "agent-id",
+              "sc-id",
+              resource_pool_spec,
+              {"network_a" => dynamic_network_with_netid_spec, "network_b" => network_with_different_net_id},
+              nil,
+              {"test_env" => "value"}
+          )
+        }.to raise_error(Excon::Errors::NotFound, 'not found: 814bc266-c6de-4fd0-a713-502da09edbe9')
+      end
+
+      it "raises a Not Found error with Network service not available" do
+        allow(Fog::Network).to receive(:new).and_raise(Excon::Errors::ServerError.new("Network service not available"))
+
+        expect {
+          cloud.create_vm(
+              "agent-id",
+              "sc-id",
+              resource_pool_spec,
+              {"network_a" => dynamic_network_with_netid_spec},
+              nil,
+              {"test_env" => "value"}
+          )
+        }.to raise_error(Excon::Errors::NotFound)
+      end
+    end
+
     it "destroys the server successfully and raises a Retryable Error" do
       allow(server).to receive(:destroy)
 
