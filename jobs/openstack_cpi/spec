@@ -108,6 +108,7 @@ properties:
     description: Agent blobstore threshold for multipart uploads
   agent.blobstore.s3_signature_version:
     description: Signature version used to connect to an s3 blobstore
+    default: "2"
 
   blobstore.address:
     description: Address for agent to connect to blobstore server used by 'simple' blobstore plugin
