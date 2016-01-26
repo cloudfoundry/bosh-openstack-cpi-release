@@ -54,7 +54,7 @@ jobs:
     serial: true
     plan:
       - aggregate:
-        - {trigger: false, get: bosh-cpi-release}
+        - {trigger: true, get: bosh-cpi-release}
         - {trigger: false, get: version-semver, params: {bump: patch}}
         - {trigger: true,  get: pipeline-semver}
 
