@@ -94,94 +94,114 @@ describe 'cpi.json.erb' do
 
   context 'when using an s3 blobstore' do
     let(:rendered_blobstore) { subject['cloud']['properties']['agent']['blobstore'] }
-    before do
-      manifest['properties']['blobstore']['provider'] = 's3'
-      manifest['properties']['blobstore']['bucket_name'] = 'my_bucket'
-      manifest['properties']['blobstore']['access_key_id'] = 'blobstore-access-key-id'
-      manifest['properties']['blobstore']['secret_access_key'] = 'blobstore-secret-access-key'
-      manifest['properties']['blobstore']['use_ssl'] = false
-      manifest['properties']['blobstore']['s3_port'] = 21
-      manifest['properties']['blobstore']['host'] = 'blobstore-host'
-      manifest['properties']['blobstore']['s3_force_path_style'] = true
-      manifest['properties']['blobstore']['ssl_verify_peer'] = true
-      manifest['properties']['blobstore']['s3_multipart_threshold'] = 123
-    end
 
-    it 'renders the s3 provider section correctly' do
-      expect(rendered_blobstore).to eq(
-        {
+    context 'when provided a minimal configuration' do
+      before do
+        manifest['properties']['blobstore'].merge!({
           'provider' => 's3',
-          'options' => {
-            'bucket_name' => 'my_bucket',
-            'access_key_id' => 'blobstore-access-key-id',
-            'secret_access_key' => 'blobstore-secret-access-key',
-            'use_ssl' => false,
-            'host' => 'blobstore-host',
-            'port' => 21,
-            's3_force_path_style' => true,
-            'ssl_verify_peer' => true,
-            's3_multipart_threshold' => 123
+          'bucket_name' => 'my_bucket',
+          'access_key_id' => 'blobstore-access-key-id',
+          'secret_access_key' => 'blobstore-secret-access-key',
+        })
+      end
+
+      it 'renders the s3 provider section with the correct defaults' do
+        expect(rendered_blobstore).to eq(
+          {
+            'provider' => 's3',
+            'options' => {
+              'bucket_name' => 'my_bucket',
+              'access_key_id' => 'blobstore-access-key-id',
+              'secret_access_key' => 'blobstore-secret-access-key',
+              'region' => 'us-east-1',
+              'use_ssl' => true,
+              'ssl_verify_peer' => true,
+              'port' => 443,
+              's3_force_path_style' => false,
+            }
           }
-        }
-      )
-    end
-
-    context 'when access keys are provided at blobstore level' do
-      it 'includes them from the blobstore properties' do
-        manifest['properties']['blobstore']['access_key_id'] = 'blobstore_access_key_id'
-        manifest['properties']['blobstore']['secret_access_key'] = 'blobstore_secret_access_key'
-
-        expect(rendered_blobstore['options']['access_key_id']).to eq('blobstore_access_key_id')
-        expect(rendered_blobstore['options']['secret_access_key']).to eq('blobstore_secret_access_key')
+        )
       end
     end
 
-    context 'when access keys are provided at agent.blobstore level' do
-      it 'includes them from the agent blobstore properties' do
-        manifest['properties']['agent'] = {
-          'blobstore' => {
-            'access_key_id' => 'agent_access_key_id',
-            'secret_access_key' => 'agent_secret_access_key'
-          }
-        }
-
-        expect(rendered_blobstore['options']['access_key_id']).to eq('agent_access_key_id')
-        expect(rendered_blobstore['options']['secret_access_key']).to eq('agent_secret_access_key')
+    context 'when provided a maximal configuration' do
+      before do
+        manifest['properties']['blobstore'].merge!({
+          'provider' => 's3',
+          'bucket_name' => 'my_bucket',
+          'access_key_id' => 'blobstore-access-key-id',
+          'secret_access_key' => 'blobstore-secret-access-key',
+          's3_region' => 'blobstore-region',
+          'use_ssl' => false,
+          's3_port' => 21,
+          'host' => 'blobstore-host',
+          's3_force_path_style' => true,
+          'ssl_verify_peer' => true,
+          's3_multipart_threshold' => 123,
+          's3_signature_version' => '11'
+        })
       end
-    end
 
-    context 'when both agent and blobstore options are provided' do
-      it 'prefers the agent options' do
+      it 'renders the s3 provider section correctly' do
+        expect(rendered_blobstore).to eq(
+          {
+            'provider' => 's3',
+            'options' => {
+              'bucket_name' => 'my_bucket',
+              'access_key_id' => 'blobstore-access-key-id',
+              'secret_access_key' => 'blobstore-secret-access-key',
+              'region' => 'blobstore-region',
+              'use_ssl' => false,
+              'host' => 'blobstore-host',
+              'port' => 21,
+              's3_force_path_style' => true,
+              'ssl_verify_peer' => true,
+              's3_multipart_threshold' => 123,
+              'signature_version' => '11',
+            }
+          }
+        )
+      end
+
+      it 'prefers the agent properties when they are both included' do
         manifest['properties']['agent'] = {
           'blobstore' => {
             'access_key_id' => 'agent_access_key_id',
             'secret_access_key' => 'agent_secret_access_key',
+            's3_region' => 'agent-region',
             'use_ssl' => true,
             's3_port' => 42,
             'host' => 'agent-host',
             's3_force_path_style' => true,
             'ssl_verify_peer' => true,
-            's3_multipart_threshold' => 33
+            's3_multipart_threshold' => 33,
+            's3_signature_version' => '99',
           }
         }
 
-        manifest['properties']['blobstore']['access_key_id'] = 'blobstore_access_key_id'
-        manifest['properties']['blobstore']['secret_access_key'] = 'blobstore_secret_access_key'
-        manifest['properties']['blobstore']['use_ssl'] = false
-        manifest['properties']['blobstore']['s3_port'] = 21
-        manifest['properties']['blobstore']['host'] = 'blobstore-host'
-        manifest['properties']['blobstore']['s3_force_path_style'] = false
-        manifest['properties']['blobstore']['ssl_verify_peer'] = false
-        manifest['properties']['blobstore']['s3_multipart_threshold'] = 22
+        manifest['properties']['blobstore'].merge!({
+          'access_key_id' => 'blobstore_access_key_id',
+          'secret_access_key' => 'blobstore_secret_access_key',
+          's3_region' => 'blobstore-region',
+          'use_ssl' => false,
+          's3_port' => 21,
+          'host' => 'blobstore-host',
+          's3_force_path_style' => false,
+          'ssl_verify_peer' => false,
+          's3_multipart_threshold' => 22,
+          's3_signature_version' => '11',
+        })
 
         expect(rendered_blobstore['options']['access_key_id']).to eq('agent_access_key_id')
         expect(rendered_blobstore['options']['secret_access_key']).to eq('agent_secret_access_key')
+        expect(rendered_blobstore['options']['region']).to eq('agent-region')
         expect(rendered_blobstore['options']['use_ssl']).to be true
         expect(rendered_blobstore['options']['port']).to eq(42)
         expect(rendered_blobstore['options']['host']).to eq('agent-host')
         expect(rendered_blobstore['options']['s3_force_path_style']).to be true
         expect(rendered_blobstore['options']['ssl_verify_peer']).to be true
         expect(rendered_blobstore['options']['s3_multipart_threshold']).to eq(33)
+        expect(rendered_blobstore['options']['signature_version']).to eq('99')
       end
     end
   end

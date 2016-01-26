@@ -94,6 +94,8 @@ properties:
     description: Address for agent to connect to blobstore server used by simple blobstore plugin
   agent.blobstore.use_ssl:
     description: Whether the agent blobstore plugin should use SSL to connect to the blobstore server
+  agent.blobstore.s3_region:
+    description: AWS region for agent used by s3 blobstore plugin
   agent.blobstore.s3_port:
     description: Port of agent blobstore server used by s3 blobstore plugin
   agent.blobstore.host:
@@ -104,6 +106,8 @@ properties:
     description: Whether the agent blobstore plugin should verify its peer when using SSL
   agent.blobstore.s3_multipart_threshold:
     description: Agent blobstore threshold for multipart uploads
+  agent.blobstore.s3_signature_version:
+    description: Signature version used to connect to an s3 blobstore
 
   blobstore.address:
     description: Address for agent to connect to blobstore server used by 'simple' blobstore plugin
@@ -125,6 +129,9 @@ properties:
     description: secret_access_key used by s3 blobstore plugin
   blobstore.host:
     description: Host of blobstore server used by simple blobstore plugin
+  blobstore.s3_region:
+    description: AWS region used by s3 blobstore plugin
+    default: 'us-east-1'
   blobstore.s3_port:
     description: Port of blobstore server used by s3 blobstore plugin
     default: 443
@@ -139,6 +146,8 @@ properties:
     default: false
   blobstore.s3_multipart_threshold:
     description: Simple blobstore threshold for multipart uploads
+  blobstore.s3_signature_version:
+    description: Signature version used to connect to an s3 blobstore
 
   nats.user:
     description: NATS username used by agent to subscribe to agent requests
