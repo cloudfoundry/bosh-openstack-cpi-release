@@ -118,6 +118,7 @@ describe 'cpi.json.erb' do
               'ssl_verify_peer' => true,
               'port' => 443,
               's3_force_path_style' => false,
+              'signature_version' => '2',
             }
           }
         )

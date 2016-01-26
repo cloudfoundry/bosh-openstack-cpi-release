@@ -108,7 +108,6 @@ properties:
     description: Agent blobstore threshold for multipart uploads
   agent.blobstore.s3_signature_version:
     description: Signature version used to connect to an s3 blobstore
-    default: "2"
 
   blobstore.address:
     description: Address for agent to connect to blobstore server used by 'simple' blobstore plugin
@@ -149,6 +148,7 @@ properties:
     description: Simple blobstore threshold for multipart uploads
   blobstore.s3_signature_version:
     description: Signature version used to connect to an s3 blobstore
+    default: "2"
 
   nats.user:
     description: NATS username used by agent to subscribe to agent requests
