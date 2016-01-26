@@ -1,0 +1,10 @@
+---
+platform: linux
+image: docker:///boshcpi/openstack-cpi-release
+inputs:
+  - name: bosh-cpi-release
+  - name: lifecycle-log
+run:
+  path: bosh-cpi-release/ci/tasks/publish-api-calls.sh
+params:
+  publish_api_calls_enabled:  replace-me

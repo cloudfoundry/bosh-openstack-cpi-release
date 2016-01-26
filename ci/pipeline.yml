@@ -4,6 +4,7 @@ groups:
     jobs:
       - build-candidate
       - lifecycle
+      - publish-api-calls
       - deploy-ubuntu-manual
       - bats-ubuntu-manual
       - deploy-centos-manual
@@ -146,6 +147,24 @@ jobs:
             BOSH_OPENSTACK_CONNECT_TIMEOUT:     "600"
             BOSH_OPENSTACK_READ_TIMEOUT:        "120"
             BOSH_OPENSTACK_WRITE_TIMEOUT:       "120"
+
+      - put: lifecycle-log
+        params: {from: bosh-cpi-release/src/bosh_openstack_cpi/lifecycle.log}
+
+  - name: publish-api-calls
+    serial: true
+    plan:
+      - aggregate:
+        - {trigger: true, passed: [lifecycle], get: lifecycle-log}
+        - {trigger: false, passed: [lifecycle], get: bosh-cpi-release}
+        - {trigger: false, passed: [lifecycle], get: openstack-pipeline-lock}
+      - task: publish
+        file: bosh-cpi-release/ci/tasks/publish-api-calls.yml
+        config:
+          params:
+            publish_api_calls_enabled:  {{publish_api_calls_enabled}}
+      - put: bosh-cpi-release
+        params: {repository: publish/bosh-cpi-release, rebase: true}
 
   - name: deploy-ubuntu-manual
     serial_groups: [ubuntu-director-manual] # shouldn't deploy while bats are running
@@ -600,7 +619,7 @@ jobs:
   - name: release-lock
     serial: true
     plan:
-      - {trigger: true, passed: [lifecycle, bats-ubuntu-manual, bats-centos-manual, bats-ubuntu-dynamic, bats-centos-dynamic, deploy-test-release], get: openstack-pipeline-lock}
+      - {trigger: true, passed: [publish-api-calls, bats-ubuntu-manual, bats-centos-manual, bats-ubuntu-dynamic, bats-centos-dynamic, deploy-test-release], get: openstack-pipeline-lock}
 
       - put: openstack-pipeline-lock
         params:
@@ -613,7 +632,7 @@ jobs:
     plan:
       - aggregate:
         - {trigger: false,  passed: [lifecycle, bats-ubuntu-manual, bats-centos-manual, bats-ubuntu-dynamic, bats-centos-dynamic], get: bosh-cpi-dev-artifacts}
-        - {trigger: false, passed: [lifecycle, bats-ubuntu-manual, bats-centos-manual, bats-ubuntu-dynamic, bats-centos-dynamic], get: bosh-cpi-release}
+        - {trigger: false, passed: [publish-api-calls, bats-ubuntu-manual, bats-centos-manual, bats-ubuntu-dynamic, bats-centos-dynamic], get: bosh-cpi-release}
         - {trigger: false, get: release-version-semver, params: {bump: major}}
 
       - task: promote
@@ -634,6 +653,15 @@ resources:
     source:
       regexp: bosh-openstack-cpi\.tgz
       bucket: {{s3_openstack_cpi_pipeline_bucket_name}} # OpenStack CPI account
+      region_name: us-east-1
+      access_key_id:      {{s3_openstack_cpi_pipeline_access_key}}
+      secret_access_key:  {{s3_openstack_cpi_pipeline_secret_key}}
+
+  - name: lifecycle-log
+    type: s3
+    source:
+      bucket: {{s3_openstack_cpi_pipeline_bucket_name}} # OpenStack CPI account
+      versioned_file: lifecycle.log
       region_name: us-east-1
       access_key_id:      {{s3_openstack_cpi_pipeline_access_key}}
       secret_access_key:  {{s3_openstack_cpi_pipeline_secret_key}}

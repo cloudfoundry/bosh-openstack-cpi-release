@@ -33,4 +33,4 @@ export BOSH_OPENSTACK_STEMCELL_PATH="$PWD/openstack-lifecycle-stemcell/stemcell"
 cd bosh-cpi-release/src/bosh_openstack_cpi
 
 bundle install
-bundle exec rspec spec/integration 2>&1 | tee /dev/tty | bundle exec ruby ../../ci/ruby_scripts/get-api-calls.rb
+bundle exec rspec spec/integration 2>&1 | tee lifecycle.log
