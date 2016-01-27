@@ -4,40 +4,42 @@ require 'tempfile'
 describe "the openstack_cpi executable" do
   it 'will not evaluate anything that causes an exception and will return the proper message to stdout' do
     config_file = Tempfile.new('cloud_properties.yml')
-    config_file.write(
-      {
-        'cloud' => {
-          'properties' => {
-            'openstack' => {
-              'auth_url' => '0.0.0.0:5000/v2.0',
-              'username' => 'openstack-user',
-              'api_key' => 'openstack-password',
-              'tenant' => 'dev',
-              'region' => 'west-coast',
-              'endpoint_type' => 'publicURL',
-              'state_timeout' => 300,
-              'boot_from_volume' => false,
-              'stemcell_public_visibility' => false,
-              'connection_options' => {},
-              'default_key_name' => nil,
-              'default_security_groups' => nil,
-              'wait_resource_poll_interval' => 5,
-              'config_drive' => 'disk'
-            },
-            'registry' => {
-              'endpoint' => '0.0.0.0:5000',
-              'user' => 'registry-user',
-              'password' => 'registry-password',
-            }
-          }
-        }
-      }.to_yaml
-    )
-    config_file.close
+    File.open(config_file, 'w') do |file|
+      file.write(
+          {
+              'cloud' => {
+                  'properties' => {
+                      'openstack' => {
+                          'auth_url' => '0.0.0.0:5000/v2.0',
+                          'username' => 'openstack-user',
+                          'api_key' => 'openstack-password',
+                          'tenant' => 'dev',
+                          'region' => 'west-coast',
+                          'endpoint_type' => 'publicURL',
+                          'state_timeout' => 300,
+                          'boot_from_volume' => false,
+                          'stemcell_public_visibility' => false,
+                          'connection_options' => {},
+                          'default_key_name' => nil,
+                          'default_security_groups' => nil,
+                          'wait_resource_poll_interval' => 5,
+                          'config_drive' => 'disk'
+                      },
+                      'registry' => {
+                          'endpoint' => '0.0.0.0:5000',
+                          'user' => 'registry-user',
+                          'password' => 'registry-password',
+                      }
+                  }
+              }
+          }.to_yaml
+      )
+    end
 
     command_file = Tempfile.new('command.json')
-    command_file.write({'method'=>'ping', 'arguments'=>[], 'context'=>{'director_uuid' => 'abc123'}}.to_json)
-    command_file.close
+    File.open(command_file, 'w') do |file|
+      file.write({'method'=>'ping', 'arguments'=>[], 'context'=>{'director_uuid' => 'abc123'}}.to_json)
+    end
 
     stdoutput = `bin/openstack_cpi #{config_file.path} < #{command_file.path} 2> /dev/null`
     status = $?.exitstatus
