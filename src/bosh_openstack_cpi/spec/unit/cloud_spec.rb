@@ -341,7 +341,8 @@ describe Bosh::OpenStackCloud::Cloud do
     end
   end
 
-  describe :update_agent_settings, focus:true do
+  describe :update_agent_settings do
+
     let(:cloud_options) { mock_cloud_options }
     let(:connection_options) { nil }
     let(:merged_connection_options) { default_connection_options }
