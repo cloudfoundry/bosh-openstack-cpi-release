@@ -36,7 +36,6 @@ source /etc/profile.d/chruby-with-ruby-2.1.2.sh
 
 export BOSH_INIT_LOG_LEVEL=DEBUG
 
-semver=`cat version-semver/number`
 cpi_release_name="bosh-openstack-cpi"
 deployment_dir="${PWD}/deployment"
 manifest_filename="e2e-director-manifest.yml"
@@ -45,7 +44,7 @@ private_key=${deployment_dir}/e2e.pem
 
 echo "setting up artifacts used in $manifest_filename"
 mkdir -p ${deployment_dir}
-cp ./bosh-cpi-dev-artifacts/${cpi_release_name}-${semver}.tgz ${deployment_dir}/${cpi_release_name}.tgz
+cp ./published-bosh-cpi-release/release.tgz ${deployment_dir}/${cpi_release_name}.tgz
 cp ./bosh-release/release.tgz ${deployment_dir}/bosh-release.tgz
 cp ./stemcell/stemcell.tgz ${deployment_dir}/stemcell.tgz
 cp ./director-state-file/${director_state_filename} ${deployment_dir}/${director_state_filename}

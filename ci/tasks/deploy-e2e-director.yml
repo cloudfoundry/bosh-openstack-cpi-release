@@ -2,10 +2,9 @@
 platform: linux
 image: docker:///boshcpi/openstack-cpi-release
 inputs:
-  - name: bosh-cpi-dev-artifacts
-  - name: version-semver
   - name: director-state-file
   - name: bosh-cpi-release
+  - name: published-bosh-cpi-release
   - name: bosh-init
   - name: bosh-release
   - name: stemcell

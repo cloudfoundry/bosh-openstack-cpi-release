@@ -1,0 +1,166 @@
+---
+groups:
+  - name: e2e
+    jobs:
+      - cleanup
+      - deploy-director
+      - deploy-test-release
+
+jobs:
+  - name: deploy-director
+    serial: true
+    serial_groups: [e2e-integration] # can't run while deploying
+    plan:
+      - aggregate:
+        - {trigger: false, get: bosh-cpi-release}
+        - {trigger: true, get: bosh-init}
+        - {trigger: true, get: published-bosh-cpi-release}
+        - {trigger: true, get: bosh-release}
+        - {trigger: true, get: stemcell}
+        - {trigger: false, get: director-state-file}
+
+      - task: deploy-integration-director
+        file: bosh-cpi-release/ci/tasks/deploy-e2e-director.yml
+        config:
+          params:
+            v3_e2e_flavor:                           "m1.medium"
+            v3_e2e_connection_timeout:               "600"
+            v3_e2e_read_timeout:                     "180"
+            v3_e2e_state_timeout:                    "900"
+            v3_e2e_write_timeout:                    "180"
+            bosh_openstack_ssl_verify:               {{bosh_openstack_ssl_verify}}
+            bosh_director_username:                  {{v3_e2e_director_username}}
+            bosh_director_password:                  {{v3_e2e_director_password}}
+            dns:                                     {{dns}}
+            v3_e2e_bosh_registry_port:               {{v3_e2e_bosh_registry_port}}
+            v3_e2e_api_key:                          {{v3_e2e_api_key}}
+            v3_e2e_auth_url:                         {{openstack_auth_url_v3}}
+            v3_e2e_default_key_name:                 {{v3_e2e_default_key_name}}
+            v3_e2e_floating_ip:                      {{v3_e2e_floating_ip}}
+            v3_e2e_manual_ip:                        {{v3_e2e_manual_ip}}
+            v3_e2e_net_cidr:                         {{v3_e2e_net_cidr}}
+            v3_e2e_net_gateway:                      {{v3_e2e_net_gateway}}
+            v3_e2e_net_id:                           {{v3_e2e_net_id}}
+            v3_e2e_security_group:                   {{v3_e2e_security_group}}
+            v3_e2e_project:                          {{v3_e2e_project}}
+            v3_e2e_domain:                           {{v3_e2e_domain}}
+            v3_e2e_username:                         {{v3_e2e_username}}
+            v3_e2e_private_key_data:                 {{v3_e2e_private_key_data}}
+            v3_e2e_blobstore_bucket:                 {{v3_e2e_blobstore_bucket}}
+            v3_e2e_blobstore_host:                   {{v3_e2e_blobstore_host}}
+            v3_e2e_blobstore_access_key:             {{v3_e2e_blobstore_access_key}}
+            v3_e2e_blobstore_secret_key:             {{v3_e2e_blobstore_secret_key}}
+        ensure:
+          put: director-state-file
+          params: {from: deploy-integration-director/deployment/e2e-director-manifest-state.json}
+
+      - put: director-manifest-file
+        params: {from: deploy-integration-director/deployment/e2e-director-manifest.yml}
+
+  - name: deploy-test-release
+    serial_groups: [e2e-integration] # can't run while deploying
+    plan:
+      - aggregate:
+        - {trigger: false, passed: [deploy-director], get: bosh-cpi-release}
+        - {trigger: true, passed: [deploy-director], get: published-bosh-cpi-release}
+        - {trigger: true, passed: [deploy-director], get: stemcell}
+        - {trigger: true, passed: [deploy-director], get: bosh-init}
+        - {trigger: true, passed: [deploy-director], get: bosh-release}
+        - {trigger: false,                             get: dummy-release}
+        - {trigger: false, passed: [deploy-director],  get: director-state-file}
+        - {trigger: false, passed: [deploy-director],  get: director-manifest-file}
+
+      - task: deploy-dummy-release
+        file: bosh-cpi-release/ci/tasks/deploy-dummy-release.yml
+        config:
+          params:
+            instance_flavor:                         "m1.medium"
+            bosh_director_ip:                        {{v3_e2e_floating_ip}}
+            bosh_director_username:                  {{v3_e2e_director_username}}
+            bosh_director_password:                  {{v3_e2e_director_password}}
+            dns:                                     {{dns}}
+            v3_e2e_security_group:                   {{v3_e2e_security_group}}
+            network_id:                              {{v3_e2e_net_id}}
+            stemcell_name:                           {{v3_e2e_stemcell_name}}
+
+      - task: teardown-director
+        file: bosh-cpi-release/ci/tasks/teardown-director.yml
+        config:
+          params:
+            director_manifest_file:  "e2e-director-manifest.yml"
+            director_state_file:     "e2e-director-manifest-state.json"
+        ensure:
+          put: director-state-file
+          params: {from: teardown-director/director-manifest-file/e2e-director-manifest-state.json}
+
+  - name: cleanup
+    serial: true
+    serial_groups: [e2e-integration] # can't run while deploying
+    plan:
+      - {trigger: false, get: bosh-cpi-release}
+
+      - task: cleanup-e2e
+        file: bosh-cpi-release/ci/tasks/cleanup.yml
+        config:
+          params:
+            BOSH_OPENSTACK_IDENTITY_API_VERSION: 3
+            BOSH_OPENSTACK_DOMAIN_NAME:          {{v3_e2e_domain}}
+            BOSH_OPENSTACK_AUTH_URL:             {{openstack_auth_url_v3}}
+            BOSH_OPENSTACK_USERNAME:             {{v3_e2e_username}}
+            BOSH_OPENSTACK_API_KEY:              {{v3_e2e_api_key}}
+            BOSH_OPENSTACK_PROJECT:              {{v3_e2e_project}}
+            BOSH_OPENSTACK_SSL_VERIFY:           {{bosh_openstack_ssl_verify}}
+
+resources:
+  - name: director-state-file
+    type: s3
+    source:
+      bucket: {{s3_openstack_cpi_state_files_bucket_name}}
+      versioned_file: e2e-director-manifest-state.json
+      region_name: us-east-1
+      access_key_id: {{s3_openstack_cpi_state_files_access_key}}
+      secret_access_key: {{s3_openstack_cpi_state_files_secret_key}}
+
+  - name: director-manifest-file
+    type: s3
+    source:
+      bucket: {{s3_openstack_cpi_state_files_bucket_name}}
+      versioned_file: e2e-director-manifest.yml
+      region_name: us-east-1
+      access_key_id: {{s3_openstack_cpi_state_files_access_key}}
+      secret_access_key: {{s3_openstack_cpi_state_files_secret_key}}
+
+  - name: dummy-release
+    type: git
+    source:
+      uri: https://github.com/pivotal-cf-experimental/dummy-boshrelease.git
+      branch: master
+
+  - name: bosh-release
+    type: bosh-io-release
+    source:
+      repository: cloudfoundry/bosh
+
+  - name: published-bosh-cpi-release
+    type: bosh-io-release
+    source:
+      repository: cloudfoundry-incubator/bosh-openstack-cpi-release
+
+  - name: stemcell
+    type: bosh-io-stemcell
+    source:
+      name: {{v3_e2e_stemcell_name}}
+
+  - name: bosh-init
+    type: s3
+    source:
+      regexp: bosh-init-([0-9.]+)-linux-amd64
+      bucket: bosh-init-artifacts
+      region_name: us-east-1
+
+  - name: bosh-cpi-release
+    type: git
+    source:
+      uri: git@github.com:cloudfoundry-incubator/bosh-openstack-cpi-release.git
+      branch: master
+      private_key: {{github_deployment_key__bosh-openstack-cpi-release}}
