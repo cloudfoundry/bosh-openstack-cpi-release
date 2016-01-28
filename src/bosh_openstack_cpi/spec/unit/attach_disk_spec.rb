@@ -17,7 +17,7 @@ describe Bosh::OpenStackCloud::Cloud do
   let(:cloud_options) { mock_cloud_options }
 
   before(:each) do
-    allow(server.metadata).to receive(:get).with(:registry_key).and_return('i-test')
+    allow(server.metadata).to receive(:get).with(:registry_key).and_return(double('metadatum',{'value' => 'i-test'}))
     @registry = mock_registry
   end
 

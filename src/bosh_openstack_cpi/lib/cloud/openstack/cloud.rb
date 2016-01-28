@@ -699,7 +699,8 @@ module Bosh::OpenStackCloud
     # @param [Fog::Compute::OpenStack::Server] server OpenStack server
     def update_agent_settings(server)
       raise ArgumentError, 'Block is not provided' unless block_given?
-      registry_key = server.metadata.get(REGISTRY_KEY_TAG) || server.name
+      registry_key_metadatum = server.metadata.get(REGISTRY_KEY_TAG)
+      registry_key = registry_key_metadatum ? registry_key_metadatum.value : server.name
       @logger.info("Updating settings for server `#{server.id}'...")
       settings = @registry.read_settings(registry_key)
       yield settings

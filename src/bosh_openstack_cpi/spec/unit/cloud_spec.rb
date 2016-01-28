@@ -372,7 +372,7 @@ describe Bosh::OpenStackCloud::Cloud do
         cpi = Bosh::OpenStackCloud::Cloud.new(cloud_options['properties'])
         server = double('server', id: 'id', name: 'name', metadata: double('metadata'))
 
-        allow(server.metadata).to receive(:get).with(:registry_key).and_return('registry-tag-value')
+        allow(server.metadata).to receive(:get).with(:registry_key).and_return(double('metadatum', {'value' => 'registry-tag-value'}))
 
         expect(cpi.registry).to receive(:read_settings).with('registry-tag-value')
         expect(cpi.registry).to receive(:update_settings).with('registry-tag-value', anything)
