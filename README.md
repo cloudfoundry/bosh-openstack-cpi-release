@@ -10,6 +10,8 @@ This is a BOSH release for the Openstack CPI.
 
 See [Initializing a BOSH environment on Openstack](https://bosh.io/docs/init-openstack.html) for example usage.
 
+See [List of OpenStack API calls](docs/openstack-api-calls.md) to get an idea about the necessary OpenStack configuration for using Bosh.
+
 ## Development
 
 See [development doc](docs/development.md).
