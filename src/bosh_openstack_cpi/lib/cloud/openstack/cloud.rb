@@ -10,6 +10,7 @@ module Bosh::OpenStackCloud
 
     BOSH_APP_DIR = '/var/vcap/bosh'
     FIRST_DEVICE_NAME_LETTER = 'b'
+    REGISTRY_KEY_TAG = :registry_key
 
     CONNECT_RETRY_DELAY = 1
     CONNECT_RETRY_COUNT = 5
@@ -208,7 +209,7 @@ module Bosh::OpenStackCloud
                   network_spec = nil, disk_locality = nil, environment = nil)
       with_thread_name("create_vm(#{agent_id}, ...)") do
         @logger.info('Creating new server...')
-        server_name = "vm-#{generate_unique_name}"
+        registry_key = "vm-#{generate_unique_name}"
 
         network_configurator = NetworkConfigurator.new(network_spec)
 
@@ -269,7 +270,7 @@ module Bosh::OpenStackCloud
         end
 
         server_params = {
-          :name => server_name,
+          :name => registry_key,
           :image_ref => image.id,
           :flavor_ref => flavor.id,
           :key_name => keyname,
@@ -277,7 +278,7 @@ module Bosh::OpenStackCloud
           :os_scheduler_hints => resource_pool['scheduler_hints'],
           :nics => nics,
           :config_drive => use_config_drive,
-          :user_data => Yajl::Encoder.encode(user_data(server_name, network_spec))
+          :user_data => Yajl::Encoder.encode(user_data(registry_key, network_spec))
         }
 
         availability_zone = @az_provider.select(disk_locality, resource_pool['availability_zone'])
@@ -332,10 +333,18 @@ module Bosh::OpenStackCloud
         end
 
         begin
+          TagManager.tag(server, REGISTRY_KEY_TAG, registry_key)
+        rescue => e
+          @logger.warn("Unable tag server with 'use_id_as_name' flag: #{e.message}")
+          destroy_server(server)
+          raise Bosh::Clouds::VMCreationFailed.new(true), e.message
+        end
+
+        begin
           @logger.info("Updating settings for server `#{server.id}'...")
-          settings = initial_agent_settings(server_name, agent_id, network_spec, environment,
+          settings = initial_agent_settings(registry_key, agent_id, network_spec, environment,
                                             flavor_has_ephemeral_disk?(flavor))
-          @registry.update_settings(server.name, settings)
+          @registry.update_settings(registry_key, settings)
         rescue => e
           @logger.warn("Failed to register server: #{e.message}")
           destroy_server(server)
@@ -684,6 +693,19 @@ module Bosh::OpenStackCloud
       @options['openstack']['auth_url'].match(/\/v3(?=\/|$)/)
     end
 
+    ##
+    # Updates the agent settings
+    #
+    # @param [Fog::Compute::OpenStack::Server] server OpenStack server
+    def update_agent_settings(server)
+      raise ArgumentError, 'Block is not provided' unless block_given?
+      registry_key = server.metadata.get(REGISTRY_KEY_TAG) || server.name
+      @logger.info("Updating settings for server `#{server.id}'...")
+      settings = @registry.read_settings(registry_key)
+      yield settings
+      @registry.update_settings(registry_key, settings)
+    end
+
     private
 
     ##
@@ -781,7 +803,7 @@ module Bosh::OpenStackCloud
     # - persistent disks: /dev/sdc through /dev/sdz
     # As some kernels remap device names (from sd* to vd* or xvd*), Bosh Agent will lookup for the proper device name
     #
-    # @param [String] server_name Name of the OpenStack server (will be picked
+    # @param [String] registry_key Registry key of the OpenStack server (will be picked
     #   up by agent to fetch registry settings)
     # @param [String] agent_id Agent id (will be picked up by agent to
     #   assume its identity
@@ -789,10 +811,10 @@ module Bosh::OpenStackCloud
     # @param [Hash] environment Environment settings
     # @param [Boolean] has_ephemeral Has Ephemeral disk?
     # @return [Hash] Agent settings
-    def initial_agent_settings(server_name, agent_id, network_spec, environment, has_ephemeral)
+    def initial_agent_settings(registry_key, agent_id, network_spec, environment, has_ephemeral)
       settings = {
         'vm' => {
-          'name' => server_name
+          'name' => registry_key
         },
         'agent_id' => agent_id,
         'networks' => agent_network_spec(network_spec),
@@ -812,19 +834,6 @@ module Bosh::OpenStackCloud
         settings['use_dhcp'] = @use_dhcp
         [name, settings]
       end.flatten]
-    end
-
-    ##
-    # Updates the agent settings
-    #
-    # @param [Fog::Compute::OpenStack::Server] server OpenStack server
-    def update_agent_settings(server)
-      raise ArgumentError, 'Block is not provided' unless block_given?
-
-      @logger.info("Updating settings for server `#{server.id}'...")
-      settings = @registry.read_settings(server.name)
-      yield settings
-      @registry.update_settings(server.name, settings)
     end
 
     ##
