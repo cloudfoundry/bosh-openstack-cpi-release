@@ -212,6 +212,15 @@ cloud_provider:
 
     ntp: *ntp
 EOF
+echo "using bosh CLI version..."
+bosh version
+
+echo "targeting bosh director at ${openstack_floating_ip}"
+bosh -n target ${openstack_floating_ip}
+bosh login admin admin
+
+echo "cleanup director (especially orphan disks)"
+bosh -n cleanup --all
 
 initver=$(cat bosh-init/version)
 bosh_init="${PWD}/bosh-init/bosh-init-${initver}-linux-amd64"

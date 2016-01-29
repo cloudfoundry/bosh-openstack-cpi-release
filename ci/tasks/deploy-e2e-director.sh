@@ -10,8 +10,6 @@ ensure_not_replace_value v3_e2e_connection_timeout
 ensure_not_replace_value v3_e2e_read_timeout
 ensure_not_replace_value v3_e2e_state_timeout
 ensure_not_replace_value v3_e2e_write_timeout
-ensure_not_replace_value bosh_director_username
-ensure_not_replace_value bosh_director_password
 ensure_not_replace_value v3_e2e_bosh_registry_port
 ensure_not_replace_value bosh_openstack_ssl_verify
 ensure_not_replace_value v3_e2e_api_key
@@ -137,9 +135,9 @@ jobs:
         address: ${v3_e2e_manual_ip}
         host: ${v3_e2e_manual_ip}
         db: *db
-        http: {user: ${bosh_director_username}, password: ${bosh_director_password}, port: ${v3_e2e_bosh_registry_port}}
-        username: ${bosh_director_username}
-        password: ${bosh_director_password}
+        http: {user: admin, password: admin, port: ${v3_e2e_bosh_registry_port}}
+        username: admin
+        password: admin
         port: ${v3_e2e_bosh_registry_port}
 
       # Tells the Director/agents how to contact blobstore
@@ -159,11 +157,11 @@ jobs:
           provider: local
           local:
             users:
-              - {name: ${bosh_director_username}, password: ${bosh_director_password}}
+              - {name: admin, password: admin}
 
       hm:
         http: {user: hm, password: hm-password}
-        director_account: {user: ${bosh_director_username}, password: ${bosh_director_password}}
+        director_account: {user: admin, password: admin}
 
       dns:
         address: 127.0.0.1
@@ -220,6 +218,16 @@ cloud_provider:
 
     ntp: *ntp
 EOF
+
+echo "using bosh CLI version..."
+bosh version
+
+echo "targeting bosh director at ${v3_e2e_floating_ip}"
+bosh -n target ${v3_e2e_floating_ip}
+bosh login admin admin
+
+echo "cleanup director (especially orphan disks)"
+bosh -n cleanup --all
 
 initver=$(cat bosh-init/version)
 bosh_init="${PWD}/bosh-init/bosh-init-${initver}-linux-amd64"

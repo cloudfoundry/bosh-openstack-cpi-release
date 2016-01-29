@@ -25,13 +25,12 @@ bosh -n cleanup --all
 
 export BOSH_INIT_LOG_LEVEL=DEBUG
 
-semver=`cat version-semver/number`
 cpi_release_name="bosh-openstack-cpi"
 working_dir=${PWD}/director-manifest-file
 
 
 cp ./director-state-file/${director_state_file} ${working_dir}/
-cp ./bosh-cpi-dev-artifacts/${cpi_release_name}-${semver}.tgz ${working_dir}/${cpi_release_name}.tgz
+cp ./published-bosh-cpi-release/release.tgz ${working_dir}/${cpi_relteardown-director.ymlease_name}.tgz
 cp ./bosh-release/release.tgz ${working_dir}/bosh-release.tgz
 cp ./stemcell/stemcell.tgz ${working_dir}/stemcell.tgz
 

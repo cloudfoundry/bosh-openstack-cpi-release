@@ -5,8 +5,6 @@ set -e
 source bosh-cpi-release/ci/tasks/utils.sh
 
 ensure_not_replace_value bosh_director_ip
-ensure_not_replace_value bosh_director_username
-ensure_not_replace_value bosh_director_password
 ensure_not_replace_value dns
 ensure_not_replace_value v3_e2e_security_group
 ensure_not_replace_value stemcell_name
@@ -29,7 +27,7 @@ bosh version
 
 echo "targeting bosh director at ${bosh_director_ip}"
 bosh -n target ${bosh_director_ip}
-bosh login ${bosh_director_username} ${bosh_director_password}
+bosh login admin admin
 
 echo "uploading stemcell to director..."
 bosh -n upload stemcell --skip-if-exists ./stemcell/stemcell.tgz

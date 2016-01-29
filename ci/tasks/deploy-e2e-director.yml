@@ -19,8 +19,6 @@ params:
   v3_e2e_state_timeout:           replace-me
   v3_e2e_write_timeout:           replace-me
   bosh_openstack_ssl_verify:      replace-me
-  bosh_director_username:         replace-me
-  bosh_director_password:         replace-me
   v3_e2e_bosh_registry_port:      replace-me
   v3_e2e_api_key:                 replace-me
   v3_e2e_auth_url:                replace-me

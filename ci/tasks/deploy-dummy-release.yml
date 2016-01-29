@@ -10,8 +10,6 @@ run:
   path: bosh-cpi-release/ci/tasks/deploy-dummy-release.sh
 params:
   bosh_director_ip:        replace-me
-  bosh_director_username:  replace-me
-  bosh_director_password:  replace-me
   dns:                     replace-me
   v3_e2e_security_group:   replace-me
   stemcell_name:           replace-me

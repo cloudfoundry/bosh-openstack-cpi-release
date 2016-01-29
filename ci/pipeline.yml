@@ -188,7 +188,7 @@ jobs:
           put: ubuntu-manual-director-state-file
           params: {from: deploy/deployment/ubuntu-manual-director-manifest-state.json}
 
-      - put: ubuntu-manual-director-manifest
+      - put: ubuntu-manual-director-manifest-file
         params: {from: deploy/deployment/ubuntu-manual-director-manifest.yml}
 
   - name: bats-ubuntu-manual
@@ -199,7 +199,7 @@ jobs:
         - {trigger: false, passed: [deploy-ubuntu-manual], get: bosh-cpi-release}
         - {trigger: false, passed: [deploy-ubuntu-manual], get: stemcell, resource: openstack-ubuntu-stemcell}
         - {trigger: false, passed: [deploy-ubuntu-manual], get: director-state-file, resource: ubuntu-manual-director-state-file}
-        - {trigger: false, passed: [deploy-ubuntu-manual], get: director-manifest, resource: ubuntu-manual-director-manifest}
+        - {trigger: false, passed: [deploy-ubuntu-manual], get: director-manifest-file, resource: ubuntu-manual-director-manifest-file}
         - {trigger: false, passed: [deploy-ubuntu-manual], get: version-semver}
         - {trigger: false, passed: [deploy-ubuntu-manual], get: openstack-pipeline-lock}
         - {trigger: false,                                 get: bosh-release}
@@ -238,13 +238,11 @@ jobs:
         config:
           params:
             bosh_director_ip:                        {{bats_manual_ubuntu_director_public_ip}}
-            bosh_director_username:                  {{bosh_director_username}}
-            bosh_director_password:                  {{bosh_director_password}}
             director_manifest_file:                  "ubuntu-manual-director-manifest.yml"
             director_state_file:                     "ubuntu-manual-director-manifest-state.json"
         ensure:
           put: ubuntu-manual-director-state-file
-          params: {from: teardown-director/director-manifest/ubuntu-manual-director-manifest-state.json}
+          params: {from: teardown-director/director-manifest-file/ubuntu-manual-director-manifest-state.json}
 
   - name: deploy-ubuntu-dynamic
     serial_groups: [ubuntu-director-dynamic] # shouldn't deploy while bats are running
@@ -286,7 +284,7 @@ jobs:
           put: ubuntu-dynamic-director-state-file
           params: {from: deploy/deployment/ubuntu-dynamic-director-manifest-state.json}
 
-      - put: ubuntu-dynamic-director-manifest
+      - put: ubuntu-dynamic-director-manifest-file
         params: {from: deploy/deployment/ubuntu-dynamic-director-manifest.yml}
 
   - name: bats-ubuntu-dynamic
@@ -296,7 +294,7 @@ jobs:
         - {trigger: true,  passed: [deploy-ubuntu-dynamic], get: bosh-cpi-dev-artifacts}
         - {trigger: false, passed: [deploy-ubuntu-dynamic], get: bosh-cpi-release}
         - {trigger: false, passed: [deploy-ubuntu-dynamic], get: director-state-file, resource: ubuntu-dynamic-director-state-file}
-        - {trigger: false, passed: [deploy-ubuntu-dynamic], get: director-manifest, resource: ubuntu-dynamic-director-manifest}
+        - {trigger: false, passed: [deploy-ubuntu-dynamic], get: director-manifest-file, resource: ubuntu-dynamic-director-manifest-file}
         - {trigger: false, passed: [deploy-ubuntu-dynamic], get: stemcell, resource: openstack-ubuntu-stemcell}
         - {trigger: false, passed: [deploy-ubuntu-dynamic], get: version-semver}
         - {trigger: false, passed: [deploy-ubuntu-dynamic], get: openstack-pipeline-lock}
@@ -323,13 +321,11 @@ jobs:
         config:
           params:
             bosh_director_ip:                        {{bats_dynamic_ubuntu_director_public_ip}}
-            bosh_director_username:                  {{bosh_director_username}}
-            bosh_director_password:                  {{bosh_director_password}}
             director_manifest_file:                  "ubuntu-dynamic-director-manifest.yml"
             director_state_file:                     "ubuntu-dynamic-director-manifest-state.json"
         ensure:
           put: ubuntu-dynamic-director-state-file
-          params: {from: teardown-director/director-manifest/ubuntu-dynamic-director-manifest-state.json}
+          params: {from: teardown-director/director-manifest-file/ubuntu-dynamic-director-manifest-state.json}
 
   - name: deploy-centos-manual
     serial_groups: [centos-director-manual] # shouldn't deploy while bats are running
@@ -374,7 +370,7 @@ jobs:
           put: centos-manual-director-state-file
           params: {from: deploy/deployment/centos-manual-director-manifest-state.json}
 
-      - put: centos-manual-director-manifest
+      - put: centos-manual-director-manifest-file
         params: {from: deploy/deployment/centos-manual-director-manifest.yml}
 
   - name: bats-centos-manual
@@ -384,7 +380,7 @@ jobs:
         - {trigger: true,  passed: [deploy-centos-manual], get: bosh-cpi-dev-artifacts}
         - {trigger: false, passed: [deploy-centos-manual], get: stemcell, resource: openstack-centos-stemcell}
         - {trigger: false, passed: [deploy-centos-manual], get: director-state-file, resource: centos-manual-director-state-file}
-        - {trigger: false, passed: [deploy-centos-manual], get: director-manifest, resource: centos-manual-director-manifest}
+        - {trigger: false, passed: [deploy-centos-manual], get: director-manifest-file, resource: centos-manual-director-manifest-file}
         - {trigger: false, passed: [deploy-centos-manual], get: bosh-cpi-release}
         - {trigger: false, passed: [deploy-centos-manual], get: version-semver}
         - {trigger: false, passed: [deploy-centos-manual], get: openstack-pipeline-lock}
@@ -424,13 +420,11 @@ jobs:
         config:
           params:
             bosh_director_ip:                        {{bats_manual_centos_director_public_ip}}
-            bosh_director_username:                  {{bosh_director_username}}
-            bosh_director_password:                  {{bosh_director_password}}
             director_manifest_file:                  "centos-manual-director-manifest.yml"
             director_state_file:                     "centos-manual-director-manifest-state.json"
         ensure:
           put: centos-manual-director-state-file
-          params: {from: teardown-director/director-manifest/centos-manual-director-manifest-state.json}
+          params: {from: teardown-director/director-manifest-file/centos-manual-director-manifest-state.json}
 
   - name: deploy-centos-dynamic
     serial_groups: [centos-director-dynamic] # shouldn't deploy while bats are running
@@ -472,7 +466,7 @@ jobs:
           put: centos-dynamic-director-state-file
           params: {from: deploy/deployment/centos-dynamic-director-manifest-state.json}
 
-      - put: centos-dynamic-director-manifest
+      - put: centos-dynamic-director-manifest-file
         params: {from: deploy/deployment/centos-dynamic-director-manifest.yml}
 
   - name: bats-centos-dynamic
@@ -482,7 +476,7 @@ jobs:
         - {trigger: true,  passed: [deploy-centos-dynamic], get: bosh-cpi-dev-artifacts}
         - {trigger: false, passed: [deploy-centos-dynamic], get: stemcell, resource: openstack-centos-stemcell}
         - {trigger: false, passed: [deploy-centos-dynamic], get: director-state-file, resource: centos-dynamic-director-state-file}
-        - {trigger: false, passed: [deploy-centos-dynamic], get: director-manifest, resource: centos-dynamic-director-manifest}
+        - {trigger: false, passed: [deploy-centos-dynamic], get: director-manifest-file, resource: centos-dynamic-director-manifest-file}
         - {trigger: false, passed: [deploy-centos-dynamic], get: bosh-cpi-release}
         - {trigger: false, passed: [deploy-centos-dynamic], get: version-semver}
         - {trigger: false, passed: [deploy-centos-dynamic], get: openstack-pipeline-lock}
@@ -509,13 +503,11 @@ jobs:
         config:
           params:
             bosh_director_ip:                        {{bats_dynamic_centos_director_public_ip}}
-            bosh_director_username:                  {{bosh_director_username}}
-            bosh_director_password:                  {{bosh_director_password}}
             director_manifest_file:                  "centos-dynamic-director-manifest.yml"
             director_state_file:                     "centos-dynamic-director-manifest-state.json"
         ensure:
           put: centos-dynamic-director-state-file
-          params: {from: teardown-director/director-manifest/centos-dynamic-director-manifest-state.json}
+          params: {from: teardown-director/director-manifest-file/centos-dynamic-director-manifest-state.json}
 
   - name: release-lock
     serial: true
@@ -576,7 +568,7 @@ resources:
       access_key_id: {{s3_openstack_cpi_state_files_access_key}}
       secret_access_key: {{s3_openstack_cpi_state_files_secret_key}}
 
-  - name: ubuntu-manual-director-manifest
+  - name: ubuntu-manual-director-manifest-file
     type: s3
     source:
       bucket: {{s3_openstack_cpi_state_files_bucket_name}}
@@ -594,7 +586,7 @@ resources:
       access_key_id: {{s3_openstack_cpi_state_files_access_key}}
       secret_access_key: {{s3_openstack_cpi_state_files_secret_key}}
 
-  - name: centos-manual-director-manifest
+  - name: centos-manual-director-manifest-file
     type: s3
     source:
       bucket: {{s3_openstack_cpi_state_files_bucket_name}}
@@ -612,7 +604,7 @@ resources:
       access_key_id: {{s3_openstack_cpi_state_files_access_key}}
       secret_access_key: {{s3_openstack_cpi_state_files_secret_key}}
 
-  - name: ubuntu-dynamic-director-manifest
+  - name: ubuntu-dynamic-director-manifest-file
     type: s3
     source:
       bucket: {{s3_openstack_cpi_state_files_bucket_name}}
@@ -630,7 +622,7 @@ resources:
       access_key_id: {{s3_openstack_cpi_state_files_access_key}}
       secret_access_key: {{s3_openstack_cpi_state_files_secret_key}}
 
-  - name: centos-dynamic-director-manifest
+  - name: centos-dynamic-director-manifest-file
     type: s3
     source:
       bucket: {{s3_openstack_cpi_state_files_bucket_name}}

@@ -29,8 +29,6 @@ jobs:
             v3_e2e_state_timeout:                    "900"
             v3_e2e_write_timeout:                    "180"
             bosh_openstack_ssl_verify:               {{bosh_openstack_ssl_verify}}
-            bosh_director_username:                  {{v3_e2e_director_username}}
-            bosh_director_password:                  {{v3_e2e_director_password}}
             dns:                                     {{dns}}
             v3_e2e_bosh_registry_port:               {{v3_e2e_bosh_registry_port}}
             v3_e2e_api_key:                          {{v3_e2e_api_key}}
@@ -76,19 +74,18 @@ jobs:
           params:
             instance_flavor:                         "m1.medium"
             bosh_director_ip:                        {{v3_e2e_floating_ip}}
-            bosh_director_username:                  {{v3_e2e_director_username}}
-            bosh_director_password:                  {{v3_e2e_director_password}}
             dns:                                     {{dns}}
             v3_e2e_security_group:                   {{v3_e2e_security_group}}
             network_id:                              {{v3_e2e_net_id}}
             stemcell_name:                           {{v3_e2e_stemcell_name}}
 
       - task: teardown-director
-        file: bosh-cpi-release/ci/tasks/teardown-director.yml
+        file: bosh-cpi-release/ci/tasks/teardown-director-e2e.yml
         config:
           params:
             director_manifest_file:  "e2e-director-manifest.yml"
             director_state_file:     "e2e-director-manifest-state.json"
+            openstack_floating_ip:   {{v3_e2e_floating_ip}}
         ensure:
           put: director-state-file
           params: {from: teardown-director/director-manifest-file/e2e-director-manifest-state.json}

@@ -3,15 +3,14 @@ platform: linux
 image: docker:///boshcpi/openstack-cpi-release
 inputs:
   - name: bosh-cpi-release
-  - name: bosh-cpi-dev-artifacts
+  - name: published-bosh-cpi-release
   - name: director-state-file
   - name: director-manifest-file
   - name: bosh-init
   - name: stemcell
   - name: bosh-release
-  - name: version-semver
 run:
-  path: bosh-cpi-release/ci/tasks/teardown-director.sh
+  path: bosh-cpi-release/ci/tasks/teardown-director-e2e.sh
 params:
   bosh_director_ip:        replace-me
   director_state_file:     replace-me
