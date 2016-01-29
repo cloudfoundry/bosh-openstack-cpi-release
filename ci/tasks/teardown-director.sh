@@ -4,11 +4,25 @@ set -e
 
 source bosh-cpi-release/ci/tasks/utils.sh
 
+ensure_not_replace_value bosh_director_ip
+ensure_not_replace_value bosh_director_username
+ensure_not_replace_value bosh_director_password
 ensure_not_replace_value director_state_file
 ensure_not_replace_value director_manifest_file
 
 source /etc/profile.d/chruby.sh
 chruby 2.1.2
+
+echo "using bosh CLI version..."
+bosh version
+
+echo "targeting bosh director at ${bosh_director_ip}"
+bosh -n target ${bosh_director_ip}
+bosh login ${bosh_director_username} ${bosh_director_password}
+
+bosh -n cleanup --all
+
+
 
 export BOSH_INIT_LOG_LEVEL=DEBUG
 

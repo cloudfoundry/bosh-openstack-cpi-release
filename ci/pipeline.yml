@@ -258,8 +258,11 @@ jobs:
         file: bosh-cpi-release/ci/tasks/teardown-director.yml
         config:
           params:
-            director_manifest_file:  "ubuntu-manual-director-manifest.yml"
-            director_state_file:     "ubuntu-manual-director-manifest-state.json"
+            bosh_director_ip:                        {{bats_manual_ubuntu_director_public_ip}}
+            bosh_director_username:                  {{bosh_director_username}}
+            bosh_director_password:                  {{bosh_director_password}}
+            director_manifest_file:                  "ubuntu-manual-director-manifest.yml"
+            director_state_file:                     "ubuntu-manual-director-manifest-state.json"
         ensure:
           put: ubuntu-manual-director-state-file
           params: {from: teardown-director/director-manifest/ubuntu-manual-director-manifest-state.json}
@@ -340,8 +343,11 @@ jobs:
         file: bosh-cpi-release/ci/tasks/teardown-director.yml
         config:
           params:
-            director_manifest_file: "ubuntu-dynamic-director-manifest.yml"
-            director_state_file:    "ubuntu-dynamic-director-manifest-state.json"
+            bosh_director_ip:                        {{bats_dynamic_ubuntu_director_public_ip}}
+            bosh_director_username:                  {{bosh_director_username}}
+            bosh_director_password:                  {{bosh_director_password}}
+            director_manifest_file:                  "ubuntu-dynamic-director-manifest.yml"
+            director_state_file:                     "ubuntu-dynamic-director-manifest-state.json"
         ensure:
           put: ubuntu-dynamic-director-state-file
           params: {from: teardown-director/director-manifest/ubuntu-dynamic-director-manifest-state.json}
@@ -438,8 +444,11 @@ jobs:
         file: bosh-cpi-release/ci/tasks/teardown-director.yml
         config:
           params:
-            director_manifest_file:   "centos-manual-director-manifest.yml"
-            director_state_file:      "centos-manual-director-manifest-state.json"
+            bosh_director_ip:                        {{bats_manual_centos_director_public_ip}}
+            bosh_director_username:                  {{bosh_director_username}}
+            bosh_director_password:                  {{bosh_director_password}}
+            director_manifest_file:                  "centos-manual-director-manifest.yml"
+            director_state_file:                     "centos-manual-director-manifest-state.json"
         ensure:
           put: centos-manual-director-state-file
           params: {from: teardown-director/director-manifest/centos-manual-director-manifest-state.json}
@@ -520,8 +529,11 @@ jobs:
         file: bosh-cpi-release/ci/tasks/teardown-director.yml
         config:
           params:
-            director_manifest_file:  "centos-dynamic-director-manifest.yml"
-            director_state_file:     "centos-dynamic-director-manifest-state.json"
+            bosh_director_ip:                        {{bats_dynamic_centos_director_public_ip}}
+            bosh_director_username:                  {{bosh_director_username}}
+            bosh_director_password:                  {{bosh_director_password}}
+            director_manifest_file:                  "centos-dynamic-director-manifest.yml"
+            director_state_file:                     "centos-dynamic-director-manifest-state.json"
         ensure:
           put: centos-dynamic-director-state-file
           params: {from: teardown-director/director-manifest/centos-dynamic-director-manifest-state.json}
@@ -610,8 +622,11 @@ jobs:
         file: bosh-cpi-release/ci/tasks/teardown-director.yml
         config:
           params:
-            director_manifest_file:  "e2e-director-manifest.yml"
-            director_state_file:     "e2e-director-manifest-state.json"
+            bosh_director_ip:                        {{v3_e2e_floating_ip}}
+            bosh_director_username:                  {{v3_e2e_director_username}}
+            bosh_director_password:                  {{v3_e2e_director_password}}
+            director_manifest_file:                  "e2e-director-manifest.yml"
+            director_state_file:                     "e2e-director-manifest-state.json"
         ensure:
           put: e2e-director-state-file
           params: {from: teardown-director/director-manifest/e2e-director-manifest-state.json}
