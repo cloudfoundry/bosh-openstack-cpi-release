@@ -223,11 +223,12 @@ echo "using bosh CLI version..."
 bosh version
 
 echo "targeting bosh director at ${v3_e2e_floating_ip}"
-bosh -n target ${v3_e2e_floating_ip}
-bosh login admin admin
-
-echo "cleanup director (especially orphan disks)"
-bosh -n cleanup --all
+bosh -n target ${v3_e2e_floating_ip} || failed_exit_code=$?
+if [ -z "$failed_exit_code" ]; then
+  bosh login admin admin
+  echo "cleanup director (especially orphan disks)"
+  bosh -n cleanup --all
+fi
 
 initver=$(cat bosh-init/version)
 bosh_init="${PWD}/bosh-init/bosh-init-${initver}-linux-amd64"
