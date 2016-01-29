@@ -671,6 +671,18 @@ module Bosh::OpenStackCloud
           metadata.each do |name, value|
             TagManager.tag(server, name, value)
           end
+
+          if server.metadata.get(REGISTRY_KEY_TAG)
+            job = metadata['job']
+            index = metadata['index']
+            compiling = metadata['compiling']
+            if job && index
+              @openstack.update_server(server_id, { 'name' => "#{job}/#{index}"})
+            elsif compiling
+              @openstack.update_server(server_id, { 'name' => "compilation/#{compiling}"})
+            end
+          end
+
         end
       end
     end
@@ -764,14 +776,14 @@ module Bosh::OpenStackCloud
     ##
     # Prepare server user data
     #
-    # @param [String] server_name server name
+    # @param [String] registry_key used by agent to look up settings from registry
     # @param [Hash] network_spec network specification
     # @return [Hash] server user data
-    def user_data(server_name, network_spec, public_key = nil)
+    def user_data(registry_key, network_spec, public_key = nil)
       data = {}
 
       data['registry'] = { 'endpoint' => @registry.endpoint }
-      data['server'] = { 'name' => server_name }
+      data['server'] = { 'name' => registry_key }
       data['openssh'] = { 'public_key' => public_key } if public_key
       data['networks'] = agent_network_spec(network_spec)
 
