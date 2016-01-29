@@ -34,7 +34,7 @@ openstack_delete_entities() {
   done
 }
 
-for instance in $(openstack server list $INSECURE --format json | jq --raw-output .[].Name)
+for instance in $(openstack server list $INSECURE --format json | jq --raw-output .[].ID)
 do
   echo "Checking server $instance for attached volumes ..."
   volumes=$(openstack server show $INSECURE --format json $instance | jq --raw-output '.[] | select(.Field=="os-extended-volumes:volumes_attached") | .Value[].id')
