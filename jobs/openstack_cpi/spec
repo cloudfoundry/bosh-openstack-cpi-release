@@ -131,7 +131,6 @@ properties:
     description: Host of blobstore server used by simple blobstore plugin
   blobstore.s3_region:
     description: AWS region used by s3 blobstore plugin
-    default: 'us-east-1'
   blobstore.s3_port:
     description: Port of blobstore server used by s3 blobstore plugin
     default: 443
@@ -148,7 +147,6 @@ properties:
     description: Simple blobstore threshold for multipart uploads
   blobstore.s3_signature_version:
     description: Signature version used to connect to an s3 blobstore
-    default: "2"
 
   nats.user:
     description: NATS username used by agent to subscribe to agent requests

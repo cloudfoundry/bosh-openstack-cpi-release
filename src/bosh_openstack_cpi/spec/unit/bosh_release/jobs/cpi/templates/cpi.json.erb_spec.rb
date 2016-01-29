@@ -113,12 +113,10 @@ describe 'cpi.json.erb' do
               'bucket_name' => 'my_bucket',
               'access_key_id' => 'blobstore-access-key-id',
               'secret_access_key' => 'blobstore-secret-access-key',
-              'region' => 'us-east-1',
               'use_ssl' => true,
               'ssl_verify_peer' => true,
               'port' => 443,
               's3_force_path_style' => false,
-              'signature_version' => '2',
             }
           }
         )
