@@ -713,7 +713,7 @@ module Bosh::OpenStackCloud
       raise ArgumentError, 'Block is not provided' unless block_given?
       registry_key_metadatum = server.metadata.get(REGISTRY_KEY_TAG)
       registry_key = registry_key_metadatum ? registry_key_metadatum.value : server.name
-      @logger.info("Updating settings for server `#{server.id}'...")
+      @logger.info("Updating settings for server `#{server.id}' with registry key `#{registry_key}'...")
       settings = @registry.read_settings(registry_key)
       yield settings
       @registry.update_settings(registry_key, settings)
@@ -816,18 +816,17 @@ module Bosh::OpenStackCloud
     # - persistent disks: /dev/sdc through /dev/sdz
     # As some kernels remap device names (from sd* to vd* or xvd*), Bosh Agent will lookup for the proper device name
     #
-    # @param [String] registry_key Registry key of the OpenStack server (will be picked
-    #   up by agent to fetch registry settings)
+    # @param [String] uuid Initial uuid
     # @param [String] agent_id Agent id (will be picked up by agent to
     #   assume its identity
     # @param [Hash] network_spec Agent network spec
     # @param [Hash] environment Environment settings
     # @param [Boolean] has_ephemeral Has Ephemeral disk?
     # @return [Hash] Agent settings
-    def initial_agent_settings(registry_key, agent_id, network_spec, environment, has_ephemeral)
+    def initial_agent_settings(uuid, agent_id, network_spec, environment, has_ephemeral)
       settings = {
         'vm' => {
-          'name' => registry_key
+          'name' => uuid
         },
         'agent_id' => agent_id,
         'networks' => agent_network_spec(network_spec),
