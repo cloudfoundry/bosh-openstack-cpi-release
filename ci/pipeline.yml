@@ -636,6 +636,11 @@ resources:
     source:
       uri: git@github.com:cloudfoundry-incubator/bosh-openstack-cpi-release.git
       branch: master
+      ignore_paths:
+        - releases/bosh-openstack-cpi/**/*
+        - .final_builds/**/*
+        - docs/**/*
+        - README.md
       private_key: {{github_deployment_key__bosh-openstack-cpi-release}}
 
   - name: version-semver
