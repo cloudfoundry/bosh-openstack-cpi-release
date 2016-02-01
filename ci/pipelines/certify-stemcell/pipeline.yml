@@ -65,7 +65,7 @@ jobs:
         - {trigger: true, passed: [deploy-director], get: bosh-init}
         - {trigger: true, passed: [deploy-director], get: bosh-release}
         - {trigger: false,                             get: dummy-release}
-        - {trigger: false, passed: [deploy-director],  get: director-state-file}
+        - {trigger: true, passed: [deploy-director],  get: director-state-file}
         - {trigger: false, passed: [deploy-director],  get: director-manifest-file}
 
       - task: deploy-dummy-release
@@ -85,7 +85,7 @@ jobs:
           params:
             director_manifest_file:  "e2e-director-manifest.yml"
             director_state_file:     "e2e-director-manifest-state.json"
-            openstack_floating_ip:   {{v3_e2e_floating_ip}}
+            bosh_director_ip:        {{v3_e2e_floating_ip}}
         ensure:
           put: director-state-file
           params: {from: teardown-director/director-manifest-file/e2e-director-manifest-state.json}
