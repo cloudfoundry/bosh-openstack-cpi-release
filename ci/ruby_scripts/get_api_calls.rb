@@ -47,7 +47,6 @@ def unescape_double_quote(string)
   string.gsub('\"', '"') if string
 end
 
-
 def run
   catalog = nil
   requests = []
@@ -93,26 +92,34 @@ def run
       request[:target] = target_service(request, catalog)
     end
 
-    catalog['access']['serviceCatalog'].each do |catalog_entry|
-      puts "### All calls for API endpoint '#{catalog_entry['type']} (#{catalog_entry['name']})'"
-      filtered_requests = requests.select { |request| request[:target][:type] == catalog_entry['type'] }
-      if !filtered_requests.empty?
-        puts '```'
-        filtered_requests.sort_by! { |request| request[:path] }
-        filtered_requests.each do |request|
-          body = ''
-          if request[:body]
-            body = "body: #{unescape_double_quote(request[:body])}"
-          end
-          puts "#{request[:method]} #{request[:path]} #{body}"
-        end
-        puts '```'
-        puts
-      end
+    lines = catalog['access']['serviceCatalog']
+    .sort_by { |entry| entry['type'] }
+    .reduce([]) do |result, catalog_entry|
+      result << ["### All calls for API endpoint '#{catalog_entry['type']} (#{catalog_entry['name']})'"]
+      requests_per_catalog_entry = requests.select(&request_of(catalog_entry['type'])).map(&to_formatted_line).sort
+
+      result.push(*['```', requests_per_catalog_entry, '```']) unless requests_per_catalog_entry.empty?
+
+      result
     end
+    lines.each { |line| puts line }
   else
     puts 'No catalog found'
   end
+end
+
+def request_of(catalog_entry_type)
+  lambda { |request| request[:target][:type] == catalog_entry_type }
+end
+
+def to_formatted_line
+  lambda { | request|
+    body = ''
+    if request[:body]
+      body = " body: #{unescape_double_quote(request[:body])}"
+    end
+    "#{request[:method]} #{request[:path]}#{body}"
+  }
 end
 
 run
