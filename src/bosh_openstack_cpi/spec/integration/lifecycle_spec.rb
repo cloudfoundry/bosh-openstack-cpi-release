@@ -111,16 +111,6 @@ describe Bosh::OpenStackCloud::Cloud do
         }.to_not raise_error
       end
     end
-
-    describe 'set_vm_metadata' do
-
-      it 'sets the vm name according to the metadata' do
-        vm_id = create_vm(@stemcell_id, network_spec, [])
-        vm = cpi.openstack.servers.get(vm_id)
-        expect(vm.name).to eq 'openstack_cpi_spec/0'
-      end
-
-    end
   end
 
   describe 'manual network' do
@@ -346,9 +336,9 @@ describe Bosh::OpenStackCloud::Cloud do
 
     @logger.info("Setting VM metadata vm_id=#{vm_id}")
     cpi.set_vm_metadata(vm_id, {
-      'deployment' => 'deployment',
-      'job' => 'openstack_cpi_spec',
-      'index' => '0',
+      :deployment => 'deployment',
+      :job => 'openstack_cpi_spec',
+      :index => '0',
     })
 
     vm_id

@@ -5,14 +5,12 @@ require "spec_helper"
 
 describe Bosh::OpenStackCloud::Cloud do
 
-  let(:server) { double("server", :id => "i-test", :name => "i-test", :metadata => double('metadata')) }
-
   before(:each) do
-    allow(server.metadata).to receive(:get).with(:registry_key).and_return(double('metadatum', { "value" => 'i-test'}))
     @registry = mock_registry
   end
 
   it "detaches an OpenStack volume from a server" do
+    server = double("server", :id => "i-test", :name => "i-test")
     volume = double("volume", :id => "v-foobar")
     volume_attachments = [{"id" => "a1", "volumeId" => "v-foobar"}, {"id" => "a2", "volumeId" => "v-barfoo"}]
 
@@ -51,6 +49,7 @@ describe Bosh::OpenStackCloud::Cloud do
   end
 
   it "bypasses the detaching process when volume is not attached to a server" do
+    server = double("server", :id => "i-test", :name => "i-test")
     volume = double("volume", :id => "v-barfoo")
     volume_attachments = [{"volumeId" => "v-foobar"}]
 
@@ -88,6 +87,7 @@ describe Bosh::OpenStackCloud::Cloud do
   end
 
   it "bypasses the detaching process when volume is missing" do
+    server = double("server", :id => "i-test", :name => "i-test")
 
     cloud = mock_cloud do |openstack|
       allow(openstack.servers).to receive(:get).with("i-test").and_return(server)

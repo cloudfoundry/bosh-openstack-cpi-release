@@ -340,46 +340,5 @@ describe Bosh::OpenStackCloud::Cloud do
       end
     end
   end
-
-  describe :update_agent_settings do
-
-    let(:cloud_options) { mock_cloud_options }
-    let(:connection_options) { nil }
-    let(:merged_connection_options) { default_connection_options }
-
-    let(:compute) { instance_double('Fog::Compute') }
-    before { allow(Fog::Compute).to receive(:new).and_return(compute) }
-
-    let(:image) { instance_double('Fog::Image') }
-    before { allow(Fog::Image).to receive(:new).and_return(image) }
-
-    context 'when server has no registry_key tag' do
-      it 'uses the server name as key' do
-        cpi = Bosh::OpenStackCloud::Cloud.new(cloud_options['properties'])
-        server = double('server', id: 'id', name: 'name', metadata: double('metadata'))
-
-        allow(server.metadata).to receive(:get).with(:registry_key).and_return(nil)
-
-        expect(cpi.registry).to receive(:read_settings).with('name')
-        expect(cpi.registry).to receive(:update_settings).with('name', anything)
-
-        cpi.update_agent_settings(server) {}
-      end
-    end
-
-    context 'when server has no registry_key tag' do
-      it 'uses the server name as key' do
-        cpi = Bosh::OpenStackCloud::Cloud.new(cloud_options['properties'])
-        server = double('server', id: 'id', name: 'name', metadata: double('metadata'))
-
-        allow(server.metadata).to receive(:get).with(:registry_key).and_return(double('metadatum', {'value' => 'registry-tag-value'}))
-
-        expect(cpi.registry).to receive(:read_settings).with('registry-tag-value')
-        expect(cpi.registry).to receive(:update_settings).with('registry-tag-value', anything)
-
-        cpi.update_agent_settings(server) {}
-      end
-    end
-  end
 end
 
