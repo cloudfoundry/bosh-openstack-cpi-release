@@ -525,7 +525,7 @@ jobs:
     plan:
       - aggregate:
         - {trigger: false,  passed: [lifecycle, bats-ubuntu-manual, bats-centos-manual, bats-ubuntu-dynamic, bats-centos-dynamic], get: bosh-cpi-dev-artifacts}
-        - {trigger: false, passed: [publish-api-calls, bats-ubuntu-manual, bats-centos-manual, bats-ubuntu-dynamic, bats-centos-dynamic], get: bosh-cpi-release}
+        - {trigger: false, passed: [lifecycle, bats-ubuntu-manual, bats-centos-manual, bats-ubuntu-dynamic, bats-centos-dynamic], get: bosh-cpi-release}
         - {trigger: false, get: release-version-semver, params: {bump: major}}
 
       - task: promote
