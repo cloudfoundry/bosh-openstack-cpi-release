@@ -78,15 +78,16 @@ describe Bosh::OpenStackCloud::Cloud, "create_vm" do
   let(:nics) { [] }
   let(:scheduler_hints) { nil }
 
-  before(:each) do
-    @registry = mock_registry
-  end
-
   let(:address) do
     double("address", :id => "a-test", :ip => "10.0.0.1",
-      :instance_id => "i-test")
+           :instance_id => "i-test")
   end
-  before { allow(address).to receive(:server=).with(nil) }
+
+  before(:each) do
+    @registry = mock_registry
+    allow(address).to receive(:server=).with(nil)
+    allow(Bosh::OpenStackCloud::TagManager).to receive(:tag)
+  end
 
   def stub_openstack(openstack)
     allow(openstack.security_groups).to receive(:collect).and_return(%w[default])
@@ -106,7 +107,7 @@ describe Bosh::OpenStackCloud::Cloud, "create_vm" do
     expect(cloud).to receive(:wait_resource).with(server, :active, :state)
 
     expect(@registry).to receive(:update_settings).
-        with("i-test", agent_settings(unique_name))
+        with("vm-#{unique_name}", agent_settings(unique_name))
 
     vm_id = cloud.create_vm("agent-id", "sc-id",
                             resource_pool_spec,
@@ -138,7 +139,7 @@ describe Bosh::OpenStackCloud::Cloud, "create_vm" do
       expect(cloud).to receive(:wait_resource).with(server, :active, :state)
 
       expect(@registry).to receive(:update_settings).
-        with("i-test", agent_settings(unique_name, network_spec))
+        with("vm-#{unique_name}", agent_settings(unique_name, network_spec))
 
       vm_id = cloud.create_vm("agent-id", "sc-id",
         resource_pool_spec,
@@ -197,7 +198,7 @@ describe Bosh::OpenStackCloud::Cloud, "create_vm" do
 
         expect(cloud).to receive(:generate_unique_name).and_return(unique_name)
         expect(cloud).to receive(:wait_resource).with(server, :active, :state)
-        expect(@registry).to receive(:update_settings).with("i-test", agent_settings(unique_name, network_with_security_group_spec))
+        expect(@registry).to receive(:update_settings).with("vm-#{unique_name}", agent_settings(unique_name, network_with_security_group_spec))
 
         vm_id = cloud.create_vm("agent-id", "sc-id",
           resource_pool_spec,
@@ -230,7 +231,7 @@ describe Bosh::OpenStackCloud::Cloud, "create_vm" do
 
         expect(cloud).to receive(:generate_unique_name).and_return(unique_name)
         expect(cloud).to receive(:wait_resource).with(server, :active, :state)
-        expect(@registry).to receive(:update_settings).with("i-test", agent_settings(unique_name, dynamic_network_without_security_group_spec))
+        expect(@registry).to receive(:update_settings).with("vm-#{unique_name}", agent_settings(unique_name, dynamic_network_without_security_group_spec))
 
         vm_id = cloud.create_vm("agent-id", "sc-id",
           resource_pool_with_security_group_spec,
@@ -268,7 +269,7 @@ describe Bosh::OpenStackCloud::Cloud, "create_vm" do
       expect(cloud).to receive(:wait_resource).with(server, :active, :state)
 
       expect(@registry).to receive(:update_settings).
-        with("i-test", agent_settings(unique_name, network_spec))
+        with("vm-#{unique_name}", agent_settings(unique_name, network_spec))
 
       vm_id = cloud.create_vm("agent-id", "sc-id",
         resource_pool_spec,
@@ -306,7 +307,7 @@ describe Bosh::OpenStackCloud::Cloud, "create_vm" do
       expect(cloud).to receive(:wait_resource).with(server, :active, :state)
 
       expect(@registry).to receive(:update_settings).
-        with("i-test", agent_settings(unique_name, network_spec))
+        with("vm-#{unique_name}", agent_settings(unique_name, network_spec))
 
       vm_id = cloud.create_vm("agent-id", "sc-id",
         resource_pool_spec,
@@ -403,7 +404,7 @@ describe Bosh::OpenStackCloud::Cloud, "create_vm" do
       expect(cloud).to receive(:wait_resource).with(boot_volume, :available)
 
       expect(@registry).to receive(:update_settings).
-        with("i-test", agent_settings(unique_name, network_spec))
+        with("vm-#{unique_name}", agent_settings(unique_name, network_spec))
 
       vm_id = cloud.create_vm("agent-id", "sc-id",
         resource_pool_spec,
@@ -453,7 +454,7 @@ describe Bosh::OpenStackCloud::Cloud, "create_vm" do
       expect(cloud).to receive(:wait_resource).with(boot_volume, :available)
 
       expect(@registry).to receive(:update_settings).
-        with("i-test", agent_settings(unique_name, network_spec))
+        with("vm-#{unique_name}", agent_settings(unique_name, network_spec))
 
       vm_id = cloud.create_vm("agent-id", "sc-id",
         resource_pool_spec,
@@ -483,7 +484,7 @@ describe Bosh::OpenStackCloud::Cloud, "create_vm" do
       allow(cloud).to receive(:generate_unique_name).and_return(unique_name)
       allow(cloud).to receive(:wait_resource).with(server, :active, :state)
 
-      allow(@registry).to receive(:update_settings).with("i-test", agent_settings(unique_name, network_spec))
+      allow(@registry).to receive(:update_settings).with("vm-#{unique_name}", agent_settings(unique_name, network_spec))
 
       vm_id = cloud.create_vm("agent-id", "sc-id",
         resource_pool_spec,
@@ -852,7 +853,7 @@ describe Bosh::OpenStackCloud::Cloud, "create_vm" do
       expect(cloud).to receive(:wait_resource).with(server, :active, :state)
 
       expect(@registry).to receive(:update_settings).
-          with("i-test", agent_settings(unique_name, expected_network_spec))
+          with("vm-#{unique_name}", agent_settings(unique_name, expected_network_spec))
 
       vm_id = cloud.create_vm("agent-id", "sc-id",
         resource_pool_spec,
@@ -874,7 +875,7 @@ describe Bosh::OpenStackCloud::Cloud, "create_vm" do
     def stub_cloud(cloud)
       allow(cloud).to receive(:generate_unique_name).and_return(unique_name)
       allow(cloud).to receive(:wait_resource).with(server, :active, :state)
-      allow(@registry).to receive(:update_settings).with("i-test", agent_settings(unique_name, dynamic_network_spec))
+      allow(@registry).to receive(:update_settings).with("vm-#{unique_name}", agent_settings(unique_name, dynamic_network_spec))
     end
 
     context 'when key_name is only defined in resource pool' do
@@ -949,6 +950,72 @@ describe Bosh::OpenStackCloud::Cloud, "create_vm" do
                           { "network_a" => dynamic_network_spec },
                           nil, { "test_env" => "value" })
         }.to raise_error(Bosh::Clouds::CloudError, "Key-pair `' not found")
+      end
+    end
+  end
+
+  describe 'use "vm-<uuid>" as registry key' do
+
+    context 'when "human_readable_vm_names" is enabled' do
+
+      let(:cloud) do
+        options = mock_cloud_options['properties']
+        options['openstack']['human_readable_vm_names'] = true
+        mock_cloud(options) do |openstack|
+          allow(openstack.servers).to receive(:create).and_return(server)
+          stub_openstack(openstack)
+        end
+      end
+
+      it 'tags registry_key with "vm-<uuid>"' do
+        allow(cloud).to receive(:generate_unique_name).and_return(unique_name)
+        allow(cloud).to receive(:wait_resource)
+        allow(@registry).to receive(:update_settings)
+
+        expect(Bosh::OpenStackCloud::TagManager).to receive(:tag).with(server, :registry_key, "vm-#{unique_name}")
+
+
+        cloud.create_vm("agent-id", "sc-id",
+                        resource_pool_spec,
+                        { "network_a" => dynamic_network_spec },
+                        nil, { "test_env" => "value" })
+
+      end
+
+      it 'raises an exception, if tagging fails' do
+        allow(cloud).to receive(:wait_resource)
+        allow(Bosh::OpenStackCloud::TagManager).to receive(:tag).and_raise(StandardError)
+
+        expect(server).to receive(:destroy)
+        expect {
+          cloud.create_vm("agent-id", "sc-id",
+                          resource_pool_spec,
+                          { "network_a" => dynamic_network_spec },
+                          nil, { "test_env" => "value" })
+        }.to raise_error(Bosh::Clouds::CloudError)
+      end
+    end
+
+    context 'when "human_readable_vm_names" is disabled' do
+      it 'does not tag server with registry tag' do
+        options = mock_cloud_options
+        cloud = mock_cloud do |openstack|
+          allow(openstack.servers).to receive(:create).and_return(server)
+          stub_openstack(openstack)
+        end
+
+        allow(cloud).to receive(:generate_unique_name).and_return(unique_name)
+        allow(cloud).to receive(:wait_resource)
+        allow(@registry).to receive(:update_settings)
+
+        expect(Bosh::OpenStackCloud::TagManager).to_not receive(:tag).with(server, :registry_key, "vm-#{unique_name}")
+
+
+        cloud.create_vm("agent-id", "sc-id",
+                        resource_pool_spec,
+                        { "network_a" => dynamic_network_spec },
+                        nil, { "test_env" => "value" })
+
       end
     end
   end

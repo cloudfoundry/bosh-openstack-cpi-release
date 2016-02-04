@@ -165,6 +165,7 @@ jobs:
           - ${openstack_security_group}
         state_timeout: ${openstack_state_timeout}
         wait_resource_poll_interval: 5
+        human_readable_vm_names: true
         connection_options:
           ssl_verify_peer: ${bosh_openstack_ssl_verify}
           connect_timeout: ${openstack_connection_timeout}

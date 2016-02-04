@@ -28,7 +28,7 @@ describe Bosh::OpenStackCloud::Cloud do
     @region             = LifecycleHelper.get_config(:region, 'BOSH_OPENSTACK_REGION', nil)
     @logger             = Logger.new(STDERR)
     Bosh::Clouds::Config.configure(OpenStruct.new(:logger => @logger, :cpi_task_log => nil))
-    @cpi_for_stemcell   = create_cpi(false, nil, nil)
+    @cpi_for_stemcell   = create_cpi(false, nil, nil, false)
     @stemcell_id        = upload_stemcell
   end
 
@@ -41,12 +41,13 @@ describe Bosh::OpenStackCloud::Cloud do
   let(:boot_from_volume) { false }
   let(:boot_volume_type) { nil }
   let(:config_drive) { nil }
+  let(:human_readable_vm_names) { false }
 
   subject(:cpi) do
-    create_cpi(boot_from_volume, boot_volume_type, config_drive)
+    create_cpi(boot_from_volume, boot_volume_type, config_drive, human_readable_vm_names)
   end
 
-  def create_cpi(boot_from_value, boot_volume_type, config_drive)
+  def create_cpi(boot_from_value, boot_volume_type, config_drive, human_readable_vm_names)
     described_class.new(
         'openstack' => {
             'auth_url' => @auth_url,
@@ -64,6 +65,7 @@ describe Bosh::OpenStackCloud::Cloud do
             },
             'config_drive' => config_drive,
             'ignore_server_availability_zone' => str_to_bool(@ignore_server_az),
+            'human_readable_vm_names' => human_readable_vm_names,
             'connection_options' => {
                 'ssl_verify_peer' => str_to_bool(@ssl_verify),
                 'connect_timeout' => @connect_timeout.to_i,
@@ -110,6 +112,18 @@ describe Bosh::OpenStackCloud::Cloud do
           vm_lifecycle(@stemcell_id, network_spec, [@existing_volume_id])
         }.to_not raise_error
       end
+    end
+
+    describe 'set_vm_metadata' do
+
+      let(:human_readable_vm_names) { true }
+
+      it 'sets the vm name according to the metadata' do
+        vm_id = create_vm(@stemcell_id, network_spec, [])
+        vm = cpi.openstack.servers.get(vm_id)
+        expect(vm.name).to eq 'openstack_cpi_spec/0'
+      end
+
     end
   end
 
@@ -336,9 +350,9 @@ describe Bosh::OpenStackCloud::Cloud do
 
     @logger.info("Setting VM metadata vm_id=#{vm_id}")
     cpi.set_vm_metadata(vm_id, {
-      :deployment => 'deployment',
-      :job => 'openstack_cpi_spec',
-      :index => '0',
+      'deployment' => 'deployment',
+      'job' => 'openstack_cpi_spec',
+      'index' => '0',
     })
 
     vm_id
