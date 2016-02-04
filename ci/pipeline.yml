@@ -15,7 +15,6 @@ groups:
       - bats-centos-dynamic
       - promote-candidate
       - cleanup
-      - release-lock
 
   - name: lifecycle
     jobs:
@@ -59,17 +58,17 @@ jobs:
       - put: bosh-cpi-dev-artifacts
         params: {from: build/out/.*\.tgz}
 
-      - put: openstack-pipeline-lock
-        params:
-          acquire: true
-
   - name: cleanup
+    serial: true
+    serial_groups:
+      - cleanup-lock-lifecycle
+      - ubuntu-director-manual
+      - centos-director-manual
+      - ubuntu-director-dynamic
+      - centos-director-dynamic
+
     plan:
       - {trigger: false, get: bosh-cpi-release}
-
-      - put: openstack-pipeline-lock
-        params:
-          acquire: true
 
       - task: cleanup-lifecycle
         file: bosh-cpi-release/ci/tasks/cleanup.yml
@@ -91,16 +90,12 @@ jobs:
             BOSH_OPENSTACK_PROJECT:     {{openstack_tenant}}
             BOSH_OPENSTACK_SSL_VERIFY:  {{bosh_openstack_ssl_verify}}
 
-      - put: openstack-pipeline-lock
-        params:
-          release: openstack-pipeline-lock
-
   - name: lifecycle
     serial: true
+    serial_groups: [cleanup-lock-lifecycle] # prevents cleanup job from starting if lifecycle job is running
     plan:
       - aggregate:
         - {trigger: true,  passed: [build-candidate], get: bosh-cpi-dev-artifacts} # used for job chaining only not for tasks
-        - {trigger: false, passed: [build-candidate], get: openstack-pipeline-lock}
         - {trigger: false, passed: [build-candidate], get: bosh-cpi-release}
         - {trigger: false,                            get: openstack-lifecycle-stemcell}
 
@@ -136,7 +131,6 @@ jobs:
       - aggregate:
         - {trigger: true, passed: [lifecycle], get: lifecycle-log}
         - {trigger: false, passed: [lifecycle], get: bosh-cpi-release}
-        - {trigger: false, passed: [lifecycle], get: openstack-pipeline-lock}
       - task: publish
         file: bosh-cpi-release/ci/tasks/publish-api-calls.yml
         config:
@@ -146,13 +140,13 @@ jobs:
         params: {repository: publish/bosh-cpi-release, rebase: true}
 
   - name: deploy-ubuntu-manual
-    serial_groups: [ubuntu-director-manual] # shouldn't deploy while bats are running
+    serial: true
+    serial_groups: [ubuntu-director-manual] # shouldn't deploy while bats or cleanup is running
     plan:
       - aggregate:
         - {trigger: true,  passed: [build-candidate], get: bosh-cpi-dev-artifacts}
         - {trigger: false, passed: [build-candidate], get: version-semver}
         - {trigger: false, passed: [build-candidate], get: bosh-cpi-release}
-        - {trigger: false, passed: [build-candidate], get: openstack-pipeline-lock}
         - {trigger: false,                            get: director-state-file, resource: ubuntu-manual-director-state-file}
         - {trigger: false,                            get: bosh-init}
         - {trigger: false,                            get: bosh-release}
@@ -192,6 +186,7 @@ jobs:
         params: {from: deploy/deployment/ubuntu-manual-director-manifest.yml}
 
   - name: bats-ubuntu-manual
+    serial: true
     serial_groups: [ubuntu-director-manual] # can't run while deploying
     plan:
       - aggregate:
@@ -201,7 +196,6 @@ jobs:
         - {trigger: false, passed: [deploy-ubuntu-manual], get: director-state-file, resource: ubuntu-manual-director-state-file}
         - {trigger: false, passed: [deploy-ubuntu-manual], get: director-manifest-file, resource: ubuntu-manual-director-manifest-file}
         - {trigger: false, passed: [deploy-ubuntu-manual], get: version-semver}
-        - {trigger: false, passed: [deploy-ubuntu-manual], get: openstack-pipeline-lock}
         - {trigger: false,                                 get: bosh-release}
         - {trigger: false,                                 get: bats}
         - {trigger: false,                                 get: bosh-init}
@@ -245,13 +239,13 @@ jobs:
           params: {from: teardown-director/director-manifest-file/ubuntu-manual-director-manifest-state.json}
 
   - name: deploy-ubuntu-dynamic
+    serial: true
     serial_groups: [ubuntu-director-dynamic] # shouldn't deploy while bats are running
     plan:
       - aggregate:
         - {trigger: true,  passed: [build-candidate], get: bosh-cpi-dev-artifacts}
         - {trigger: false, passed: [build-candidate], get: version-semver}
         - {trigger: false, passed: [build-candidate], get: bosh-cpi-release}
-        - {trigger: false, passed: [build-candidate], get: openstack-pipeline-lock}
         - {trigger: false,                            get: director-state-file, resource: ubuntu-dynamic-director-state-file}
         - {trigger: false,                            get: bosh-init}
         - {trigger: false,                            get: bosh-release}
@@ -288,6 +282,7 @@ jobs:
         params: {from: deploy/deployment/ubuntu-dynamic-director-manifest.yml}
 
   - name: bats-ubuntu-dynamic
+    serial: true
     serial_groups: [ubuntu-director-dynamic] # can't run while deploying
     plan:
       - aggregate:
@@ -297,7 +292,6 @@ jobs:
         - {trigger: false, passed: [deploy-ubuntu-dynamic], get: director-manifest-file, resource: ubuntu-dynamic-director-manifest-file}
         - {trigger: false, passed: [deploy-ubuntu-dynamic], get: stemcell, resource: openstack-ubuntu-stemcell}
         - {trigger: false, passed: [deploy-ubuntu-dynamic], get: version-semver}
-        - {trigger: false, passed: [deploy-ubuntu-dynamic], get: openstack-pipeline-lock}
         - {trigger: false,                                  get: bosh-release}
         - {trigger: false,                                  get: bats}
         - {trigger: false,                                  get: bosh-init}
@@ -328,13 +322,13 @@ jobs:
           params: {from: teardown-director/director-manifest-file/ubuntu-dynamic-director-manifest-state.json}
 
   - name: deploy-centos-manual
+    serial: true
     serial_groups: [centos-director-manual] # shouldn't deploy while bats are running
     plan:
       - aggregate:
         - {trigger: true,  passed: [build-candidate], get: bosh-cpi-dev-artifacts}
         - {trigger: false, passed: [build-candidate], get: version-semver}
         - {trigger: false, passed: [build-candidate], get: bosh-cpi-release}
-        - {trigger: false, passed: [build-candidate], get: openstack-pipeline-lock}
         - {trigger: false,                            get: director-state-file, resource: centos-manual-director-state-file}
         - {trigger: false,                            get: bosh-init}
         - {trigger: false,                            get: bosh-release}
@@ -374,6 +368,7 @@ jobs:
         params: {from: deploy/deployment/centos-manual-director-manifest.yml}
 
   - name: bats-centos-manual
+    serial: true
     serial_groups: [centos-director-manual] # can't run while deploying
     plan:
       - aggregate:
@@ -383,7 +378,6 @@ jobs:
         - {trigger: false, passed: [deploy-centos-manual], get: director-manifest-file, resource: centos-manual-director-manifest-file}
         - {trigger: false, passed: [deploy-centos-manual], get: bosh-cpi-release}
         - {trigger: false, passed: [deploy-centos-manual], get: version-semver}
-        - {trigger: false, passed: [deploy-centos-manual], get: openstack-pipeline-lock}
         - {trigger: false,                                 get: bosh-release}
         - {trigger: false,                                 get: bats}
         - {trigger: false,                                 get: bosh-init}
@@ -427,13 +421,13 @@ jobs:
           params: {from: teardown-director/director-manifest-file/centos-manual-director-manifest-state.json}
 
   - name: deploy-centos-dynamic
+    serial: true
     serial_groups: [centos-director-dynamic] # shouldn't deploy while bats are running
     plan:
       - aggregate:
         - {trigger: true,  passed: [build-candidate], get: bosh-cpi-dev-artifacts}
         - {trigger: false, passed: [build-candidate], get: version-semver}
         - {trigger: false, passed: [build-candidate], get: bosh-cpi-release}
-        - {trigger: false, passed: [build-candidate], get: openstack-pipeline-lock}
         - {trigger: false,                            get: director-state-file, resource: centos-dynamic-director-state-file}
         - {trigger: false,                            get: bosh-init}
         - {trigger: false,                            get: bosh-release}
@@ -470,6 +464,7 @@ jobs:
         params: {from: deploy/deployment/centos-dynamic-director-manifest.yml}
 
   - name: bats-centos-dynamic
+    serial: true
     serial_groups: [centos-director-dynamic] # can't run while deploying
     plan:
       - aggregate:
@@ -479,7 +474,6 @@ jobs:
         - {trigger: false, passed: [deploy-centos-dynamic], get: director-manifest-file, resource: centos-dynamic-director-manifest-file}
         - {trigger: false, passed: [deploy-centos-dynamic], get: bosh-cpi-release}
         - {trigger: false, passed: [deploy-centos-dynamic], get: version-semver}
-        - {trigger: false, passed: [deploy-centos-dynamic], get: openstack-pipeline-lock}
         - {trigger: false,                                  get: bosh-release}
         - {trigger: false,                                  get: bats}
         - {trigger: false,                                  get: bosh-init}
@@ -508,17 +502,6 @@ jobs:
         ensure:
           put: centos-dynamic-director-state-file
           params: {from: teardown-director/director-manifest-file/centos-dynamic-director-manifest-state.json}
-
-  - name: release-lock
-    serial: true
-    plan:
-      - {trigger: true, passed: [publish-api-calls, bats-ubuntu-manual, bats-centos-manual, bats-ubuntu-dynamic, bats-centos-dynamic], get: openstack-pipeline-lock}
-
-      - put: openstack-pipeline-lock
-        params:
-          release: openstack-pipeline-lock
-      - put: {{pipeline_semver}}
-        params: {bump: patch}
 
   - name: promote-candidate
     serial: true
@@ -708,11 +691,3 @@ resources:
     source:
       name: bosh-openstack-kvm-ubuntu-trusty-go_agent
       version: 3147
-
-  - name: openstack-pipeline-lock
-    type: pool
-    source:
-      uri: {{pipeline_lock_repository_url}}
-      branch: master
-      pool: {{pipeline_lock_pool_name}}
-      private_key: {{pipeline_lock_github_deployment_key}}
