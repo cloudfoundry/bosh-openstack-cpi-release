@@ -138,7 +138,6 @@ jobs:
         username: admin
         password: admin
         port: ${bosh_registry_port}
-        endpoint: http://admin:admin@${openstack_manual_ip}:${bosh_registry_port}
 
       # Tells the Director/agents how to contact blobstore
       blobstore:
