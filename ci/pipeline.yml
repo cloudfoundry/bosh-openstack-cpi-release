@@ -47,7 +47,6 @@ jobs:
       - aggregate:
         - {trigger: true, get: bosh-cpi-release}
         - {trigger: false, get: version-semver, params: {bump: patch}}
-        - {trigger: true,  get: pipeline-semver}
 
       - put: version-semver
         params: {file: version-semver/number}
@@ -630,22 +629,6 @@ resources:
     type: semver
     source:
       key:                current-version
-      bucket:             {{s3_openstack_cpi_pipeline_bucket_name}}
-      access_key_id:      {{s3_openstack_cpi_pipeline_access_key}}
-      secret_access_key:  {{s3_openstack_cpi_pipeline_secret_key}}
-
-  - name: pipeline-semver
-    type: semver
-    source:
-      key:                pipeline-counter
-      bucket:             {{s3_openstack_cpi_pipeline_bucket_name}}
-      access_key_id:      {{s3_openstack_cpi_pipeline_access_key}}
-      secret_access_key:  {{s3_openstack_cpi_pipeline_secret_key}}
-
-  - name: noop-semver
-    type: semver
-    source:
-      key:                noop
       bucket:             {{s3_openstack_cpi_pipeline_bucket_name}}
       access_key_id:      {{s3_openstack_cpi_pipeline_access_key}}
       secret_access_key:  {{s3_openstack_cpi_pipeline_secret_key}}
