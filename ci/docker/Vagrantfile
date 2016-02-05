@@ -13,6 +13,8 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     v.customize ['modifyvm', :id, '--memory', '4096']
   end
 
+  config.vm.synced_folder('.', '/opt/boshcpi/openstack-cpi-release', owner: 'root', group: 'root')
+
   config.vm.provision :shell do |shell|
     shell.inline = <<-BASH
       apt-get -y update
