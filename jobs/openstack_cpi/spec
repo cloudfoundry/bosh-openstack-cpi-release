@@ -64,6 +64,9 @@ properties:
   openstack.ignore_server_availability_zone:
     description: When creating a disk, do not use the availability zone of the server, fall back to Openstacks default
     default: false
+  openstack.human_readable_vm_names:
+    description: When creating a VM, use the job name as VM name if true. Otherwise use a generated UUID as name. If this parameter is set to true, the registry.endpoint parameter has to be set.
+    default: false
 
   registry.host:
     description: Address of the Registry to connect to (required)

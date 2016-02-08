@@ -41,6 +41,7 @@
   if_p('openstack.domain')                     { |value| openstack_params['domain'] = value }
   if_p('openstack.project')                    { |value| openstack_params['project'] = value }
   if_p('openstack.tenant')                     { |value| openstack_params['tenant'] = value }
+  if_p('openstack.human_readable_vm_names')    { |value| openstack_params['human_readable_vm_names'] = value }
 
   if_p('registry.endpoint') do |endpoint|
     params['cloud']['properties']['registry']['endpoint'] = endpoint

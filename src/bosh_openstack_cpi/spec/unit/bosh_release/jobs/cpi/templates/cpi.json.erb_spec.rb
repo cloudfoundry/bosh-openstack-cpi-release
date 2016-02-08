@@ -26,6 +26,7 @@ describe 'cpi.json.erb' do
           'default_key_name' => 'openstack.default_key_name',
           'default_security_groups' => 'openstack.default_security_groups',
           'wait_resource_poll_interval' => 'openstack.wait_resource_poll_interval',
+          'human_readable_vm_names' => true,
           'ignore_server_availability_zone' => 'openstack.ignore_server_availability_zone'
         },
         'blobstore' => {
@@ -74,7 +75,8 @@ describe 'cpi.json.erb' do
             'tenant' => 'openstack.tenant',
             'use_dhcp' => true,
             'username' => 'openstack.username',
-            'wait_resource_poll_interval' => 'openstack.wait_resource_poll_interval'
+            'wait_resource_poll_interval' => 'openstack.wait_resource_poll_interval',
+            'human_readable_vm_names' => true
           },
           'registry' => {
             'address' => 'registry.host',
