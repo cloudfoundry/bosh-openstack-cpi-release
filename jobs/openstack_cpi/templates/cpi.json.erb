@@ -46,7 +46,12 @@
   if_p('registry.endpoint') do |endpoint|
     params['cloud']['properties']['registry']['endpoint'] = endpoint
   end.else do
-    params['cloud']['properties']['registry']['endpoint'] = "http://#{p('registry.host')}:#{p('registry.port')}"
+    # 'registry.host==127.0.0.1' && registry.port==6901 is a special bosh-init case. Don't raise exception in this case.
+    if p('openstack.human_readable_vm_names') == true && p('registry.host') != '127.0.0.1' && p('registry.port') != 6901
+      raise "Property 'human_readable_vm_names' can only be used with defined 'registry.endpoint'"
+    else
+      params['cloud']['properties']['registry']['endpoint'] = "http://#{p('registry.host')}:#{p('registry.port')}"
+    end
   end
 
   if_p('blobstore') do

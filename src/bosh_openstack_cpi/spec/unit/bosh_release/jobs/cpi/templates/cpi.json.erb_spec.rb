@@ -26,7 +26,7 @@ describe 'cpi.json.erb' do
           'default_key_name' => 'openstack.default_key_name',
           'default_security_groups' => 'openstack.default_security_groups',
           'wait_resource_poll_interval' => 'openstack.wait_resource_poll_interval',
-          'human_readable_vm_names' => true,
+          'human_readable_vm_names' => false,
           'ignore_server_availability_zone' => 'openstack.ignore_server_availability_zone'
         },
         'blobstore' => {
@@ -76,7 +76,7 @@ describe 'cpi.json.erb' do
             'use_dhcp' => true,
             'username' => 'openstack.username',
             'wait_resource_poll_interval' => 'openstack.wait_resource_poll_interval',
-            'human_readable_vm_names' => true
+            'human_readable_vm_names' => false
           },
           'registry' => {
             'address' => 'registry.host',
@@ -204,6 +204,33 @@ describe 'cpi.json.erb' do
         expect(rendered_blobstore['options']['s3_multipart_threshold']).to eq(33)
         expect(rendered_blobstore['options']['signature_version']).to eq('99')
       end
+    end
+  end
+
+  context 'when using human readable VM names' do
+    it 'template render fails if registry endpoint is not set' do
+      manifest['properties']['registry']['endpoint'] = nil
+      manifest['properties']['openstack']['human_readable_vm_names'] = true
+
+      expect{subject}.to raise_error RuntimeError, "Property 'human_readable_vm_names' can only be used with defined 'registry.endpoint'"
+    end
+
+    it 'template render succeeds if registry endpoint is set' do
+      manifest['properties']['registry']['endpoint'] = 'http://registry.host:25777'
+      manifest['properties']['openstack']['human_readable_vm_names'] = true
+
+      expect(subject['cloud']['properties']['registry']['endpoint']).to eq('http://registry.host:25777')
+      expect(subject['cloud']['properties']['openstack']['human_readable_vm_names']).to be true
+    end
+
+    it 'template render succeeds if registry configured for bosh-init' do
+      manifest['properties']['registry']['endpoint'] = nil
+      manifest['properties']['registry']['host'] = '127.0.0.1'
+      manifest['properties']['registry']['port'] = 6901
+      manifest['properties']['openstack']['human_readable_vm_names'] = true
+
+      expect(subject['cloud']['properties']['registry']['endpoint']).to eq('http://127.0.0.1:6901')
+      expect(subject['cloud']['properties']['openstack']['human_readable_vm_names']).to be true
     end
   end
 end

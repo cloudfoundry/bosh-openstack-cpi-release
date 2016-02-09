@@ -3,45 +3,10 @@ require 'tempfile'
 
 describe "the openstack_cpi executable" do
   it 'will not evaluate anything that causes an exception and will return the proper message to stdout' do
-    config_file = Tempfile.new('cloud_properties.yml')
-    File.open(config_file, 'w') do |file|
-      file.write(
-          {
-              'cloud' => {
-                  'properties' => {
-                      'openstack' => {
-                          'auth_url' => '0.0.0.0:5000/v2.0',
-                          'username' => 'openstack-user',
-                          'api_key' => 'openstack-password',
-                          'tenant' => 'dev',
-                          'region' => 'west-coast',
-                          'endpoint_type' => 'publicURL',
-                          'state_timeout' => 300,
-                          'boot_from_volume' => false,
-                          'stemcell_public_visibility' => false,
-                          'connection_options' => {},
-                          'default_key_name' => nil,
-                          'default_security_groups' => nil,
-                          'wait_resource_poll_interval' => 5,
-                          'config_drive' => 'disk'
-                      },
-                      'registry' => {
-                          'endpoint' => '0.0.0.0:5000',
-                          'user' => 'registry-user',
-                          'password' => 'registry-password',
-                      }
-                  }
-              }
-          }.to_yaml
-      )
-    end
+    config_file = create_config_file('0.0.0.0:5000/v2.0')
+    command_file = create_cpi_command_file
 
-    command_file = Tempfile.new('command.json')
-    File.open(command_file, 'w') do |file|
-      file.write({'method'=>'ping', 'arguments'=>[], 'context'=>{'director_uuid' => 'abc123'}}.to_json)
-    end
-
-    stdoutput = `bin/openstack_cpi #{config_file.path} < #{command_file.path} 2> /dev/null`
+    stdoutput = execute_cpi_command(command_file, config_file)
     status = $?.exitstatus
 
     expect(status).to eq(0)
@@ -60,16 +25,29 @@ describe "the openstack_cpi executable" do
     expect(result['log']).to include('backtrace')
   end
 
+  it 'will fail if registry.endpoint is not provided' do
+    config_file = create_config_file('http://0.0.0.0:5000/v2.0', nil)
+    command_file = create_cpi_command_file
+
+    stdoutput = execute_cpi_command(command_file, config_file)
+
+    result = JSON.parse(stdoutput)
+
+    expect(result['result']).to be_nil
+    expect(result['error']['type']).to eq('InvalidCall')
+    expect(result['error']['message']).to match(/#<Membrane::SchemaValidationError: { registry => { endpoint => Missing key } }/)
+    expect(result['error']['ok_to_retry']).to eq(false)
+  end
+
   it 'will return an appropriate error message when passed an invalid config file' do
     config_file = Tempfile.new('cloud_properties.yml')
-    config_file.write({}.to_yaml)
-    config_file.close
+    File.open(config_file, 'w') do |file|
+      file.write({}.to_yaml)
+    end
 
-    command_file = Tempfile.new('command.json')
-    command_file.write({'method'=>'ping', 'arguments'=>[], 'context'=>{'director_uuid' => 'abc123'}}.to_json)
-    command_file.close
+    command_file = create_cpi_command_file
 
-    stdoutput = `bin/openstack_cpi #{config_file.path} < #{command_file.path} 2> /dev/null`
+    stdoutput = execute_cpi_command(command_file, config_file)
     status = $?.exitstatus
 
     expect(status).to eq(0)
@@ -87,4 +65,52 @@ describe "the openstack_cpi executable" do
 
     expect(result['log']).to include('backtrace')
   end
+end
+
+def create_config_file( auth_url = 'http://0.0.0.0:5000/v2.0', registry_endpoint = '0.0.0.0:5000' )
+  config_file = Tempfile.new('cloud_properties.yml')
+  File.open(config_file, 'w') do |file|
+    file.write(
+        {
+            'cloud' => {
+                'properties' => {
+                    'openstack' => {
+                        'auth_url' => auth_url,
+                        'username' => 'openstack-user',
+                        'api_key' => 'openstack-password',
+                        'tenant' => 'dev',
+                        'region' => 'west-coast',
+                        'endpoint_type' => 'publicURL',
+                        'state_timeout' => 300,
+                        'boot_from_volume' => false,
+                        'stemcell_public_visibility' => false,
+                        'connection_options' => {},
+                        'default_key_name' => nil,
+                        'default_security_groups' => nil,
+                        'wait_resource_poll_interval' => 5,
+                        'config_drive' => 'disk'
+                    },
+                    'registry' => {
+                        'endpoint' => registry_endpoint,
+                        'user' => 'registry-user',
+                        'password' => 'registry-password',
+                    }
+                }
+            }
+        }.to_yaml
+    )
+  end
+  config_file
+end
+
+def create_cpi_command_file
+  command_file = Tempfile.new('command.json')
+  File.open(command_file, 'w') do |file|
+    file.write({'method' => 'ping', 'arguments' => [], 'context' => {'director_uuid' => 'abc123'}}.to_json)
+  end
+  command_file
+end
+
+def execute_cpi_command(command_file, config_file)
+  `bin/openstack_cpi #{config_file.path} < #{command_file.path} 2> /dev/null`
 end
