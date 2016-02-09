@@ -11,7 +11,6 @@ ensure_not_replace_value v3_e2e_read_timeout
 ensure_not_replace_value v3_e2e_state_timeout
 ensure_not_replace_value v3_e2e_write_timeout
 ensure_not_replace_value v3_e2e_bosh_registry_port
-ensure_not_replace_value bosh_openstack_ssl_verify
 ensure_not_replace_value v3_e2e_api_key
 ensure_not_replace_value v3_e2e_auth_url
 ensure_not_replace_value v3_e2e_default_key_name
@@ -29,6 +28,7 @@ ensure_not_replace_value v3_e2e_blobstore_bucket
 ensure_not_replace_value v3_e2e_blobstore_host
 ensure_not_replace_value v3_e2e_blobstore_access_key
 ensure_not_replace_value v3_e2e_blobstore_secret_key
+optional_value bosh_openstack_ca_cert
 
 source /etc/profile.d/chruby-with-ruby-2.1.2.sh
 
@@ -181,10 +181,10 @@ jobs:
         state_timeout: ${v3_e2e_state_timeout}
         wait_resource_poll_interval: 5
         connection_options:
-          ssl_verify_peer: ${bosh_openstack_ssl_verify}
           connect_timeout: ${v3_e2e_connection_timeout}
           read_timeout: ${v3_e2e_read_timeout}
           write_timeout: ${v3_e2e_write_timeout}
+          ca_cert: ${bosh_openstack_ca_cert}
 
       # Tells agents how to contact nats
       agent: {mbus: "nats://nats:nats-password@${v3_e2e_manual_ip}:4222"}

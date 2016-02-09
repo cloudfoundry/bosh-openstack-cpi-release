@@ -21,12 +21,15 @@ describe Bosh::OpenStackCloud::Cloud do
     @connect_timeout   = LifecycleHelper.get_config(:instance_type, 'BOSH_OPENSTACK_CONNECT_TIMEOUT', '120')
     @read_timeout      = LifecycleHelper.get_config(:instance_type, 'BOSH_OPENSTACK_READ_TIMEOUT', '120')
     @write_timeout     = LifecycleHelper.get_config(:instance_type, 'BOSH_OPENSTACK_WRITE_TIMEOUT', '120')
-    @ssl_verify        = LifecycleHelper.get_config(:instance_type, 'BOSH_OPENSTACK_SSL_VERIFY', 'true')
+    ca_cert            = LifecycleHelper.get_config(:ca_cert, 'BOSH_OPENSTACK_CA_CERT', nil)
+    @ca_cert_path = write_ssl_ca_file(ca_cert, logger) if ca_cert
 
     # some environments may not have this set, and it isn't strictly necessary so don't raise if it isn't set
     @region             = LifecycleHelper.get_config(:region, 'BOSH_OPENSTACK_REGION', nil)
 
   end
+
+  after(:each) { File.delete(@ca_cert_path) if @ca_cert_path }
 
   let(:boot_from_volume) { false }
   let(:boot_volume_type) { nil }
@@ -52,10 +55,10 @@ describe Bosh::OpenStackCloud::Cloud do
         'config_drive' => config_drive,
         'ignore_server_availability_zone' => str_to_bool(@ignore_server_az),
         'connection_options' => {
-          'ssl_verify_peer' => str_to_bool(@ssl_verify),
           'connect_timeout' => @connect_timeout.to_i,
           'read_timeout' => @read_timeout.to_i,
           'write_timeout' => @write_timeout.to_i,
+          'ssl_ca_file' => @ca_cert_path
         }
       },
       'registry' => {

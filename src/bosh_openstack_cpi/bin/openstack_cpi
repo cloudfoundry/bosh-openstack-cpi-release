@@ -9,6 +9,7 @@ Bundler.setup(:default)
 require 'cloud/openstack'
 
 cpi_config = YAML.load_file(ARGV.shift)
+ssl_ca_file = ARGV.shift
 
 cloud_config = OpenStruct.new(:logger => Logger.new(STDERR))
 
@@ -23,6 +24,11 @@ cpi_lambda = lambda do
 
   cloud_properties = cpi_config['cloud']['properties']
   cloud_properties['cpi_log'] = cpi_log
+  connection_options = cloud_properties['openstack']['connection_options']
+  # If 'ca_cert' is set we render non-empty `config/openstack.crt`
+  if connection_options && connection_options['ca_cert']
+      connection_options['ssl_ca_file'] = ssl_ca_file
+  end
   Bosh::Clouds::Openstack.new(cloud_properties)
 end
 

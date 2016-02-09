@@ -12,4 +12,4 @@ params:
   BOSH_OPENSTACK_USERNAME:             replace-me
   BOSH_OPENSTACK_API_KEY:              replace-me
   BOSH_OPENSTACK_PROJECT:              replace-me
-  BOSH_OPENSTACK_SSL_VERIFY:           replace-me
+  BOSH_OPENSTACK_CA_CERT:              replace-me

@@ -6,6 +6,7 @@ require 'ostruct'
 
 describe Bosh::OpenStackCloud::Cloud do
   before(:all) do
+    @logger            = Logger.new(STDERR)
     @auth_url          = LifecycleHelper.get_config(:auth_url, 'BOSH_OPENSTACK_AUTH_URL_V2')
     @username          = LifecycleHelper.get_config(:username, 'BOSH_OPENSTACK_USERNAME')
     @api_key           = LifecycleHelper.get_config(:api_key, 'BOSH_OPENSTACK_API_KEY')
@@ -22,11 +23,11 @@ describe Bosh::OpenStackCloud::Cloud do
     @connect_timeout   = LifecycleHelper.get_config(:instance_type, 'BOSH_OPENSTACK_CONNECT_TIMEOUT', '120')
     @read_timeout      = LifecycleHelper.get_config(:instance_type, 'BOSH_OPENSTACK_READ_TIMEOUT', '120')
     @write_timeout     = LifecycleHelper.get_config(:instance_type, 'BOSH_OPENSTACK_WRITE_TIMEOUT', '120')
-    @ssl_verify        = LifecycleHelper.get_config(:instance_type, 'BOSH_OPENSTACK_SSL_VERIFY', 'true')
+    ca_cert            = LifecycleHelper.get_config(:ca_cert, 'BOSH_OPENSTACK_CA_CERT', nil)
+    @ca_cert_path = write_ssl_ca_file(ca_cert, @logger) if ca_cert
 
     # some environments may not have this set, and it isn't strictly necessary so don't raise if it isn't set
     @region             = LifecycleHelper.get_config(:region, 'BOSH_OPENSTACK_REGION', nil)
-    @logger             = Logger.new(STDERR)
     Bosh::Clouds::Config.configure(OpenStruct.new(:logger => @logger, :cpi_task_log => nil))
     @cpi_for_stemcell   = create_cpi(false, nil, nil, false)
     @stemcell_id        = upload_stemcell
@@ -35,7 +36,11 @@ describe Bosh::OpenStackCloud::Cloud do
   before { allow(Bosh::Clouds::Config).to receive(:logger).and_return(@logger) }
 
   after(:all) do
-    @cpi_for_stemcell.delete_stemcell(@stemcell_id)
+    begin
+      @cpi_for_stemcell.delete_stemcell(@stemcell_id)
+    ensure
+      File.delete(@ca_cert_path) if @ca_cert_path
+    end
   end
 
   let(:boot_from_volume) { false }
@@ -67,10 +72,10 @@ describe Bosh::OpenStackCloud::Cloud do
             'ignore_server_availability_zone' => str_to_bool(@ignore_server_az),
             'human_readable_vm_names' => human_readable_vm_names,
             'connection_options' => {
-                'ssl_verify_peer' => str_to_bool(@ssl_verify),
                 'connect_timeout' => @connect_timeout.to_i,
                 'read_timeout' => @read_timeout.to_i,
                 'write_timeout' => @write_timeout.to_i,
+                'ssl_ca_file' => @ca_cert_path
             }
         },
         'registry' => {

@@ -3,6 +3,7 @@ name: openstack_cpi
 templates:
   cpi.erb: bin/cpi
   cpi.json.erb: config/cpi.json
+  cacert.pem.erb: config/cacert.pem
 
 packages:
 - ruby_openstack_cpi
@@ -44,6 +45,12 @@ properties:
   openstack.connection_options:
     description: Hash containing optional connection parameters to the OpenStack API (optional)
     examples:
+    - description: Provide all required custom CA certificates
+      value:
+        ca_cert: |
+          -----BEGIN CERTIFICATE-----
+          MII...
+          -----END CERTIFICATE-----
     - description: Disable SSL verification for DevStack
       value: {ssl_verify_peer: false}
   openstack.default_key_name:

@@ -213,3 +213,10 @@ class LifecycleHelper
   end
 end
 
+def write_ssl_ca_file(ca_cert, logger)
+  Dir::Tmpname.create('cacert.pem') do |path|
+    logger.info("cacert.pem file: #{path}")
+    File.write(path, ca_cert)
+  end
+end
+

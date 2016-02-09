@@ -22,7 +22,7 @@ ensure_not_replace_value BOSH_OPENSTACK_VOLUME_TYPE
 ensure_not_replace_value BOSH_OPENSTACK_CONNECT_TIMEOUT
 ensure_not_replace_value BOSH_OPENSTACK_READ_TIMEOUT
 ensure_not_replace_value BOSH_OPENSTACK_WRITE_TIMEOUT
-ensure_not_replace_value BOSH_OPENSTACK_SSL_VERIFY
+optional_value BOSH_OPENSTACK_CA_CERT
 
 source /etc/profile.d/chruby-with-ruby-2.1.2.sh
 
