@@ -682,7 +682,7 @@ module Bosh::OpenStackCloud
             if job && index
               @openstack.update_server(server_id, { 'name' => "#{job}/#{index}"})
             elsif compiling
-              @openstack.update_server(server_id, { 'name' => "compilation/#{compiling}"})
+              @openstack.update_server(server_id, { 'name' => "compiling/#{compiling}"})
             end
           end
 

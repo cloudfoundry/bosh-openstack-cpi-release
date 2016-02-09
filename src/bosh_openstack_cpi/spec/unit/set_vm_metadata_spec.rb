@@ -34,10 +34,10 @@ describe Bosh::OpenStackCloud::Cloud do
       @cloud.set_vm_metadata("i-foobar", metadata)
     end
 
-    it "sets the vm name 'compilation/x'" do
+    it "sets the vm name 'compiling/x'" do
       @cloud = mock_cloud do |openstack|
         expect(openstack.servers).to receive(:get).with('i-foobar').and_return(server)
-        expect(openstack).to receive(:update_server).with('i-foobar', {'name' => 'compilation/x'})
+        expect(openstack).to receive(:update_server).with('i-foobar', {'name' => 'compiling/x'})
       end
       expect(server.metadata).to receive(:get).with(:registry_key).and_return(double('metadatum'))
       metadata = {'compiling' => 'x'}
