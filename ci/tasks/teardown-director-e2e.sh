@@ -43,4 +43,4 @@ $initexe version
 echo "deleting existing BOSH Director VM..."
 $initexe delete ${working_dir}/${director_manifest_file}
 
-echo "{}" >> ${working_dir}/${director_state_file}
+echo "{}" >> "teardown/${director_state_file}"

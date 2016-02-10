@@ -8,6 +8,8 @@ inputs:
   - name: bosh-init
   - name: bosh-release
   - name: stemcell
+outputs:
+  - name: deployment
 run:
   path: bosh-cpi-release/ci/tasks/deploy-e2e-director.sh
 params:

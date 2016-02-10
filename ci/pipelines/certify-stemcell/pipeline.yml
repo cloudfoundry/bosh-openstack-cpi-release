@@ -50,10 +50,10 @@ jobs:
             v3_e2e_blobstore_secret_key:             {{v3_e2e_blobstore_secret_key}}
         ensure:
           put: director-state-file
-          params: {from: deploy-integration-director/deployment/e2e-director-manifest-state.json}
+          params: {from: deployment/e2e-director-manifest-state.json}
 
       - put: director-manifest-file
-        params: {from: deploy-integration-director/deployment/e2e-director-manifest.yml}
+        params: {from: deployment/e2e-director-manifest.yml}
 
   - name: deploy-test-release
     serial_groups: [e2e-integration] # can't run while deploying
@@ -88,7 +88,7 @@ jobs:
             bosh_director_ip:        {{v3_e2e_floating_ip}}
         ensure:
           put: director-state-file
-          params: {from: teardown-director/director-manifest-file/e2e-director-manifest-state.json}
+          params: {from: teardown/e2e-director-manifest-state.json}
 
   - name: cleanup
     serial: true

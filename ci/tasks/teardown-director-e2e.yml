@@ -9,6 +9,8 @@ inputs:
   - name: bosh-init
   - name: stemcell
   - name: bosh-release
+outputs:
+  - name: teardown
 run:
   path: bosh-cpi-release/ci/tasks/teardown-director-e2e.sh
 params:
