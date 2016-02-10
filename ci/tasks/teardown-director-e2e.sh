@@ -29,7 +29,7 @@ working_dir=${PWD}/director-manifest-file
 
 
 cp ./director-state-file/${director_state_file} ${working_dir}/
-cp ./published-bosh-cpi-release/release.tgz ${working_dir}/bosh-openstack-cpi.tgz
+cp ./bosh-cpi-dev-artifacts/release.tgz ${working_dir}/bosh-openstack-cpi.tgz
 cp ./bosh-release/release.tgz ${working_dir}/bosh-release.tgz
 cp ./stemcell/stemcell.tgz ${working_dir}/stemcell.tgz
 

@@ -37,7 +37,7 @@ private_key=${deployment_dir}/bosh.pem
 
 echo "setting up artifacts used in $manifest_filename"
 mkdir -p ${deployment_dir}
-cp ./published-bosh-cpi-release/release.tgz ${deployment_dir}/bosh-openstack-cpi.tgz
+cp ./bosh-cpi-dev-artifacts/release.tgz ${deployment_dir}/bosh-openstack-cpi.tgz
 cp ./bosh-release/release.tgz ${deployment_dir}/bosh-release.tgz
 cp ./stemcell/stemcell.tgz ${deployment_dir}/stemcell.tgz
 
