@@ -12,7 +12,9 @@ ensure_not_replace_value aws_secret_access_key
 integer_version=`cut -d "." -f1 release-version-semver/number`
 echo $integer_version > integer_version
 
-cd bosh-cpi-release
+cp -r bosh-cpi-release promote/bosh-cpi-release
+
+cd promote/bosh-cpi-release
 
 source /etc/profile.d/chruby-with-ruby-2.1.2.sh
 
@@ -31,7 +33,7 @@ echo "using bosh CLI version..."
 bosh version
 
 echo "finalizing CPI release..."
-bosh finalize release ../bosh-cpi-dev-artifacts/*.tgz --version $integer_version
+bosh finalize release ../../bosh-cpi-dev-artifacts/*.tgz --version $integer_version
 
 rm config/private.yml
 

@@ -7,11 +7,13 @@ ensure_not_replace_value publish_api_calls_enabled
 
 source /etc/profile.d/chruby-with-ruby-2.1.2.sh
 
-cd bosh-cpi-release/ci/ruby_scripts
+cp -r bosh-cpi-release publish/bosh-cpi-release
+
+cd publish/bosh-cpi-release/ci/ruby_scripts
 
 bundle install
 bundle exec rspec spec/
-bundle exec ruby get_api_calls.rb < ../../../lifecycle-log/lifecycle.log > ../../docs/openstack-api-calls.md
+bundle exec ruby get_api_calls.rb < ../../../../lifecycle-log/lifecycle.log > ../../docs/openstack-api-calls.md
 
 git diff | cat
 

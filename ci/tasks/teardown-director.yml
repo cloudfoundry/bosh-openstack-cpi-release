@@ -10,6 +10,8 @@ inputs:
   - name: stemcell
   - name: bosh-release
   - name: version-semver
+outputs:
+  - name: teardown
 run:
   path: bosh-cpi-release/ci/tasks/teardown-director.sh
 params:

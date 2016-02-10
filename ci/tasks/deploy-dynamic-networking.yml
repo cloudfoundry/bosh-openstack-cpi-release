@@ -9,6 +9,8 @@ inputs:
   - name: bosh-cpi-dev-artifacts
   - name: version-semver
   - name: stemcell
+outputs:
+  - name: deployment
 run:
   path: bosh-cpi-release/ci/tasks/deploy-dynamic-networking.sh
 params:

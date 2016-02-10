@@ -122,7 +122,7 @@ jobs:
             BOSH_OPENSTACK_CA_CERT:             {{bosh_openstack_ca_cert}}
 
       - put: lifecycle-log
-        params: {from: bosh-cpi-release/src/bosh_openstack_cpi/lifecycle.log}
+        params: {from: output/lifecycle.log}
 
   - name: publish-api-calls
     serial: true
@@ -179,10 +179,10 @@ jobs:
             openstack_net_gateway:         {{bats_manual_ubuntu_primary_net_gateway}}
         ensure:
           put: ubuntu-manual-director-state-file
-          params: {from: deploy/deployment/ubuntu-manual-director-manifest-state.json}
+          params: {from: deployment/ubuntu-manual-director-manifest-state.json}
 
       - put: ubuntu-manual-director-manifest-file
-        params: {from: deploy/deployment/ubuntu-manual-director-manifest.yml}
+        params: {from: deployment/ubuntu-manual-director-manifest.yml}
 
   - name: bats-ubuntu-manual
     serial: true
@@ -235,7 +235,7 @@ jobs:
             director_state_file:                     "ubuntu-manual-director-manifest-state.json"
         ensure:
           put: ubuntu-manual-director-state-file
-          params: {from: teardown-director/director-manifest-file/ubuntu-manual-director-manifest-state.json}
+          params: {from: teardown/ubuntu-manual-director-manifest-state.json}
 
   - name: deploy-ubuntu-dynamic
     serial: true
@@ -275,10 +275,10 @@ jobs:
             private_key_data:              {{bosh_private_key}}
         ensure:
           put: ubuntu-dynamic-director-state-file
-          params: {from: deploy/deployment/ubuntu-dynamic-director-manifest-state.json}
+          params: {from: deployment/ubuntu-dynamic-director-manifest-state.json}
 
       - put: ubuntu-dynamic-director-manifest-file
-        params: {from: deploy/deployment/ubuntu-dynamic-director-manifest.yml}
+        params: {from: deployment/ubuntu-dynamic-director-manifest.yml}
 
   - name: bats-ubuntu-dynamic
     serial: true
@@ -318,7 +318,7 @@ jobs:
             director_state_file:                     "ubuntu-dynamic-director-manifest-state.json"
         ensure:
           put: ubuntu-dynamic-director-state-file
-          params: {from: teardown-director/director-manifest-file/ubuntu-dynamic-director-manifest-state.json}
+          params: {from: teardown/ubuntu-dynamic-director-manifest-state.json}
 
   - name: deploy-centos-manual
     serial: true
@@ -361,10 +361,10 @@ jobs:
             private_key_data:              {{bosh_private_key}}
         ensure:
           put: centos-manual-director-state-file
-          params: {from: deploy/deployment/centos-manual-director-manifest-state.json}
+          params: {from: deployment/centos-manual-director-manifest-state.json}
 
       - put: centos-manual-director-manifest-file
-        params: {from: deploy/deployment/centos-manual-director-manifest.yml}
+        params: {from: deployment/centos-manual-director-manifest.yml}
 
   - name: bats-centos-manual
     serial: true
@@ -417,7 +417,7 @@ jobs:
             director_state_file:                     "centos-manual-director-manifest-state.json"
         ensure:
           put: centos-manual-director-state-file
-          params: {from: teardown-director/director-manifest-file/centos-manual-director-manifest-state.json}
+          params: {from: teardown/centos-manual-director-manifest-state.json}
 
   - name: deploy-centos-dynamic
     serial: true
@@ -457,10 +457,10 @@ jobs:
             private_key_data:              {{bosh_private_key}}
         ensure:
           put: centos-dynamic-director-state-file
-          params: {from: deploy/deployment/centos-dynamic-director-manifest-state.json}
+          params: {from: deployment/centos-dynamic-director-manifest-state.json}
 
       - put: centos-dynamic-director-manifest-file
-        params: {from: deploy/deployment/centos-dynamic-director-manifest.yml}
+        params: {from: deployment/centos-dynamic-director-manifest.yml}
 
   - name: bats-centos-dynamic
     serial: true
@@ -500,7 +500,7 @@ jobs:
             director_state_file:                     "centos-dynamic-director-manifest-state.json"
         ensure:
           put: centos-dynamic-director-state-file
-          params: {from: teardown-director/director-manifest-file/centos-dynamic-director-manifest-state.json}
+          params: {from: teardown/centos-dynamic-director-manifest-state.json}
 
   - name: promote-candidate
     serial: true

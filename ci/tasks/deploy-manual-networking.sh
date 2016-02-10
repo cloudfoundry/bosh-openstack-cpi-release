@@ -40,7 +40,6 @@ director_state_filename="${base_os}-${network_type_to_test}-director-manifest-st
 private_key=${deployment_dir}/bats.pem
 
 echo "setting up artifacts used in $manifest_filename"
-mkdir -p ${deployment_dir}
 cp ./bosh-cpi-dev-artifacts/${cpi_release_name}-${semver}.tgz ${deployment_dir}/${cpi_release_name}.tgz
 cp ./bosh-release/release.tgz ${deployment_dir}/bosh-release.tgz
 cp ./stemcell/stemcell.tgz ${deployment_dir}/stemcell.tgz

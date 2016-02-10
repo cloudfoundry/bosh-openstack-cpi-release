@@ -4,6 +4,8 @@ image: docker:///boshcpi/openstack-cpi-release
 inputs:
   - name: bosh-cpi-release
   - name: lifecycle-log
+outputs:
+  - name: publish
 run:
   path: bosh-cpi-release/ci/tasks/publish-api-calls.sh
 params:
