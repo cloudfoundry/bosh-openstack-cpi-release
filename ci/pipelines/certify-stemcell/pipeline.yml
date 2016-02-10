@@ -28,7 +28,7 @@ jobs:
             v3_e2e_read_timeout:                     "180"
             v3_e2e_state_timeout:                    "900"
             v3_e2e_write_timeout:                    "180"
-            bosh_openstack_ssl_verify:               {{bosh_openstack_ssl_verify}}
+            bosh_openstack_ca_cert:                  {{bosh_openstack_ca_cert}}
             dns:                                     {{dns}}
             v3_e2e_bosh_registry_port:               {{v3_e2e_bosh_registry_port}}
             v3_e2e_api_key:                          {{v3_e2e_api_key}}
@@ -106,7 +106,7 @@ jobs:
             BOSH_OPENSTACK_USERNAME:             {{v3_e2e_username}}
             BOSH_OPENSTACK_API_KEY:              {{v3_e2e_api_key}}
             BOSH_OPENSTACK_PROJECT:              {{v3_e2e_project}}
-            BOSH_OPENSTACK_SSL_VERIFY:           {{bosh_openstack_ssl_verify}}
+            BOSH_OPENSTACK_CA_CERT:              {{bosh_openstack_ca_cert}}
 
 resources:
   - name: director-state-file
