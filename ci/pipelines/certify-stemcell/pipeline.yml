@@ -5,6 +5,7 @@ groups:
       - cleanup
       - deploy-director
       - deploy-test-release
+      - test-upgrade
 
 jobs:
   - name: deploy-director
@@ -90,6 +91,92 @@ jobs:
           put: director-state-file
           params: {from: teardown/e2e-director-manifest-state.json}
 
+  - name: test-upgrade
+    serial: true
+    plan:
+      - aggregate:
+        - {trigger: false, get: bosh-cpi-release}
+        - {trigger: true,  get: bosh-init}
+        - {trigger: false, get: old-bosh-init}
+        - {trigger: true,  get: published-bosh-cpi-release}
+        - {trigger: true,  get: bosh-release}
+        - {trigger: true,  get: stemcell}
+        - {trigger: false, get: dummy-release}
+
+      - task: deploy-old-director
+        file: bosh-cpi-release/ci/tasks/deploy-old-director.yml
+        config:
+          params:
+            dns:                                     {{dns}}
+            v3_e2e_flavor:                           "m1.medium"
+            v3_e2e_connection_timeout:               "600"
+            v3_e2e_read_timeout:                     "180"
+            v3_e2e_state_timeout:                    "900"
+            v3_e2e_write_timeout:                    "180"
+            bosh_openstack_ssl_verify:               {{bosh_openstack_ssl_verify}}
+            v3_e2e_bosh_registry_port:               {{v3_e2e_bosh_registry_port}}
+            v3_e2e_api_key:                          {{v3_e2e_api_key}}
+            v3_e2e_auth_url:                         {{openstack_auth_url_v3}}
+            v3_e2e_default_key_name:                 {{v3_e2e_default_key_name}}
+            v3_upgrade_director_floating_ip:         {{v3_upgrade_director_floating_ip}}
+            v3_upgrade_director_manual_ip:           {{v3_upgrade_director_manual_ip}}
+            v3_e2e_net_cidr:                         {{v3_e2e_net_cidr}}
+            v3_e2e_net_gateway:                      {{v3_e2e_net_gateway}}
+            v3_e2e_net_id:                           {{v3_e2e_net_id}}
+            v3_e2e_security_group:                   {{v3_e2e_security_group}}
+            v3_e2e_project:                          {{v3_e2e_project}}
+            v3_e2e_domain:                           {{v3_e2e_domain}}
+            v3_e2e_username:                         {{v3_e2e_username}}
+            v3_e2e_private_key_data:                 {{v3_e2e_private_key_data}}
+            old_bosh_release_version:                253
+            old_bosh_release_sha1:                   940956a23b642af3bb24b3cac37c4da746d6f9a9
+            old_openstack_cpi_release_version:       18
+            old_openstack_cpi_release_sha1:          98c45b2dbd90eceb15c4a3843821eb995b7d08c3
+            old_bosh_stemcell_name:                  bosh-openstack-kvm-ubuntu-trusty-go_agent
+            old_bosh_stemcell_version:               3192
+            old_bosh_stemcell_sha1:                  a65173c58f36b108b4fe701f09588d3a7e9ed75f
+
+      - task: deploy-dummy-release-with-old-cpi
+        file: bosh-cpi-release/ci/tasks/deploy-dummy-release.yml
+        config:
+          params:
+            instance_flavor:                         "m1.medium"
+            bosh_director_ip:                        {{v3_upgrade_director_floating_ip}}
+            dns:                                     {{dns}}
+            v3_e2e_security_group:                   {{v3_e2e_security_group}}
+            network_id:                              {{v3_e2e_net_id}}
+            stemcell_name:                           {{v3_e2e_stemcell_name}}
+            delete_deployment_when_done:             false
+
+      - task: test-upgrade
+        file: bosh-cpi-release/ci/tasks/test-upgrade.yml
+        config:
+          params:
+            dns:                                     {{dns}}
+            v3_e2e_flavor:                           "m1.medium"
+            v3_e2e_connection_timeout:               "600"
+            v3_e2e_read_timeout:                     "180"
+            v3_e2e_state_timeout:                    "900"
+            v3_e2e_write_timeout:                    "180"
+            bosh_openstack_ssl_verify:               {{bosh_openstack_ssl_verify}}
+            v3_e2e_bosh_registry_port:               {{v3_e2e_bosh_registry_port}}
+            v3_e2e_api_key:                          {{v3_e2e_api_key}}
+            v3_e2e_auth_url:                         {{openstack_auth_url_v3}}
+            v3_e2e_default_key_name:                 {{v3_e2e_default_key_name}}
+            v3_upgrade_director_floating_ip:         {{v3_upgrade_director_floating_ip}}
+            v3_upgrade_director_manual_ip:           {{v3_upgrade_director_manual_ip}}
+            v3_e2e_net_cidr:                         {{v3_e2e_net_cidr}}
+            v3_e2e_net_gateway:                      {{v3_e2e_net_gateway}}
+            v3_e2e_net_id:                           {{v3_e2e_net_id}}
+            v3_e2e_security_group:                   {{v3_e2e_security_group}}
+            v3_e2e_project:                          {{v3_e2e_project}}
+            v3_e2e_domain:                           {{v3_e2e_domain}}
+            v3_e2e_username:                         {{v3_e2e_username}}
+            v3_e2e_private_key_data:                 {{v3_e2e_private_key_data}}
+
+      - task: teardown-director
+        file: bosh-cpi-src/ci/tasks/teardown.yml
+
   - name: cleanup
     serial: true
     serial_groups: [e2e-integration] # can't run while deploying
@@ -152,6 +239,13 @@ resources:
     type: s3
     source:
       regexp: bosh-init-([0-9.]+)-linux-amd64
+      bucket: bosh-init-artifacts
+      region_name: us-east-1
+
+  - name: old-bosh-init
+    type: s3
+    source:
+      regexp: bosh-init-(0\.0\.81)-linux-amd64
       bucket: bosh-init-artifacts
       region_name: us-east-1
 

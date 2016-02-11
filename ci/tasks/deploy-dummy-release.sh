@@ -17,7 +17,6 @@ chruby 2.1.2
 deployment_dir="${PWD}/deployment"
 manifest_filename="dummy-manifest.yml"
 dummy_release_name="dummy"
-deployment_name="dummy-$(uuidgen)"
 
 echo "setting up artifacts used in $manifest_filename"
 mkdir -p ${deployment_dir}
@@ -44,7 +43,7 @@ popd
 #create dummy release manifest as heredoc
 cat > "${deployment_dir}/${manifest_filename}"<<EOF
 ---
-name: ${deployment_name}
+name: dummy
 director_uuid: $(bosh status --uuid)
 
 releases:
@@ -60,6 +59,7 @@ resource_pools:
     size: 1
     cloud_properties:
       instance_type: ${instance_flavor}
+      disk: 1024
 
 networks:
   - name: private
@@ -96,6 +96,8 @@ pushd ${deployment_dir}
   echo "deploying dummy release..."
   bosh deployment ${manifest_filename}
   bosh -n deploy
-  bosh -n delete deployment ${deployment_name}
-  bosh -n cleanup --all
+  if [ "${delete_deployment_when_done}" = "true" ]; then
+    bosh -n delete deployment dummy
+    bosh -n cleanup --all
+  fi
 popd

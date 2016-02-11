@@ -3,17 +3,15 @@ platform: linux
 image: docker:///boshcpi/openstack-cpi-release
 inputs:
   - name: bosh-cpi-release
-  - name: director-state-file
   - name: dummy-release
   - name: stemcell
 run:
   path: bosh-cpi-release/ci/tasks/deploy-dummy-release.sh
 params:
-  bosh_director_ip:        replace-me
-  dns:                     replace-me
-  v3_e2e_security_group:   replace-me
-  stemcell_name:           replace-me
-  network_id:              replace-me
-  instance_flavor:         replace-me
-
-
+  bosh_director_ip:            replace-me
+  dns:                         replace-me
+  v3_e2e_security_group:       replace-me
+  stemcell_name:               replace-me
+  network_id:                  replace-me
+  instance_flavor:             replace-me
+  delete_deployment_when_done: true

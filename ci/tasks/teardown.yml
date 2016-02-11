@@ -1,0 +1,13 @@
+
+---
+platform: linux
+image: docker:///boshcpi/openstack-cpi-release
+inputs:
+  - name: bosh-cpi-release
+  - name: bosh-init
+  - name: bosh-release
+  - name: published-bosh-cpi-release
+  - name: stemcell
+  - name: upgrade-deployment
+run:
+  path: bosh-cpi-release/ci/tasks/teardown.sh
