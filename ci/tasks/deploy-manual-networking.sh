@@ -176,7 +176,7 @@ jobs:
           connect_timeout: ${openstack_connection_timeout}
           read_timeout: ${openstack_read_timeout}
           write_timeout: ${openstack_write_timeout}
-          ca_cert: `echo ${bosh_openstack_ca_cert} | sed -r  -e 's/ /\\n/g ' -e 's/\\nCERTIFICATE-----/ CERTIFICATE-----/g'`
+          ca_cert: `echo ${bosh_openstack_ca_cert} | sed -r  -e 's/ /\\\\n/g ' -e 's/\\\\nCERTIFICATE-----/ CERTIFICATE-----/g'`
 
       # Tells agents how to contact nats
       agent: {mbus: "nats://nats:nats-password@${openstack_manual_ip}:4222"}
