@@ -10,7 +10,6 @@ ensure_not_replace_value v3_e2e_connection_timeout
 ensure_not_replace_value v3_e2e_read_timeout
 ensure_not_replace_value v3_e2e_state_timeout
 ensure_not_replace_value v3_e2e_write_timeout
-ensure_not_replace_value bosh_openstack_ssl_verify
 ensure_not_replace_value v3_e2e_bosh_registry_port
 ensure_not_replace_value v3_e2e_api_key
 ensure_not_replace_value v3_e2e_auth_url
@@ -25,6 +24,7 @@ ensure_not_replace_value v3_e2e_project
 ensure_not_replace_value v3_e2e_domain
 ensure_not_replace_value v3_e2e_username
 ensure_not_replace_value v3_e2e_private_key_data
+optional_value           bosh_openstack_ca_cert
 
 source /etc/profile.d/chruby-with-ruby-2.1.2.sh
 
@@ -173,7 +173,7 @@ jobs:
         wait_resource_poll_interval: 5
         human_readable_vm_names: true
         connection_options:
-          ssl_verify_peer: ${bosh_openstack_ssl_verify}
+          ca_cert: ${bosh_openstack_ca_cert}
           connect_timeout: ${v3_e2e_connection_timeout}
           read_timeout: ${v3_e2e_read_timeout}
           write_timeout: ${v3_e2e_write_timeout}
