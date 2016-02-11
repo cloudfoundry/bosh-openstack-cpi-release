@@ -227,11 +227,11 @@ time bosh login admin admin
 time bosh download manifest dummy dummy-manifest
 time bosh deployment dummy-manifest
 
-log "recreating existing BOSH Deployment..."
+echo "recreating existing BOSH Deployment..."
 time bosh -n deploy --recreate
 
-log "deleting deployment..."
+echo "deleting deployment..."
 time bosh -n delete deployment dummy
 
-log "cleaning up director..."
+echo "cleaning up director..."
 time bosh -n cleanup --all
