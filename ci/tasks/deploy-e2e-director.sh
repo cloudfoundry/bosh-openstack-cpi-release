@@ -183,7 +183,7 @@ jobs:
           connect_timeout: ${v3_e2e_connection_timeout}
           read_timeout: ${v3_e2e_read_timeout}
           write_timeout: ${v3_e2e_write_timeout}
-          ca_cert: "`echo ${bosh_openstack_ca_cert} | sed -r  -e 's/ /\\\\n/g ' -e 's/\\\\nCERTIFICATE-----/ CERTIFICATE-----/g'`"
+          ca_cert: $(if [ -z "$bosh_openstack_ca_cert" ]; then echo "~"; else echo "\"$(echo ${bosh_openstack_ca_cert} | sed -r  -e 's/ /\\n/g ' -e 's/\\nCERTIFICATE-----/ CERTIFICATE-----/g')\""; fi)
 
       # Tells agents how to contact nats
       agent: {mbus: "nats://nats:nats-password@${v3_e2e_manual_ip}:4222"}
