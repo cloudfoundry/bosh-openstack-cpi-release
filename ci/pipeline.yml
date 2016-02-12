@@ -526,7 +526,7 @@ resources:
   - name: bosh-cpi-dev-artifacts
     type: s3
     source:
-      regexp: bosh-openstack-cpi\.tgz
+      regexp: bosh-openstack-cpi-([0-9.]+)\.tgz
       bucket: {{s3_openstack_cpi_pipeline_bucket_name}} # OpenStack CPI account
       region_name: us-east-1
       access_key_id:      {{s3_openstack_cpi_pipeline_access_key}}
