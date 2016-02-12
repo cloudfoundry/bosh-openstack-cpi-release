@@ -41,7 +41,7 @@ director_state_filename="e2e-director-manifest-state.json"
 private_key=${deployment_dir}/e2e.pem
 
 echo "setting up artifacts used in $manifest_filename"
-cp ./bosh-cpi-dev-artifacts/release.tgz ${deployment_dir}/${cpi_release_name}.tgz
+cp ./bosh-cpi-dev-artifacts/${cpi_release_name}-*.tgz ${deployment_dir}/${cpi_release_name}.tgz
 cp ./bosh-release/release.tgz ${deployment_dir}/bosh-release.tgz
 cp ./stemcell/stemcell.tgz ${deployment_dir}/stemcell.tgz
 cp ./director-state-file/${director_state_filename} ${deployment_dir}/${director_state_filename}
