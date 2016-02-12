@@ -212,7 +212,9 @@ describe 'cpi.json.erb' do
       manifest['properties']['registry']['endpoint'] = nil
       manifest['properties']['openstack']['human_readable_vm_names'] = true
 
-      expect{subject}.to raise_error RuntimeError, "Property 'human_readable_vm_names' can only be used with defined 'registry.endpoint'"
+      expect{subject}.to raise_error RuntimeError,
+                                     "Property 'human_readable_vm_names' can only be used together with" +
+                                     " 'registry.endpoint'. Please refer to http://bosh.io/docs/openstack-registry.html."
     end
 
     it 'template render succeeds if registry endpoint is set' do
