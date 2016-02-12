@@ -26,10 +26,11 @@ bosh -n cleanup --all
 export BOSH_INIT_LOG_LEVEL=DEBUG
 
 working_dir=${PWD}/director-manifest-file
+cpi_release_name="bosh-openstack-cpi"
 
 
 cp ./director-state-file/${director_state_file} ${working_dir}/
-cp ./bosh-cpi-dev-artifacts/release.tgz ${working_dir}/bosh-openstack-cpi.tgz
+cp ./bosh-cpi-dev-artifacts/${cpi_release_name}-*.tgz ${working_dir}/${cpi_release_name}.tgz
 cp ./bosh-release/release.tgz ${working_dir}/bosh-release.tgz
 cp ./stemcell/stemcell.tgz ${working_dir}/stemcell.tgz
 
