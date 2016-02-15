@@ -2,7 +2,7 @@
 
 set -e -x
 
-source bosh-cpi-release/ci/tasks/utils.sh
+source bosh-cpi-src-in/ci/tasks/utils.sh
 
 ensure_not_replace_value aws_access_key_id
 ensure_not_replace_value aws_secret_access_key
@@ -12,9 +12,9 @@ ensure_not_replace_value aws_secret_access_key
 integer_version=`cut -d "." -f1 release-version-semver/number`
 echo $integer_version > integer_version
 
-cp -r bosh-cpi-release promote/bosh-cpi-release
+cp -r bosh-cpi-src-in promote/repo
 
-cd promote/bosh-cpi-release
+cd promote/repo
 
 source /etc/profile.d/chruby-with-ruby-2.1.2.sh
 

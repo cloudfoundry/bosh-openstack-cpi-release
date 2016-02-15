@@ -2,12 +2,12 @@
 platform: linux
 image: docker:///boshcpi/openstack-cpi-release
 inputs:
-  - name: bosh-cpi-release
+  - name: bosh-cpi-src-in
   - name: old-bosh-init
 outputs:
   - name: deployment
 run:
-  path: bosh-cpi-release/ci/tasks/deploy-old-director.sh
+  path: bosh-cpi-src-in/ci/tasks/deploy-old-director.sh
 params:
   BOSH_INIT_LOG_LEVEL:               warn
   dns:                               replace-me

@@ -2,7 +2,7 @@
 
 set -e
 
-source bosh-cpi-release/ci/tasks/utils.sh
+source bosh-cpi-src-in/ci/tasks/utils.sh
 
 ensure_not_replace_value base_os
 ensure_not_replace_value dns

@@ -2,9 +2,9 @@
 platform: linux
 image: docker:///boshcpi/openstack-cpi-release
 inputs:
-  - name: bosh-cpi-release
+  - name: bosh-cpi-src-in
   - name: version-semver
 outputs:
   - name: candidate
 run:
-  path: bosh-cpi-release/ci/tasks/build-candidate.sh
+  path: bosh-cpi-src-in/ci/tasks/build-candidate.sh

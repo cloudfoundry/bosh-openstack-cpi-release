@@ -3,7 +3,7 @@
 set -e
 set -o pipefail
 
-source bosh-cpi-release/ci/tasks/utils.sh
+source bosh-cpi-src-in/ci/tasks/utils.sh
 
 ensure_not_replace_value BOSH_OPENSTACK_DOMAIN
 ensure_not_replace_value BOSH_OPENSTACK_AUTH_URL_V2
@@ -30,7 +30,7 @@ mkdir "$PWD/openstack-lifecycle-stemcell/stemcell"
 tar -C "$PWD/openstack-lifecycle-stemcell/stemcell" -xzf "$PWD/openstack-lifecycle-stemcell/stemcell.tgz"
 export BOSH_OPENSTACK_STEMCELL_PATH="$PWD/openstack-lifecycle-stemcell/stemcell"
 
-cd bosh-cpi-release/src/bosh_openstack_cpi
+cd bosh-cpi-src-in/src/bosh_openstack_cpi
 
 bundle install
 bundle exec rspec spec/integration 2>&1 | tee ../../../output/lifecycle.log

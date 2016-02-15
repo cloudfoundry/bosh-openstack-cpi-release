@@ -2,11 +2,11 @@
 platform: linux
 image: docker:///boshcpi/openstack-cpi-release
 inputs:
-  - name: bosh-cpi-release
+  - name: bosh-cpi-src-in
   - name: stemcell
   - name: bats
 run:
-  path: bosh-cpi-release/ci/tasks/run-dynamic-networking-bats.sh
+  path: bosh-cpi-src-in/ci/tasks/run-dynamic-networking-bats.sh
 params:
   bats_vm_floating_ip:                       replace-me
   bosh_director_public_ip:                   replace-me

@@ -1,15 +1,15 @@
 #!/usr/bin/env bash
 
 set -e
-source bosh-cpi-release/ci/tasks/utils.sh
+source bosh-cpi-src-in/ci/tasks/utils.sh
 
 ensure_not_replace_value publish_api_calls_enabled
 
 source /etc/profile.d/chruby-with-ruby-2.1.2.sh
 
-cp -r bosh-cpi-release publish/bosh-cpi-release
+cp -r bosh-cpi-src-in publish/repo
 
-cd publish/bosh-cpi-release/ci/ruby_scripts
+cd publish/repo/ci/ruby_scripts
 
 bundle install
 bundle exec rspec spec/

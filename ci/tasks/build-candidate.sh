@@ -7,7 +7,7 @@ source /etc/profile.d/chruby-with-ruby-2.1.2.sh
 
 semver=`cat version-semver/number`
 
-cd bosh-cpi-release
+cd bosh-cpi-src-in
 
 echo "running unit tests"
 pushd src/bosh_openstack_cpi

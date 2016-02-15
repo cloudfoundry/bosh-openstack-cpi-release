@@ -2,7 +2,7 @@
 
 set -e
 
-source bosh-cpi-release/ci/tasks/utils.sh
+source bosh-cpi-src-in/ci/tasks/utils.sh
 
 ensure_not_replace_value BOSH_OPENSTACK_AUTH_URL
 ensure_not_replace_value BOSH_OPENSTACK_USERNAME

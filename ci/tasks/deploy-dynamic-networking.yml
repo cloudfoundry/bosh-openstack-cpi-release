@@ -2,7 +2,7 @@
 platform: linux
 image: docker:///boshcpi/openstack-cpi-release
 inputs:
-  - name: bosh-cpi-release
+  - name: bosh-cpi-src-in
   - name: director-state-file
   - name: bosh-init
   - name: bosh-release
@@ -12,7 +12,7 @@ inputs:
 outputs:
   - name: deployment
 run:
-  path: bosh-cpi-release/ci/tasks/deploy-dynamic-networking.sh
+  path: bosh-cpi-src-in/ci/tasks/deploy-dynamic-networking.sh
 params:
   base_os:                       replace-me
   dns:                           replace-me

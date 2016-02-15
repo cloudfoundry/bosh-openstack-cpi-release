@@ -13,7 +13,7 @@ jobs:
     serial_groups: [e2e-integration] # can't run while deploying
     plan:
       - aggregate:
-        - {trigger: false, get: bosh-cpi-release}
+        - {trigger: false, get: bosh-cpi-src-in}
         - {trigger: true, get: bosh-init}
         - {trigger: true, get: bosh-cpi-dev-artifacts}
         - {trigger: true, get: bosh-release}
@@ -21,7 +21,7 @@ jobs:
         - {trigger: false, get: director-state-file}
 
       - task: deploy-integration-director
-        file: bosh-cpi-release/ci/tasks/deploy-e2e-director.yml
+        file: bosh-cpi-src-in/ci/tasks/deploy-e2e-director.yml
         config:
           params:
             v3_e2e_flavor:                           "m1.medium"
@@ -60,7 +60,7 @@ jobs:
     serial_groups: [e2e-integration] # can't run while deploying
     plan:
       - aggregate:
-        - {trigger: false, passed: [deploy-director], get: bosh-cpi-release}
+        - {trigger: false, passed: [deploy-director], get: bosh-cpi-src-in}
         - {trigger: true, passed: [deploy-director], get: bosh-cpi-dev-artifacts}
         - {trigger: true, passed: [deploy-director], get: stemcell}
         - {trigger: true, passed: [deploy-director], get: bosh-init}
@@ -70,7 +70,7 @@ jobs:
         - {trigger: false, passed: [deploy-director],  get: director-manifest-file}
 
       - task: deploy-dummy-release
-        file: bosh-cpi-release/ci/tasks/deploy-dummy-release.yml
+        file: bosh-cpi-src-in/ci/tasks/deploy-dummy-release.yml
         config:
           params:
             instance_flavor:                         "m1.medium"
@@ -81,7 +81,7 @@ jobs:
             stemcell_name:                           {{v3_e2e_stemcell_name}}
 
       - task: teardown-director
-        file: bosh-cpi-release/ci/tasks/teardown-director-e2e.yml
+        file: bosh-cpi-src-in/ci/tasks/teardown-director-e2e.yml
         config:
           params:
             director_manifest_file:  "e2e-director-manifest.yml"
@@ -95,7 +95,7 @@ jobs:
     serial: true
     plan:
       - aggregate:
-        - {trigger: false, get: bosh-cpi-release}
+        - {trigger: false, get: bosh-cpi-src-in}
         - {trigger: true,  get: bosh-init}
         - {trigger: false, get: old-bosh-init}
         - {trigger: true,  get: bosh-cpi-dev-artifacts}
@@ -104,7 +104,7 @@ jobs:
         - {trigger: false, get: dummy-release}
 
       - task: deploy-old-director
-        file: bosh-cpi-release/ci/tasks/deploy-old-director.yml
+        file: bosh-cpi-src-in/ci/tasks/deploy-old-director.yml
         config:
           params:
             dns:                                     {{dns}}
@@ -137,7 +137,7 @@ jobs:
             old_bosh_stemcell_sha1:                  a65173c58f36b108b4fe701f09588d3a7e9ed75f
 
       - task: deploy-dummy-release-with-old-cpi
-        file: bosh-cpi-release/ci/tasks/deploy-dummy-release.yml
+        file: bosh-cpi-src-in/ci/tasks/deploy-dummy-release.yml
         config:
           params:
             instance_flavor:                         "m1.medium"
@@ -149,7 +149,7 @@ jobs:
             delete_deployment_when_done:             false
 
       - task: test-upgrade
-        file: bosh-cpi-release/ci/tasks/test-upgrade.yml
+        file: bosh-cpi-src-in/ci/tasks/test-upgrade.yml
         config:
           params:
             dns:                                     {{dns}}
@@ -175,16 +175,16 @@ jobs:
             v3_e2e_private_key_data:                 {{v3_e2e_private_key_data}}
 
       - task: teardown-director
-        file: bosh-cpi-release/ci/tasks/teardown.yml
+        file: bosh-cpi-src-in/ci/tasks/teardown.yml
 
   - name: cleanup
     serial: true
     serial_groups: [e2e-integration] # can't run while deploying
     plan:
-      - {trigger: false, get: bosh-cpi-release}
+      - {trigger: false, get: bosh-cpi-src-in}
 
       - task: cleanup-e2e
-        file: bosh-cpi-release/ci/tasks/cleanup.yml
+        file: bosh-cpi-src-in/ci/tasks/cleanup.yml
         config:
           params:
             BOSH_OPENSTACK_IDENTITY_API_VERSION: 3
@@ -258,9 +258,13 @@ resources:
       bucket: bosh-init-artifacts
       region_name: us-east-1
 
-  - name: bosh-cpi-release
+  - name: bosh-cpi-src-in
     type: git
     source:
-      uri: git@github.com:cloudfoundry-incubator/bosh-openstack-cpi-release.git
+      uri: https://github.com/cloudfoundry-incubator/bosh-openstack-cpi-release.git
       branch: master
-      private_key: {{github_deployment_key__bosh-openstack-cpi-release}}
+      ignore_paths:
+        - releases/bosh-openstack-cpi/**
+        - .final_builds/**
+        - docs/**
+        - README.md

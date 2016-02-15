@@ -2,7 +2,7 @@
 
 set -e -x
 
-source bosh-cpi-release/ci/tasks/utils.sh
+source bosh-cpi-src-in/ci/tasks/utils.sh
 
 ensure_not_replace_value stemcell_name
 ensure_not_replace_value openstack_security_group

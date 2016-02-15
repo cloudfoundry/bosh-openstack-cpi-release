@@ -2,7 +2,7 @@
 platform: linux
 image: docker:///boshcpi/openstack-cpi-release
 inputs:
-  - name: bosh-cpi-release
+  - name: bosh-cpi-src-in
   - name: bosh-cpi-dev-artifacts
   - name: director-state-file
   - name: director-manifest-file
@@ -12,7 +12,7 @@ inputs:
 outputs:
   - name: teardown
 run:
-  path: bosh-cpi-release/ci/tasks/teardown-director-e2e.sh
+  path: bosh-cpi-src-in/ci/tasks/teardown-director-e2e.sh
 params:
   bosh_director_ip:        replace-me
   director_state_file:     replace-me
