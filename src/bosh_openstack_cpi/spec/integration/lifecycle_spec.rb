@@ -122,10 +122,11 @@ describe Bosh::OpenStackCloud::Cloud do
     describe 'set_vm_metadata' do
 
       let(:human_readable_vm_names) { true }
+      before { @human_readable_vm_name_id = create_vm(@stemcell_id, network_spec, []) }
+      after { clean_up_vm(@human_readable_vm_name_id, network_spec) if @human_readable_vm_name_id }
 
       it 'sets the vm name according to the metadata' do
-        vm_id = create_vm(@stemcell_id, network_spec, [])
-        vm = cpi.openstack.servers.get(vm_id)
+        vm = cpi.openstack.servers.get(@human_readable_vm_name_id)
         expect(vm.name).to eq 'openstack_cpi_spec/0'
       end
 
