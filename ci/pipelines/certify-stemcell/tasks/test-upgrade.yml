@@ -11,7 +11,7 @@ inputs:
 outputs:
   - name: upgrade-deployment
 run:
-  path: bosh-cpi-src-in/ci/tasks/test-upgrade.sh
+  path: bosh-cpi-src-in/ci/pipelines/certify-stemcell/tasks/test-upgrade.sh
 params:
   BOSH_INIT_LOG_LEVEL:               warn
   dns:                               replace-me

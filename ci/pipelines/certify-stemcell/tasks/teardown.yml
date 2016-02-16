@@ -10,4 +10,4 @@ inputs:
   - name: stemcell
   - name: upgrade-deployment
 run:
-  path: bosh-cpi-src-in/ci/tasks/teardown.sh
+  path: bosh-cpi-src-in/ci/pipelines/certify-stemcell/tasks/teardown.sh

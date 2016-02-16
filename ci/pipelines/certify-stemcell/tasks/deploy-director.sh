@@ -14,8 +14,8 @@ ensure_not_replace_value v3_e2e_bosh_registry_port
 ensure_not_replace_value v3_e2e_api_key
 ensure_not_replace_value v3_e2e_auth_url
 ensure_not_replace_value v3_e2e_default_key_name
-ensure_not_replace_value v3_e2e_floating_ip
-ensure_not_replace_value v3_e2e_manual_ip
+ensure_not_replace_value director_floating_ip
+ensure_not_replace_value director_manual_ip
 ensure_not_replace_value v3_e2e_net_cidr
 ensure_not_replace_value v3_e2e_net_gateway
 ensure_not_replace_value v3_e2e_net_id
@@ -34,17 +34,14 @@ source /etc/profile.d/chruby-with-ruby-2.1.2.sh
 
 export BOSH_INIT_LOG_LEVEL=DEBUG
 
-cpi_release_name="bosh-openstack-cpi"
 deployment_dir="${PWD}/deployment"
 manifest_filename="e2e-director-manifest.yml"
-director_state_filename="e2e-director-manifest-state.json"
 private_key=${deployment_dir}/e2e.pem
 
 echo "setting up artifacts used in $manifest_filename"
-cp ./bosh-cpi-dev-artifacts/${cpi_release_name}-*.tgz ${deployment_dir}/${cpi_release_name}.tgz
+cp ./bosh-cpi-dev-artifacts/*.tgz ${deployment_dir}/bosh-openstack-cpi.tgz
 cp ./bosh-release/release.tgz ${deployment_dir}/bosh-release.tgz
 cp ./stemcell/stemcell.tgz ${deployment_dir}/stemcell.tgz
-cp ./director-state-file/${director_state_filename} ${deployment_dir}/${director_state_filename}
 
 echo "${v3_e2e_private_key_data}" > ${private_key}
 chmod go-r ${private_key}
@@ -69,7 +66,7 @@ networks:
       - range:    ${v3_e2e_net_cidr}
         gateway:  ${v3_e2e_net_gateway}
         dns:     ${dns}
-        static:  [${v3_e2e_manual_ip}]
+        static:  [${director_manual_ip}]
         cloud_properties:
           net_id: ${v3_e2e_net_id}
           security_groups: [${v3_e2e_security_group}]
@@ -106,10 +103,10 @@ jobs:
 
     networks:
       - name: private
-        static_ips: [${v3_e2e_manual_ip}]
+        static_ips: [${director_manual_ip}]
         default: [dns, gateway]
       - name: public
-        static_ips: [${v3_e2e_floating_ip}]
+        static_ips: [${director_floating_ip}]
 
     properties:
       nats:
@@ -131,8 +128,8 @@ jobs:
 
       # Tells the Director/agents how to contact registry
       registry:
-        address: ${v3_e2e_manual_ip}
-        host: ${v3_e2e_manual_ip}
+        address: ${director_manual_ip}
+        host: ${director_manual_ip}
         db: *db
         http: {user: admin, password: admin, port: ${v3_e2e_bosh_registry_port}}
         username: admin
@@ -186,7 +183,7 @@ jobs:
           ca_cert: $(if [ -z "$bosh_openstack_ca_cert" ]; then echo "~"; else echo "\"$(echo ${bosh_openstack_ca_cert} | sed -r  -e 's/ /\\n/g ' -e 's/\\nCERTIFICATE-----/ CERTIFICATE-----/g')\""; fi)
 
       # Tells agents how to contact nats
-      agent: {mbus: "nats://nats:nats-password@${v3_e2e_manual_ip}:4222"}
+      agent: {mbus: "nats://nats:nats-password@${director_manual_ip}:4222"}
 
       ntp: &ntp
         - 0.north-america.pool.ntp.org
@@ -197,13 +194,13 @@ cloud_provider:
 
   # Tells bosh-micro how to SSH into deployed VM
   ssh_tunnel:
-    host: ${v3_e2e_floating_ip}
+    host: ${director_floating_ip}
     port: 22
     user: vcap
     private_key: ${private_key}
 
   # Tells bosh-micro how to contact remote agent
-  mbus: https://mbus-user:mbus-password@${v3_e2e_floating_ip}:6868
+  mbus: https://mbus-user:mbus-password@${director_floating_ip}:6868
 
   properties:
     openstack: *openstack
@@ -221,8 +218,8 @@ EOF
 echo "using bosh CLI version..."
 bosh version
 
-echo "targeting bosh director at ${v3_e2e_floating_ip}"
-bosh -n target ${v3_e2e_floating_ip} || failed_exit_code=$?
+echo "targeting bosh director at ${director_floating_ip}"
+bosh -n target ${director_floating_ip} || failed_exit_code=$?
 if [ -z "$failed_exit_code" ]; then
   bosh login admin admin
   echo "cleanup director (especially orphan disks)"
@@ -232,9 +229,6 @@ fi
 initver=$(cat bosh-init/version)
 bosh_init="${PWD}/bosh-init/bosh-init-${initver}-linux-amd64"
 chmod +x $bosh_init
-
-echo "deleting existing BOSH Director VM..."
-$bosh_init delete ${deployment_dir}/${manifest_filename}
 
 echo "deploying BOSH..."
 $bosh_init deploy ${deployment_dir}/${manifest_filename}

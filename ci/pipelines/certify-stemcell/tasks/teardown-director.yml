@@ -4,16 +4,11 @@ image: docker:///boshcpi/openstack-cpi-release
 inputs:
   - name: bosh-cpi-src-in
   - name: bosh-cpi-dev-artifacts
-  - name: director-state-file
-  - name: director-manifest-file
   - name: bosh-init
   - name: stemcell
   - name: bosh-release
-outputs:
-  - name: teardown
+  - name: deployment
 run:
-  path: bosh-cpi-src-in/ci/tasks/teardown-director-e2e.sh
+  path: bosh-cpi-src-in/ci/pipelines/certify-stemcell/tasks/teardown-director.sh
 params:
   bosh_director_ip:        replace-me
-  director_state_file:     replace-me
-  director_manifest_file:  replace-me

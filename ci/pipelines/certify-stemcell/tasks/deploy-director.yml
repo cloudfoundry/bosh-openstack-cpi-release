@@ -2,7 +2,6 @@
 platform: linux
 image: docker:///boshcpi/openstack-cpi-release
 inputs:
-  - name: director-state-file
   - name: bosh-cpi-src-in
   - name: bosh-cpi-dev-artifacts
   - name: bosh-init
@@ -11,7 +10,7 @@ inputs:
 outputs:
   - name: deployment
 run:
-  path: bosh-cpi-src-in/ci/tasks/deploy-e2e-director.sh
+  path: bosh-cpi-src-in/ci/pipelines/certify-stemcell/tasks/deploy-director.sh
 params:
   BOSH_INIT_LOG_LEVEL:            warn
   dns:                            replace-me
@@ -25,8 +24,8 @@ params:
   v3_e2e_api_key:                 replace-me
   v3_e2e_auth_url:                replace-me
   v3_e2e_default_key_name:        replace-me
-  v3_e2e_floating_ip:             replace-me
-  v3_e2e_manual_ip:               replace-me
+  director_floating_ip:           replace-me
+  director_manual_ip:             replace-me
   v3_e2e_net_cidr:                replace-me
   v3_e2e_net_gateway:             replace-me
   v3_e2e_net_id:                  replace-me
