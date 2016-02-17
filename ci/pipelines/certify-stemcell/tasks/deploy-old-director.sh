@@ -179,7 +179,8 @@ jobs:
         wait_resource_poll_interval: 5
         human_readable_vm_names: true
         connection_options:
-          ca_cert: $(if [ -z "$bosh_openstack_ca_cert" ]; then echo "~"; else echo "\"$(echo ${bosh_openstack_ca_cert} | sed -r  -e 's/ /\\n/g ' -e 's/\\nCERTIFICATE-----/ CERTIFICATE-----/g')\""; fi)
+          # old bosh openstack cpi does not know ca_cert feature, give it ssl_verify_peer:false instead
+          ssl_verify_peer: $(if [ -z "$bosh_openstack_ca_cert" ]; then echo "true"; else echo "false"; fi)
           connect_timeout: ${v3_e2e_connection_timeout}
           read_timeout: ${v3_e2e_read_timeout}
           write_timeout: ${v3_e2e_write_timeout}
