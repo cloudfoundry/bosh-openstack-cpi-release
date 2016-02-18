@@ -15,10 +15,7 @@ module Bosh::OpenStackCloud
     CONNECT_RETRY_DELAY = 1
     CONNECT_RETRY_COUNT = 5
 
-    attr_reader :compute
     attr_reader :registry
-    attr_reader :glance
-    attr_reader :volume
     attr_reader :state_timeout
     attr_accessor :logger
 
@@ -60,14 +57,23 @@ module Bosh::OpenStackCloud
       }
       @openstack = Bosh::OpenStackCloud::Openstack.new(@options['openstack'], @connect_retry_options)
 
-
-      @compute = @openstack.compute
       @az_provider = Bosh::OpenStackCloud::AvailabilityZoneProvider.new(
-          @compute,
+          @openstack,
           openstack_properties["ignore_server_availability_zone"])
-      @glance = @openstack.image
 
       @metadata_lock = Mutex.new
+    end
+
+    def compute
+      @openstack.compute
+    end
+
+    def glance
+      @openstack.image
+    end
+
+    def volume
+      @openstack.volume
     end
 
     def auth_url
@@ -125,7 +131,7 @@ module Bosh::OpenStackCloud
 
             # Upload image using Glance service
             @logger.debug("Using image parms: `#{image_params.inspect}'")
-            image = with_openstack { @glance.images.create(image_params) }
+            image = with_openstack { @openstack.image.images.create(image_params) }
 
             @logger.info("Creating new image `#{image.id}'...")
             wait_resource(image, :active)
@@ -148,7 +154,7 @@ module Bosh::OpenStackCloud
     def delete_stemcell(stemcell_id)
       with_thread_name("delete_stemcell(#{stemcell_id})") do
         @logger.info("Deleting stemcell `#{stemcell_id}'...")
-        image = with_openstack { @glance.images.find_by_id(stemcell_id) }
+        image = with_openstack { @openstack.image.images.find_by_id(stemcell_id) }
         if image
           with_openstack { image.destroy }
           @logger.info("Stemcell `#{stemcell_id}' is now deleted")
@@ -190,7 +196,7 @@ module Bosh::OpenStackCloud
           cloud_error('Cannot define security groups in both network and resource pool.')
         end
 
-        openstack_security_groups = with_openstack { @compute.security_groups }.collect { |sg| sg.name }
+        openstack_security_groups = with_openstack { @openstack.compute.security_groups }.collect { |sg| sg.name }
         network_security_groups = network_configurator.security_groups(@default_security_groups)
         security_groups_to_be_used = resource_pool_spec_security_groups.size > 0 ? resource_pool_spec_security_groups : network_security_groups
 
@@ -206,7 +212,7 @@ module Bosh::OpenStackCloud
         begin
           Bosh::Common.retryable(@connect_retry_options) do |tries, error|
             @logger.error("Unable to connect to OpenStack API to find image: `#{stemcell_id} due to: #{error.inspect}") unless error.nil?
-            image = with_openstack { @compute.images.find { |i| i.id == stemcell_id } }
+            image = with_openstack { @openstack.compute.images.find { |i| i.id == stemcell_id } }
             cloud_error("Image `#{stemcell_id}' not found") if image.nil?
             @logger.debug("Using image: `#{stemcell_id}'")
           end
@@ -214,7 +220,7 @@ module Bosh::OpenStackCloud
           cloud_error("Unable to connect to OpenStack API to find image: `#{stemcell_id}'")
         end
 
-        flavor = with_openstack { @compute.flavors.find { |f| f.name == resource_pool['instance_type'] } }
+        flavor = with_openstack { @openstack.compute.flavors.find { |f| f.name == resource_pool['instance_type'] } }
         cloud_error("Flavor `#{resource_pool['instance_type']}' not found") if flavor.nil?
         if flavor_has_ephemeral_disk?(flavor)
           if flavor.ram
@@ -269,7 +275,7 @@ module Bosh::OpenStackCloud
 
         @logger.debug("Using boot parms: `#{server_params.inspect}'")
         begin
-          server = with_openstack { @compute.servers.create(server_params) }
+          server = with_openstack { @openstack.compute.servers.create(server_params) }
         rescue Excon::Errors::Timeout => e
           @logger.debug(e.backtrace)
           cloud_error_message = "VM creation with name '#{server_params[:name]}' received a timeout. " +
@@ -293,7 +299,7 @@ module Bosh::OpenStackCloud
           wait_resource(server, :active, :state)
 
           @logger.info("Configuring network for server `#{server.id}'...")
-          network_configurator.configure(@compute, server)
+          network_configurator.configure(@openstack.compute, server)
         rescue => e
           @logger.warn("Failed to create server: #{e.message}")
           destroy_server(server)
@@ -349,7 +355,7 @@ module Bosh::OpenStackCloud
     def delete_vm(server_id)
       with_thread_name("delete_vm(#{server_id})") do
         @logger.info("Deleting server `#{server_id}'...")
-        server = with_openstack { @compute.servers.get(server_id) }
+        server = with_openstack { @openstack.compute.servers.get(server_id) }
         if server
           with_openstack { server.destroy }
           wait_resource(server, [:terminated, :deleted], :state, true)
@@ -369,7 +375,7 @@ module Bosh::OpenStackCloud
     # @return [Boolean] True if the vm exists
     def has_vm?(server_id)
       with_thread_name("has_vm?(#{server_id})") do
-        server = with_openstack { @compute.servers.get(server_id) }
+        server = with_openstack { @openstack.compute.servers.get(server_id) }
         !server.nil? && ![:terminated, :deleted].include?(server.state.downcase.to_sym)
       end
     end
@@ -381,7 +387,7 @@ module Bosh::OpenStackCloud
     # @return [void]
     def reboot_vm(server_id)
       with_thread_name("reboot_vm(#{server_id})") do
-        server = with_openstack { @compute.servers.get(server_id) }
+        server = with_openstack { @openstack.compute.servers.get(server_id) }
         cloud_error("Server `#{server_id}' not found") unless server
 
         soft_reboot(server)
@@ -427,7 +433,7 @@ module Bosh::OpenStackCloud
         end
 
         if server_id  && @az_provider.constrain_to_server_availability_zone?
-          server = with_openstack { @compute.servers.get(server_id) }
+          server = with_openstack { @openstack.compute.servers.get(server_id) }
           if server && server.availability_zone
             volume_params[:availability_zone] = server.availability_zone
           end
@@ -487,7 +493,7 @@ module Bosh::OpenStackCloud
     def has_disk?(disk_id)
       with_thread_name("has_disk?(#{disk_id})") do
         @logger.info("Check the presence of disk with id `#{disk_id}'...")
-        volume = with_openstack { @compute.volumes.get(disk_id) }
+        volume = with_openstack { @openstack.compute.volumes.get(disk_id) }
 
         !volume.nil?
       end
@@ -502,7 +508,7 @@ module Bosh::OpenStackCloud
     def delete_disk(disk_id)
       with_thread_name("delete_disk(#{disk_id})") do
         @logger.info("Deleting volume `#{disk_id}'...")
-        volume = with_openstack { @compute.volumes.get(disk_id) }
+        volume = with_openstack { @openstack.compute.volumes.get(disk_id) }
         if volume
           state = volume.status
           if state.to_sym != :available
@@ -525,10 +531,10 @@ module Bosh::OpenStackCloud
     # @return [void]
     def attach_disk(server_id, disk_id)
       with_thread_name("attach_disk(#{server_id}, #{disk_id})") do
-        server = with_openstack { @compute.servers.get(server_id) }
+        server = with_openstack { @openstack.compute.servers.get(server_id) }
         cloud_error("Server `#{server_id}' not found") unless server
 
-        volume = with_openstack { @compute.volumes.get(disk_id) }
+        volume = with_openstack { @openstack.compute.volumes.get(disk_id) }
         cloud_error("Volume `#{disk_id}' not found") unless volume
 
         device_name = attach_volume(server, volume)
@@ -549,10 +555,10 @@ module Bosh::OpenStackCloud
     # @return [void]
     def detach_disk(server_id, disk_id)
       with_thread_name("detach_disk(#{server_id}, #{disk_id})") do
-        server = with_openstack { @compute.servers.get(server_id) }
+        server = with_openstack { @openstack.compute.servers.get(server_id) }
         cloud_error("Server `#{server_id}' not found") unless server
 
-        volume = with_openstack { @compute.volumes.get(disk_id) }
+        volume = with_openstack { @openstack.compute.volumes.get(disk_id) }
         if volume.nil?
           @logger.info("Disk `#{disk_id}' not found while trying to detach it from vm `#{server_id}'...")
         else
@@ -577,7 +583,7 @@ module Bosh::OpenStackCloud
     def snapshot_disk(disk_id, metadata)
       with_thread_name("snapshot_disk(#{disk_id})") do
         metadata = Hash[metadata.map{|key,value| [key.to_s, value] }]
-        volume = with_openstack { @compute.volumes.get(disk_id) }
+        volume = with_openstack { @openstack.compute.volumes.get(disk_id) }
         cloud_error("Volume `#{disk_id}' not found") unless volume
 
         devices = []
@@ -592,7 +598,7 @@ module Bosh::OpenStackCloud
         }
 
         @logger.info("Creating new snapshot for volume `#{disk_id}'...")
-        snapshot = @compute.snapshots.new(snapshot_params)
+        snapshot = @openstack.compute.snapshots.new(snapshot_params)
         with_openstack { snapshot.save(true) }
 
         @logger.info("Creating new snapshot `#{snapshot.id}' for volume `#{disk_id}'...")
@@ -611,7 +617,7 @@ module Bosh::OpenStackCloud
     def delete_snapshot(snapshot_id)
       with_thread_name("delete_snapshot(#{snapshot_id})") do
         @logger.info("Deleting snapshot `#{snapshot_id}'...")
-        snapshot = with_openstack { @compute.snapshots.get(snapshot_id) }
+        snapshot = with_openstack { @openstack.compute.snapshots.get(snapshot_id) }
         if snapshot
           state = snapshot.status
           if state.to_sym != :available
@@ -635,7 +641,7 @@ module Bosh::OpenStackCloud
     def set_vm_metadata(server_id, metadata)
       with_thread_name("set_vm_metadata(#{server_id}, ...)") do
         with_openstack do
-          server = @compute.servers.get(server_id)
+          server = @openstack.compute.servers.get(server_id)
           cloud_error("Server `#{server_id}' not found") unless server
 
           metadata.each do |name, value|
@@ -647,9 +653,9 @@ module Bosh::OpenStackCloud
             index = metadata['index']
             compiling = metadata['compiling']
             if job && index
-              @compute.update_server(server_id, {'name' => "#{job}/#{index}"})
+              @openstack.compute.update_server(server_id, {'name' => "#{job}/#{index}"})
             elsif compiling
-              @compute.update_server(server_id, {'name' => "compiling/#{compiling}"})
+              @openstack.compute.update_server(server_id, {'name' => "compiling/#{compiling}"})
             end
           end
 
@@ -849,7 +855,7 @@ module Bosh::OpenStackCloud
       letter = "#{FIRST_DEVICE_NAME_LETTER}"
       return letter if server.flavor.nil?
       return letter unless server.flavor.has_key?('id')
-      flavor = with_openstack { @compute.flavors.find { |f| f.id == server.flavor['id'] } }
+      flavor = with_openstack { @openstack.compute.flavors.find { |f| f.id == server.flavor['id'] } }
       return letter if flavor.nil?
 
       letter.succ! if flavor_has_ephemeral_disk?(flavor)
@@ -1026,7 +1032,7 @@ module Bosh::OpenStackCloud
     end
 
     def validate_key_exists(keyname)
-      keypair = with_openstack { @compute.key_pairs.find { |k| k.name == keyname } }
+      keypair = with_openstack { @openstack.compute.key_pairs.find { |k| k.name == keyname } }
       cloud_error("Key-pair `#{keyname}' not found") if keypair.nil?
       @logger.debug("Using key-pair: `#{keypair.name}' (#{keypair.fingerprint})")
     end

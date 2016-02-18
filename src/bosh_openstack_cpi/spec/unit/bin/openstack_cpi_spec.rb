@@ -106,7 +106,7 @@ end
 def create_cpi_command_file
   command_file = Tempfile.new('command.json')
   File.open(command_file, 'w') do |file|
-    file.write({'method' => 'ping', 'arguments' => [], 'context' => {'director_uuid' => 'abc123'}}.to_json)
+    file.write({'method' => 'set_vm_metadata', 'arguments' => [1,{}], 'context' => {'director_uuid' => 'abc123'}}.to_json)
   end
   command_file
 end
