@@ -255,7 +255,7 @@ describe Bosh::OpenStackCloud::NetworkConfigurator do
         expect(address).to receive(:server=).with(nil)
 
         network_configurator = Bosh::OpenStackCloud::NetworkConfigurator.new(network_spec)
-        network_configurator.configure(cloud.openstack, server)
+        network_configurator.configure(cloud.compute, server)
       end
 
       it "floating IPs allocated to other servers" do
@@ -273,7 +273,7 @@ describe Bosh::OpenStackCloud::NetworkConfigurator do
         expect(address).to_not receive(:server=).with(nil)
 
         network_configurator = Bosh::OpenStackCloud::NetworkConfigurator.new(network_spec)
-        network_configurator.configure(cloud.openstack, other_server)
+        network_configurator.configure(cloud.compute, other_server)
       end
 
       it "no floating IPs allocated" do
@@ -285,7 +285,7 @@ describe Bosh::OpenStackCloud::NetworkConfigurator do
         end
 
         network_configurator = Bosh::OpenStackCloud::NetworkConfigurator.new(network_spec)
-        network_configurator.configure(cloud.openstack, nil)
+        network_configurator.configure(cloud.compute, nil)
       end
     end
   end

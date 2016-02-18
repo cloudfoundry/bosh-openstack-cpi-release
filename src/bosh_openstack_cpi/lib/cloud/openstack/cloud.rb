@@ -15,7 +15,7 @@ module Bosh::OpenStackCloud
     CONNECT_RETRY_DELAY = 1
     CONNECT_RETRY_COUNT = 5
 
-    attr_reader :openstack
+    attr_reader :compute
     attr_reader :registry
     attr_reader :glance
     attr_reader :volume
@@ -38,31 +38,18 @@ module Bosh::OpenStackCloud
       @logger = Bosh::Clouds::Config.logger
 
       @agent_properties = @options['agent'] || {}
-      @openstack_properties = @options['openstack']
-
-      @default_key_name = @openstack_properties["default_key_name"]
-      @default_security_groups = @openstack_properties["default_security_groups"]
-      @state_timeout = @openstack_properties["state_timeout"]
-      @stemcell_public_visibility = @openstack_properties["stemcell_public_visibility"]
-      @wait_resource_poll_interval = @openstack_properties["wait_resource_poll_interval"]
-      @boot_from_volume = @openstack_properties["boot_from_volume"]
-      @boot_volume_cloud_properties = @openstack_properties["boot_volume_cloud_properties"] || {}
-      @use_dhcp = @openstack_properties.fetch('use_dhcp', true)
-      @human_readable_vm_names = @openstack_properties.fetch('human_readable_vm_names', false)
-
-      unless @openstack_properties['auth_url'].match(/\/tokens$/)
-        if is_v3
-          @openstack_properties['auth_url'] += '/auth/tokens'
-        else
-          @openstack_properties['auth_url'] += '/tokens'
-        end
-      end
-
-      @openstack_properties['connection_options'] ||= {}
-
-      @extra_connection_options = {'instrumentor' => Bosh::OpenStackCloud::ExconLoggingInstrumentor}
-
-      @openstack_params = openstack_params
+      openstack_properties = @options['openstack']
+      @default_key_name =openstack_properties["default_key_name"]
+      @default_security_groups =openstack_properties["default_security_groups"]
+      @state_timeout =openstack_properties["state_timeout"]
+      @stemcell_public_visibility =openstack_properties["stemcell_public_visibility"]
+      @wait_resource_poll_interval =openstack_properties["wait_resource_poll_interval"]
+      @boot_from_volume =openstack_properties["boot_from_volume"]
+      @boot_volume_cloud_properties =openstack_properties["boot_volume_cloud_properties"] || {}
+      @use_dhcp =openstack_properties.fetch('use_dhcp', true)
+      @human_readable_vm_names =openstack_properties.fetch('human_readable_vm_names', false)
+      @use_config_drive = !!openstack_properties.fetch("config_drive", nil)
+      @config_drive =openstack_properties['config_drive']
 
       connect_retry_errors = [Excon::Errors::GatewayTimeout, Excon::Errors::SocketError]
 
@@ -71,38 +58,20 @@ module Bosh::OpenStackCloud
         tries: CONNECT_RETRY_COUNT,
         on: connect_retry_errors,
       }
+      @openstack = Bosh::OpenStackCloud::Openstack.new(@options['openstack'], @connect_retry_options)
 
-      begin
-        Bosh::Common.retryable(@connect_retry_options) do |tries, error|
-          @logger.error("Failed #{tries} times, last failure due to: #{error.inspect}") unless error.nil?
-          @openstack = Fog::Compute.new(@openstack_params)
-        end
-      rescue Excon::Errors::SocketError => e
-        cloud_error(socket_error_msg + "#{e.message}")
-      rescue Bosh::Common::RetryCountExceeded, Excon::Errors::ClientError, Excon::Errors::ServerError
-        cloud_error('Unable to connect to the OpenStack Compute API. Check task debug log for details.')
-      end
 
+      @compute = @openstack.compute
       @az_provider = Bosh::OpenStackCloud::AvailabilityZoneProvider.new(
-        @openstack,
-        @openstack_properties["ignore_server_availability_zone"])
-
-      begin
-        Bosh::Common.retryable(@connect_retry_options) do |tries, error|
-          @logger.error("Failed #{tries} times, last failure due to: #{error.inspect}") unless error.nil?
-          @glance = Fog::Image.new(@openstack_params)
-        end
-      rescue Excon::Errors::SocketError => e
-        cloud_error(socket_error_msg + "#{e.message}")
-      rescue Bosh::Common::RetryCountExceeded, Excon::Errors::ClientError, Excon::Errors::ServerError
-        cloud_error('Unable to connect to the OpenStack Image Service API. Check task debug log for details.')
-      end
+          @compute,
+          openstack_properties["ignore_server_availability_zone"])
+      @glance = @openstack.image
 
       @metadata_lock = Mutex.new
     end
 
     def auth_url
-      @openstack_properties['auth_url']
+      @openstack.auth_url
     end
 
     ##
@@ -221,7 +190,7 @@ module Bosh::OpenStackCloud
           cloud_error('Cannot define security groups in both network and resource pool.')
         end
 
-        openstack_security_groups = with_openstack { @openstack.security_groups }.collect { |sg| sg.name }
+        openstack_security_groups = with_openstack { @compute.security_groups }.collect { |sg| sg.name }
         network_security_groups = network_configurator.security_groups(@default_security_groups)
         security_groups_to_be_used = resource_pool_spec_security_groups.size > 0 ? resource_pool_spec_security_groups : network_security_groups
 
@@ -237,7 +206,7 @@ module Bosh::OpenStackCloud
         begin
           Bosh::Common.retryable(@connect_retry_options) do |tries, error|
             @logger.error("Unable to connect to OpenStack API to find image: `#{stemcell_id} due to: #{error.inspect}") unless error.nil?
-            image = with_openstack { @openstack.images.find { |i| i.id == stemcell_id } }
+            image = with_openstack { @compute.images.find { |i| i.id == stemcell_id } }
             cloud_error("Image `#{stemcell_id}' not found") if image.nil?
             @logger.debug("Using image: `#{stemcell_id}'")
           end
@@ -245,7 +214,7 @@ module Bosh::OpenStackCloud
           cloud_error("Unable to connect to OpenStack API to find image: `#{stemcell_id}'")
         end
 
-        flavor = with_openstack { @openstack.flavors.find { |f| f.name == resource_pool['instance_type'] } }
+        flavor = with_openstack { @compute.flavors.find { |f| f.name == resource_pool['instance_type'] } }
         cloud_error("Flavor `#{resource_pool['instance_type']}' not found") if flavor.nil?
         if flavor_has_ephemeral_disk?(flavor)
           if flavor.ram
@@ -264,8 +233,6 @@ module Bosh::OpenStackCloud
         keyname = resource_pool['key_name'] || @default_key_name
         validate_key_exists(keyname)
 
-        use_config_drive = !!@openstack_properties.fetch("config_drive", nil)
-
         if resource_pool['scheduler_hints']
           @logger.debug("Using scheduler hints: `#{resource_pool['scheduler_hints']}'")
         end
@@ -278,7 +245,7 @@ module Bosh::OpenStackCloud
           :security_groups => security_groups_to_be_used,
           :os_scheduler_hints => resource_pool['scheduler_hints'],
           :nics => nics,
-          :config_drive => use_config_drive,
+          :config_drive => @use_config_drive,
           :user_data => Yajl::Encoder.encode(user_data(registry_key, network_spec))
         }
 
@@ -302,7 +269,7 @@ module Bosh::OpenStackCloud
 
         @logger.debug("Using boot parms: `#{server_params.inspect}'")
         begin
-          server = with_openstack { @openstack.servers.create(server_params) }
+          server = with_openstack { @compute.servers.create(server_params) }
         rescue Excon::Errors::Timeout => e
           @logger.debug(e.backtrace)
           cloud_error_message = "VM creation with name '#{server_params[:name]}' received a timeout. " +
@@ -326,7 +293,7 @@ module Bosh::OpenStackCloud
           wait_resource(server, :active, :state)
 
           @logger.info("Configuring network for server `#{server.id}'...")
-          network_configurator.configure(@openstack, server)
+          network_configurator.configure(@compute, server)
         rescue => e
           @logger.warn("Failed to create server: #{e.message}")
           destroy_server(server)
@@ -361,7 +328,7 @@ module Bosh::OpenStackCloud
     def not_existing_net_ids(nics)
       result = []
       begin
-        network = connect_to_network_service
+        network = @openstack.network
         nics.each do |nic|
           if nic["net_id"]
             result << nic["net_id"] unless network.networks.get(nic["net_id"])
@@ -382,7 +349,7 @@ module Bosh::OpenStackCloud
     def delete_vm(server_id)
       with_thread_name("delete_vm(#{server_id})") do
         @logger.info("Deleting server `#{server_id}'...")
-        server = with_openstack { @openstack.servers.get(server_id) }
+        server = with_openstack { @compute.servers.get(server_id) }
         if server
           with_openstack { server.destroy }
           wait_resource(server, [:terminated, :deleted], :state, true)
@@ -402,7 +369,7 @@ module Bosh::OpenStackCloud
     # @return [Boolean] True if the vm exists
     def has_vm?(server_id)
       with_thread_name("has_vm?(#{server_id})") do
-        server = with_openstack { @openstack.servers.get(server_id) }
+        server = with_openstack { @compute.servers.get(server_id) }
         !server.nil? && ![:terminated, :deleted].include?(server.state.downcase.to_sym)
       end
     end
@@ -414,7 +381,7 @@ module Bosh::OpenStackCloud
     # @return [void]
     def reboot_vm(server_id)
       with_thread_name("reboot_vm(#{server_id})") do
-        server = with_openstack { @openstack.servers.get(server_id) }
+        server = with_openstack { @compute.servers.get(server_id) }
         cloud_error("Server `#{server_id}' not found") unless server
 
         soft_reboot(server)
@@ -444,7 +411,7 @@ module Bosh::OpenStackCloud
     #   this disk will be attached to
     # @return [String] OpenStack volume UUID
     def create_disk(size, cloud_properties, server_id = nil)
-      volume_service_client = connect_to_volume_service
+      volume_service_client = @openstack.volume
       with_thread_name("create_disk(#{size}, #{cloud_properties}, #{server_id})") do
         raise ArgumentError, 'Disk size needs to be an integer' unless size.kind_of?(Integer)
         cloud_error('Minimum disk size is 1 GiB') if (size < 1024)
@@ -460,7 +427,7 @@ module Bosh::OpenStackCloud
         end
 
         if server_id  && @az_provider.constrain_to_server_availability_zone?
-          server = with_openstack { @openstack.servers.get(server_id) }
+          server = with_openstack { @compute.servers.get(server_id) }
           if server && server.availability_zone
             volume_params[:availability_zone] = server.availability_zone
           end
@@ -486,7 +453,7 @@ module Bosh::OpenStackCloud
     # @param [optional, String] volume_type to be passed to the volume API
     # @return [String] OpenStack volume UUID
     def create_boot_disk(size, stemcell_id, availability_zone = nil, boot_volume_cloud_properties = {})
-      volume_service_client = connect_to_volume_service
+      volume_service_client = @openstack.volume
       with_thread_name("create_boot_disk(#{size}, #{stemcell_id}, #{availability_zone}, #{boot_volume_cloud_properties})") do
         raise ArgumentError, "Disk size needs to be an integer" unless size.kind_of?(Integer)
         cloud_error("Minimum disk size is 1 GiB") if (size < 1024)
@@ -520,7 +487,7 @@ module Bosh::OpenStackCloud
     def has_disk?(disk_id)
       with_thread_name("has_disk?(#{disk_id})") do
         @logger.info("Check the presence of disk with id `#{disk_id}'...")
-        volume = with_openstack { @openstack.volumes.get(disk_id) }
+        volume = with_openstack { @compute.volumes.get(disk_id) }
 
         !volume.nil?
       end
@@ -535,7 +502,7 @@ module Bosh::OpenStackCloud
     def delete_disk(disk_id)
       with_thread_name("delete_disk(#{disk_id})") do
         @logger.info("Deleting volume `#{disk_id}'...")
-        volume = with_openstack { @openstack.volumes.get(disk_id) }
+        volume = with_openstack { @compute.volumes.get(disk_id) }
         if volume
           state = volume.status
           if state.to_sym != :available
@@ -558,10 +525,10 @@ module Bosh::OpenStackCloud
     # @return [void]
     def attach_disk(server_id, disk_id)
       with_thread_name("attach_disk(#{server_id}, #{disk_id})") do
-        server = with_openstack { @openstack.servers.get(server_id) }
+        server = with_openstack { @compute.servers.get(server_id) }
         cloud_error("Server `#{server_id}' not found") unless server
 
-        volume = with_openstack { @openstack.volumes.get(disk_id) }
+        volume = with_openstack { @compute.volumes.get(disk_id) }
         cloud_error("Volume `#{disk_id}' not found") unless volume
 
         device_name = attach_volume(server, volume)
@@ -582,10 +549,10 @@ module Bosh::OpenStackCloud
     # @return [void]
     def detach_disk(server_id, disk_id)
       with_thread_name("detach_disk(#{server_id}, #{disk_id})") do
-        server = with_openstack { @openstack.servers.get(server_id) }
+        server = with_openstack { @compute.servers.get(server_id) }
         cloud_error("Server `#{server_id}' not found") unless server
 
-        volume = with_openstack { @openstack.volumes.get(disk_id) }
+        volume = with_openstack { @compute.volumes.get(disk_id) }
         if volume.nil?
           @logger.info("Disk `#{disk_id}' not found while trying to detach it from vm `#{server_id}'...")
         else
@@ -610,7 +577,7 @@ module Bosh::OpenStackCloud
     def snapshot_disk(disk_id, metadata)
       with_thread_name("snapshot_disk(#{disk_id})") do
         metadata = Hash[metadata.map{|key,value| [key.to_s, value] }]
-        volume = with_openstack { @openstack.volumes.get(disk_id) }
+        volume = with_openstack { @compute.volumes.get(disk_id) }
         cloud_error("Volume `#{disk_id}' not found") unless volume
 
         devices = []
@@ -625,7 +592,7 @@ module Bosh::OpenStackCloud
         }
 
         @logger.info("Creating new snapshot for volume `#{disk_id}'...")
-        snapshot = @openstack.snapshots.new(snapshot_params)
+        snapshot = @compute.snapshots.new(snapshot_params)
         with_openstack { snapshot.save(true) }
 
         @logger.info("Creating new snapshot `#{snapshot.id}' for volume `#{disk_id}'...")
@@ -644,7 +611,7 @@ module Bosh::OpenStackCloud
     def delete_snapshot(snapshot_id)
       with_thread_name("delete_snapshot(#{snapshot_id})") do
         @logger.info("Deleting snapshot `#{snapshot_id}'...")
-        snapshot = with_openstack { @openstack.snapshots.get(snapshot_id) }
+        snapshot = with_openstack { @compute.snapshots.get(snapshot_id) }
         if snapshot
           state = snapshot.status
           if state.to_sym != :available
@@ -668,7 +635,7 @@ module Bosh::OpenStackCloud
     def set_vm_metadata(server_id, metadata)
       with_thread_name("set_vm_metadata(#{server_id}, ...)") do
         with_openstack do
-          server = @openstack.servers.get(server_id)
+          server = @compute.servers.get(server_id)
           cloud_error("Server `#{server_id}' not found") unless server
 
           metadata.each do |name, value|
@@ -680,9 +647,9 @@ module Bosh::OpenStackCloud
             index = metadata['index']
             compiling = metadata['compiling']
             if job && index
-              @openstack.update_server(server_id, { 'name' => "#{job}/#{index}"})
+              @compute.update_server(server_id, {'name' => "#{job}/#{index}"})
             elsif compiling
-              @openstack.update_server(server_id, { 'name' => "compiling/#{compiling}"})
+              @compute.update_server(server_id, {'name' => "compiling/#{compiling}"})
             end
           end
 
@@ -723,50 +690,6 @@ module Bosh::OpenStackCloud
     end
 
     private
-
-    ##
-    # Creates a client for the OpenStack volume service, or return
-    # the existing connectuion
-    #
-    #
-    def connect_to_volume_service
-      begin
-        Bosh::Common.retryable(@connect_retry_options) do |tries, error|
-          @logger.error("Failed #{tries} times, last failure due to: #{error.inspect}") unless error.nil?
-          @volume ||= Fog::Volume.new(@openstack_params)
-        end
-      rescue Bosh::Common::RetryCountExceeded, Excon::Errors::ClientError, Excon::Errors::ServerError => e
-        cloud_error("Unable to connect to the OpenStack Volume API: #{e.message}. Check task debug log for details.")
-      end
-
-      @volume
-    end
-
-    def connect_to_network_service
-      begin
-        Bosh::Common.retryable(@connect_retry_options) do |tries, error|
-          @logger.error("Failed #{tries} times, last failure due to: #{error.inspect}") unless error.nil?
-          network ||= Fog::Network.new(@openstack_params)
-        end
-      rescue Bosh::Common::RetryCountExceeded, Excon::Errors::ClientError, Excon::Errors::ServerError => e
-        cloud_error("Unable to connect to the OpenStack Network API: #{e.message}. Check task debug log for details.")
-      end
-    end
-
-    def openstack_params
-      {
-          :provider => 'OpenStack',
-          :openstack_auth_url => @openstack_properties['auth_url'],
-          :openstack_username => @openstack_properties['username'],
-          :openstack_api_key => @openstack_properties['api_key'],
-          :openstack_tenant => @openstack_properties['tenant'],
-          :openstack_project_name => @openstack_properties['project'],
-          :openstack_domain_name => @openstack_properties['domain'],
-          :openstack_region => @openstack_properties['region'],
-          :openstack_endpoint_type => @openstack_properties['endpoint_type'],
-          :connection_options => @openstack_properties['connection_options'].merge(@extra_connection_options)
-      }
-    end
 
     ##
     # Generates an unique name
@@ -926,12 +849,12 @@ module Bosh::OpenStackCloud
       letter = "#{FIRST_DEVICE_NAME_LETTER}"
       return letter if server.flavor.nil?
       return letter unless server.flavor.has_key?('id')
-      flavor = with_openstack { @openstack.flavors.find { |f| f.id == server.flavor['id'] } }
+      flavor = with_openstack { @compute.flavors.find { |f| f.id == server.flavor['id'] } }
       return letter if flavor.nil?
 
       letter.succ! if flavor_has_ephemeral_disk?(flavor)
       letter.succ! if flavor_has_swap_disk?(flavor)
-      letter.succ! if @openstack_properties['config_drive'] == 'disk'
+      letter.succ! if @config_drive == 'disk'
       letter
     end
 
@@ -997,64 +920,43 @@ module Bosh::OpenStackCloud
     # @return [void]
     # @raise [ArgumentError] if options are not valid
     def validate_options
-      if @options['openstack'] && is_v3
-        schema = Membrane::SchemaParser.parse do
-          {
+      unless @options['openstack']
+        raise ArgumentError, "Invalid OpenStack cloud properties: No 'openstack' properties specified."
+      end
+      auth_url = @options['openstack']['auth_url']
+      schema = Membrane::SchemaParser.parse do
+        openstack_options_schema = {
             'openstack' => {
-              'auth_url' => String,
-              'username' => String,
-              'api_key' => String,
-              'project' => String,
-              'domain' => String,
-              optional('region') => String,
-              optional('endpoint_type') => String,
-              optional('state_timeout') => Numeric,
-              optional('stemcell_public_visibility') => enum(String, bool),
-              optional('connection_options') => Hash,
-              optional('boot_from_volume') => bool,
-              optional('default_key_name') => String,
-              optional('default_security_groups') => [String],
-              optional('wait_resource_poll_interval') => Integer,
-              optional('config_drive') => enum('disk', 'cdrom'),
-              optional('human_readable_vm_names') => bool,
+                'auth_url' => String,
+                'username' => String,
+                'api_key' => String,
+                optional('region') => String,
+                optional('endpoint_type') => String,
+                optional('state_timeout') => Numeric,
+                optional('stemcell_public_visibility') => enum(String, bool),
+                optional('connection_options') => Hash,
+                optional('boot_from_volume') => bool,
+                optional('default_key_name') => String,
+                optional('default_security_groups') => [String],
+                optional('wait_resource_poll_interval') => Integer,
+                optional('config_drive') => enum('disk', 'cdrom'),
+                optional('human_readable_vm_names') => bool,
             },
             'registry' => {
-              'endpoint' => String,
-              'user' => String,
-              'password' => String,
+                'endpoint' => String,
+                'user' => String,
+                'password' => String,
             },
             optional('agent') => Hash,
-          }
+        }
+        if Bosh::OpenStackCloud::Openstack.is_v3(auth_url)
+          openstack_options_schema['openstack']['project'] = String
+          openstack_options_schema['openstack']['domain'] = String
+        else
+          openstack_options_schema['openstack']['tenant'] = String
+          openstack_options_schema['openstack'][optional('domain')] = String
         end
-      else
-        schema = Membrane::SchemaParser.parse do
-          {
-            'openstack' => {
-              'auth_url' => String,
-              'username' => String,
-              'api_key' => String,
-              'tenant' => String,
-              optional('domain') => String,
-              optional('region') => String,
-              optional('endpoint_type') => String,
-              optional('state_timeout') => Numeric,
-              optional('stemcell_public_visibility') => enum(String, bool),
-              optional('connection_options') => Hash,
-              optional('boot_from_volume') => bool,
-              optional('default_key_name') => String,
-              optional('default_security_groups') => [String],
-              optional('wait_resource_poll_interval') => Integer,
-              optional('config_drive') => enum('disk', 'cdrom'),
-              optional('human_readable_vm_names') => bool,
-            },
-            'registry' => {
-              'endpoint' => String,
-              'user' => String,
-              'password' => String,
-            },
-            optional('agent') => Hash,
-          }
-        end
+        openstack_options_schema
       end
       schema.validate(@options)
     rescue Membrane::SchemaValidationError => e
@@ -1124,13 +1026,10 @@ module Bosh::OpenStackCloud
     end
 
     def validate_key_exists(keyname)
-      keypair = with_openstack { @openstack.key_pairs.find { |k| k.name == keyname } }
+      keypair = with_openstack { @compute.key_pairs.find { |k| k.name == keyname } }
       cloud_error("Key-pair `#{keyname}' not found") if keypair.nil?
       @logger.debug("Using key-pair: `#{keypair.name}' (#{keypair.fingerprint})")
     end
 
-    def socket_error_msg
-      "Unable to connect to the OpenStack Keystone API #{@openstack_params[:openstack_auth_url]}\n"
-    end
   end
 end

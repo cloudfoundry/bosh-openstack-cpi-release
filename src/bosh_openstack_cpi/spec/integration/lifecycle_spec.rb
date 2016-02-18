@@ -126,7 +126,7 @@ describe Bosh::OpenStackCloud::Cloud do
       after { clean_up_vm(@human_readable_vm_name_id, network_spec) if @human_readable_vm_name_id }
 
       it 'sets the vm name according to the metadata' do
-        vm = cpi.openstack.servers.get(@human_readable_vm_name_id)
+        vm = cpi.compute.servers.get(@human_readable_vm_name_id)
         expect(vm.name).to eq 'openstack_cpi_spec/0'
       end
 
@@ -271,7 +271,7 @@ describe Bosh::OpenStackCloud::Cloud do
     end
 
     def no_active_vm_with_ip?(ip)
-      cpi.openstack.servers.none? do |s|
+      cpi.compute.servers.none? do |s|
         s.private_ip_address == ip && [:active].include?(s.state.downcase.to_sym)
       end
     end

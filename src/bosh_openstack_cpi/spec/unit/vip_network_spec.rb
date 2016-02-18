@@ -34,7 +34,7 @@ describe Bosh::OpenStackCloud::VipNetwork do
         expect(address).to receive(:server=).with(nil)
         expect(address).to receive(:server=).with(server)
 
-        vip_network.configure(cloud.openstack, server)
+        vip_network.configure(cloud.compute, server)
       end
     end
 
@@ -47,7 +47,7 @@ describe Bosh::OpenStackCloud::VipNetwork do
         expect(address).to_not receive(:server=).with(nil)
         expect(address).to receive(:server=).with(server)
 
-        vip_network.configure(cloud.openstack, server)
+        vip_network.configure(cloud.compute, server)
       end
     end
 
@@ -60,7 +60,7 @@ describe Bosh::OpenStackCloud::VipNetwork do
         expect(address).to_not receive(:server=)
 
         expect {
-          vip_network.configure(cloud.openstack, nil)
+          vip_network.configure(cloud.compute, nil)
         }.to raise_error Bosh::Clouds::CloudError, /Floating IP .* not allocated/
       end
     end

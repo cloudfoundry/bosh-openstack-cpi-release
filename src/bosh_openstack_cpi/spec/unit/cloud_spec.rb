@@ -192,7 +192,7 @@ describe Bosh::OpenStackCloud::Cloud do
     it 'creates a Fog connection' do
       cloud = Bosh::OpenStackCloud::Cloud.new(cloud_options['properties'])
 
-      expect(cloud.openstack).to eql(compute)
+      expect(cloud.compute).to eql(compute)
       expect(cloud.glance).to eql(image)
     end
 

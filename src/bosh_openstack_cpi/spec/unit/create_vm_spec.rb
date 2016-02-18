@@ -512,7 +512,7 @@ describe Bosh::OpenStackCloud::Cloud, "create_vm" do
       let(:socket_error) { Excon::Errors::Timeout.new('read timeout reached') }
       it "raises a Cloud error with vm information" do
         allow(cloud).to receive(:generate_unique_name).and_return(unique_name)
-        allow(cloud.openstack.servers).to receive(:create).and_raise(socket_error)
+        allow(cloud.compute.servers).to receive(:create).and_raise(socket_error)
 
         expect {
           cloud.create_vm(
@@ -534,7 +534,7 @@ describe Bosh::OpenStackCloud::Cloud, "create_vm" do
       before(:each) do
         network = double(Fog::Network)
         allow(cloud).to receive(:generate_unique_name).and_return(unique_name)
-        allow(cloud.openstack.servers).to receive(:create).and_raise(not_found_error)
+        allow(cloud.compute.servers).to receive(:create).and_raise(not_found_error)
         allow(network).to receive(:networks).and_return(networks)
         allow(Fog::Network).to receive(:new).and_return(network)
       end
@@ -654,7 +654,7 @@ describe Bosh::OpenStackCloud::Cloud, "create_vm" do
     end
 
     it "retries 5 times" do
-      expect(cloud.openstack.images).to receive(:find).ordered.exactly(5).times.and_raise(error)
+      expect(cloud.compute.images).to receive(:find).ordered.exactly(5).times.and_raise(error)
       expect{cloud.create_vm(
         "agent-id",
         "sc-id",

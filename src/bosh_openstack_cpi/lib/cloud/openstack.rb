@@ -22,6 +22,7 @@ require 'bosh/registry/client'
 require "cloud"
 require "cloud/openstack/helpers"
 require "cloud/openstack/cloud"
+require "cloud/openstack/openstack"
 require "cloud/openstack/tag_manager"
 
 require "cloud/openstack/network_configurator"

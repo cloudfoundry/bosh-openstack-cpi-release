@@ -38,7 +38,7 @@ module ConsoleHelpers
   end
 
   def openstack
-    cpi.openstack
+    cpi.compute
   end
 
   def glance
