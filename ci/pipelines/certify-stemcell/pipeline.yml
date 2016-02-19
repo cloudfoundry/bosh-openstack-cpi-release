@@ -183,7 +183,7 @@ jobs:
             v3_e2e_security_group:                   {{v3_e2e_security_group}}
             network_id:                              {{v3_e2e_net_id}}
             stemcell_name:                           "bosh-openstack-kvm-centos-7-go_agent"
-            delete_deployment_when_done:             false
+            delete_deployment_when_done:             "false"
 
       - task: test-upgrade
         file: bosh-cpi-src-in/ci/pipelines/certify-stemcell/tasks/test-upgrade.yml
@@ -270,7 +270,7 @@ jobs:
             v3_e2e_security_group:                   {{v3_e2e_security_group}}
             network_id:                              {{v3_e2e_net_id}}
             stemcell_name:                           "bosh-openstack-kvm-ubuntu-trusty-go_agent"
-            delete_deployment_when_done:             false
+            delete_deployment_when_done:             "false"
 
       - task: test-upgrade
         file: bosh-cpi-src-in/ci/pipelines/certify-stemcell/tasks/test-upgrade.yml
