@@ -28,6 +28,7 @@ cpi_lambda = lambda do
   # If 'ca_cert' is set we render non-empty `config/openstack.crt`
   if connection_options && connection_options['ca_cert']
       connection_options['ssl_ca_file'] = ssl_ca_file
+      connection_options.delete('ca_cert')
   end
   Bosh::Clouds::Openstack.new(cloud_properties)
 end
