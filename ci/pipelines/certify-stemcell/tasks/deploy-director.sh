@@ -29,6 +29,7 @@ ensure_not_replace_value v3_e2e_blobstore_host
 ensure_not_replace_value v3_e2e_blobstore_access_key
 ensure_not_replace_value v3_e2e_blobstore_secret_key
 optional_value bosh_openstack_ca_cert
+optional_value v3_e2e_config_drive
 
 source /etc/profile.d/chruby-with-ruby-2.1.2.sh
 
@@ -171,6 +172,7 @@ jobs:
         domain:   ${v3_e2e_domain}
         region: #leave this blank
         endpoint_type: publicURL
+        config_drive: ${v3_e2e_config_drive}
         default_key_name: ${v3_e2e_default_key_name}
         default_security_groups:
           - ${v3_e2e_security_group}
