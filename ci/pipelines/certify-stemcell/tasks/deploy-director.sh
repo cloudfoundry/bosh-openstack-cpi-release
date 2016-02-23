@@ -40,7 +40,7 @@ manifest_filename="e2e-director-manifest.yml"
 private_key=${deployment_dir}/e2e.pem
 
 echo "setting up artifacts used in $manifest_filename"
-cp ./bosh-cpi-dev-artifacts/*.tgz ${deployment_dir}/bosh-openstack-cpi.tgz
+cp ./bosh-cpi-release/*.tgz ${deployment_dir}/bosh-openstack-cpi.tgz
 cp ./bosh-release/release.tgz ${deployment_dir}/bosh-release.tgz
 cp ./stemcell/stemcell.tgz ${deployment_dir}/stemcell.tgz
 

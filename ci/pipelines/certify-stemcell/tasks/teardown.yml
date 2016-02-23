@@ -6,7 +6,7 @@ inputs:
   - name: bosh-cpi-src-in
   - name: bosh-init
   - name: bosh-release
-  - name: bosh-cpi-dev-artifacts
+  - name: bosh-cpi-release
   - name: stemcell
   - name: upgrade-deployment
 run:

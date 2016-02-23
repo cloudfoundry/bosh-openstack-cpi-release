@@ -3,7 +3,7 @@ platform: linux
 image: docker:///boshcpi/openstack-cpi-release
 inputs:
   - name: bosh-cpi-src-in
-  - name: bosh-cpi-dev-artifacts
+  - name: bosh-cpi-release
   - name: bosh-init
   - name: bosh-release
   - name: stemcell
