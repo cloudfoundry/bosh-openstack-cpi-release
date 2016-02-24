@@ -28,7 +28,7 @@ bosh version
 
 echo "targeting bosh director at ${bosh_director_ip}"
 bosh -n target ${bosh_director_ip}
-bosh login admin admin
+bosh login admin ${bosh_admin_password}
 
 echo "uploading stemcell to director..."
 bosh -n upload stemcell --skip-if-exists ./stemcell/stemcell.tgz
