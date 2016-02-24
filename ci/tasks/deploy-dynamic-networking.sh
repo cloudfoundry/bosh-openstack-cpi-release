@@ -110,17 +110,17 @@ jobs:
       nats:
         address: 127.0.0.1
         user: nats
-        password: nats-password
+        password: ${bosh_admin_password}
 
       redis:
         listen_addresss: 127.0.0.1
         address: 127.0.0.1
-        password: redis-password
+        password: ${bosh_admin_password}
 
       postgres: &db
         host: 127.0.0.1
         user: postgres
-        password: postgres-password
+        password: ${bosh_admin_password}
         database: bosh
         adapter: postgres
 
@@ -140,8 +140,8 @@ jobs:
         address: ${openstack_floating_ip}
         port: 25250
         provider: dav
-        director: {user: director, password: director-password}
-        agent: {user: agent, password: agent-password}
+        director: {user: director, password: ${bosh_admin_password}}
+        agent: {user: agent, password: ${bosh_admin_password}}
 
       director:
         address: 127.0.0.1
@@ -177,7 +177,7 @@ jobs:
           ca_cert: $(if [ -z "$bosh_openstack_ca_cert" ]; then echo "~"; else echo "\"$(echo ${bosh_openstack_ca_cert} | sed -r  -e 's/ /\\n/g ' -e 's/\\nCERTIFICATE-----/ CERTIFICATE-----/g')\""; fi)
 
       # Tells agents how to contact nats
-      agent: {mbus: "nats://nats:nats-password@${openstack_floating_ip}:4222"}
+      agent: {mbus: "nats://nats:${bosh_admin_password}@${openstack_floating_ip}:4222"}
 
       ntp: &ntp
         - 0.north-america.pool.ntp.org
@@ -194,13 +194,13 @@ cloud_provider:
     private_key: bats.pem
 
   # Tells bosh-micro how to contact remote agent
-  mbus: https://mbus-user:mbus-password@${openstack_floating_ip}:6868
+  mbus: https://mbus-user:${bosh_admin_password}@${openstack_floating_ip}:6868
 
   properties:
     openstack: *openstack
 
     # Tells CPI how agent should listen for requests
-    agent: {mbus: "https://mbus-user:mbus-password@0.0.0.0:6868"}
+    agent: {mbus: "https://mbus-user:${bosh_admin_password}@0.0.0.0:6868"}
 
     blobstore:
       provider: local
