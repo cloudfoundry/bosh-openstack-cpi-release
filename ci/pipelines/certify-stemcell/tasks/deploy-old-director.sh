@@ -4,6 +4,8 @@ set -e
 
 source bosh-cpi-src-in/ci/tasks/utils.sh
 
+ensure_not_replace_value bosh_admin_password
+ensure_not_replace_value bosh_vcap_password_hash
 ensure_not_replace_value dns
 ensure_not_replace_value v3_e2e_flavor
 ensure_not_replace_value v3_e2e_connection_timeout
@@ -84,6 +86,9 @@ resource_pools:
       sha1: ${old_bosh_stemcell_sha1}
     cloud_properties:
       instance_type: $v3_e2e_flavor
+    env:
+      bosh:
+        password: ${bosh_vcap_password_hash}
 
 disk_pools:
   - name: default
@@ -136,11 +141,11 @@ jobs:
         address: ${v3_upgrade_director_manual_ip}
         host: ${v3_upgrade_director_manual_ip}
         db: *db
-        http: {user: admin, password: admin, port: ${v3_e2e_bosh_registry_port}}
+        http: {user: admin, password: ${bosh_admin_password}, port: ${v3_e2e_bosh_registry_port}}
         username: admin
-        password: admin
+        password: ${bosh_admin_password}
         port: ${v3_e2e_bosh_registry_port}
-        endpoint: http://admin:admin@${v3_upgrade_director_manual_ip}:${v3_e2e_bosh_registry_port}
+        endpoint: http://admin:${bosh_admin_password}@${v3_upgrade_director_manual_ip}:${v3_e2e_bosh_registry_port}
 
       # Tells the Director/agents how to contact blobstore
       blobstore:
@@ -157,8 +162,8 @@ jobs:
         cpi_job: openstack_cpi
 
       hm:
-        http: {user: hm, password: hm-password}
-        director_account: {user: admin, password: admin}
+        http: {user: hm, password: ${bosh_admin_password}}
+        director_account: {user: admin, password: ${bosh_admin_password}}
 
       dns:
         address: 127.0.0.1

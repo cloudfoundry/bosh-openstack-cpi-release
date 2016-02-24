@@ -4,6 +4,8 @@ set -e
 
 source bosh-cpi-src-in/ci/tasks/utils.sh
 
+ensure_not_replace_value bosh_admin_password
+ensure_not_replace_value bosh_vcap_password_hash
 ensure_not_replace_value bosh_director_ip
 ensure_not_replace_value dns
 ensure_not_replace_value v3_e2e_security_group
@@ -60,6 +62,9 @@ resource_pools:
     cloud_properties:
       instance_type: ${instance_flavor}
       disk: 1024
+    env:
+      bosh:
+        password: ${bosh_vcap_password_hash}
 
 networks:
   - name: private
