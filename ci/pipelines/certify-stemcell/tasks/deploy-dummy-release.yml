@@ -8,8 +8,6 @@ inputs:
 run:
   path: bosh-cpi-src-in/ci/pipelines/certify-stemcell/tasks/deploy-dummy-release.sh
 params:
-  bosh_admin_password:         replace-me
-  bosh_vcap_password_hash:     replace-me
   bosh_director_ip:            replace-me
   dns:                         replace-me
   v3_e2e_security_group:       replace-me

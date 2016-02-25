@@ -13,8 +13,6 @@ run:
   path: bosh-cpi-src-in/ci/pipelines/certify-stemcell/tasks/deploy-director.sh
 params:
   BOSH_INIT_LOG_LEVEL:            warn
-  bosh_admin_password:            replace-me
-  bosh_vcap_password_hash:        replace-me
   dns:                            replace-me
   v3_e2e_config_drive:            replace-me
   v3_e2e_flavor:                  replace-me

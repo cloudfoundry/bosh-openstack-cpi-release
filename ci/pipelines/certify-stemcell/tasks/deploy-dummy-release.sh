@@ -4,8 +4,6 @@ set -e
 
 source bosh-cpi-src-in/ci/tasks/utils.sh
 
-ensure_not_replace_value bosh_admin_password
-ensure_not_replace_value bosh_vcap_password_hash
 ensure_not_replace_value bosh_director_ip
 ensure_not_replace_value dns
 ensure_not_replace_value v3_e2e_security_group
@@ -28,7 +26,7 @@ bosh version
 
 echo "targeting bosh director at ${bosh_director_ip}"
 bosh -n target ${bosh_director_ip}
-bosh login admin ${bosh_admin_password}
+bosh login admin admin
 
 echo "uploading stemcell to director..."
 bosh -n upload stemcell --skip-if-exists ./stemcell/stemcell.tgz
@@ -62,9 +60,6 @@ resource_pools:
     cloud_properties:
       instance_type: ${instance_flavor}
       disk: 1024
-    env:
-      bosh:
-        password: ${bosh_vcap_password_hash}
 
 networks:
   - name: private

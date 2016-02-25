@@ -15,8 +15,6 @@ run:
   path: bosh-cpi-src-in/ci/tasks/deploy-dynamic-networking.sh
 params:
   base_os:                       replace-me
-  bosh_admin_password:           replace-me
-  bosh_vcap_password_hash:       replace-me
   dns:                           replace-me
   network_type_to_test:          replace-me
   openstack_flavor:              replace-me

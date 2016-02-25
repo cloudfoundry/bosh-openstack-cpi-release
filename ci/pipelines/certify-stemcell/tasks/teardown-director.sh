@@ -4,7 +4,6 @@ set -e
 
 source bosh-cpi-src-in/ci/tasks/utils.sh
 
-ensure_not_replace_value bosh_admin_password
 ensure_not_replace_value bosh_director_ip
 
 export BOSH_INIT_LOG_LEVEL=DEBUG
@@ -17,7 +16,7 @@ bosh version
 
 echo "targeting bosh director at ${bosh_director_ip}"
 bosh -n target ${bosh_director_ip}
-bosh login admin ${bosh_admin_password}
+bosh login admin admin
 
 echo "cleanup director (especially orphan disks)"
 bosh -n cleanup --all

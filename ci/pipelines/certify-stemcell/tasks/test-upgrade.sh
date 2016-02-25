@@ -4,8 +4,6 @@ set -e
 
 source bosh-cpi-src-in/ci/tasks/utils.sh
 
-ensure_not_replace_value bosh_admin_password
-ensure_not_replace_value bosh_vcap_password_hash
 ensure_not_replace_value dns
 ensure_not_replace_value v3_e2e_flavor
 ensure_not_replace_value v3_e2e_connection_timeout
@@ -80,9 +78,6 @@ resource_pools:
       url: file://stemcell.tgz
     cloud_properties:
       instance_type: $v3_e2e_flavor
-    env:
-      bosh:
-        password: ${bosh_vcap_password_hash}
 
 disk_pools:
   - name: default
@@ -116,17 +111,17 @@ jobs:
       nats:
         address: 127.0.0.1
         user: nats
-        password: ${bosh_admin_password}
+        password: nats-password
 
       redis:
         listen_addresss: 127.0.0.1
         address: 127.0.0.1
-        password: ${bosh_admin_password}
+        password: redis-password
 
       postgres: &db
         host: 127.0.0.1
         user: postgres
-        password: ${bosh_admin_password}
+        password: postgres-password
         database: bosh
         adapter: postgres
 
@@ -135,19 +130,19 @@ jobs:
         address: ${v3_upgrade_director_manual_ip}
         host: ${v3_upgrade_director_manual_ip}
         db: *db
-        http: {user: admin, password: ${bosh_admin_password}, port: ${v3_e2e_bosh_registry_port}}
+        http: {user: admin, password: admin, port: ${v3_e2e_bosh_registry_port}}
         username: admin
-        password: ${bosh_admin_password}
+        password: admin
         port: ${v3_e2e_bosh_registry_port}
-        endpoint: http://admin:${bosh_admin_password}@${v3_upgrade_director_manual_ip}:${v3_e2e_bosh_registry_port}
+        endpoint: http://admin:admin@${v3_upgrade_director_manual_ip}:${v3_e2e_bosh_registry_port}
 
       # Tells the Director/agents how to contact blobstore
       blobstore:
         address: ${v3_upgrade_director_manual_ip}
         port: 25250
         provider: dav
-        director: {user: director, password: ${bosh_admin_password}}
-        agent: {user: agent, password: ${bosh_admin_password}}
+        director: {user: director, password: director-password}
+        agent: {user: agent, password: agent-password}
 
       director:
         address: 127.0.0.1
@@ -156,8 +151,8 @@ jobs:
         cpi_job: openstack_cpi
 
       hm:
-        http: {user: hm, password: ${bosh_admin_password}}
-        director_account: {user: admin, password: ${bosh_admin_password}}
+        http: {user: hm, password: hm-password}
+        director_account: {user: admin, password: admin}
 
       dns:
         address: 127.0.0.1
@@ -184,7 +179,7 @@ jobs:
           write_timeout: ${v3_e2e_write_timeout}
 
       # Tells agents how to contact nats
-      agent: {mbus: "nats://nats:${bosh_admin_password}@${v3_upgrade_director_manual_ip}:4222"}
+      agent: {mbus: "nats://nats:nats-password@${v3_upgrade_director_manual_ip}:4222"}
 
       ntp: &ntp
         - 0.north-america.pool.ntp.org
@@ -201,13 +196,13 @@ cloud_provider:
     private_key: ${private_key}
 
   # Tells bosh-micro how to contact remote agent
-  mbus: https://mbus-user:${bosh_admin_password}@${v3_upgrade_director_floating_ip}:6868
+  mbus: https://mbus-user:mbus-password@${v3_upgrade_director_floating_ip}:6868
 
   properties:
     openstack: *openstack
 
     # Tells CPI how agent should listen for requests
-    agent: {mbus: "https://mbus-user:${bosh_admin_password}@0.0.0.0:6868"}
+    agent: {mbus: "https://mbus-user:mbus-password@0.0.0.0:6868"}
 
     blobstore:
       provider: local
@@ -228,7 +223,7 @@ time cp ${deployment_dir}/director-manifest* $upgrade_deployment_dir
 time cp -r $HOME/.bosh_init $upgrade_deployment_dir
 
 time bosh -n target ${v3_upgrade_director_floating_ip}
-time bosh login admin ${bosh_admin_password}
+time bosh login admin admin
 time bosh download manifest dummy dummy-manifest
 time bosh deployment dummy-manifest
 
