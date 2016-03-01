@@ -10,23 +10,25 @@ In the sections below we outline the implementation details for each of the meth
 Implementation of `def initialize(options)` method. 
 
 1. Validate the `options` passed to this method
-2. In the second step the parameters are extracted from `options` object to populate the following properties 
-	+ `@agent_properties`	
-	+ `@openstack_properties`
-	+ `@registry_propertiess`
-3. Populate the `openstack_params` and connect to remote Nova Service
-	1. Instantiate `Fog::Compute` instance
-	2. `Fog::Compute::OpenStack` instance is created
-	3. A New `Fog::Connection` object connects with the remote Nova Compute Service
-4. Populate the `glance_params`and connect to remote Glance service
-       1.  Instantiate `Fog::Image` instance
-       2.  `Fog::Image::OpenStack` instance is created
-       3.  A New `Fog::Connection` object connects with the remote Glance Service
-5. Instantiate `Registry_Client`.
-
-Figure below shows the flow of control.
-
-![openstack_cpi_initialize](images/openstack_cpi_initialize.png)
+2. Instantiate `Registry_Client`.
+3. Extracted required properties from `options` object.
+4. Instantiate `Bosh::OpenStackCloud::Openstack` with the provided openstack options. It is a `Fog` wrapper and manages all connections to OpenStack services. Connections are created lazy. First access to a service triggers the connection setup. `Bosh::OpenStackCloud::Openstack` manges the connections to the follwoing services:   
+	+ Nova Service
+		1. Instantiate `Fog::Compute` instance
+		2. `Fog::Compute::OpenStack` instance is created
+		3. A New `Fog::Connection` object connects with the remote Nova Compute Service
+	+ Glance service
+		1.  Instantiate `Fog::Image` instance
+ 		2.  `Fog::Image::OpenStack` instance is created
+		3.  A New `Fog::Connection` object connects with the remote Glance Service
+	+ Cinder service
+		1.  Instantiate `Fog::Volume` instance
+ 		2.  `Fog::Volume::OpenStack` instance is created
+		3.  A New `Fog::Connection` object connects with the remote Cinder Service
+	+ Neutron service
+		1.  Instantiate `Fog::Network` instance
+ 		2.  `Fog::Network::OpenStack` instance is created
+		3.  A New `Fog::Connection` object connects with the remote Neutron Service  
 
 ##Create Stemcell ##
 
