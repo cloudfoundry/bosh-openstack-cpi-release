@@ -45,8 +45,9 @@ jobs:
     serial: true
     plan:
       - aggregate:
-        - {trigger: true, get: bosh-cpi-src-in}
+        - {trigger: true,  get: bosh-cpi-src-in}
         - {trigger: false, get: version-semver, params: {bump: patch}}
+        - {trigger: true,  get: pipeline-time-trigger}
 
       - put: version-semver
         params: {file: version-semver/number}
@@ -680,3 +681,8 @@ resources:
     source:
       name: bosh-openstack-kvm-ubuntu-trusty-go_agent
       version: 3147
+
+  - name: pipeline-time-trigger
+    type: time
+    source:
+      interval: {{pipeline-time-trigger-interval}}
