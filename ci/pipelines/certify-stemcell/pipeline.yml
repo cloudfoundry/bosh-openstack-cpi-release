@@ -356,6 +356,46 @@ jobs:
             BOSH_OPENSTACK_PROJECT:              {{v3_e2e_project}}
             BOSH_OPENSTACK_CA_CERT:              {{bosh_openstack_ca_cert}}
 
+  - name: certify-ubuntu
+    plan:
+      - aggregate:
+        - {trigger: false, get: bosh-cpi-src-in}
+        - {trigger: true,  get: bosh-cpi-release, passed: [e2e-ubuntu, e2e-ubuntu-config-drive, test-upgrade-ubuntu], resource: bosh-cpi-dev-artifacts}
+        - {trigger: true,  get: bosh-release,     passed: [e2e-ubuntu, e2e-ubuntu-config-drive, test-upgrade-ubuntu]}
+        - {trigger: true,  get: stemcell,         passed: [e2e-ubuntu, e2e-ubuntu-config-drive, test-upgrade-ubuntu], resource: ubuntu-stemcell}
+
+      - task: generate-certification
+        file: bosh-cpi-src-in/ci/pipelines/certify-stemcell/tasks/generate-certification.yml
+        config:
+          params:
+            bosh_release_name: bosh
+            cpi_release_name: bosh-openstack-cpi
+            stemcell_name: bosh-openstack-kvm-ubuntu-trusty-go_agent
+
+      - put: certification
+        params:
+          file: certification-receipt/*.json
+
+  - name: certify-centos
+    plan:
+      - aggregate:
+        - {trigger: false, get: bosh-cpi-src-in}
+        - {trigger: true,  get: bosh-cpi-release, passed: [e2e-centos, e2e-centos-config-drive, test-upgrade-centos], resource: bosh-cpi-dev-artifacts}
+        - {trigger: true,  get: bosh-release,     passed: [e2e-centos, e2e-centos-config-drive, test-upgrade-centos]}
+        - {trigger: true,  get: stemcell,         passed: [e2e-centos, e2e-centos-config-drive, test-upgrade-centos], resource: centos-stemcell}
+
+      - task: generate-certification
+        file: bosh-cpi-src-in/ci/pipelines/certify-stemcell/tasks/generate-certification.yml
+        config:
+          params:
+            bosh_release_name: bosh
+            cpi_release_name: bosh-openstack-cpi
+            stemcell_name: bosh-openstack-kvm-centos-7-go_agent
+
+      - put: certification
+        params:
+          file: certification-receipt/*.json
+
 resources:
   - name: bosh-cpi-dev-artifacts
     type: s3
@@ -365,24 +405,6 @@ resources:
       region_name: us-east-1
       access_key_id:      {{s3_openstack_cpi_pipeline_access_key}}
       secret_access_key:  {{s3_openstack_cpi_pipeline_secret_key}}
-
-  - name: director-state-file
-    type: s3
-    source:
-      bucket: {{s3_openstack_cpi_state_files_bucket_name}}
-      versioned_file: e2e-director-manifest-state.json
-      region_name: us-east-1
-      access_key_id: {{s3_openstack_cpi_state_files_access_key}}
-      secret_access_key: {{s3_openstack_cpi_state_files_secret_key}}
-
-  - name: director-manifest-file
-    type: s3
-    source:
-      bucket: {{s3_openstack_cpi_state_files_bucket_name}}
-      versioned_file: e2e-director-manifest.yml
-      region_name: us-east-1
-      access_key_id: {{s3_openstack_cpi_state_files_access_key}}
-      secret_access_key: {{s3_openstack_cpi_state_files_secret_key}}
 
   - name: dummy-release
     type: git
@@ -434,3 +456,12 @@ resources:
         - .final_builds/**
         - docs/**
         - README.md
+
+  - name: certification
+    type: s3
+    source:
+      access_key_id: {{s3_openstack_cpi_receipts_access_key}}
+      secret_access_key: {{s3_openstack_cpi_receipts_secret_key}}
+      bucket: {{s3_openstack_cpi_receipts_bucket_name}}
+      regexp: receipt-.*\.json
+      region_name: us-east-1
