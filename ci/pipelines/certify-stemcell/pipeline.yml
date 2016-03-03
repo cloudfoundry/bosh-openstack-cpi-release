@@ -9,6 +9,8 @@ groups:
       - e2e-ubuntu-config-drive
       - test-upgrade-centos
       - test-upgrade-ubuntu
+      - certify-centos
+      - certify-ubuntu
 
 jobs:
   - name: e2e-centos
