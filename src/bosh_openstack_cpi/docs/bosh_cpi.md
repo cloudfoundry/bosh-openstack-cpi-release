@@ -11,7 +11,7 @@ Implementation of `def initialize(options)` method.
 
 1. Validate the `options` passed to this method
 2. Instantiate `Registry_Client`.
-3. Extracted required properties from `options` object.
+3. Extract required properties from `options` object.
 4. Instantiate `Bosh::OpenStackCloud::Openstack` with the provided openstack options. It is a `Fog` wrapper and manages all connections to OpenStack services. Connections are created lazy. First access to a service triggers the connection setup. `Bosh::OpenStackCloud::Openstack` manges the connections to the follwoing services:   
 	+ Nova Service
 		1. Instantiate `Fog::Compute` instance
