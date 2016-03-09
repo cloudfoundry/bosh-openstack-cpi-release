@@ -30,6 +30,9 @@ Implementation of `def initialize(options)` method.
  		2.  `Fog::Network::OpenStack` instance is created
 		3.  A New `Fog::Connection` object connects with the remote Neutron Service  
 
+![openstack_cpi_createstemcell](images/openstack_cpi_initialize.png)	
+
+
 ##Create Stemcell ##
 
 Implementation of method `create_stemcell(image_path, cloud_properties)`
