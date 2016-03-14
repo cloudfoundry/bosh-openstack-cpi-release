@@ -77,7 +77,7 @@ jobs:
             BOSH_OPENSTACK_AUTH_URL:    {{openstack_auth_url_v2}}
             BOSH_OPENSTACK_USERNAME:    {{lifecycle_openstack_username}}
             BOSH_OPENSTACK_API_KEY:     {{lifecycle_openstack_api_key}}
-            BOSH_OPENSTACK_PROJECT:     {{lifecycle_openstack_project}}
+            BOSH_OPENSTACK_PROJECT:     {{lifecycle_openstack_tenant}}
             BOSH_OPENSTACK_CA_CERT:     {{bosh_openstack_ca_cert}}
 
       - task: cleanup-bats
@@ -169,10 +169,11 @@ jobs:
             openstack_net_id:              {{bats_manual_ubuntu_primary_net_id}}
             openstack_security_group:      {{openstack_security_group}}
             openstack_default_key_name:    {{openstack_default_key_name}}
-            openstack_auth_url:            {{openstack_auth_url_v2}}
+            openstack_auth_url:            {{openstack_auth_url_v3}}
             openstack_username:            {{openstack_username}}
             openstack_api_key:             {{openstack_api_key}}
-            openstack_tenant:              {{openstack_tenant}}
+            openstack_project:             {{openstack_project}}
+            openstack_domain:              {{openstack_domain}}
             openstack_floating_ip:         {{bats_manual_ubuntu_director_public_ip}}
             openstack_manual_ip:           {{bats_manual_ubuntu_director_private_ip}}
             openstack_net_cidr:            {{bats_manual_ubuntu_primary_net_cidr}}
@@ -267,10 +268,11 @@ jobs:
             openstack_net_id:              {{bats_dynamic_ubuntu_primary_net_id}}
             openstack_security_group:      {{openstack_security_group}}
             openstack_default_key_name:    {{openstack_default_key_name}}
-            openstack_auth_url:            {{openstack_auth_url_v2}}
+            openstack_auth_url:            {{openstack_auth_url_v3}}
             openstack_username:            {{openstack_username}}
             openstack_api_key:             {{openstack_api_key}}
-            openstack_tenant:              {{openstack_tenant}}
+            openstack_project:             {{openstack_project}}
+            openstack_domain:              {{openstack_domain}}
             openstack_floating_ip:         {{bats_dynamic_ubuntu_director_public_ip}}
             private_key_data:              {{bosh_private_key}}
         ensure:
@@ -350,10 +352,11 @@ jobs:
             openstack_net_id:              {{bats_manual_centos_primary_net_id}}
             openstack_security_group:      {{openstack_security_group}}
             openstack_default_key_name:    {{openstack_default_key_name}}
-            openstack_auth_url:            {{openstack_auth_url_v2}}
+            openstack_auth_url:            {{openstack_auth_url_v3}}
             openstack_username:            {{openstack_username}}
             openstack_api_key:             {{openstack_api_key}}
-            openstack_tenant:              {{openstack_tenant}}
+            openstack_project:             {{openstack_project}}
+            openstack_domain:              {{openstack_domain}}
             openstack_floating_ip:         {{bats_manual_centos_director_public_ip}}
             openstack_manual_ip:           {{bats_manual_centos_director_private_ip}}
             openstack_net_cidr:            {{bats_manual_centos_primary_net_cidr}}
@@ -449,10 +452,11 @@ jobs:
             openstack_net_id:              {{bats_dynamic_centos_primary_net_id}}
             openstack_security_group:      {{openstack_security_group}}
             openstack_default_key_name:    {{openstack_default_key_name}}
-            openstack_auth_url:            {{openstack_auth_url_v2}}
+            openstack_auth_url:            {{openstack_auth_url_v3}}
             openstack_username:            {{openstack_username}}
             openstack_api_key:             {{openstack_api_key}}
-            openstack_tenant:              {{openstack_tenant}}
+            openstack_project:             {{openstack_project}}
+            openstack_domain:              {{openstack_domain}}
             openstack_floating_ip:         {{bats_dynamic_centos_director_public_ip}}
             private_key_data:              {{bosh_private_key}}
         ensure:

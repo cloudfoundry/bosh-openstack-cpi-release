@@ -20,7 +20,8 @@ ensure_not_replace_value openstack_default_key_name
 ensure_not_replace_value openstack_auth_url
 ensure_not_replace_value openstack_username
 ensure_not_replace_value openstack_api_key
-ensure_not_replace_value openstack_tenant
+ensure_not_replace_value openstack_project
+ensure_not_replace_value openstack_domain
 ensure_not_replace_value openstack_floating_ip
 optional_value bosh_openstack_ca_cert
 
@@ -156,7 +157,8 @@ jobs:
         auth_url: ${openstack_auth_url}
         username: ${openstack_username}
         api_key: ${openstack_api_key}
-        tenant: ${openstack_tenant}
+        project: ${openstack_project}
+        domain: ${openstack_domain}
         region: #leave this blank
         endpoint_type: publicURL
         default_key_name: ${openstack_default_key_name}

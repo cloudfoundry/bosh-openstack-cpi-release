@@ -31,7 +31,8 @@ params:
   openstack_auth_url:            replace-me
   openstack_username:            replace-me
   openstack_api_key:             replace-me
-  openstack_tenant:              replace-me
+  openstack_project:             replace-me
+  openstack_domain:              replace-me
   openstack_floating_ip:         replace-me
   openstack_manual_ip:           replace-me
   openstack_net_cidr:            replace-me
