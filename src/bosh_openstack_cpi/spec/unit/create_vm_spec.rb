@@ -315,6 +315,65 @@ describe Bosh::OpenStackCloud::Cloud, "create_vm" do
         nil, { "test_env" => "value" })
       expect(vm_id).to eq("i-test")
     end
+
+    context 'with multiple manual networks' do
+      before(:each) do
+        allow(cloud).to receive(:generate_unique_name).and_return(unique_name)
+        allow(cloud).to receive(:wait_resource).with(server, :active, :state)
+        allow(cloud.registry).to receive(:update_settings)
+      end
+      let(:several_manual_networks) do
+        {
+        'network_a' => manual_network_spec(ip: '10.0.0.1'),
+        'network_b' => manual_network_spec(net_id: 'bar', ip: '10.0.0.2')
+        }
+      end
+
+      let(:nics) { [{'net_id' => 'net', 'v4_fixed_ip' => '10.0.0.1'}, {'net_id' => 'bar', 'v4_fixed_ip' => '10.0.0.2'}] }
+      let(:security_groups) { %w[default default] }
+
+      let(:cloud) do
+        mock_cloud(cloud_options["properties"]) do |openstack|
+          allow(openstack.servers).to receive(:create).and_return(server)
+          allow(openstack.security_groups).to receive(:collect).and_return(%w[default])
+          allow(openstack.images).to receive(:find).and_return(image)
+          allow(openstack.flavors).to receive(:find).and_return(flavor)
+          allow(openstack.key_pairs).to receive(:find).and_return(key_pair)
+          allow(openstack.addresses).to receive(:each).and_yield(address)
+        end
+      end
+
+      context 'with config_drive set' do
+        let(:cloud_options) do
+          cloud_options = mock_cloud_options
+          cloud_options['properties']['openstack']['config_drive'] = 'cdrom'
+          cloud_options
+        end
+
+        it 'calls NetworkConfigurator#prepare' do
+          expect_any_instance_of(Bosh::OpenStackCloud::NetworkConfigurator).to receive(:create_ports_for_manual_networks)
+
+          cloud.create_vm("agent-id", "sc-id",
+                          resource_pool_spec,
+                          several_manual_networks,
+                          nil, { "test_env" => "value" })
+        end
+      end
+
+      context 'with config_drive NOT set' do
+        let(:cloud_options) { mock_cloud_options }
+
+        it 'calls NetworkConfigurator#prepare' do
+          expect_any_instance_of(Bosh::OpenStackCloud::NetworkConfigurator).to_not receive(:create_ports_for_manual_networks)
+
+          cloud.create_vm("agent-id", "sc-id",
+                          resource_pool_spec,
+                          several_manual_networks,
+                          nil, { "test_env" => "value" })
+        end
+      end
+
+    end
   end
 
   it "associates server with floating ip if vip network is provided" do

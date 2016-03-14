@@ -12,6 +12,8 @@ module Bosh::OpenStackCloud
   class NetworkConfigurator
     include Helpers
 
+    attr_reader :network_spec
+
     ##
     # Creates new network spec
     #
@@ -21,6 +23,7 @@ module Bosh::OpenStackCloud
         raise ArgumentError, "Invalid spec, Hash expected, #{spec.class} provided"
       end
 
+      @network_spec = spec
       @logger = Bosh::Clouds::Config.logger
       @networks = []
       @vip_network = nil
@@ -131,22 +134,55 @@ module Bosh::OpenStackCloud
     end
 
     ##
+    # Creates network ports via Neutron, if multiple manual networks
+    # are configured.
+    #
+    def create_ports_for_manual_networks(openstack)
+      if multiple_manual_networks?
+        @networks.each do |network_info|
+          network = network_info['network']
+          if network.is_a?(ManualNetwork)
+            port = with_openstack {
+              openstack.network.ports.create({
+                                                 network_id: network_info['net_id'],
+                                                 fixed_ips: [{ip_address: network.private_ip}]
+                                             })
+            }
+            network_info['port_id'] = port.id
+            @network_spec[network.name]['mac'] = port.mac_address
+          end
+        end
+      end
+    end
+
+    ##
     # Returns the nics for this network configuration
     #
     # @return [Array] nics
     def nics
       @networks.inject([]) do |memo, network_info|
-        net_id = network_info["net_id"]
-        network = network_info["network"]
+        net_id = network_info['net_id']
+        network = network_info['network']
         nic = {}
-        nic["net_id"] = net_id if net_id
-        nic["v4_fixed_ip"] = network.private_ip if network.is_a?(ManualNetwork)
+        nic['net_id'] = net_id if net_id
+        if network.is_a?(ManualNetwork)
+          nic['v4_fixed_ip'] = network.private_ip
+          nic['port_id'] = network_info['port_id'] if network_info['port_id']
+        end
         memo << nic if nic.any?
         memo
       end
     end
 
     private
+
+    def multiple_manual_networks?
+      @networks.count { |network_info| network_info['network'].is_a?(ManualNetwork) } > 1
+    end
+
+    def manual_network?(network)
+      @network_spec[network.name]['type'] == 'manual'
+    end
 
     ##
     # Extracts the security groups from the network configuration

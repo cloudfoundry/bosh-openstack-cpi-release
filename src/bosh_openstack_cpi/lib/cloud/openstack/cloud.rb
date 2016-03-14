@@ -205,6 +205,10 @@ module Bosh::OpenStackCloud
         end
         @logger.debug("Using security groups: `#{security_groups_to_be_used.join(', ')}'")
 
+        if @config_drive
+          network_configurator.create_ports_for_manual_networks @openstack
+        end
+
         nics = network_configurator.nics
         @logger.debug("Using NICs: `#{nics.join(', ')}'")
 
@@ -252,7 +256,7 @@ module Bosh::OpenStackCloud
           :os_scheduler_hints => resource_pool['scheduler_hints'],
           :nics => nics,
           :config_drive => @use_config_drive,
-          :user_data => Yajl::Encoder.encode(user_data(registry_key, network_spec))
+          :user_data => Yajl::Encoder.encode(user_data(registry_key, network_configurator.network_spec))
         }
 
         availability_zone = @az_provider.select(disk_locality, resource_pool['availability_zone'])
@@ -318,7 +322,7 @@ module Bosh::OpenStackCloud
 
         begin
           @logger.info("Updating settings for server `#{server.id}'...")
-          settings = initial_agent_settings(registry_key, agent_id, network_spec, environment,
+          settings = initial_agent_settings(registry_key, agent_id, network_configurator.network_spec, environment,
                                             flavor_has_ephemeral_disk?(flavor))
           @registry.update_settings(registry_key, settings)
         rescue => e

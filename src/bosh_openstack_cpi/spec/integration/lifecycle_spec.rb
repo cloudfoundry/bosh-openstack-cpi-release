@@ -6,25 +6,29 @@ require 'ostruct'
 
 describe Bosh::OpenStackCloud::Cloud do
   before(:all) do
-    @logger            = Logger.new(STDERR)
-    @auth_url          = LifecycleHelper.get_config(:auth_url, 'BOSH_OPENSTACK_AUTH_URL_V2')
-    @username          = LifecycleHelper.get_config(:username, 'BOSH_OPENSTACK_USERNAME')
-    @api_key           = LifecycleHelper.get_config(:api_key, 'BOSH_OPENSTACK_API_KEY')
-    @tenant            = LifecycleHelper.get_config(:tenant, 'BOSH_OPENSTACK_TENANT')
-    @stemcell_path     = LifecycleHelper.get_config(:stemcell_path, 'BOSH_OPENSTACK_STEMCELL_PATH')
-    @net_id            = LifecycleHelper.get_config(:net_id, 'BOSH_OPENSTACK_NET_ID')
-    @boot_volume_type  = LifecycleHelper.get_config(:volume_type, 'BOSH_OPENSTACK_VOLUME_TYPE')
-    @manual_ip         = LifecycleHelper.get_config(:manual_ip, 'BOSH_OPENSTACK_MANUAL_IP')
-    @disable_snapshots = LifecycleHelper.get_config(:disable_snapshots, 'BOSH_OPENSTACK_DISABLE_SNAPSHOTS', false)
-    @default_key_name  = LifecycleHelper.get_config(:default_key_name, 'BOSH_OPENSTACK_DEFAULT_KEY_NAME', 'jenkins')
-    @config_drive      = LifecycleHelper.get_config(:config_drive, 'BOSH_OPENSTACK_CONFIG_DRIVE', 'cdrom')
-    @ignore_server_az  = LifecycleHelper.get_config(:ignore_server_az, 'BOSH_OPENSTACK_IGNORE_SERVER_AZ', 'false')
-    @instance_type     = LifecycleHelper.get_config(:instance_type, 'BOSH_OPENSTACK_INSTANCE_TYPE', 'm1.small')
-    @connect_timeout   = LifecycleHelper.get_config(:instance_type, 'BOSH_OPENSTACK_CONNECT_TIMEOUT', '120')
-    @read_timeout      = LifecycleHelper.get_config(:instance_type, 'BOSH_OPENSTACK_READ_TIMEOUT', '120')
-    @write_timeout     = LifecycleHelper.get_config(:instance_type, 'BOSH_OPENSTACK_WRITE_TIMEOUT', '120')
-    ca_cert            = LifecycleHelper.get_config(:ca_cert, 'BOSH_OPENSTACK_CA_CERT', nil)
-    @ca_cert_path = write_ssl_ca_file(ca_cert, @logger) if ca_cert
+    @logger              = Logger.new(STDERR)
+    @auth_url            = LifecycleHelper.get_config(:auth_url, 'BOSH_OPENSTACK_AUTH_URL_V2')
+    @username            = LifecycleHelper.get_config(:username, 'BOSH_OPENSTACK_USERNAME')
+    @api_key             = LifecycleHelper.get_config(:api_key, 'BOSH_OPENSTACK_API_KEY')
+    @tenant              = LifecycleHelper.get_config(:tenant, 'BOSH_OPENSTACK_TENANT')
+    @stemcell_path       = LifecycleHelper.get_config(:stemcell_path, 'BOSH_OPENSTACK_STEMCELL_PATH')
+    @net_id              = LifecycleHelper.get_config(:net_id, 'BOSH_OPENSTACK_NET_ID')
+    @net_id_no_dhcp_1    = LifecycleHelper.get_config(:net_id, 'BOSH_OPENSTACK_NET_ID_NO_DHCP_1')
+    @net_id_no_dhcp_2    = LifecycleHelper.get_config(:net_id, 'BOSH_OPENSTACK_NET_ID_NO_DHCP_2')
+    @boot_volume_type    = LifecycleHelper.get_config(:volume_type, 'BOSH_OPENSTACK_VOLUME_TYPE')
+    @manual_ip           = LifecycleHelper.get_config(:manual_ip, 'BOSH_OPENSTACK_MANUAL_IP')
+    @no_dhcp_manual_ip_1 = LifecycleHelper.get_config(:manual_ip, 'BOSH_OPENSTACK_NO_DHCP_MANUAL_IP_1')
+    @no_dhcp_manual_ip_2 = LifecycleHelper.get_config(:manual_ip, 'BOSH_OPENSTACK_NO_DHCP_MANUAL_IP_2')
+    @disable_snapshots   = LifecycleHelper.get_config(:disable_snapshots, 'BOSH_OPENSTACK_DISABLE_SNAPSHOTS', false)
+    @default_key_name    = LifecycleHelper.get_config(:default_key_name, 'BOSH_OPENSTACK_DEFAULT_KEY_NAME', 'jenkins')
+    @config_drive        = LifecycleHelper.get_config(:config_drive, 'BOSH_OPENSTACK_CONFIG_DRIVE', 'cdrom')
+    @ignore_server_az    = LifecycleHelper.get_config(:ignore_server_az, 'BOSH_OPENSTACK_IGNORE_SERVER_AZ', 'false')
+    @instance_type       = LifecycleHelper.get_config(:instance_type, 'BOSH_OPENSTACK_INSTANCE_TYPE', 'm1.small')
+    @connect_timeout     = LifecycleHelper.get_config(:instance_type, 'BOSH_OPENSTACK_CONNECT_TIMEOUT', '120')
+    @read_timeout        = LifecycleHelper.get_config(:instance_type, 'BOSH_OPENSTACK_READ_TIMEOUT', '120')
+    @write_timeout       = LifecycleHelper.get_config(:instance_type, 'BOSH_OPENSTACK_WRITE_TIMEOUT', '120')
+    ca_cert              = LifecycleHelper.get_config(:ca_cert, 'BOSH_OPENSTACK_CA_CERT', nil)
+    @ca_cert_path        = write_ssl_ca_file(ca_cert, @logger) if ca_cert
 
     # some environments may not have this set, and it isn't strictly necessary so don't raise if it isn't set
     @region             = LifecycleHelper.get_config(:region, 'BOSH_OPENSTACK_REGION', nil)
@@ -162,6 +166,57 @@ describe Bosh::OpenStackCloud::Cloud do
         expect {
           vm_lifecycle(@stemcell_id, network_spec, [@existing_volume_id])
         }.to_not raise_error
+      end
+    end
+
+    context 'with multiple networks and config_drive' do
+
+      let(:multiple_network_spec) do
+        {
+          'network_1' => {
+              'type' => 'manual',
+              'ip' => @no_dhcp_manual_ip_1,
+              'cloud_properties' => {
+                  'net_id' => @net_id_no_dhcp_1
+              }
+          },
+          'network_2' => {
+              'type' => 'manual',
+              'ip' => @no_dhcp_manual_ip_2,
+              'cloud_properties' => {
+                  'net_id' => @net_id_no_dhcp_2
+              },
+              'use_dhcp' => false
+          }
+        }
+      end
+
+      let(:config_drive) { 'cdrom' }
+
+      after { clean_up_vm(@multiple_nics_vm_id, network_spec) if @multiple_nics_vm_id }
+
+      it 'creates writes the mac addresses of the two networks to the registry' do
+        registry = double('registry')
+        registry_settings = nil
+        allow(Bosh::Registry::Client).to receive(:new).and_return(registry)
+        allow(registry).to receive_messages(endpoint: nil, delete_settings:nil)
+        allow(registry).to receive(:update_settings) do |_, settings|
+          registry_settings = settings
+        end
+
+        @multiple_nics_vm_id = create_vm(@stemcell_id, multiple_network_spec, [])
+
+        vm = cpi.compute.servers.get(@multiple_nics_vm_id)
+        network_interfaces = vm.addresses.map { |_, network_interfaces| network_interfaces }.flatten
+        network_interface_1 = network_interfaces.find(&where_ip_address_is(@no_dhcp_manual_ip_1))
+        network_interface_2 = network_interfaces.find(&where_ip_address_is(@no_dhcp_manual_ip_2))
+
+        expect(network_interface_1['OS-EXT-IPS-MAC:mac_addr']).to eq(registry_settings['networks']['network_1']['mac'])
+        expect(network_interface_2['OS-EXT-IPS-MAC:mac_addr']).to eq(registry_settings['networks']['network_2']['mac'])
+      end
+
+      def where_ip_address_is(ip)
+        lambda { |network_interface| network_interface['addr'] == ip }
       end
     end
   end

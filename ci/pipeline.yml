@@ -107,7 +107,11 @@ jobs:
             BOSH_OPENSTACK_TENANT:              {{lifecycle_openstack_tenant}}
             BOSH_OPENSTACK_PROJECT:             {{lifecycle_openstack_project}}
             BOSH_OPENSTACK_MANUAL_IP:           {{lifecycle_manual_ip}}
+            BOSH_OPENSTACK_NO_DHCP_MANUAL_IP_1: {{lifecycle_no_dhcp_manual_ip_1}}
+            BOSH_OPENSTACK_NO_DHCP_MANUAL_IP_2: {{lifecycle_no_dhcp_manual_ip_2}}
             BOSH_OPENSTACK_NET_ID:              {{lifecycle_openstack_net_id}}
+            BOSH_OPENSTACK_NET_ID_NO_DHCP_1:    {{lifecycle_net_id_no_dhcp_1}}
+            BOSH_OPENSTACK_NET_ID_NO_DHCP_2:    {{lifecycle_net_id_no_dhcp_2}}
             BOSH_OPENSTACK_AUTH_URL_V2:         {{openstack_auth_url_v2}}
             BOSH_OPENSTACK_AUTH_URL_V3:         {{openstack_auth_url_v3}}
             BOSH_OPENSTACK_USERNAME:            {{lifecycle_openstack_username}}

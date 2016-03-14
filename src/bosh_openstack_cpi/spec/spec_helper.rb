@@ -132,12 +132,13 @@ def dynamic_network_spec
   }
 end
 
-def manual_network_spec
+def manual_network_spec(net_id: 'net', ip: '0.0.0.0')
   {
     'type' => 'manual',
+    'ip' => ip,
     'cloud_properties' => {
       'security_groups' => %w[default],
-      'net_id' => 'net'
+      'net_id' => net_id
     },
     'use_dhcp' => true
   }
