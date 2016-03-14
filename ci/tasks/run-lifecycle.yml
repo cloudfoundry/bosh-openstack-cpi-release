@@ -20,7 +20,7 @@ params:
   BOSH_OPENSTACK_MANUAL_IP:           replace-me
   BOSH_OPENSTACK_NET_ID:              replace-me
   BOSH_CLI_SILENCE_SLOW_LOAD_WARNING: replace-me
-  BOSH_OPENSTACK_VOLUME_TYPE:         replace-me
+#  BOSH_OPENSTACK_VOLUME_TYPE:         replace-me
   BOSH_OPENSTACK_CONNECT_TIMEOUT:     replace-me
   BOSH_OPENSTACK_READ_TIMEOUT:        replace-me
   BOSH_OPENSTACK_WRITE_TIMEOUT:       replace-me

@@ -115,7 +115,7 @@ jobs:
             BOSH_OPENSTACK_API_KEY_V3:          {{lifecycle_openstack_api_key_v3}}
             BOSH_OPENSTACK_DEFAULT_KEY_NAME:    {{lifecycle_openstack_default_key_name}}
             BOSH_CLI_SILENCE_SLOW_LOAD_WARNING: true
-            BOSH_OPENSTACK_VOLUME_TYPE:         "SSD"
+            #BOSH_OPENSTACK_VOLUME_TYPE:         "SSD"
             BOSH_OPENSTACK_CONNECT_TIMEOUT:     "600"
             BOSH_OPENSTACK_READ_TIMEOUT:        "120"
             BOSH_OPENSTACK_WRITE_TIMEOUT:       "120"
