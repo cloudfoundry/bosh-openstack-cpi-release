@@ -151,6 +151,19 @@ describe Bosh::OpenStackCloud::Openstack do
           }.to_not raise_error
         end
       end
+
+      context 'when used multiple times' do
+
+        it 'creates the connection lazy and caches it' do
+          expect(fog[:clazz]).to receive(:new).once.and_return(instance_double(fog[:clazz]))
+          openstack = Bosh::OpenStackCloud::Openstack.new(openstack_options)
+
+          fog_class_1st_call = openstack.send(fog[:method_name])
+          fog_class_2nd_call = openstack.send(fog[:method_name])
+
+          expect(fog_class_1st_call).to eq fog_class_2nd_call
+        end
+      end
     end
   end
 end
