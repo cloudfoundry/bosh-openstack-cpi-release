@@ -6,11 +6,12 @@ require 'ostruct'
 
 describe Bosh::OpenStackCloud::Cloud do
   before(:all) do
+    @domain            = LifecycleHelper.get_config(:domain, 'BOSH_OPENSTACK_DOMAIN')
     @logger            = Logger.new(STDERR)
-    @auth_url          = LifecycleHelper.get_config(:auth_url, 'BOSH_OPENSTACK_AUTH_URL_V2')
+    @auth_url          = LifecycleHelper.get_config(:auth_url, 'BOSH_OPENSTACK_AUTH_URL_V3')
     @username          = LifecycleHelper.get_config(:username, 'BOSH_OPENSTACK_USERNAME')
     @api_key           = LifecycleHelper.get_config(:api_key, 'BOSH_OPENSTACK_API_KEY')
-    @tenant            = LifecycleHelper.get_config(:tenant, 'BOSH_OPENSTACK_TENANT')
+    @project           = LifecycleHelper.get_config(:project, 'BOSH_OPENSTACK_PROJECT')
     @stemcell_path     = LifecycleHelper.get_config(:stemcell_path, 'BOSH_OPENSTACK_STEMCELL_PATH')
     @net_id            = LifecycleHelper.get_config(:net_id, 'BOSH_OPENSTACK_NET_ID')
     @boot_volume_type  = LifecycleHelper.get_config(:volume_type, 'BOSH_OPENSTACK_VOLUME_TYPE')
@@ -58,7 +59,8 @@ describe Bosh::OpenStackCloud::Cloud do
             'auth_url' => @auth_url,
             'username' => @username,
             'api_key' => @api_key,
-            'tenant' => @tenant,
+            'project' => @project,
+            'domain' => @domain,
             'region' => @region,
             'endpoint_type' => 'publicURL',
             'default_key_name' => @default_key_name,

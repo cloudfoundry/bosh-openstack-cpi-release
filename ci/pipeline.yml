@@ -77,7 +77,7 @@ jobs:
             BOSH_OPENSTACK_AUTH_URL:    {{openstack_auth_url_v2}}
             BOSH_OPENSTACK_USERNAME:    {{lifecycle_openstack_username}}
             BOSH_OPENSTACK_API_KEY:     {{lifecycle_openstack_api_key}}
-            BOSH_OPENSTACK_PROJECT:     {{lifecycle_openstack_tenant}}
+            BOSH_OPENSTACK_PROJECT:     {{lifecycle_openstack_project}}
             BOSH_OPENSTACK_CA_CERT:     {{bosh_openstack_ca_cert}}
 
       - task: cleanup-bats
@@ -104,7 +104,6 @@ jobs:
         config:
           params:
             BOSH_OPENSTACK_DOMAIN:              {{lifecycle_openstack_domain}}
-            BOSH_OPENSTACK_TENANT:              {{lifecycle_openstack_tenant}}
             BOSH_OPENSTACK_PROJECT:             {{lifecycle_openstack_project}}
             BOSH_OPENSTACK_MANUAL_IP:           {{lifecycle_manual_ip}}
             BOSH_OPENSTACK_NET_ID:              {{lifecycle_openstack_net_id}}
