@@ -278,23 +278,25 @@ module Bosh::OpenStackCloud
         end
 
         @logger.debug("Using boot parms: `#{server_params.inspect}'")
-        begin
-          server = with_openstack { @openstack.compute.servers.create(server_params) }
-        rescue Excon::Errors::Timeout => e
-          @logger.debug(e.backtrace)
-          cloud_error_message = "VM creation with name '#{server_params[:name]}' received a timeout. " +
-                                "The VM might still have been created by OpenStack.\nOriginal message: "
-          raise Bosh::Clouds::VMCreationFailed.new(false), cloud_error_message + e.message
-        rescue Excon::Errors::NotFound, Fog::Compute::OpenStack::NotFound => e
-          not_existing_net_ids = not_existing_net_ids(nics)
-          if not_existing_net_ids.empty?
-            raise e
-          else
+        server = with_openstack do
+          begin
+            @openstack.compute.servers.create(server_params)
+          rescue Excon::Errors::Timeout => e
             @logger.debug(e.backtrace)
-            cloud_error_message = "VM creation with name '#{server_params[:name]}' failed. Following network " +
-            "IDs are not existing or not accessible from this project: '#{not_existing_net_ids.join(",")}'. " +
-            "Make sure you do not use subnet IDs"
-            raise Bosh::Clouds::VMCreationFailed.new(false), cloud_error_message
+            cloud_error_message = "VM creation with name '#{server_params[:name]}' received a timeout. " +
+                "The VM might still have been created by OpenStack.\nOriginal message: "
+            raise Bosh::Clouds::VMCreationFailed.new(false), cloud_error_message + e.message
+          rescue Excon::Errors::NotFound, Fog::Compute::OpenStack::NotFound => e
+            not_existing_net_ids = not_existing_net_ids(nics)
+            if not_existing_net_ids.empty?
+              raise e
+            else
+              @logger.debug(e.backtrace)
+              cloud_error_message = "VM creation with name '#{server_params[:name]}' failed. Following network " +
+                  "IDs are not existing or not accessible from this project: '#{not_existing_net_ids.join(",")}'. " +
+                  "Make sure you do not use subnet IDs"
+              raise Bosh::Clouds::VMCreationFailed.new(false), cloud_error_message
+            end
           end
         end
 
