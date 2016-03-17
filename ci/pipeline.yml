@@ -623,7 +623,7 @@ resources:
     type: git
     source:
       uri: https://github.com/cloudfoundry-incubator/bosh-openstack-cpi-release.git
-      branch: master
+      branch: keystone_v3
       ignore_paths:
         - releases/bosh-openstack-cpi/**
         - .final_builds/**
@@ -634,7 +634,7 @@ resources:
     type: git
     source:
       uri: git@github.com:cloudfoundry-incubator/bosh-openstack-cpi-release.git
-      branch: master
+      branch: keystone_v3
       private_key: {{github_deployment_key__bosh-openstack-cpi-release}}
 
   - name: version-semver
