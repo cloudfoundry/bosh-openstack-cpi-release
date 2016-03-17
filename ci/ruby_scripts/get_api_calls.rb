@@ -36,7 +36,7 @@ def scrub_random_values!(requests)
       request[:body].gsub!(resource_id_regex, '<resource_id>')
       request[:body].gsub!(/"volume_size":\d+/, "\"volume_size\":\"<volume_size>\"")
       request[:body].gsub!(/"size":\d+/, "\"size\":\"<size>\"")
-      ['user_data', 'display_description', 'device', 'password', 'fixed_ip', 'availability_zone', 'key_name', 'username', 'tenantName', 'name', 'token'].each do |key|
+      ['user_data', 'display_description', 'device', 'password', 'fixed_ip', 'availability_zone', 'key_name', 'username', 'tenantName', 'name', 'token', 'ip_address'].each do |key|
         scrub_random_body_value!(request, key)
       end
     end

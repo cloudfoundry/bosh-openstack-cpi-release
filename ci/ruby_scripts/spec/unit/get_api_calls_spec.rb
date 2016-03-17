@@ -77,7 +77,7 @@ describe 'Get API calls script' do
       expect(requests.map &to_body_value('volume_size')).to all (eq('<volume_size>'))
     end
 
-    ['user_data', 'display_description', 'device', 'password', 'fixed_ip', 'availability_zone', 'key_name', 'username', 'tenantName', 'name', 'token'].each do |key|
+    ['user_data', 'display_description', 'device', 'password', 'fixed_ip', 'availability_zone', 'key_name', 'username', 'tenantName', 'name', 'token', 'ip_address'].each do |key|
       it "scrubs '#{key}' values from body" do
         requests = requests_with_body "{\"#{key}\":\"aribitrary_value\"}"
 
