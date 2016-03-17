@@ -28,6 +28,7 @@ ensure_not_replace_value v3_e2e_blobstore_bucket
 ensure_not_replace_value v3_e2e_blobstore_host
 ensure_not_replace_value v3_e2e_blobstore_access_key
 ensure_not_replace_value v3_e2e_blobstore_secret_key
+optional_value v3_e2e_use_dhcp
 optional_value bosh_openstack_ca_cert
 optional_value v3_e2e_config_drive
 
@@ -173,6 +174,7 @@ jobs:
         region: #leave this blank
         endpoint_type: publicURL
         config_drive: ${v3_e2e_config_drive}
+        use_dhcp: ${use_dhcp}
         default_key_name: ${v3_e2e_default_key_name}
         default_security_groups:
           - ${v3_e2e_security_group}
