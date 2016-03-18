@@ -106,7 +106,6 @@ jobs:
       - name : manual-1
         default: [dns, gateway]
       - name : manual-2
-        default: [dns, gateway]
 
 compilation:
   reuse_compilation_vms: true
