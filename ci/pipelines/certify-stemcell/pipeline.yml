@@ -157,19 +157,21 @@ jobs:
         file: bosh-cpi-src-in/ci/pipelines/certify-stemcell/tasks/deploy-dummy-release-multiple-manual-networks.yml
         config:
           params:
-            instance_flavor:       "m1.medium"
+            instance_flavor:           "m1.medium"
             bosh_director_ip:          {{v3_e2e_centos_config_drive_floating_ip}}
+            v3_e2e_private_key_data:   {{v3_e2e_private_key_data}}
             dns:                       {{dns}}
             v3_e2e_security_group:     {{v3_e2e_security_group}}
             network_id:                {{v3_e2e_net_id}}
+            network_no_dhcp_1_id:      {{v3_e2e_net_no_dhcp_1_id}}
             network_no_dhcp_1_range:   {{v3_e2e_net_no_dhcp_1_cidr}}
             network_no_dhcp_1_gateway: {{v3_e2e_net_no_dhcp_1_gateway}}
             network_no_dhcp_1_ip:      {{v3_e2e_net_no_dhcp_1_ip_centos}}
+            network_no_dhcp_2_id:      {{v3_e2e_net_no_dhcp_2_id}}
             network_no_dhcp_2_range:   {{v3_e2e_net_no_dhcp_2_cidr}}
             network_no_dhcp_2_gateway: {{v3_e2e_net_no_dhcp_2_gateway}}
             network_no_dhcp_2_ip:      {{v3_e2e_net_no_dhcp_2_ip_centos}}
-
-            stemcell_name:         "bosh-openstack-kvm-centos-7-go_agent"
+            stemcell_name:             "bosh-openstack-kvm-centos-7-go_agent"
 
       - task: teardown-director
         file: bosh-cpi-src-in/ci/pipelines/certify-stemcell/tasks/teardown-director.yml
@@ -201,18 +203,21 @@ jobs:
         file: bosh-cpi-src-in/ci/pipelines/certify-stemcell/tasks/deploy-dummy-release-multiple-manual-networks.yml
         config:
           params:
-            instance_flavor:       "m1.medium"
-            bosh_director_ip:      {{v3_e2e_ubuntu_config_drive_floating_ip}}
-            dns:                   {{dns}}
-            v3_e2e_security_group: {{v3_e2e_security_group}}
-            network_id:            {{v3_e2e_net_id}}
+            instance_flavor:           "m1.medium"
+            bosh_director_ip:          {{v3_e2e_ubuntu_config_drive_floating_ip}}
+            v3_e2e_private_key_data:   {{v3_e2e_private_key_data}}
+            dns:                       {{dns}}
+            v3_e2e_security_group:     {{v3_e2e_security_group}}
+            network_id:                {{v3_e2e_net_id}}
+            network_no_dhcp_1_id:      {{v3_e2e_net_no_dhcp_1_id}}
             network_no_dhcp_1_range:   {{v3_e2e_net_no_dhcp_1_cidr}}
             network_no_dhcp_1_gateway: {{v3_e2e_net_no_dhcp_1_gateway}}
             network_no_dhcp_1_ip:      {{v3_e2e_net_no_dhcp_1_ip_ubuntu}}
+            network_no_dhcp_2_id:      {{v3_e2e_net_no_dhcp_2_id}}
             network_no_dhcp_2_range:   {{v3_e2e_net_no_dhcp_2_cidr}}
             network_no_dhcp_2_gateway: {{v3_e2e_net_no_dhcp_2_gateway}}
             network_no_dhcp_2_ip:      {{v3_e2e_net_no_dhcp_2_ip_ubuntu}}
-            stemcell_name:         "bosh-openstack-kvm-ubuntu-trusty-go_agent"
+            stemcell_name:             "bosh-openstack-kvm-ubuntu-trusty-go_agent"
 
       - task: teardown-director
         file: bosh-cpi-src-in/ci/pipelines/certify-stemcell/tasks/teardown-director.yml
