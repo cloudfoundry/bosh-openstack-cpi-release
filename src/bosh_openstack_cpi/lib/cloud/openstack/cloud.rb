@@ -313,13 +313,17 @@ module Bosh::OpenStackCloud
         end
 
         if @human_readable_vm_names
+          @logger.debug("'human_readable_vm_names' enabled")
           begin
             TagManager.tag(server, REGISTRY_KEY_TAG, registry_key)
+            @logger.debug("Tagged VM 'i-test' with tag 'registry_key'")
           rescue => e
-            @logger.warn("Unable tag server with '#{REGISTRY_KEY_TAG}': #{e.message}")
+            @logger.warn("Unable to tag server with '#{REGISTRY_KEY_TAG}': #{e.message}")
             destroy_server(server)
             raise Bosh::Clouds::VMCreationFailed.new(true), e.message
           end
+        else
+          @logger.debug("'human_readable_vm_names' disabled")
         end
 
         begin
@@ -659,10 +663,14 @@ module Bosh::OpenStackCloud
             index = metadata['index']
             compiling = metadata['compiling']
             if job && index
+              @logger.debug("Rename VM with id '#{server_id}' to '#{job}/#{index}'")
               @openstack.compute.update_server(server_id, {'name' => "#{job}/#{index}"})
             elsif compiling
+              @logger.debug("Rename VM with id '#{server_id}' to 'compiling/#{compiling}'")
               @openstack.compute.update_server(server_id, {'name' => "compiling/#{compiling}"})
             end
+          else
+            @logger.debug("VM with id '#{server_id}' has no 'registry_key' tag")
           end
 
         end

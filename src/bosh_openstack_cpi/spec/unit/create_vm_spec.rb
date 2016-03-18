@@ -1014,25 +1014,29 @@ describe Bosh::OpenStackCloud::Cloud, "create_vm" do
   end
 
   describe 'use "vm-<uuid>" as registry key' do
+    before(:each) do
+      allow(cloud).to receive(:generate_unique_name).and_return(unique_name)
+      allow(cloud).to receive(:wait_resource)
+    end
+
+    let(:cloud) do
+      mock_cloud(options) do |openstack|
+        allow(openstack.servers).to receive(:create).and_return(server)
+        stub_openstack(openstack)
+      end
+    end
 
     context 'when "human_readable_vm_names" is enabled' do
-
-      let(:cloud) do
+      let(:options) do
         options = mock_cloud_options['properties']
         options['openstack']['human_readable_vm_names'] = true
-        mock_cloud(options) do |openstack|
-          allow(openstack.servers).to receive(:create).and_return(server)
-          stub_openstack(openstack)
-        end
+        options
       end
 
       it 'tags registry_key with "vm-<uuid>"' do
-        allow(cloud).to receive(:generate_unique_name).and_return(unique_name)
-        allow(cloud).to receive(:wait_resource)
         allow(@registry).to receive(:update_settings)
 
         expect(Bosh::OpenStackCloud::TagManager).to receive(:tag).with(server, :registry_key, "vm-#{unique_name}")
-
 
         cloud.create_vm("agent-id", "sc-id",
                         resource_pool_spec,
@@ -1042,7 +1046,6 @@ describe Bosh::OpenStackCloud::Cloud, "create_vm" do
       end
 
       it 'raises an exception, if tagging fails' do
-        allow(cloud).to receive(:wait_resource)
         allow(Bosh::OpenStackCloud::TagManager).to receive(:tag).and_raise(StandardError)
 
         expect(server).to receive(:destroy)
@@ -1053,28 +1056,54 @@ describe Bosh::OpenStackCloud::Cloud, "create_vm" do
                           nil, { "test_env" => "value" })
         }.to raise_error(Bosh::Clouds::CloudError)
       end
-    end
 
-    context 'when "human_readable_vm_names" is disabled' do
-      it 'does not tag server with registry tag' do
-        options = mock_cloud_options
-        cloud = mock_cloud do |openstack|
-          allow(openstack.servers).to receive(:create).and_return(server)
-          stub_openstack(openstack)
-        end
-
-        allow(cloud).to receive(:generate_unique_name).and_return(unique_name)
-        allow(cloud).to receive(:wait_resource)
+      it 'logs human_readable_vm_names enabled' do
         allow(@registry).to receive(:update_settings)
 
-        expect(Bosh::OpenStackCloud::TagManager).to_not receive(:tag).with(server, :registry_key, "vm-#{unique_name}")
-
+        allow(Bosh::OpenStackCloud::TagManager).to receive(:tag)
+        # Bosh.retryable requires us to return a non-nil value from debug
+        allow(Bosh::Clouds::Config.logger).to receive(:debug).and_return('logged')
 
         cloud.create_vm("agent-id", "sc-id",
                         resource_pool_spec,
                         { "network_a" => dynamic_network_spec },
                         nil, { "test_env" => "value" })
 
+        expect(Bosh::Clouds::Config.logger).to have_received(:debug).with("'human_readable_vm_names' enabled")
+        expect(Bosh::Clouds::Config.logger).to have_received(:debug).with("Tagged VM 'i-test' with tag 'registry_key'")
+      end
+    end
+
+    context 'when "human_readable_vm_names" is disabled' do
+      let(:options) do
+        options = mock_cloud_options['properties']
+      end
+
+      it 'does not tag server with registry tag' do
+        allow(@registry).to receive(:update_settings)
+
+        expect(Bosh::OpenStackCloud::TagManager).to_not receive(:tag).with(server, :registry_key, "vm-#{unique_name}")
+
+        cloud.create_vm("agent-id", "sc-id",
+                        resource_pool_spec,
+                        { "network_a" => dynamic_network_spec },
+                        nil, { "test_env" => "value" })
+
+      end
+
+      it 'logs human_readable_vm_names disabled' do
+        allow(@registry).to receive(:update_settings)
+
+        allow(Bosh::OpenStackCloud::TagManager).to receive(:tag)
+        # Bosh.retryable requires us to return a non-nil value from debug
+        allow(Bosh::Clouds::Config.logger).to receive(:debug).and_return('logged')
+
+        cloud.create_vm("agent-id", "sc-id",
+                        resource_pool_spec,
+                        { "network_a" => dynamic_network_spec },
+                        nil, { "test_env" => "value" })
+
+        expect(Bosh::Clouds::Config.logger).to have_received(:debug).with("'human_readable_vm_names' disabled")
       end
     end
   end
