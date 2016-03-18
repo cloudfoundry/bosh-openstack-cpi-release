@@ -108,7 +108,9 @@ jobs:
     networks:
       - name : manual-1
         default: [dns, gateway]
+        static_ips: [${network_no_dhcp_1_ip}]
       - name : manual-2
+        static_ips: [${network_no_dhcp_2_ip}]
 
 compilation:
   reuse_compilation_vms: true

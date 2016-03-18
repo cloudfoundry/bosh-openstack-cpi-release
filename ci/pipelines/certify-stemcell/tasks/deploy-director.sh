@@ -174,7 +174,7 @@ jobs:
         region: #leave this blank
         endpoint_type: publicURL
         config_drive: ${v3_e2e_config_drive}
-        use_dhcp: ${use_dhcp}
+        use_dhcp: ${v3_e2e_use_dhcp}
         default_key_name: ${v3_e2e_default_key_name}
         default_security_groups:
           - ${v3_e2e_security_group}
