@@ -316,7 +316,7 @@ module Bosh::OpenStackCloud
           @logger.debug("'human_readable_vm_names' enabled")
           begin
             TagManager.tag(server, REGISTRY_KEY_TAG, registry_key)
-            @logger.debug("Tagged VM 'i-test' with tag 'registry_key'")
+            @logger.debug("Tagged VM '#{server.id}' with tag '#{REGISTRY_KEY_TAG}': #{registry_key}")
           rescue => e
             @logger.warn("Unable to tag server with '#{REGISTRY_KEY_TAG}': #{e.message}")
             destroy_server(server)

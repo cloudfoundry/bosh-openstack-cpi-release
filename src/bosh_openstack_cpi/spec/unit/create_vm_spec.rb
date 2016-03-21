@@ -1070,7 +1070,7 @@ describe Bosh::OpenStackCloud::Cloud, "create_vm" do
                         nil, { "test_env" => "value" })
 
         expect(Bosh::Clouds::Config.logger).to have_received(:debug).with("'human_readable_vm_names' enabled")
-        expect(Bosh::Clouds::Config.logger).to have_received(:debug).with("Tagged VM 'i-test' with tag 'registry_key'")
+        expect(Bosh::Clouds::Config.logger).to have_received(:debug).with("Tagged VM 'i-test' with tag 'registry_key': vm-#{unique_name}")
       end
     end
 
