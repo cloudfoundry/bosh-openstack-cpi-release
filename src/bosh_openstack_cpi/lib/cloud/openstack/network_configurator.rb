@@ -74,6 +74,8 @@ module Bosh::OpenStackCloud
                       "CPI can only handle `dynamic', 'manual' or `vip' " \
                       "network types")
       end
+
+      @security_groups.uniq!
     end
 
     ##
@@ -137,7 +139,7 @@ module Bosh::OpenStackCloud
     # Creates network ports via Neutron, if multiple manual networks
     # are configured.
     #
-    def create_ports_for_manual_networks(openstack)
+    def create_ports_for_manual_networks(openstack, security_group_ids)
       if multiple_manual_networks?
         @networks.each do |network_info|
           network = network_info['network']
@@ -145,7 +147,8 @@ module Bosh::OpenStackCloud
             port = with_openstack {
               openstack.network.ports.create({
                                                  network_id: network_info['net_id'],
-                                                 fixed_ips: [{ip_address: network.private_ip}]
+                                                 fixed_ips: [{ip_address: network.private_ip}],
+                                                 security_groups: security_group_ids
                                              })
             }
             network_info['port_id'] = port.id

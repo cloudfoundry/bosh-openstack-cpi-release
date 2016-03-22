@@ -189,11 +189,11 @@ module Bosh::OpenStackCloud
 
         network_configurator = NetworkConfigurator.new(network_spec)
 
-        security_groups_to_be_used = retrieve_and_validate_security_groups(network_configurator, resource_pool).map { |sg| sg.name }
-        @logger.debug("Using security groups: `#{security_groups_to_be_used.join(', ')}'")
+        security_groups_to_be_used = retrieve_and_validate_security_groups(network_configurator, resource_pool)
+        @logger.debug("Using security groups: `#{security_groups_to_be_used.map { |sg| sg.name }.join(', ')}'")
 
         if @config_drive
-          network_configurator.create_ports_for_manual_networks @openstack
+          network_configurator.create_ports_for_manual_networks @openstack, security_groups_to_be_used.map { |sg| sg.id }
         end
 
         nics = network_configurator.nics
@@ -239,7 +239,7 @@ module Bosh::OpenStackCloud
           :image_ref => image.id,
           :flavor_ref => flavor.id,
           :key_name => keyname,
-          :security_groups => security_groups_to_be_used,
+          :security_groups => security_groups_to_be_used.map { |sg| sg.name },
           :os_scheduler_hints => resource_pool['scheduler_hints'],
           :nics => nics,
           :config_drive => @use_config_drive,
