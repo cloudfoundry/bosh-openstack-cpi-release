@@ -189,20 +189,7 @@ module Bosh::OpenStackCloud
 
         network_configurator = NetworkConfigurator.new(network_spec)
 
-        network_spec_security_groups = network_configurator.security_groups
-        resource_pool_spec_security_groups = resource_pool_spec_security_groups(resource_pool)
-
-        if network_spec_security_groups.size > 0 && resource_pool_spec_security_groups.size > 0
-          cloud_error('Cannot define security groups in both network and resource pool.')
-        end
-
-        openstack_security_groups = with_openstack { @openstack.compute.security_groups }.collect { |sg| sg.name }
-        network_security_groups = network_configurator.security_groups(@default_security_groups)
-        security_groups_to_be_used = resource_pool_spec_security_groups.size > 0 ? resource_pool_spec_security_groups : network_security_groups
-
-        security_groups_to_be_used.each do |sg|
-          cloud_error("Security group `#{sg}' not found") unless openstack_security_groups.include?(sg)
-        end
+        security_groups_to_be_used = retrieve_and_validate_security_groups(network_configurator, resource_pool).map { |sg| sg.name }
         @logger.debug("Using security groups: `#{security_groups_to_be_used.join(', ')}'")
 
         if @config_drive
@@ -1032,6 +1019,25 @@ module Bosh::OpenStackCloud
       rescue Bosh::Clouds::CloudError => delete_server_error
         @logger.warn("Failed to destroy server: #{delete_server_error.inspect}\n#{delete_server_error.backtrace.join('\n')}")
       end
+    end
+
+    def retrieve_and_validate_security_groups(network_configurator, resource_pool)
+      resource_pool_spec_security_groups = resource_pool_spec_security_groups(resource_pool)
+
+      if network_configurator.security_groups.size > 0 && resource_pool_spec_security_groups.size > 0
+        cloud_error('Cannot define security groups in both network and resource pool.')
+      end
+
+      openstack_security_groups = with_openstack { @openstack.compute.security_groups }
+      network_security_groups = network_configurator.security_groups(@default_security_groups)
+      security_groups_to_be_used = resource_pool_spec_security_groups.size > 0 ? resource_pool_spec_security_groups : network_security_groups
+
+      security_groups_to_be_used.map do |configured_sg|
+        openstack_security_group = openstack_security_groups.find {|openstack_sg| openstack_sg.name == configured_sg}
+        cloud_error("Security group `#{configured_sg}' not found") unless openstack_security_group
+        openstack_security_group
+      end
+
     end
 
     def resource_pool_spec_security_groups(resource_pool_spec)
