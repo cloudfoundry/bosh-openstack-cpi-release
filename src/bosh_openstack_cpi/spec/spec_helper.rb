@@ -76,7 +76,7 @@ def mock_cloud(options = nil)
   addresses = double('addresses')
   snapshots = double('snapshots')
   key_pairs = double('key_pairs')
-  security_groups = double('security_groups')
+  security_groups = [double('default_sec_group', id: 'default_sec_group_id', name: 'default')]
 
   glance = double(Fog::Image)
   allow(Fog::Image).to receive(:new).and_return(glance)

@@ -33,7 +33,7 @@ describe Bosh::OpenStackCloud::Cloud, "create_vm" do
       image_ref: "sc-id",
       flavor_ref: "f-test",
       key_name: "test_key",
-      security_groups: security_groups,
+      security_groups: configured_security_groups,
       os_scheduler_hints: scheduler_hints,
       nics: nics,
       config_drive: false,
@@ -73,7 +73,7 @@ describe Bosh::OpenStackCloud::Cloud, "create_vm" do
   let(:key_pair) { double("key_pair", :id => "k-test", :name => "test_key",
                    :fingerprint => "00:01:02:03:04", :public_key => "public openssh key") }
   let(:volume_id) { nil }
-  let(:security_groups) { %w[default] }
+  let(:configured_security_groups) { %w[default] }
   let(:nameserver) { nil }
   let(:nics) { [] }
   let(:scheduler_hints) { nil }
@@ -90,7 +90,6 @@ describe Bosh::OpenStackCloud::Cloud, "create_vm" do
   end
 
   def stub_openstack(openstack)
-    allow(openstack.security_groups).to receive(:collect).and_return(%w[default])
     allow(openstack.images).to receive(:find).and_return(image)
     allow(openstack.flavors).to receive(:find).and_return(flavor)
     allow(openstack.key_pairs).to receive(:find).and_return(key_pair)
@@ -127,7 +126,6 @@ describe Bosh::OpenStackCloud::Cloud, "create_vm" do
 
       cloud = mock_cloud do |openstack|
         expect(openstack.servers).to receive(:create).with(openstack_params("network_a" => network_spec)).and_return(server)
-        expect(openstack.security_groups).to receive(:collect).and_return(%w[default])
         expect(openstack.images).to receive(:find).and_return(image)
         expect(openstack.flavors).to receive(:find).and_return(flavor)
         expect(openstack.key_pairs).to receive(:find).and_return(key_pair)
@@ -164,7 +162,7 @@ describe Bosh::OpenStackCloud::Cloud, "create_vm" do
     }
 
     context "defined in both network or resource_pools spec" do
-      let(:security_groups) { %w[security-group-1 security-group-2] }
+      let(:configured_security_groups) { %w[security-group-1 security-group-2] }
 
       it "raises an error when attempting to create an OpenStack server" do
         address = double("address", :id => "a-test", :ip => "10.0.0.1", :instance_id => nil)
@@ -182,14 +180,19 @@ describe Bosh::OpenStackCloud::Cloud, "create_vm" do
     end
 
     context "defined in network spec" do
-      let(:security_groups) { %w[net-group-1 net-group-2] }
+      let(:openstack_security_groups) { [
+          double('net-group-1', id: 'net-group-1_id', name: 'net-group-1'),
+          double('net-group-2', id: 'net-group-2_id', name: 'net-group-2')
+      ] }
+
+      let(:configured_security_groups) { %w[net-group-1 net-group-2] }
 
       it "creates an OpenStack server" do
         address = double("address", :id => "a-test", :ip => "10.0.0.1", :instance_id => nil)
 
         cloud = mock_cloud do |openstack|
           expect(openstack.servers).to receive(:create).with(openstack_params("network_a" => network_with_security_group_spec)).and_return(server)
-          expect(openstack.security_groups).to receive(:collect).and_return(security_groups)
+          expect(openstack).to receive(:security_groups).and_return(openstack_security_groups)
           expect(openstack.images).to receive(:find).and_return(image)
           expect(openstack.flavors).to receive(:find).and_return(flavor)
           expect(openstack.key_pairs).to receive(:find).and_return(key_pair)
@@ -209,7 +212,13 @@ describe Bosh::OpenStackCloud::Cloud, "create_vm" do
     end
 
     context "defined in resource_pools spec" do
-      let(:security_groups) { %w[pool-group-1 pool-group-2] }
+
+      let(:openstack_security_groups) { [
+          double('pool-group-1', id: 'pool-group-1_id', name: 'pool-group-1'),
+          double('pool-group-2', id: 'pool-group-2_id', name: 'pool-group-2')
+      ] }
+
+      let(:configured_security_groups) { %w[pool-group-1 pool-group-2] }
 
       let(:dynamic_network_without_security_group_spec) do
         ns = dynamic_network_spec
@@ -222,7 +231,7 @@ describe Bosh::OpenStackCloud::Cloud, "create_vm" do
 
         cloud = mock_cloud do |openstack|
           expect(openstack.servers).to receive(:create).with(openstack_params("network_a" => dynamic_network_without_security_group_spec)).and_return(server)
-          expect(openstack.security_groups).to receive(:collect).and_return(security_groups)
+          expect(openstack).to receive(:security_groups).and_return(openstack_security_groups)
           expect(openstack.images).to receive(:find).and_return(image)
           expect(openstack.flavors).to receive(:find).and_return(flavor)
           expect(openstack.key_pairs).to receive(:find).and_return(key_pair)
@@ -258,7 +267,6 @@ describe Bosh::OpenStackCloud::Cloud, "create_vm" do
 
       cloud = mock_cloud do |openstack|
         expect(openstack.servers).to receive(:create).with(openstack_params("network_a" => network_spec)).and_return(server)
-        expect(openstack.security_groups).to receive(:collect).and_return(%w[default])
         expect(openstack.images).to receive(:find).and_return(image)
         expect(openstack.flavors).to receive(:find).and_return(flavor)
         expect(openstack.key_pairs).to receive(:find).and_return(key_pair)
@@ -296,7 +304,6 @@ describe Bosh::OpenStackCloud::Cloud, "create_vm" do
 
       cloud = mock_cloud do |openstack|
         expect(openstack.servers).to receive(:create).with(openstack_params("network_a" => network_spec)).and_return(server)
-        expect(openstack.security_groups).to receive(:collect).and_return(%w[default])
         expect(openstack.images).to receive(:find).and_return(image)
         expect(openstack.flavors).to receive(:find).and_return(flavor)
         expect(openstack.key_pairs).to receive(:find).and_return(key_pair)
@@ -330,12 +337,11 @@ describe Bosh::OpenStackCloud::Cloud, "create_vm" do
       end
 
       let(:nics) { [{'net_id' => 'net', 'v4_fixed_ip' => '10.0.0.1'}, {'net_id' => 'bar', 'v4_fixed_ip' => '10.0.0.2'}] }
-      let(:security_groups) { %w[default default] }
+      let(:configured_security_groups) { %w[default default] }
 
       let(:cloud) do
         mock_cloud(cloud_options["properties"]) do |openstack|
           allow(openstack.servers).to receive(:create).and_return(server)
-          allow(openstack.security_groups).to receive(:collect).and_return(%w[default])
           allow(openstack.images).to receive(:find).and_return(image)
           allow(openstack.flavors).to receive(:find).and_return(flavor)
           allow(openstack.key_pairs).to receive(:find).and_return(key_pair)
@@ -382,7 +388,6 @@ describe Bosh::OpenStackCloud::Cloud, "create_vm" do
 
     cloud = mock_cloud do |openstack|
       expect(openstack.servers).to receive(:create).and_return(server)
-      expect(openstack.security_groups).to receive(:collect).and_return(%w[default])
       expect(openstack.images).to receive(:find).and_return(image)
       expect(openstack.flavors).to receive(:find).and_return(flavor)
       expect(openstack.key_pairs).to receive(:find).and_return(key_pair)
@@ -409,7 +414,6 @@ describe Bosh::OpenStackCloud::Cloud, "create_vm" do
 
       cloud = mock_cloud do |openstack|
         expect(openstack.servers).to receive(:create).with(openstack_params(combined_network_spec)).and_return(server)
-        expect(openstack.security_groups).to receive(:collect).and_return(%w[default])
         expect(openstack.images).to receive(:find).and_return(image)
         expect(openstack.flavors).to receive(:find).and_return(flavor)
         expect(openstack.key_pairs).to receive(:find).and_return(key_pair)
@@ -449,7 +453,6 @@ describe Bosh::OpenStackCloud::Cloud, "create_vm" do
 
       cloud = mock_cloud(cloud_options['properties']) do |openstack|
         expect(openstack.servers).to receive(:create).with(openstack_params("network_a" => network_spec)).and_return(server)
-        expect(openstack.security_groups).to receive(:collect).and_return(%w[default])
         expect(openstack.images).to receive(:find).and_return(image)
         expect(openstack.flavors).to receive(:find).and_return(flavor)
         expect(openstack.volumes).to receive(:create).with(disk_params).and_return(boot_volume)
@@ -499,7 +502,6 @@ describe Bosh::OpenStackCloud::Cloud, "create_vm" do
 
       cloud = mock_cloud(cloud_options['properties']) do |openstack|
         expect(openstack.servers).to receive(:create).with(openstack_params("network_a" => network_spec)).and_return(server)
-        expect(openstack.security_groups).to receive(:collect).and_return(%w[default])
         expect(openstack.images).to receive(:find).and_return(image)
         expect(openstack.flavors).to receive(:find).and_return(flavor)
         expect(openstack.volumes).to receive(:create).with(disk_params).and_return(boot_volume)
@@ -533,7 +535,6 @@ describe Bosh::OpenStackCloud::Cloud, "create_vm" do
 
       cloud = mock_cloud(cloud_options["properties"]) do |openstack|
         expect(openstack.servers).to receive(:create).with(openstack_params.merge(config_drive: true)).and_return(server)
-        expect(openstack.security_groups).to receive(:collect).and_return(%w[default])
         expect(openstack.images).to receive(:find).and_return(image)
         expect(openstack.flavors).to receive(:find).and_return(flavor)
         expect(openstack.key_pairs).to receive(:find).and_return(key_pair)
@@ -560,7 +561,6 @@ describe Bosh::OpenStackCloud::Cloud, "create_vm" do
     let(:cloud) do
       mock_cloud do |openstack|
         allow(openstack.servers).to receive(:create).and_return(server)
-        allow(openstack.security_groups).to receive(:collect).and_return(%w[default])
         allow(openstack.images).to receive(:find).and_return(image)
         allow(openstack.flavors).to receive(:find).and_return(flavor)
         allow(openstack.key_pairs).to receive(:find).and_return(key_pair)
@@ -703,7 +703,6 @@ describe Bosh::OpenStackCloud::Cloud, "create_vm" do
     let(:cloud) do
       mock_cloud do |openstack|
         allow(openstack.servers).to receive(:create).and_return(server)
-        allow(openstack.security_groups).to receive(:collect).and_return(%w[default])
         allow(openstack.flavors).to receive(:find).and_return(flavor)
         allow(openstack.key_pairs).to receive(:find).and_return(key_pair)
       end
@@ -729,7 +728,6 @@ describe Bosh::OpenStackCloud::Cloud, "create_vm" do
     let(:cloud) do
       mock_cloud do |openstack|
         allow(openstack.servers).to receive(:create).and_return(server)
-        allow(openstack.security_groups).to receive(:collect).and_return(%w[default])
         allow(openstack.images).to receive(:find).and_return(image)
         allow(openstack.flavors).to receive(:find).and_return(flavor)
         allow(openstack.key_pairs).to receive(:find).and_return(key_pair)
@@ -797,21 +795,24 @@ describe Bosh::OpenStackCloud::Cloud, "create_vm" do
     end
   end
 
-  it "raises an error when a security group doesn't exist" do
-    cloud = mock_cloud do |openstack|
-      expect(openstack.security_groups).to receive(:collect).and_return(%w[foo])
-    end
+  context "when security group doesn't exist" do
+    let(:openstack_security_groups) { [ double('foo-sec-group', id: 'foo-sec-group-id', name: 'foo') ] }
 
-    expect {
-      cloud.create_vm("agent-id", "sc-id", resource_pool_spec, { "network_a" => dynamic_network_spec },
-                      nil, { "test_env" => "value" })
-    }.to raise_error(Bosh::Clouds::CloudError, "Security group `default' not found")
+    it 'raises an error' do
+      cloud = mock_cloud do |openstack|
+        expect(openstack).to receive(:security_groups).and_return(openstack_security_groups)
+      end
+
+      expect {
+        cloud.create_vm("agent-id", "sc-id", resource_pool_spec, { "network_a" => dynamic_network_spec },
+                        nil, { "test_env" => "value" })
+      }.to raise_error(Bosh::Clouds::CloudError, "Security group `default' not found")
+    end
   end
 
   it "raises an error when flavor doesn't have enough ephemeral disk capacity" do
     flavor = double("flavor", :id => "f-test", :name => "m1.tiny", :ram => 1024, :ephemeral => 1)
     cloud = mock_cloud do |openstack|
-      expect(openstack.security_groups).to receive(:collect).and_return(%w[default])
       expect(openstack.images).to receive(:find).and_return(image)
       expect(openstack.flavors).to receive(:find).and_return(flavor)
     end
