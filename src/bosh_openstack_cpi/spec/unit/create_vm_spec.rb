@@ -357,7 +357,7 @@ describe Bosh::OpenStackCloud::Cloud, "create_vm" do
         end
 
         it 'calls NetworkConfigurator#prepare' do
-          expect_any_instance_of(Bosh::OpenStackCloud::NetworkConfigurator).to receive(:create_ports_for_manual_networks)
+          expect_any_instance_of(Bosh::OpenStackCloud::NetworkConfigurator).to receive(:create_ports_for_manual_networks).with(anything, ['default_sec_group_id'])
 
           cloud.create_vm("agent-id", "sc-id",
                           resource_pool_spec,
@@ -370,7 +370,7 @@ describe Bosh::OpenStackCloud::Cloud, "create_vm" do
         let(:cloud_options) { mock_cloud_options }
 
         it 'calls NetworkConfigurator#prepare' do
-          expect_any_instance_of(Bosh::OpenStackCloud::NetworkConfigurator).to_not receive(:create_ports_for_manual_networks)
+          expect_any_instance_of(Bosh::OpenStackCloud::NetworkConfigurator).to_not receive(:create_ports_for_manual_networks).with(anything, ['default_sec_group_id'])
 
           cloud.create_vm("agent-id", "sc-id",
                           resource_pool_spec,
