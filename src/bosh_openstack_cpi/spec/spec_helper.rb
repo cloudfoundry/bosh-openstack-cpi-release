@@ -76,7 +76,7 @@ def mock_cloud(options = nil)
   addresses = double('addresses')
   snapshots = double('snapshots')
   key_pairs = double('key_pairs')
-  security_groups = double('security_groups')
+  security_groups = [double('default_sec_group', id: 'default_sec_group_id', name: 'default')]
 
   glance = double(Fog::Image)
   allow(Fog::Image).to receive(:new).and_return(glance)
@@ -132,12 +132,13 @@ def dynamic_network_spec
   }
 end
 
-def manual_network_spec
+def manual_network_spec(net_id: 'net', ip: '0.0.0.0')
   {
     'type' => 'manual',
+    'ip' => ip,
     'cloud_properties' => {
       'security_groups' => %w[default],
-      'net_id' => 'net'
+      'net_id' => net_id
     },
     'use_dhcp' => true
   }

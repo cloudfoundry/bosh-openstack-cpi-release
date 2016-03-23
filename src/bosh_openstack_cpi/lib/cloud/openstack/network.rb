@@ -7,6 +7,8 @@ module Bosh::OpenStackCloud
   class Network
     include Helpers
 
+    attr_reader :name
+
     ##
     # Creates a new network
     #

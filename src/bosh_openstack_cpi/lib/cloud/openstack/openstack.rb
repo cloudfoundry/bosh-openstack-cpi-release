@@ -97,6 +97,8 @@ module Bosh::OpenStackCloud
           cloud_error("Unable to connect to the OpenStack Network Service API: #{e.message}. Check task debug log for details.")
         end
       end
+
+      @network
     end
 
     def metadata

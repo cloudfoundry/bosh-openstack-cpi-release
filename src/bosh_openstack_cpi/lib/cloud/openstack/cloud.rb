@@ -189,21 +189,12 @@ module Bosh::OpenStackCloud
 
         network_configurator = NetworkConfigurator.new(network_spec)
 
-        network_spec_security_groups = network_configurator.security_groups
-        resource_pool_spec_security_groups = resource_pool_spec_security_groups(resource_pool)
+        security_groups_to_be_used = retrieve_and_validate_security_groups(network_configurator, resource_pool)
+        @logger.debug("Using security groups: `#{security_groups_to_be_used.map { |sg| sg.name }.join(', ')}'")
 
-        if network_spec_security_groups.size > 0 && resource_pool_spec_security_groups.size > 0
-          cloud_error('Cannot define security groups in both network and resource pool.')
+        if @config_drive
+          network_configurator.create_ports_for_manual_networks @openstack, security_groups_to_be_used.map { |sg| sg.id }
         end
-
-        openstack_security_groups = with_openstack { @openstack.compute.security_groups }.collect { |sg| sg.name }
-        network_security_groups = network_configurator.security_groups(@default_security_groups)
-        security_groups_to_be_used = resource_pool_spec_security_groups.size > 0 ? resource_pool_spec_security_groups : network_security_groups
-
-        security_groups_to_be_used.each do |sg|
-          cloud_error("Security group `#{sg}' not found") unless openstack_security_groups.include?(sg)
-        end
-        @logger.debug("Using security groups: `#{security_groups_to_be_used.join(', ')}'")
 
         nics = network_configurator.nics
         @logger.debug("Using NICs: `#{nics.join(', ')}'")
@@ -248,11 +239,11 @@ module Bosh::OpenStackCloud
           :image_ref => image.id,
           :flavor_ref => flavor.id,
           :key_name => keyname,
-          :security_groups => security_groups_to_be_used,
+          :security_groups => security_groups_to_be_used.map { |sg| sg.name },
           :os_scheduler_hints => resource_pool['scheduler_hints'],
           :nics => nics,
           :config_drive => @use_config_drive,
-          :user_data => Yajl::Encoder.encode(user_data(registry_key, network_spec))
+          :user_data => Yajl::Encoder.encode(user_data(registry_key, network_configurator.network_spec))
         }
 
         availability_zone = @az_provider.select(disk_locality, resource_pool['availability_zone'])
@@ -274,23 +265,25 @@ module Bosh::OpenStackCloud
         end
 
         @logger.debug("Using boot parms: `#{server_params.inspect}'")
-        begin
-          server = with_openstack { @openstack.compute.servers.create(server_params) }
-        rescue Excon::Errors::Timeout => e
-          @logger.debug(e.backtrace)
-          cloud_error_message = "VM creation with name '#{server_params[:name]}' received a timeout. " +
-                                "The VM might still have been created by OpenStack.\nOriginal message: "
-          raise Bosh::Clouds::VMCreationFailed.new(false), cloud_error_message + e.message
-        rescue Excon::Errors::NotFound, Fog::Compute::OpenStack::NotFound => e
-          not_existing_net_ids = not_existing_net_ids(nics)
-          if not_existing_net_ids.empty?
-            raise e
-          else
+        server = with_openstack do
+          begin
+            @openstack.compute.servers.create(server_params)
+          rescue Excon::Errors::Timeout => e
             @logger.debug(e.backtrace)
-            cloud_error_message = "VM creation with name '#{server_params[:name]}' failed. Following network " +
-            "IDs are not existing or not accessible from this project: '#{not_existing_net_ids.join(",")}'. " +
-            "Make sure you do not use subnet IDs"
-            raise Bosh::Clouds::VMCreationFailed.new(false), cloud_error_message
+            cloud_error_message = "VM creation with name '#{server_params[:name]}' received a timeout. " +
+                "The VM might still have been created by OpenStack.\nOriginal message: "
+            raise Bosh::Clouds::VMCreationFailed.new(false), cloud_error_message + e.message
+          rescue Excon::Errors::NotFound, Fog::Compute::OpenStack::NotFound => e
+            not_existing_net_ids = not_existing_net_ids(nics)
+            if not_existing_net_ids.empty?
+              raise e
+            else
+              @logger.debug(e.backtrace)
+              cloud_error_message = "VM creation with name '#{server_params[:name]}' failed. Following network " +
+                  "IDs are not existing or not accessible from this project: '#{not_existing_net_ids.join(",")}'. " +
+                  "Make sure you do not use subnet IDs"
+              raise Bosh::Clouds::VMCreationFailed.new(false), cloud_error_message
+            end
           end
         end
 
@@ -307,18 +300,22 @@ module Bosh::OpenStackCloud
         end
 
         if @human_readable_vm_names
+          @logger.debug("'human_readable_vm_names' enabled")
           begin
             TagManager.tag(server, REGISTRY_KEY_TAG, registry_key)
+            @logger.debug("Tagged VM '#{server.id}' with tag '#{REGISTRY_KEY_TAG}': #{registry_key}")
           rescue => e
-            @logger.warn("Unable tag server with '#{REGISTRY_KEY_TAG}': #{e.message}")
+            @logger.warn("Unable to tag server with '#{REGISTRY_KEY_TAG}': #{e.message}")
             destroy_server(server)
             raise Bosh::Clouds::VMCreationFailed.new(true), e.message
           end
+        else
+          @logger.debug("'human_readable_vm_names' disabled")
         end
 
         begin
           @logger.info("Updating settings for server `#{server.id}'...")
-          settings = initial_agent_settings(registry_key, agent_id, network_spec, environment,
+          settings = initial_agent_settings(registry_key, agent_id, network_configurator.network_spec, environment,
                                             flavor_has_ephemeral_disk?(flavor))
           @registry.update_settings(registry_key, settings)
         rescue => e
@@ -653,10 +650,14 @@ module Bosh::OpenStackCloud
             index = metadata['index']
             compiling = metadata['compiling']
             if job && index
+              @logger.debug("Rename VM with id '#{server_id}' to '#{job}/#{index}'")
               @openstack.compute.update_server(server_id, {'name' => "#{job}/#{index}"})
             elsif compiling
+              @logger.debug("Rename VM with id '#{server_id}' to 'compiling/#{compiling}'")
               @openstack.compute.update_server(server_id, {'name' => "compiling/#{compiling}"})
             end
+          else
+            @logger.debug("VM with id '#{server_id}' has no 'registry_key' tag")
           end
 
         end
@@ -1018,6 +1019,25 @@ module Bosh::OpenStackCloud
       rescue Bosh::Clouds::CloudError => delete_server_error
         @logger.warn("Failed to destroy server: #{delete_server_error.inspect}\n#{delete_server_error.backtrace.join('\n')}")
       end
+    end
+
+    def retrieve_and_validate_security_groups(network_configurator, resource_pool)
+      resource_pool_spec_security_groups = resource_pool_spec_security_groups(resource_pool)
+
+      if network_configurator.security_groups.size > 0 && resource_pool_spec_security_groups.size > 0
+        cloud_error('Cannot define security groups in both network and resource pool.')
+      end
+
+      openstack_security_groups = with_openstack { @openstack.compute.security_groups }
+      network_security_groups = network_configurator.security_groups(@default_security_groups)
+      security_groups_to_be_used = resource_pool_spec_security_groups.size > 0 ? resource_pool_spec_security_groups : network_security_groups
+
+      security_groups_to_be_used.map do |configured_sg|
+        openstack_security_group = openstack_security_groups.find {|openstack_sg| openstack_sg.name == configured_sg}
+        cloud_error("Security group `#{configured_sg}' not found") unless openstack_security_group
+        openstack_security_group
+      end
+
     end
 
     def resource_pool_spec_security_groups(resource_pool_spec)

@@ -18,7 +18,11 @@ params:
   BOSH_OPENSTACK_API_KEY_V3:          replace-me
   BOSH_OPENSTACK_PROJECT:             replace-me
   BOSH_OPENSTACK_MANUAL_IP:           replace-me
+  BOSH_OPENSTACK_NO_DHCP_MANUAL_IP_1: replace-me
+  BOSH_OPENSTACK_NO_DHCP_MANUAL_IP_2: replace-me
   BOSH_OPENSTACK_NET_ID:              replace-me
+  BOSH_OPENSTACK_NET_ID_NO_DHCP_1:    replace-me
+  BOSH_OPENSTACK_NET_ID_NO_DHCP_2:    replace-me
   BOSH_CLI_SILENCE_SLOW_LOAD_WARNING: replace-me
 #  BOSH_OPENSTACK_VOLUME_TYPE:         replace-me
   BOSH_OPENSTACK_CONNECT_TIMEOUT:     replace-me

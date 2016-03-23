@@ -4,6 +4,7 @@ set -e
 
 source bosh-cpi-src-in/ci/tasks/utils.sh
 
+ensure_not_replace_value bosh_admin_password
 ensure_not_replace_value base_os
 ensure_not_replace_value dns
 ensure_not_replace_value network_type_to_test
@@ -35,6 +36,7 @@ deployment_dir="${PWD}/deployment"
 manifest_filename="${base_os}-${network_type_to_test}-director-manifest.yml"
 director_state_filename="${base_os}-${network_type_to_test}-director-manifest-state.json"
 private_key=${deployment_dir}/bats.pem
+bosh_vcap_password_hash=$(ruby -e 'require "securerandom";puts ENV["bosh_admin_password"].crypt("$6$#{SecureRandom.base64(14)}")')
 
 echo "setting up artifacts used in $manifest_filename"
 cp ./bosh-cpi-dev-artifacts/${cpi_release_name}-${semver}.tgz ${deployment_dir}/${cpi_release_name}.tgz
@@ -74,6 +76,9 @@ resource_pools:
       url: file://stemcell.tgz
     cloud_properties:
       instance_type: $openstack_flavor
+    env:
+      bosh:
+        password: ${bosh_vcap_password_hash}
 
 disk_pools:
   - name: default
@@ -106,17 +111,17 @@ jobs:
       nats:
         address: 127.0.0.1
         user: nats
-        password: nats-password
+        password: ${bosh_admin_password}
 
       redis:
         listen_addresss: 127.0.0.1
         address: 127.0.0.1
-        password: redis-password
+        password: ${bosh_admin_password}
 
       postgres: &db
         host: 127.0.0.1
         user: postgres
-        password: postgres-password
+        password: ${bosh_admin_password}
         database: bosh
         adapter: postgres
 
@@ -125,29 +130,34 @@ jobs:
         address: ${openstack_floating_ip}
         host: ${openstack_floating_ip}
         db: *db
-        http: {user: admin, password: admin, port: ${bosh_registry_port}}
+        http: {user: admin, password: ${bosh_admin_password}, port: ${bosh_registry_port}}
         username: admin
-        password: admin
+        password: ${bosh_admin_password}
         port: ${bosh_registry_port}
-        endpoint: http://admin:admin@${openstack_floating_ip}:${bosh_registry_port}
+        endpoint: http://admin:${bosh_admin_password}@${openstack_floating_ip}:${bosh_registry_port}
 
       # Tells the Director/agents how to contact blobstore
       blobstore:
         address: ${openstack_floating_ip}
         port: 25250
         provider: dav
-        director: {user: director, password: director-password}
-        agent: {user: agent, password: agent-password}
+        director: {user: director, password: ${bosh_admin_password}}
+        agent: {user: agent, password: ${bosh_admin_password}}
 
       director:
         address: 127.0.0.1
         name: micro
         db: *db
         cpi_job: openstack_cpi
+        user_management:
+          provider: local
+          local:
+            users:
+              - {name: admin, password: ${bosh_admin_password}}
 
       hm:
-        http: {user: hm, password: hm-password}
-        director_account: {user: admin, password: admin}
+        http: {user: hm, password: ${bosh_admin_password}}
+        director_account: {user: admin, password: ${bosh_admin_password}}
 
       dns:
         address: 127.0.0.1
@@ -174,7 +184,7 @@ jobs:
           ca_cert: $(if [ -z "$bosh_openstack_ca_cert" ]; then echo "~"; else echo "\"$(echo ${bosh_openstack_ca_cert} | sed -r  -e 's/ /\\n/g ' -e 's/\\nCERTIFICATE-----/ CERTIFICATE-----/g')\""; fi)
 
       # Tells agents how to contact nats
-      agent: {mbus: "nats://nats:nats-password@${openstack_floating_ip}:4222"}
+      agent: {mbus: "nats://nats:${bosh_admin_password}@${openstack_floating_ip}:4222"}
 
       ntp: &ntp
         - 0.north-america.pool.ntp.org
@@ -191,13 +201,13 @@ cloud_provider:
     private_key: bats.pem
 
   # Tells bosh-micro how to contact remote agent
-  mbus: https://mbus-user:mbus-password@${openstack_floating_ip}:6868
+  mbus: https://mbus-user:${bosh_admin_password}@${openstack_floating_ip}:6868
 
   properties:
     openstack: *openstack
 
     # Tells CPI how agent should listen for requests
-    agent: {mbus: "https://mbus-user:mbus-password@0.0.0.0:6868"}
+    agent: {mbus: "https://mbus-user:${bosh_admin_password}@0.0.0.0:6868"}
 
     blobstore:
       provider: local
@@ -212,7 +222,7 @@ bosh version
 echo "targeting bosh director at ${openstack_floating_ip}"
 bosh -n target ${openstack_floating_ip} || failed_exit_code=$?
 if [ -z "$failed_exit_code" ]; then
-  bosh login admin admin
+  bosh login admin ${bosh_admin_password}
   echo "cleanup director (especially orphan disks)"
   bosh -n cleanup --all
 fi

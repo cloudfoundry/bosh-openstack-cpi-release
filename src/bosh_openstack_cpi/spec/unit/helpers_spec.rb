@@ -255,11 +255,16 @@ describe Bosh::OpenStackCloud::Helpers do
     end
 
     context 'when openstack raises BadRequest' do
-      context 'when the error includes a message' do
-        before do
-          response = Excon::Response.new(:body => JSON.dump({'badRequest' => {'message' => 'some-message'}}))
-          expect(openstack).to receive(:servers).and_raise(Excon::Errors::BadRequest.new('', '', response))
-        end
+
+      before do
+        response = Excon::Response.new(body: body)
+        expect(openstack).to receive(:servers).and_raise(Excon::Errors::BadRequest.new('', '', response))
+      end
+
+      let(:body) { JSON.dump({}) }
+
+      context 'when the error includes a `message` property on 2nd level of body' do
+        let(:body) { JSON.dump('SomeError' => {'message' => 'some-message'}) }
 
         it 'should raise a CloudError exception with OpenStack API message' do
           expect {
@@ -267,15 +272,25 @@ describe Bosh::OpenStackCloud::Helpers do
               openstack.servers
             end
           }.to raise_error(Bosh::Clouds::CloudError,
-                           "OpenStack API Bad Request (some-message). Check task debug log for details.")
+                           'OpenStack API Bad Request (some-message). Check task debug log for details.')
         end
       end
 
       context 'when the error does not include a message' do
-        before do
-          response = Excon::Response.new(:body => '')
-          expect(openstack).to receive(:servers).and_raise(Excon::Errors::BadRequest.new('', '', response))
+        let(:body) { JSON.dump('SomeError' => {'some_key' => 'some_val'}) }
+
+        it 'should raise a CloudError exception with OpenStack API message without anything from body' do
+          expect {
+            cloud.with_openstack do
+              openstack.servers
+            end
+          }.to raise_error(Bosh::Clouds::CloudError,
+                           'OpenStack API Bad Request. Check task debug log for details.')
         end
+      end
+
+      context 'when the response has an empty body' do
+        let(:body) { '' }
 
         it 'should raise a CloudError exception without OpenStack API message' do
           expect {
@@ -284,6 +299,54 @@ describe Bosh::OpenStackCloud::Helpers do
             end
           }.to raise_error(Bosh::Clouds::CloudError,
                            'OpenStack API Bad Request. Check task debug log for details.')
+        end
+      end
+    end
+
+    context 'when openstack raises Conflict' do
+      before do
+        response = Excon::Response.new(body: body)
+        expect(openstack).to receive(:servers).and_raise(Excon::Errors::Conflict.new('', '', response))
+      end
+
+      let(:body) { JSON.dump({}) }
+
+      context 'when the error includes a `message` property on 2nd level of body' do
+        let(:body) { JSON.dump('SomeError' => {'message' => 'some-message'}) }
+
+        it 'should raise a CloudError exception with OpenStack API message' do
+          expect {
+            cloud.with_openstack do
+              openstack.servers
+            end
+          }.to raise_error(Bosh::Clouds::CloudError,
+                           'OpenStack API Conflict (some-message). Check task debug log for details.')
+        end
+      end
+
+      context 'when the error does not include a message' do
+        let(:body) { JSON.dump('SomeError' => {'some_key' => 'some_val'}) }
+
+        it 'should raise a CloudError exception with OpenStack API message without anything from body' do
+          expect {
+            cloud.with_openstack do
+              openstack.servers
+            end
+          }.to raise_error(Bosh::Clouds::CloudError,
+                           'OpenStack API Conflict. Check task debug log for details.')
+        end
+      end
+
+      context 'when the response has an empty body' do
+        let(:body) { '' }
+
+        it 'should raise a CloudError exception without OpenStack API message' do
+          expect {
+            cloud.with_openstack do
+              openstack.servers
+            end
+          }.to raise_error(Bosh::Clouds::CloudError,
+                           'OpenStack API Conflict. Check task debug log for details.')
         end
       end
     end
@@ -300,6 +363,17 @@ describe Bosh::OpenStackCloud::Helpers do
           end
         }.to raise_error(Bosh::Clouds::CloudError,
                          'OpenStack API Internal Server error. Check task debug log for details.')
+      end
+    end
+
+    context 'when openstack raises Fog::Errors::NotFound' do
+      it 'should raise a CloudError with the original OpenStack message' do
+        openstack_error_message = 'Could not find service network. Have compute, compute_legacy, identity, image, volume, volumev2'
+
+        expect {
+          cloud.with_openstack { raise Fog::Errors::NotFound, openstack_error_message }
+        }.to raise_error(Bosh::Clouds::CloudError,
+                         "OpenStack API service not found error: #{openstack_error_message}\nCheck task debug log for details.")
       end
     end
   end

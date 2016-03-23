@@ -52,12 +52,17 @@ module Bosh::OpenStackCloud
           sleep(DEFAULT_RETRY_TIMEOUT)
           retry
         end
-        cloud_error("OpenStack API Service Unavailable error. Check task debug log for details.", e)
+        cloud_error('OpenStack API Service Unavailable error. Check task debug log for details.', e)
 
       rescue Excon::Errors::BadRequest => e
-        badrequest = parse_openstack_response(e.response, "badRequest")
-        details = badrequest.nil? ? "" : " (#{badrequest["message"]})"
-        cloud_error("OpenStack API Bad Request#{details}. Check task debug log for details.", e)
+        body = parse_openstack_response_body(e.response.body)
+        message = determine_message(body)
+        cloud_error("OpenStack API Bad Request#{message}. Check task debug log for details.", e)
+
+      rescue Excon::Errors::Conflict => e
+        body = parse_openstack_response_body(e.response.body)
+        message = determine_message(body)
+        cloud_error("OpenStack API Conflict#{message}. Check task debug log for details.", e)
 
       rescue Excon::Errors::InternalServerError => e
         unless retries >= MAX_RETRIES
@@ -66,7 +71,11 @@ module Bosh::OpenStackCloud
           sleep(DEFAULT_RETRY_TIMEOUT)
           retry
         end
-        cloud_error("OpenStack API Internal Server error. Check task debug log for details.", e)
+        cloud_error('OpenStack API Internal Server error. Check task debug log for details.', e)
+
+      rescue Fog::Errors::NotFound => e
+        cloud_error("OpenStack API service not found error: #{e.message}\nCheck task debug log for details.", e)
+
       end
     end
 
@@ -77,16 +86,9 @@ module Bosh::OpenStackCloud
     # @param [Array<String>] keys Keys to look up in response
     # @return [Hash] Contents at the first key found, or nil if not found
     def parse_openstack_response(response, *keys)
-      unless response.body.empty?
-        begin
-          body = JSON.parse(response.body)
-          key = keys.detect { |k| body.has_key?(k)}
-          return body[key] if key
-        rescue JSON::ParserError
-          # do nothing
-        end
-      end
-      nil
+      body = parse_openstack_response_body(response.body)
+      key = keys.detect { |k| body.has_key?(k)} if body
+      body[key] if key
     end
 
     ##
@@ -144,6 +146,28 @@ module Bosh::OpenStackCloud
         @logger.info("#{desc} is now #{target_state.join(", ")}, took #{total}s")
       end
     end
+
+    private
+
+    def determine_message(body)
+      hash_with_msg_property = proc { |k, v| (v.is_a? Hash) && v['message'] }
+
+      body ||= {}
+      _, value = body.find &hash_with_msg_property
+      value ? " (#{value['message']})" : ''
+    end
+
+    def parse_openstack_response_body(body)
+      unless body.empty?
+        begin
+          return JSON.parse(body)
+        rescue JSON::ParserError
+          # do nothing
+        end
+      end
+      nil
+    end
+
   end
 
 end

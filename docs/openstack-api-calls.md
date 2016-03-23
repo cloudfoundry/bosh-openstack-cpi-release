@@ -19,6 +19,7 @@ POST /v2/<tenant_id>/os-snapshots body: {"snapshot":{"volume_id":"<resource_id>"
 POST /v2/<tenant_id>/os-volumes_boot.json body: {"server":{"flavorRef":"<resource_id>","imageRef":"<resource_id>","name":"<name>","user_data":"<user_data>","key_name":"<key_name>","security_groups":[{"name":"<name>"}],"networks":[{"uuid":"<resource_id>","fixed_ip":"<fixed_ip>"}],"block_device_mapping":[{"delete_on_termination":"1","device_name":"/dev/vda","volume_id":"<resource_id>","volume_size":"<volume_size>"}]}}
 POST /v2/<tenant_id>/servers.json body: {"server":{"flavorRef":"<resource_id>","imageRef":"<resource_id>","name":"<name>","availability_zone":"<availability_zone>","user_data":"<user_data>","key_name":"<key_name>","security_groups":[{"name":"<name>"}],"networks":[{"uuid":"<resource_id>","fixed_ip":"<fixed_ip>"}]}}
 POST /v2/<tenant_id>/servers.json body: {"server":{"flavorRef":"<resource_id>","imageRef":"<resource_id>","name":"<name>","availability_zone":"<availability_zone>","user_data":"<user_data>","key_name":"<key_name>","security_groups":[{"name":"<name>"}],"networks":[{"uuid":"<resource_id>"}]}}
+POST /v2/<tenant_id>/servers.json body: {"server":{"flavorRef":"<resource_id>","imageRef":"<resource_id>","name":"<name>","user_data":"<user_data>","key_name":"<key_name>","config_drive":true,"security_groups":[{"name":"<name>"}],"networks":[{"uuid":"<resource_id>","fixed_ip":"<fixed_ip>","port":"<resource_id>"},{"uuid":"<resource_id>","fixed_ip":"<fixed_ip>","port":"<resource_id>"}]}}
 POST /v2/<tenant_id>/servers.json body: {"server":{"flavorRef":"<resource_id>","imageRef":"<resource_id>","name":"<name>","user_data":"<user_data>","key_name":"<key_name>","config_drive":true,"security_groups":[{"name":"<name>"}],"networks":[{"uuid":"<resource_id>"}]}}
 POST /v2/<tenant_id>/servers.json body: {"server":{"flavorRef":"<resource_id>","imageRef":"<resource_id>","name":"<name>","user_data":"<user_data>","key_name":"<key_name>","security_groups":[{"name":"<name>"}],"networks":[{"uuid":"<resource_id>","fixed_ip":"<fixed_ip>"}]}}
 POST /v2/<tenant_id>/servers.json body: {"server":{"flavorRef":"<resource_id>","imageRef":"<resource_id>","name":"<name>","user_data":"<user_data>","key_name":"<key_name>","security_groups":[{"name":"<name>"}],"networks":[{"uuid":"<resource_id>"}]}}
@@ -45,6 +46,7 @@ POST /v1.1/images
 ```
 GET /
 GET /v2.0/networks/<resource_id>
+POST /v2.0/ports body: {"port":{"network_id":"<resource_id>","fixed_ips":[{"ip_address":"<ip_address>"}],"security_groups":["<resource_id>"]}}
 ```
 ### All calls for API endpoint 'volume (cinder)'
 ```

@@ -9,8 +9,8 @@ run:
   path: bosh-cpi-src-in/ci/tasks/run-dynamic-networking-bats.sh
 params:
   bats_vm_floating_ip:                       replace-me
+  bosh_admin_password:                       replace-me
   bosh_director_public_ip:                   replace-me
-  desired_vcap_user_password:                replace-me
   openstack_flavor_with_ephemeral_disk:      replace-me
   openstack_flavor_with_no_ephemeral_disk:   replace-me
   openstack_security_group:                  replace-me

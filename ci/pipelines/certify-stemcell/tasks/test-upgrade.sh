@@ -4,6 +4,7 @@ set -e
 
 source bosh-cpi-src-in/ci/tasks/utils.sh
 
+ensure_not_replace_value bosh_admin_password
 ensure_not_replace_value dns
 ensure_not_replace_value v3_e2e_flavor
 ensure_not_replace_value v3_e2e_connection_timeout
@@ -34,6 +35,7 @@ upgrade_deployment_dir="${PWD}/upgrade-deployment"
 deployment_dir="${PWD}/deployment"
 manifest_filename="director-manifest.yml"
 private_key=${deployment_dir}/bosh.pem
+bosh_vcap_password_hash=$(ruby -e 'require "securerandom";puts ENV["bosh_admin_password"].crypt("$6$#{SecureRandom.base64(14)}")')
 
 echo "setting up artifacts used in $manifest_filename"
 mkdir -p ${deployment_dir}
@@ -78,6 +80,9 @@ resource_pools:
       url: file://stemcell.tgz
     cloud_properties:
       instance_type: $v3_e2e_flavor
+    env:
+      bosh:
+        password: ${bosh_vcap_password_hash}
 
 disk_pools:
   - name: default
@@ -111,17 +116,17 @@ jobs:
       nats:
         address: 127.0.0.1
         user: nats
-        password: nats-password
+        password: ${bosh_admin_password}
 
       redis:
         listen_addresss: 127.0.0.1
         address: 127.0.0.1
-        password: redis-password
+        password: ${bosh_admin_password}
 
       postgres: &db
         host: 127.0.0.1
         user: postgres
-        password: postgres-password
+        password: ${bosh_admin_password}
         database: bosh
         adapter: postgres
 
@@ -130,29 +135,34 @@ jobs:
         address: ${v3_upgrade_director_manual_ip}
         host: ${v3_upgrade_director_manual_ip}
         db: *db
-        http: {user: admin, password: admin, port: ${v3_e2e_bosh_registry_port}}
+        http: {user: admin, password: ${bosh_admin_password}, port: ${v3_e2e_bosh_registry_port}}
         username: admin
-        password: admin
+        password: ${bosh_admin_password}
         port: ${v3_e2e_bosh_registry_port}
-        endpoint: http://admin:admin@${v3_upgrade_director_manual_ip}:${v3_e2e_bosh_registry_port}
+        endpoint: http://admin:${bosh_admin_password}@${v3_upgrade_director_manual_ip}:${v3_e2e_bosh_registry_port}
 
       # Tells the Director/agents how to contact blobstore
       blobstore:
         address: ${v3_upgrade_director_manual_ip}
         port: 25250
         provider: dav
-        director: {user: director, password: director-password}
-        agent: {user: agent, password: agent-password}
+        director: {user: director, password: ${bosh_admin_password}}
+        agent: {user: agent, password: ${bosh_admin_password}}
 
       director:
         address: 127.0.0.1
         name: micro
         db: *db
         cpi_job: openstack_cpi
+        user_management:
+          provider: local
+          local:
+            users:
+              - {name: admin, password: ${bosh_admin_password}}
 
       hm:
-        http: {user: hm, password: hm-password}
-        director_account: {user: admin, password: admin}
+        http: {user: hm, password: ${bosh_admin_password}}
+        director_account: {user: admin, password: ${bosh_admin_password}}
 
       dns:
         address: 127.0.0.1
@@ -179,7 +189,7 @@ jobs:
           write_timeout: ${v3_e2e_write_timeout}
 
       # Tells agents how to contact nats
-      agent: {mbus: "nats://nats:nats-password@${v3_upgrade_director_manual_ip}:4222"}
+      agent: {mbus: "nats://nats:${bosh_admin_password}@${v3_upgrade_director_manual_ip}:4222"}
 
       ntp: &ntp
         - 0.north-america.pool.ntp.org
@@ -196,13 +206,13 @@ cloud_provider:
     private_key: ${private_key}
 
   # Tells bosh-micro how to contact remote agent
-  mbus: https://mbus-user:mbus-password@${v3_upgrade_director_floating_ip}:6868
+  mbus: https://mbus-user:${bosh_admin_password}@${v3_upgrade_director_floating_ip}:6868
 
   properties:
     openstack: *openstack
 
     # Tells CPI how agent should listen for requests
-    agent: {mbus: "https://mbus-user:mbus-password@0.0.0.0:6868"}
+    agent: {mbus: "https://mbus-user:${bosh_admin_password}@0.0.0.0:6868"}
 
     blobstore:
       provider: local
@@ -223,7 +233,7 @@ time cp ${deployment_dir}/director-manifest* $upgrade_deployment_dir
 time cp -r $HOME/.bosh_init $upgrade_deployment_dir
 
 time bosh -n target ${v3_upgrade_director_floating_ip}
-time bosh login admin admin
+time bosh login admin ${bosh_admin_password}
 time bosh download manifest dummy dummy-manifest
 time bosh deployment dummy-manifest
 

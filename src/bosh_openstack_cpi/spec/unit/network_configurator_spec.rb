@@ -15,13 +15,19 @@ describe Bosh::OpenStackCloud::NetworkConfigurator do
   end
 
   let(:several_manual_networks) do
-    spec = {}
-    spec['network_a'] = manual_network_spec
-    spec['network_a']['ip'] = '10.0.0.1'
-    spec['network_b'] = manual_network_spec
-    spec['network_b']['cloud_properties']['net_id'] = 'bar'
-    spec['network_b']['ip'] = '10.0.0.2'
-    spec
+    {
+        'network_a' => manual_network_spec(ip: '10.0.0.1'),
+        'network_b' => manual_network_spec(net_id: 'bar', ip: '10.0.0.2')
+    }
+  end
+
+  it 'exposes network_spec as attribute' do
+    spec = {
+        'network_a' => {'type' => 'dynamic'}
+    }
+
+    nc = Bosh::OpenStackCloud::NetworkConfigurator.new(spec)
+    expect(nc.network_spec).to eq(spec)
   end
 
   describe '#initialize' do
@@ -93,17 +99,17 @@ describe Bosh::OpenStackCloud::NetworkConfigurator do
 
   describe '#security_groups' do
     context 'when security_groups are defined in all networks' do
-      it 'should be extracted from all networks' do
+      it 'extracts all unique ones from all networks' do
         spec = {}
         spec['network_a'] = dynamic_network_spec
         set_security_groups(spec['network_a'], %w[foo])
         spec['network_b'] = vip_network_spec
         set_security_groups(spec['network_b'], %w[bar])
         spec['network_c'] = manual_network_spec
-        set_security_groups(spec['network_c'], %w[bla])
+        set_security_groups(spec['network_c'], %w[foo])
 
         nc = Bosh::OpenStackCloud::NetworkConfigurator.new(spec)
-        expect(nc.security_groups).to eq(%w[bar bla foo] )
+        expect(nc.security_groups).to eq(%w[bar foo] )
       end
     end
 
@@ -215,6 +221,68 @@ describe Bosh::OpenStackCloud::NetworkConfigurator do
                               ])
       end
     end
+  end
+
+  describe '#create_ports_for_manual_networks' do
+    let(:security_groups_to_be_used) { ['default-security-group-id'] }
+
+    context 'with single manual network' do
+      let(:network_spec) do
+        manual_network = manual_network_spec
+        manual_network['ip'] = '10.0.0.1'
+        {
+            'network_a' => manual_network,
+        }
+      end
+
+      it 'should not call Fog::Network' do
+        openstack = instance_double(Bosh::OpenStackCloud::Openstack)
+        expect(openstack).to_not receive(:network)
+
+        nc = Bosh::OpenStackCloud::NetworkConfigurator.new(network_spec)
+        nc.create_ports_for_manual_networks(openstack, security_groups_to_be_used)
+      end
+    end
+
+    context 'with multiple manual networks' do
+      before(:each) do
+        port_result_net = double('ports1', id: '117717c1-81cb-4ac4-96ab-99aaf1be9ca8', network_id: 'net', mac_address: 'AA:AA:AA:AA:AA:AA')
+        port_result_bar = double('ports2', id: '217715c1-81cb-4ac4-96eb-99aaf1be9ca8', network_id: 'bar', mac_address: 'BB:BB:BB:BB:BB:BB')
+        allow(openstack).to receive(:network).and_return(neutron)
+        allow(ports).to receive(:create).with(network_id: 'net', fixed_ips: [{ip_address: '10.0.0.1'}], security_groups: ['default-security-group-id']).and_return(port_result_net)
+        allow(ports).to receive(:create).with(network_id: 'bar', fixed_ips: [{ip_address: '10.0.0.2'}], security_groups: ['default-security-group-id']).and_return(port_result_bar)
+        allow(neutron).to receive(:ports).and_return(ports)
+      end
+
+      let(:nc) { Bosh::OpenStackCloud::NetworkConfigurator.new(several_manual_networks) }
+      let(:neutron) { double(Fog::Network) }
+      let(:openstack) { instance_double(Bosh::OpenStackCloud::Openstack) }
+      let(:ports) { double('Fog::Network::OpenStack::Ports') }
+
+      it 'adds port_ids to nics' do
+        nc.create_ports_for_manual_networks(openstack, security_groups_to_be_used)
+
+        expect(nc.nics).to eq([
+                                  {'net_id' => 'net', 'port_id' => '117717c1-81cb-4ac4-96ab-99aaf1be9ca8', 'v4_fixed_ip' => '10.0.0.1'},
+                                  {'net_id' => 'bar', 'port_id' => '217715c1-81cb-4ac4-96eb-99aaf1be9ca8', 'v4_fixed_ip' => '10.0.0.2'}
+                              ])
+      end
+
+      it 'adds MAC addresses to network spec' do
+        nc.create_ports_for_manual_networks(openstack, security_groups_to_be_used)
+        
+        expect(nc.network_spec['network_a']['mac']).to eq('AA:AA:AA:AA:AA:AA')
+        expect(nc.network_spec['network_b']['mac']).to eq('BB:BB:BB:BB:BB:BB')
+      end
+
+      it 'sets the given security groups for the port' do
+        nc.create_ports_for_manual_networks(openstack, security_groups_to_be_used)
+
+        expect(ports).to have_received(:create).with(network_id: anything, fixed_ips: anything, security_groups: ['default-security-group-id']).twice
+      end
+
+    end
+
   end
 
   describe '#configure' do

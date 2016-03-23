@@ -34,6 +34,7 @@ jobs:
             v3_e2e_read_timeout:         "180"
             v3_e2e_state_timeout:        "900"
             v3_e2e_write_timeout:        "180"
+            bosh_admin_password:         {{bosh_admin_password}}
             bosh_openstack_ca_cert:      {{bosh_openstack_ca_cert}}
             dns:                         {{dns}}
             v3_e2e_bosh_registry_port:   {{v3_e2e_bosh_registry_port}}
@@ -59,18 +60,20 @@ jobs:
         file: bosh-cpi-src-in/ci/pipelines/certify-stemcell/tasks/deploy-dummy-release.yml
         config:
           params:
-            instance_flavor:       "m1.medium"
-            bosh_director_ip:      {{v3_e2e_centos_director_floating_ip}}
-            dns:                   {{dns}}
-            v3_e2e_security_group: {{v3_e2e_security_group}}
-            network_id:            {{v3_e2e_net_id}}
-            stemcell_name:         "bosh-openstack-kvm-centos-7-go_agent"
+            instance_flavor:         "m1.medium"
+            bosh_admin_password:     {{bosh_admin_password}}
+            bosh_director_ip:        {{v3_e2e_centos_director_floating_ip}}
+            dns:                     {{dns}}
+            v3_e2e_security_group:   {{v3_e2e_security_group}}
+            network_id:              {{v3_e2e_net_id}}
+            stemcell_name:           "bosh-openstack-kvm-centos-7-go_agent"
 
       - task: teardown-director
         file: bosh-cpi-src-in/ci/pipelines/certify-stemcell/tasks/teardown-director.yml
         config:
           params:
-            bosh_director_ip: {{v3_e2e_centos_director_floating_ip}}
+            bosh_admin_password: {{bosh_admin_password}}
+            bosh_director_ip:    {{v3_e2e_centos_director_floating_ip}}
 
   - name: e2e-ubuntu
     serial: true
@@ -96,18 +99,20 @@ jobs:
         file: bosh-cpi-src-in/ci/pipelines/certify-stemcell/tasks/deploy-dummy-release.yml
         config:
           params:
-            instance_flavor:       "m1.medium"
-            bosh_director_ip:      {{v3_e2e_ubuntu_director_floating_ip}}
-            dns:                   {{dns}}
-            v3_e2e_security_group: {{v3_e2e_security_group}}
-            network_id:            {{v3_e2e_net_id}}
-            stemcell_name:         "bosh-openstack-kvm-ubuntu-trusty-go_agent"
+            instance_flavor:         "m1.medium"
+            bosh_admin_password:     {{bosh_admin_password}}
+            bosh_director_ip:        {{v3_e2e_ubuntu_director_floating_ip}}
+            dns:                     {{dns}}
+            v3_e2e_security_group:   {{v3_e2e_security_group}}
+            network_id:              {{v3_e2e_net_id}}
+            stemcell_name:           "bosh-openstack-kvm-ubuntu-trusty-go_agent"
 
       - task: teardown-director
         file: bosh-cpi-src-in/ci/pipelines/certify-stemcell/tasks/teardown-director.yml
         config:
           params:
-            bosh_director_ip:      {{v3_e2e_ubuntu_director_floating_ip}}
+            bosh_admin_password: {{bosh_admin_password}}
+            bosh_director_ip:    {{v3_e2e_ubuntu_director_floating_ip}}
 
   - name: e2e-centos-config-drive
     serial: true
@@ -131,6 +136,8 @@ jobs:
             v3_e2e_state_timeout:        "900"
             v3_e2e_write_timeout:        "180"
             v3_e2e_config_drive:         "disk"
+            v3_e2e_use_dhcp:             false
+            bosh_admin_password:         {{bosh_admin_password}}
             bosh_openstack_ca_cert:      {{bosh_openstack_ca_cert}}
             dns:                         {{dns}}
             v3_e2e_bosh_registry_port:   {{v3_e2e_bosh_registry_port}}
@@ -153,21 +160,32 @@ jobs:
             v3_e2e_blobstore_secret_key: {{v3_e2e_blobstore_secret_key}}
 
       - task: deploy-dummy-release
-        file: bosh-cpi-src-in/ci/pipelines/certify-stemcell/tasks/deploy-dummy-release.yml
+        file: bosh-cpi-src-in/ci/pipelines/certify-stemcell/tasks/deploy-dummy-release-multiple-manual-networks.yml
         config:
           params:
-            instance_flavor:       "m1.medium"
-            bosh_director_ip:      {{v3_e2e_centos_config_drive_floating_ip}}
-            dns:                   {{dns}}
-            v3_e2e_security_group: {{v3_e2e_security_group}}
-            network_id:            {{v3_e2e_net_id}}
-            stemcell_name:         "bosh-openstack-kvm-centos-7-go_agent"
+            instance_flavor:           "m1.medium"
+            bosh_admin_password:       {{bosh_admin_password}}
+            bosh_director_ip:          {{v3_e2e_centos_config_drive_floating_ip}}
+            v3_e2e_private_key_data:   {{v3_e2e_private_key_data}}
+            dns:                       {{dns}}
+            v3_e2e_security_group:     {{v3_e2e_security_group}}
+            network_id:                {{v3_e2e_net_id}}
+            network_no_dhcp_1_id:      {{v3_e2e_net_no_dhcp_1_id}}
+            network_no_dhcp_1_range:   {{v3_e2e_net_no_dhcp_1_cidr}}
+            network_no_dhcp_1_gateway: {{v3_e2e_net_no_dhcp_1_gateway}}
+            network_no_dhcp_1_ip:      {{v3_e2e_net_no_dhcp_1_ip_centos}}
+            network_no_dhcp_2_id:      {{v3_e2e_net_no_dhcp_2_id}}
+            network_no_dhcp_2_range:   {{v3_e2e_net_no_dhcp_2_cidr}}
+            network_no_dhcp_2_gateway: {{v3_e2e_net_no_dhcp_2_gateway}}
+            network_no_dhcp_2_ip:      {{v3_e2e_net_no_dhcp_2_ip_centos}}
+            stemcell_name:             "bosh-openstack-kvm-centos-7-go_agent"
 
       - task: teardown-director
         file: bosh-cpi-src-in/ci/pipelines/certify-stemcell/tasks/teardown-director.yml
         config:
           params:
-            bosh_director_ip: {{v3_e2e_centos_config_drive_floating_ip}}
+            bosh_admin_password: {{bosh_admin_password}}
+            bosh_director_ip:    {{v3_e2e_centos_config_drive_floating_ip}}
 
   - name: e2e-ubuntu-config-drive
     serial: true
@@ -190,21 +208,32 @@ jobs:
             director_manual_ip:   {{v3_e2e_ubuntu_config_drive_manual_ip}}
 
       - task: deploy-dummy-release
-        file: bosh-cpi-src-in/ci/pipelines/certify-stemcell/tasks/deploy-dummy-release.yml
+        file: bosh-cpi-src-in/ci/pipelines/certify-stemcell/tasks/deploy-dummy-release-multiple-manual-networks.yml
         config:
           params:
-            instance_flavor:       "m1.medium"
-            bosh_director_ip:      {{v3_e2e_ubuntu_config_drive_floating_ip}}
-            dns:                   {{dns}}
-            v3_e2e_security_group: {{v3_e2e_security_group}}
-            network_id:            {{v3_e2e_net_id}}
-            stemcell_name:         "bosh-openstack-kvm-ubuntu-trusty-go_agent"
+            instance_flavor:           "m1.medium"
+            bosh_admin_password:       {{bosh_admin_password}}
+            bosh_director_ip:          {{v3_e2e_ubuntu_config_drive_floating_ip}}
+            v3_e2e_private_key_data:   {{v3_e2e_private_key_data}}
+            dns:                       {{dns}}
+            v3_e2e_security_group:     {{v3_e2e_security_group}}
+            network_id:                {{v3_e2e_net_id}}
+            network_no_dhcp_1_id:      {{v3_e2e_net_no_dhcp_1_id}}
+            network_no_dhcp_1_range:   {{v3_e2e_net_no_dhcp_1_cidr}}
+            network_no_dhcp_1_gateway: {{v3_e2e_net_no_dhcp_1_gateway}}
+            network_no_dhcp_1_ip:      {{v3_e2e_net_no_dhcp_1_ip_ubuntu}}
+            network_no_dhcp_2_id:      {{v3_e2e_net_no_dhcp_2_id}}
+            network_no_dhcp_2_range:   {{v3_e2e_net_no_dhcp_2_cidr}}
+            network_no_dhcp_2_gateway: {{v3_e2e_net_no_dhcp_2_gateway}}
+            network_no_dhcp_2_ip:      {{v3_e2e_net_no_dhcp_2_ip_ubuntu}}
+            stemcell_name:             "bosh-openstack-kvm-ubuntu-trusty-go_agent"
 
       - task: teardown-director
         file: bosh-cpi-src-in/ci/pipelines/certify-stemcell/tasks/teardown-director.yml
         config:
           params:
-            bosh_director_ip: {{v3_e2e_ubuntu_config_drive_floating_ip}}
+            bosh_admin_password: {{bosh_admin_password}}
+            bosh_director_ip:    {{v3_e2e_ubuntu_config_drive_floating_ip}}
 
   - name: test-upgrade-centos
     serial: true
@@ -229,6 +258,7 @@ jobs:
             v3_e2e_read_timeout:               "180"
             v3_e2e_state_timeout:              "900"
             v3_e2e_write_timeout:              "180"
+            bosh_admin_password:               {{bosh_admin_password}}
             bosh_openstack_ca_cert:            {{bosh_openstack_ca_cert}}
             v3_e2e_bosh_registry_port:         {{v3_e2e_bosh_registry_port}}
             v3_e2e_api_key:                    {{v3_e2e_api_key}}
@@ -257,6 +287,7 @@ jobs:
         config:
           params:
             instance_flavor:             "m1.medium"
+            bosh_admin_password:         {{bosh_admin_password}}
             bosh_director_ip:            {{v3_centos_upgrade_director_floating_ip}}
             dns:                         {{dns}}
             v3_e2e_security_group:       {{v3_e2e_security_group}}
@@ -274,6 +305,7 @@ jobs:
             v3_e2e_read_timeout:             "180"
             v3_e2e_state_timeout:            "900"
             v3_e2e_write_timeout:            "180"
+            bosh_admin_password:             {{bosh_admin_password}}
             bosh_openstack_ca_cert:          {{bosh_openstack_ca_cert}}
             v3_e2e_bosh_registry_port:       {{v3_e2e_bosh_registry_port}}
             v3_e2e_api_key:                  {{v3_e2e_api_key}}
@@ -322,6 +354,7 @@ jobs:
         config:
           params:
             instance_flavor:             "m1.medium"
+            bosh_admin_password:         {{bosh_admin_password}}
             bosh_director_ip:            {{v3_ubuntu_upgrade_director_floating_ip}}
             dns:                         {{dns}}
             v3_e2e_security_group:       {{v3_e2e_security_group}}
