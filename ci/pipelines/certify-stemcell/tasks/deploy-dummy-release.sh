@@ -4,6 +4,7 @@ set -e
 
 source bosh-cpi-src-in/ci/tasks/utils.sh
 
+ensure_not_replace_value bosh_admin_password
 ensure_not_replace_value bosh_director_ip
 ensure_not_replace_value dns
 ensure_not_replace_value v3_e2e_security_group
@@ -17,6 +18,7 @@ chruby 2.1.2
 deployment_dir="${PWD}/deployment"
 manifest_filename="dummy-manifest.yml"
 dummy_release_name="dummy"
+bosh_vcap_password_hash=$(ruby -e 'require "securerandom";puts ENV["bosh_admin_password"].crypt("$6$#{SecureRandom.base64(14)}")')
 
 echo "setting up artifacts used in $manifest_filename"
 mkdir -p ${deployment_dir}
@@ -26,7 +28,7 @@ bosh version
 
 echo "targeting bosh director at ${bosh_director_ip}"
 bosh -n target ${bosh_director_ip}
-bosh login admin admin
+bosh login admin ${bosh_admin_password}
 
 echo "uploading stemcell to director..."
 bosh -n upload stemcell --skip-if-exists ./stemcell/stemcell.tgz
@@ -60,6 +62,9 @@ resource_pools:
     cloud_properties:
       instance_type: ${instance_flavor}
       disk: 1024
+    env:
+      bosh:
+        password: ${bosh_vcap_password_hash}
 
 networks:
   - name: private

@@ -8,9 +8,9 @@ ensure_not_replace_value stemcell_name
 ensure_not_replace_value openstack_security_group
 ensure_not_replace_value openstack_flavor_with_ephemeral_disk
 ensure_not_replace_value openstack_flavor_with_no_ephemeral_disk
+ensure_not_replace_value bosh_admin_password
 ensure_not_replace_value bosh_director_public_ip
 ensure_not_replace_value bosh_director_private_ip
-ensure_not_replace_value desired_vcap_user_password
 ensure_not_replace_value bats_vm_floating_ip
 ensure_not_replace_value private_key_data
 
@@ -44,13 +44,16 @@ working_dir=$PWD
 export BAT_STEMCELL="${working_dir}/stemcell/stemcell.tgz"
 export BAT_VCAP_PRIVATE_KEY="$working_dir/keys/bats.pem"
 export BAT_DIRECTOR=${bosh_director_public_ip}
-export BAT_VCAP_PASSWORD=${desired_vcap_user_password}
+export BAT_DIRECTOR_PASSWORD=${bosh_admin_password}
+export BAT_VCAP_PASSWORD=${bosh_admin_password}
 export BAT_DNS_HOST=${bosh_director_public_ip}
 export BAT_INFRASTRUCTURE='openstack'
 export BAT_NETWORKING='manual'
 
 source /etc/profile.d/chruby.sh
 chruby 2.1.2
+
+bosh_vcap_password_hash=$(ruby -e 'require "securerandom";puts ENV["bosh_admin_password"].crypt("$6$#{SecureRandom.base64(14)}")')
 
 mkdir -p $working_dir/keys
 export BAT_VCAP_PRIVATE_KEY="$working_dir/keys/bats.pem"
@@ -101,6 +104,7 @@ properties:
     reserved: [${secondary_network_dhcp_pool}]
     static: [${secondary_network_range}]
     gateway: ${secondary_network_gateway}
+  password: ${bosh_vcap_password_hash}
 EOF
 
 cd bats

@@ -6,8 +6,8 @@ source bosh-cpi-src-in/ci/tasks/utils.sh
 
 ensure_not_replace_value stemcell_name
 ensure_not_replace_value bats_vm_floating_ip
+ensure_not_replace_value bosh_admin_password
 ensure_not_replace_value bosh_director_public_ip
-ensure_not_replace_value desired_vcap_user_password
 ensure_not_replace_value openstack_flavor_with_ephemeral_disk
 ensure_not_replace_value openstack_flavor_with_no_ephemeral_disk
 ensure_not_replace_value openstack_security_group
@@ -28,10 +28,13 @@ ssh-add $BAT_VCAP_PRIVATE_KEY
 source /etc/profile.d/chruby.sh
 chruby 2.1.2
 
+bosh_vcap_password_hash=$(ruby -e 'require "securerandom";puts ENV["bosh_admin_password"].crypt("$6$#{SecureRandom.base64(14)}")')
+
 # checked by BATs environment helper (bosh-acceptance-tests.git/lib/bat/env.rb)
 export BAT_STEMCELL="${working_dir}/stemcell/stemcell.tgz"
 export BAT_DIRECTOR=${bosh_director_public_ip}
-export BAT_VCAP_PASSWORD=${desired_vcap_user_password}
+export BAT_DIRECTOR_PASSWORD=${bosh_admin_password}
+export BAT_VCAP_PASSWORD=${bosh_admin_password}
 export BAT_DNS_HOST=${bosh_director_public_ip}
 export BAT_INFRASTRUCTURE='openstack'
 export BAT_NETWORKING='dynamic'
@@ -61,6 +64,7 @@ properties:
       cloud_properties:
         net_id: ${primary_network_id}
         security_groups: [${openstack_security_group}]
+  password: ${bosh_vcap_password_hash}
 EOF
 
 cd bats
