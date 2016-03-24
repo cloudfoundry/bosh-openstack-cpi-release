@@ -138,7 +138,7 @@ pushd ${deployment_dir}
   echo "checking network interfaces..."
   echo "${v3_e2e_private_key_data}" > bosh.pem
   chmod go-r bosh.pem
-  bosh ssh --gateway_host ${bosh_director_ip} --gateway_user vcap --gateway_identity_file bosh.pem dummy 0 ifconfig > network_config
+  bosh ssh --gateway_host ${bosh_director_ip} --gateway_user vcap --gateway_identity_file bosh.pem dummy 0 "PATH=/usr/sbin:/sbin ifconfig" > network_config
 
   cat network_config | grep ${network_no_dhcp_1_ip} || failed_exit_code_1=$?
   if [ $failed_exit_code_1 ]; then
