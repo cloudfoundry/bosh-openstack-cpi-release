@@ -72,25 +72,23 @@ jobs:
 
       - task: cleanup-lifecycle
         file: bosh-cpi-src-in/ci/tasks/cleanup.yml
-        config:
-          params:
-            BOSH_OPENSTACK_AUTH_URL:    {{openstack_auth_url_v3}}
-            BOSH_OPENSTACK_USERNAME:    {{lifecycle_openstack_username}}
-            BOSH_OPENSTACK_API_KEY:     {{lifecycle_openstack_api_key}}
-            BOSH_OPENSTACK_PROJECT:     {{lifecycle_openstack_project}}
-            BOSH_OPENSTACK_DOMAIN_NAME: {{lifecycle_openstack_domain}}
-            BOSH_OPENSTACK_CA_CERT:     {{bosh_openstack_ca_cert}}
+        params:
+           BOSH_OPENSTACK_AUTH_URL:    {{openstack_auth_url_v3}}
+           BOSH_OPENSTACK_USERNAME:    {{lifecycle_openstack_username}}
+           BOSH_OPENSTACK_API_KEY:     {{lifecycle_openstack_api_key}}
+           BOSH_OPENSTACK_PROJECT:     {{lifecycle_openstack_project}}
+           BOSH_OPENSTACK_DOMAIN_NAME: {{lifecycle_openstack_domain}}
+           BOSH_OPENSTACK_CA_CERT:     {{bosh_openstack_ca_cert}}
 
       - task: cleanup-bats
         file: bosh-cpi-src-in/ci/tasks/cleanup.yml
-        config:
-          params:
-            BOSH_OPENSTACK_AUTH_URL:    {{openstack_auth_url_v3}}
-            BOSH_OPENSTACK_USERNAME:    {{openstack_username}}
-            BOSH_OPENSTACK_API_KEY:     {{openstack_api_key}}
-            BOSH_OPENSTACK_PROJECT:     {{openstack_project}}
-            BOSH_OPENSTACK_DOMAIN_NAME: {{openstack_domain}}
-            BOSH_OPENSTACK_CA_CERT:     {{bosh_openstack_ca_cert}}
+        params:
+          BOSH_OPENSTACK_AUTH_URL:    {{openstack_auth_url_v3}}
+          BOSH_OPENSTACK_USERNAME:    {{openstack_username}}
+          BOSH_OPENSTACK_API_KEY:     {{openstack_api_key}}
+          BOSH_OPENSTACK_PROJECT:     {{openstack_project}}
+          BOSH_OPENSTACK_DOMAIN_NAME: {{openstack_domain}}
+          BOSH_OPENSTACK_CA_CERT:     {{bosh_openstack_ca_cert}}
 
   - name: lifecycle
     serial: true
@@ -103,29 +101,28 @@ jobs:
 
       - task: test
         file: bosh-cpi-src-in/ci/tasks/run-lifecycle.yml
-        config:
-          params:
-            BOSH_OPENSTACK_DOMAIN:              {{lifecycle_openstack_domain}}
-            BOSH_OPENSTACK_PROJECT:             {{lifecycle_openstack_project}}
-            BOSH_OPENSTACK_MANUAL_IP:           {{lifecycle_manual_ip}}
-            BOSH_OPENSTACK_NO_DHCP_MANUAL_IP_1: {{lifecycle_no_dhcp_manual_ip_1}}
-            BOSH_OPENSTACK_NO_DHCP_MANUAL_IP_2: {{lifecycle_no_dhcp_manual_ip_2}}
-            BOSH_OPENSTACK_NET_ID:              {{lifecycle_openstack_net_id}}
-            BOSH_OPENSTACK_NET_ID_NO_DHCP_1:    {{lifecycle_net_id_no_dhcp_1}}
-            BOSH_OPENSTACK_NET_ID_NO_DHCP_2:    {{lifecycle_net_id_no_dhcp_2}}
-            BOSH_OPENSTACK_AUTH_URL_V2:         {{openstack_auth_url_v2}}
-            BOSH_OPENSTACK_AUTH_URL_V3:         {{openstack_auth_url_v3}}
-            BOSH_OPENSTACK_USERNAME:            {{lifecycle_openstack_username}}
-            BOSH_OPENSTACK_API_KEY:             {{lifecycle_openstack_api_key}}
-            BOSH_OPENSTACK_USERNAME_V3:         {{lifecycle_openstack_username_v3}}
-            BOSH_OPENSTACK_API_KEY_V3:          {{lifecycle_openstack_api_key_v3}}
-            BOSH_OPENSTACK_DEFAULT_KEY_NAME:    {{lifecycle_openstack_default_key_name}}
-            BOSH_CLI_SILENCE_SLOW_LOAD_WARNING: true
-            #BOSH_OPENSTACK_VOLUME_TYPE:         "SSD"
-            BOSH_OPENSTACK_CONNECT_TIMEOUT:     "600"
-            BOSH_OPENSTACK_READ_TIMEOUT:        "120"
-            BOSH_OPENSTACK_WRITE_TIMEOUT:       "120"
-            BOSH_OPENSTACK_CA_CERT:             {{bosh_openstack_ca_cert}}
+        params:
+          BOSH_OPENSTACK_DOMAIN:              {{lifecycle_openstack_domain}}
+          BOSH_OPENSTACK_PROJECT:             {{lifecycle_openstack_project}}
+          BOSH_OPENSTACK_MANUAL_IP:           {{lifecycle_manual_ip}}
+          BOSH_OPENSTACK_NO_DHCP_MANUAL_IP_1: {{lifecycle_no_dhcp_manual_ip_1}}
+          BOSH_OPENSTACK_NO_DHCP_MANUAL_IP_2: {{lifecycle_no_dhcp_manual_ip_2}}
+          BOSH_OPENSTACK_NET_ID:              {{lifecycle_openstack_net_id}}
+          BOSH_OPENSTACK_NET_ID_NO_DHCP_1:    {{lifecycle_net_id_no_dhcp_1}}
+          BOSH_OPENSTACK_NET_ID_NO_DHCP_2:    {{lifecycle_net_id_no_dhcp_2}}
+          BOSH_OPENSTACK_AUTH_URL_V2:         {{openstack_auth_url_v2}}
+          BOSH_OPENSTACK_AUTH_URL_V3:         {{openstack_auth_url_v3}}
+          BOSH_OPENSTACK_USERNAME:            {{lifecycle_openstack_username}}
+          BOSH_OPENSTACK_API_KEY:             {{lifecycle_openstack_api_key}}
+          BOSH_OPENSTACK_USERNAME_V3:         {{lifecycle_openstack_username_v3}}
+          BOSH_OPENSTACK_API_KEY_V3:          {{lifecycle_openstack_api_key_v3}}
+          BOSH_OPENSTACK_DEFAULT_KEY_NAME:    {{lifecycle_openstack_default_key_name}}
+          BOSH_CLI_SILENCE_SLOW_LOAD_WARNING: true
+          #BOSH_OPENSTACK_VOLUME_TYPE:         "SSD"
+          BOSH_OPENSTACK_CONNECT_TIMEOUT:     "600"
+          BOSH_OPENSTACK_READ_TIMEOUT:        "120"
+          BOSH_OPENSTACK_WRITE_TIMEOUT:       "120"
+          BOSH_OPENSTACK_CA_CERT:             {{bosh_openstack_ca_cert}}
 
       - put: lifecycle-log
         params: {from: output/lifecycle.log}
@@ -138,9 +135,8 @@ jobs:
         - {trigger: false, passed: [lifecycle], get: bosh-cpi-src-in}
       - task: publish
         file: bosh-cpi-src-in/ci/tasks/publish-api-calls.yml
-        config:
-          params:
-            publish_api_calls_enabled:  {{publish_api_calls_enabled}}
+        params:
+          publish_api_calls_enabled:  {{publish_api_calls_enabled}}
       - put: bosh-cpi-src-out
         params: {repository: publish/repo, rebase: true}
 
@@ -159,32 +155,31 @@ jobs:
 
       - task: deploy
         file: bosh-cpi-src-in/ci/tasks/deploy-manual-networking.yml
-        config:
-          params:
-            base_os:                       "ubuntu"
-            bosh_admin_password:           {{bosh_admin_password}}
-            network_type_to_test:          "manual"
-            openstack_flavor:              "m1.small"
-            openstack_connection_timeout:  "600"
-            openstack_read_timeout:        "180"
-            openstack_write_timeout:       "180"
-            openstack_state_timeout:       "900"
-            private_key_data:              {{bosh_private_key}}
-            bosh_registry_port:            {{bosh_director_registry_port}}
-            bosh_openstack_ca_cert:        {{bosh_openstack_ca_cert}}
-            dns:                           {{dns}}
-            openstack_net_id:              {{bats_manual_ubuntu_primary_net_id}}
-            openstack_security_group:      {{openstack_security_group}}
-            openstack_default_key_name:    {{openstack_default_key_name}}
-            openstack_auth_url:            {{openstack_auth_url_v3}}
-            openstack_username:            {{openstack_username}}
-            openstack_api_key:             {{openstack_api_key}}
-            openstack_project:             {{openstack_project}}
-            openstack_domain:              {{openstack_domain}}
-            openstack_floating_ip:         {{bats_manual_ubuntu_director_public_ip}}
-            openstack_manual_ip:           {{bats_manual_ubuntu_director_private_ip}}
-            openstack_net_cidr:            {{bats_manual_ubuntu_primary_net_cidr}}
-            openstack_net_gateway:         {{bats_manual_ubuntu_primary_net_gateway}}
+        params:
+          base_os:                       "ubuntu"
+          bosh_admin_password:           {{bosh_admin_password}}
+          network_type_to_test:          "manual"
+          openstack_flavor:              "m1.small"
+          openstack_connection_timeout:  "600"
+          openstack_read_timeout:        "180"
+          openstack_write_timeout:       "180"
+          openstack_state_timeout:       "900"
+          private_key_data:              {{bosh_private_key}}
+          bosh_registry_port:            {{bosh_director_registry_port}}
+          bosh_openstack_ca_cert:        {{bosh_openstack_ca_cert}}
+          dns:                           {{dns}}
+          openstack_net_id:              {{bats_manual_ubuntu_primary_net_id}}
+          openstack_security_group:      {{openstack_security_group}}
+          openstack_default_key_name:    {{openstack_default_key_name}}
+          openstack_auth_url:            {{openstack_auth_url_v3}}
+          openstack_username:            {{openstack_username}}
+          openstack_api_key:             {{openstack_api_key}}
+          openstack_project:             {{openstack_project}}
+          openstack_domain:              {{openstack_domain}}
+          openstack_floating_ip:         {{bats_manual_ubuntu_director_public_ip}}
+          openstack_manual_ip:           {{bats_manual_ubuntu_director_private_ip}}
+          openstack_net_cidr:            {{bats_manual_ubuntu_primary_net_cidr}}
+          openstack_net_gateway:         {{bats_manual_ubuntu_primary_net_gateway}}
         ensure:
           put: ubuntu-manual-director-state-file
           params: {from: deployment/ubuntu-manual-director-manifest-state.json}
@@ -209,39 +204,37 @@ jobs:
 
       - task: test
         file: bosh-cpi-src-in/ci/tasks/run-manual-networking-bats.yml
-        config:
-          params:
-            stemcell_name:                            "bosh-openstack-kvm-ubuntu-trusty-go_agent"
-            private_key_data:                         {{bosh_private_key}}
-            openstack_security_group:                 {{openstack_security_group}}
-            openstack_flavor_with_ephemeral_disk:     {{openstack_flavor_with_ephemeral_disk}}
-            openstack_flavor_with_no_ephemeral_disk:  {{openstack_flavor_with_no_ephemeral_disk}}
-            bosh_admin_password:                      {{bosh_admin_password}}
-            bosh_director_public_ip:                  {{bats_manual_ubuntu_director_public_ip}}
-            bosh_director_private_ip:                 {{bats_manual_ubuntu_director_private_ip}}
-            bats_vm_floating_ip:                      {{bats_manual_ubuntu_floating_ip}}
-            primary_network_id:                       {{bats_manual_ubuntu_primary_net_id}}
-            primary_network_cidr:                     {{bats_manual_ubuntu_primary_net_cidr}}
-            primary_network_gateway:                  {{bats_manual_ubuntu_primary_net_gateway}}
-            primary_network_range:                    {{bats_manual_ubuntu_primary_net_static_range}}
-            primary_network_manual_ip:                {{bats_manual_ubuntu_primary_net_manual_ip}}
-            primary_network_dhcp_pool:                {{bats_manual_ubuntu_primary_net_dhcp_pool}}
-            primary_network_second_manual_ip:         {{bats_manual_ubuntu_primary_net_second_manual_ip}}
-            secondary_network_id:                     {{bats_manual_ubuntu_secondary_net_id}}
-            secondary_network_cidr:                   {{bats_manual_ubuntu_secondary_net_cidr}}
-            secondary_network_gateway:                {{bats_manual_ubuntu_secondary_net_gateway}}
-            secondary_network_range:                  {{bats_manual_ubuntu_secondary_net_static_range}}
-            secondary_network_manual_ip:              {{bats_manual_ubuntu_secondary_net_manual_ip}}
-            secondary_network_dhcp_pool:              {{bats_manual_ubuntu_secondary_net_dhcp_pool}}
+        params:
+          stemcell_name:                            "bosh-openstack-kvm-ubuntu-trusty-go_agent"
+          private_key_data:                         {{bosh_private_key}}
+          openstack_security_group:                 {{openstack_security_group}}
+          openstack_flavor_with_ephemeral_disk:     {{openstack_flavor_with_ephemeral_disk}}
+          openstack_flavor_with_no_ephemeral_disk:  {{openstack_flavor_with_no_ephemeral_disk}}
+          bosh_admin_password:                      {{bosh_admin_password}}
+          bosh_director_public_ip:                  {{bats_manual_ubuntu_director_public_ip}}
+          bosh_director_private_ip:                 {{bats_manual_ubuntu_director_private_ip}}
+          bats_vm_floating_ip:                      {{bats_manual_ubuntu_floating_ip}}
+          primary_network_id:                       {{bats_manual_ubuntu_primary_net_id}}
+          primary_network_cidr:                     {{bats_manual_ubuntu_primary_net_cidr}}
+          primary_network_gateway:                  {{bats_manual_ubuntu_primary_net_gateway}}
+          primary_network_range:                    {{bats_manual_ubuntu_primary_net_static_range}}
+          primary_network_manual_ip:                {{bats_manual_ubuntu_primary_net_manual_ip}}
+          primary_network_dhcp_pool:                {{bats_manual_ubuntu_primary_net_dhcp_pool}}
+          primary_network_second_manual_ip:         {{bats_manual_ubuntu_primary_net_second_manual_ip}}
+          secondary_network_id:                     {{bats_manual_ubuntu_secondary_net_id}}
+          secondary_network_cidr:                   {{bats_manual_ubuntu_secondary_net_cidr}}
+          secondary_network_gateway:                {{bats_manual_ubuntu_secondary_net_gateway}}
+          secondary_network_range:                  {{bats_manual_ubuntu_secondary_net_static_range}}
+          secondary_network_manual_ip:              {{bats_manual_ubuntu_secondary_net_manual_ip}}
+          secondary_network_dhcp_pool:              {{bats_manual_ubuntu_secondary_net_dhcp_pool}}
 
       - task: teardown-director
         file: bosh-cpi-src-in/ci/tasks/teardown-director.yml
-        config:
-          params:
-            bosh_admin_password:                     {{bosh_admin_password}}
-            bosh_director_ip:                        {{bats_manual_ubuntu_director_public_ip}}
-            director_manifest_file:                  "ubuntu-manual-director-manifest.yml"
-            director_state_file:                     "ubuntu-manual-director-manifest-state.json"
+        params:
+          bosh_admin_password:                     {{bosh_admin_password}}
+          bosh_director_ip:                        {{bats_manual_ubuntu_director_public_ip}}
+          director_manifest_file:                  "ubuntu-manual-director-manifest.yml"
+          director_state_file:                     "ubuntu-manual-director-manifest-state.json"
         ensure:
           put: ubuntu-manual-director-state-file
           params: {from: teardown/ubuntu-manual-director-manifest-state.json}
@@ -261,29 +254,28 @@ jobs:
 
       - task: deploy
         file: bosh-cpi-src-in/ci/tasks/deploy-dynamic-networking.yml
-        config:
-          params:
-            base_os:                       "ubuntu"
-            bosh_admin_password:           {{bosh_admin_password}}
-            network_type_to_test:          "dynamic"
-            openstack_flavor:              "m1.small"
-            openstack_connection_timeout:  "600"
-            openstack_read_timeout:        "180"
-            openstack_write_timeout:       "180"
-            openstack_state_timeout:       "900"
-            bosh_registry_port:            {{bosh_director_registry_port}}
-            bosh_openstack_ca_cert:        {{bosh_openstack_ca_cert}}
-            dns:                           {{dns}}
-            openstack_net_id:              {{bats_dynamic_ubuntu_primary_net_id}}
-            openstack_security_group:      {{openstack_security_group}}
-            openstack_default_key_name:    {{openstack_default_key_name}}
-            openstack_auth_url:            {{openstack_auth_url_v3}}
-            openstack_username:            {{openstack_username}}
-            openstack_api_key:             {{openstack_api_key}}
-            openstack_project:             {{openstack_project}}
-            openstack_domain:              {{openstack_domain}}
-            openstack_floating_ip:         {{bats_dynamic_ubuntu_director_public_ip}}
-            private_key_data:              {{bosh_private_key}}
+        params:
+          base_os:                       "ubuntu"
+          bosh_admin_password:           {{bosh_admin_password}}
+          network_type_to_test:          "dynamic"
+          openstack_flavor:              "m1.small"
+          openstack_connection_timeout:  "600"
+          openstack_read_timeout:        "180"
+          openstack_write_timeout:       "180"
+          openstack_state_timeout:       "900"
+          bosh_registry_port:            {{bosh_director_registry_port}}
+          bosh_openstack_ca_cert:        {{bosh_openstack_ca_cert}}
+          dns:                           {{dns}}
+          openstack_net_id:              {{bats_dynamic_ubuntu_primary_net_id}}
+          openstack_security_group:      {{openstack_security_group}}
+          openstack_default_key_name:    {{openstack_default_key_name}}
+          openstack_auth_url:            {{openstack_auth_url_v3}}
+          openstack_username:            {{openstack_username}}
+          openstack_api_key:             {{openstack_api_key}}
+          openstack_project:             {{openstack_project}}
+          openstack_domain:              {{openstack_domain}}
+          openstack_floating_ip:         {{bats_dynamic_ubuntu_director_public_ip}}
+          private_key_data:              {{bosh_private_key}}
         ensure:
           put: ubuntu-dynamic-director-state-file
           params: {from: deployment/ubuntu-dynamic-director-manifest-state.json}
@@ -308,26 +300,24 @@ jobs:
 
       - task: test
         file: bosh-cpi-src-in/ci/tasks/run-dynamic-networking-bats.yml
-        config:
-          params:
-            stemcell_name:                            "bosh-openstack-kvm-ubuntu-trusty-go_agent"
-            bats_vm_floating_ip:                      {{bats_dynamic_ubuntu_floating_ip}}
-            bosh_admin_password:                      {{bosh_admin_password}}
-            bosh_director_public_ip:                  {{bats_dynamic_ubuntu_director_public_ip}}
-            openstack_flavor_with_ephemeral_disk:     {{openstack_flavor_with_ephemeral_disk}}
-            openstack_flavor_with_no_ephemeral_disk:  {{openstack_flavor_with_no_ephemeral_disk}}
-            openstack_security_group:                 {{openstack_security_group}}
-            primary_network_id:                       {{bats_dynamic_ubuntu_primary_net_id}}
-            private_key_data:                         {{bosh_private_key}}
+        params:
+          stemcell_name:                            "bosh-openstack-kvm-ubuntu-trusty-go_agent"
+          bats_vm_floating_ip:                      {{bats_dynamic_ubuntu_floating_ip}}
+          bosh_admin_password:                      {{bosh_admin_password}}
+          bosh_director_public_ip:                  {{bats_dynamic_ubuntu_director_public_ip}}
+          openstack_flavor_with_ephemeral_disk:     {{openstack_flavor_with_ephemeral_disk}}
+          openstack_flavor_with_no_ephemeral_disk:  {{openstack_flavor_with_no_ephemeral_disk}}
+          openstack_security_group:                 {{openstack_security_group}}
+          primary_network_id:                       {{bats_dynamic_ubuntu_primary_net_id}}
+          private_key_data:                         {{bosh_private_key}}
 
       - task: teardown-director
         file: bosh-cpi-src-in/ci/tasks/teardown-director.yml
-        config:
-          params:
-            bosh_admin_password:                     {{bosh_admin_password}}
-            bosh_director_ip:                        {{bats_dynamic_ubuntu_director_public_ip}}
-            director_manifest_file:                  "ubuntu-dynamic-director-manifest.yml"
-            director_state_file:                     "ubuntu-dynamic-director-manifest-state.json"
+        params:
+          bosh_admin_password:                     {{bosh_admin_password}}
+          bosh_director_ip:                        {{bats_dynamic_ubuntu_director_public_ip}}
+          director_manifest_file:                  "ubuntu-dynamic-director-manifest.yml"
+          director_state_file:                     "ubuntu-dynamic-director-manifest-state.json"
         ensure:
           put: ubuntu-dynamic-director-state-file
           params: {from: teardown/ubuntu-dynamic-director-manifest-state.json}
@@ -347,32 +337,31 @@ jobs:
 
       - task: deploy
         file: bosh-cpi-src-in/ci/tasks/deploy-manual-networking.yml
-        config:
-          params:
-            base_os:                       "centos"
-            bosh_admin_password:           {{bosh_admin_password}}
-            network_type_to_test:          "manual"
-            openstack_flavor:              "m1.small"
-            openstack_connection_timeout:  "600"
-            openstack_read_timeout:        "180"
-            openstack_write_timeout:       "180"
-            openstack_state_timeout:       "900"
-            bosh_registry_port:            {{bosh_director_registry_port}}
-            bosh_openstack_ca_cert:        {{bosh_openstack_ca_cert}}
-            dns:                           {{dns}}
-            openstack_net_id:              {{bats_manual_centos_primary_net_id}}
-            openstack_security_group:      {{openstack_security_group}}
-            openstack_default_key_name:    {{openstack_default_key_name}}
-            openstack_auth_url:            {{openstack_auth_url_v3}}
-            openstack_username:            {{openstack_username}}
-            openstack_api_key:             {{openstack_api_key}}
-            openstack_project:             {{openstack_project}}
-            openstack_domain:              {{openstack_domain}}
-            openstack_floating_ip:         {{bats_manual_centos_director_public_ip}}
-            openstack_manual_ip:           {{bats_manual_centos_director_private_ip}}
-            openstack_net_cidr:            {{bats_manual_centos_primary_net_cidr}}
-            openstack_net_gateway:         {{bats_manual_centos_primary_net_gateway}}
-            private_key_data:              {{bosh_private_key}}
+        params:
+          base_os:                       "centos"
+          bosh_admin_password:           {{bosh_admin_password}}
+          network_type_to_test:          "manual"
+          openstack_flavor:              "m1.small"
+          openstack_connection_timeout:  "600"
+          openstack_read_timeout:        "180"
+          openstack_write_timeout:       "180"
+          openstack_state_timeout:       "900"
+          bosh_registry_port:            {{bosh_director_registry_port}}
+          bosh_openstack_ca_cert:        {{bosh_openstack_ca_cert}}
+          dns:                           {{dns}}
+          openstack_net_id:              {{bats_manual_centos_primary_net_id}}
+          openstack_security_group:      {{openstack_security_group}}
+          openstack_default_key_name:    {{openstack_default_key_name}}
+          openstack_auth_url:            {{openstack_auth_url_v3}}
+          openstack_username:            {{openstack_username}}
+          openstack_api_key:             {{openstack_api_key}}
+          openstack_project:             {{openstack_project}}
+          openstack_domain:              {{openstack_domain}}
+          openstack_floating_ip:         {{bats_manual_centos_director_public_ip}}
+          openstack_manual_ip:           {{bats_manual_centos_director_private_ip}}
+          openstack_net_cidr:            {{bats_manual_centos_primary_net_cidr}}
+          openstack_net_gateway:         {{bats_manual_centos_primary_net_gateway}}
+          private_key_data:              {{bosh_private_key}}
         ensure:
           put: centos-manual-director-state-file
           params: {from: deployment/centos-manual-director-manifest-state.json}
@@ -397,39 +386,37 @@ jobs:
 
       - task: test
         file: bosh-cpi-src-in/ci/tasks/run-manual-networking-bats.yml
-        config:
-          params:
-            stemcell_name:                            "bosh-openstack-kvm-centos-7-go_agent"
-            private_key_data:                         {{bosh_private_key}}
-            openstack_security_group:                 {{openstack_security_group}}
-            openstack_flavor_with_ephemeral_disk:     {{openstack_flavor_with_ephemeral_disk}}
-            openstack_flavor_with_no_ephemeral_disk:  {{openstack_flavor_with_no_ephemeral_disk}}
-            bosh_admin_password:                      {{bosh_admin_password}}
-            bosh_director_public_ip:                  {{bats_manual_centos_director_public_ip}}
-            bosh_director_private_ip:                 {{bats_manual_centos_director_private_ip}}
-            bats_vm_floating_ip:                      {{bats_manual_centos_floating_ip}}
-            primary_network_id:                       {{bats_manual_centos_primary_net_id}}
-            primary_network_cidr:                     {{bats_manual_centos_primary_net_cidr}}
-            primary_network_gateway:                  {{bats_manual_centos_primary_net_gateway}}
-            primary_network_range:                    {{bats_manual_centos_primary_net_static_range}}
-            primary_network_manual_ip:                {{bats_manual_centos_primary_net_manual_ip}}
-            primary_network_second_manual_ip:         {{bats_manual_centos_primary_net_second_manual_ip}}
-            primary_network_dhcp_pool:                {{bats_manual_centos_primary_net_dhcp_pool}}
-            secondary_network_id:                     {{bats_manual_centos_secondary_net_id}}
-            secondary_network_cidr:                   {{bats_manual_centos_secondary_net_cidr}}
-            secondary_network_gateway:                {{bats_manual_centos_secondary_net_gateway}}
-            secondary_network_range:                  {{bats_manual_centos_secondary_net_static_range}}
-            secondary_network_manual_ip:              {{bats_manual_centos_secondary_net_manual_ip}}
-            secondary_network_dhcp_pool:              {{bats_manual_centos_secondary_net_dhcp_pool}}
+        params:
+          stemcell_name:                            "bosh-openstack-kvm-centos-7-go_agent"
+          private_key_data:                         {{bosh_private_key}}
+          openstack_security_group:                 {{openstack_security_group}}
+          openstack_flavor_with_ephemeral_disk:     {{openstack_flavor_with_ephemeral_disk}}
+          openstack_flavor_with_no_ephemeral_disk:  {{openstack_flavor_with_no_ephemeral_disk}}
+          bosh_admin_password:                      {{bosh_admin_password}}
+          bosh_director_public_ip:                  {{bats_manual_centos_director_public_ip}}
+          bosh_director_private_ip:                 {{bats_manual_centos_director_private_ip}}
+          bats_vm_floating_ip:                      {{bats_manual_centos_floating_ip}}
+          primary_network_id:                       {{bats_manual_centos_primary_net_id}}
+          primary_network_cidr:                     {{bats_manual_centos_primary_net_cidr}}
+          primary_network_gateway:                  {{bats_manual_centos_primary_net_gateway}}
+          primary_network_range:                    {{bats_manual_centos_primary_net_static_range}}
+          primary_network_manual_ip:                {{bats_manual_centos_primary_net_manual_ip}}
+          primary_network_second_manual_ip:         {{bats_manual_centos_primary_net_second_manual_ip}}
+          primary_network_dhcp_pool:                {{bats_manual_centos_primary_net_dhcp_pool}}
+          secondary_network_id:                     {{bats_manual_centos_secondary_net_id}}
+          secondary_network_cidr:                   {{bats_manual_centos_secondary_net_cidr}}
+          secondary_network_gateway:                {{bats_manual_centos_secondary_net_gateway}}
+          secondary_network_range:                  {{bats_manual_centos_secondary_net_static_range}}
+          secondary_network_manual_ip:              {{bats_manual_centos_secondary_net_manual_ip}}
+          secondary_network_dhcp_pool:              {{bats_manual_centos_secondary_net_dhcp_pool}}
 
       - task: teardown-director
         file: bosh-cpi-src-in/ci/tasks/teardown-director.yml
-        config:
-          params:
-            bosh_admin_password:                     {{bosh_admin_password}}
-            bosh_director_ip:                        {{bats_manual_centos_director_public_ip}}
-            director_manifest_file:                  "centos-manual-director-manifest.yml"
-            director_state_file:                     "centos-manual-director-manifest-state.json"
+        params:
+          bosh_admin_password:                     {{bosh_admin_password}}
+          bosh_director_ip:                        {{bats_manual_centos_director_public_ip}}
+          director_manifest_file:                  "centos-manual-director-manifest.yml"
+          director_state_file:                     "centos-manual-director-manifest-state.json"
         ensure:
           put: centos-manual-director-state-file
           params: {from: teardown/centos-manual-director-manifest-state.json}
@@ -449,29 +436,28 @@ jobs:
 
       - task: deploy
         file: bosh-cpi-src-in/ci/tasks/deploy-dynamic-networking.yml
-        config:
-          params:
-            base_os:                       "centos"
-            bosh_admin_password:           {{bosh_admin_password}}
-            network_type_to_test:          "dynamic"
-            openstack_flavor:              "m1.small"
-            openstack_connection_timeout:  "600"
-            openstack_read_timeout:        "180"
-            openstack_write_timeout:       "180"
-            openstack_state_timeout:       "900"
-            bosh_registry_port:            {{bosh_director_registry_port}}
-            bosh_openstack_ca_cert:        {{bosh_openstack_ca_cert}}
-            dns:                           {{dns}}
-            openstack_net_id:              {{bats_dynamic_centos_primary_net_id}}
-            openstack_security_group:      {{openstack_security_group}}
-            openstack_default_key_name:    {{openstack_default_key_name}}
-            openstack_auth_url:            {{openstack_auth_url_v3}}
-            openstack_username:            {{openstack_username}}
-            openstack_api_key:             {{openstack_api_key}}
-            openstack_project:             {{openstack_project}}
-            openstack_domain:              {{openstack_domain}}
-            openstack_floating_ip:         {{bats_dynamic_centos_director_public_ip}}
-            private_key_data:              {{bosh_private_key}}
+        params:
+          base_os:                       "centos"
+          bosh_admin_password:           {{bosh_admin_password}}
+          network_type_to_test:          "dynamic"
+          openstack_flavor:              "m1.small"
+          openstack_connection_timeout:  "600"
+          openstack_read_timeout:        "180"
+          openstack_write_timeout:       "180"
+          openstack_state_timeout:       "900"
+          bosh_registry_port:            {{bosh_director_registry_port}}
+          bosh_openstack_ca_cert:        {{bosh_openstack_ca_cert}}
+          dns:                           {{dns}}
+          openstack_net_id:              {{bats_dynamic_centos_primary_net_id}}
+          openstack_security_group:      {{openstack_security_group}}
+          openstack_default_key_name:    {{openstack_default_key_name}}
+          openstack_auth_url:            {{openstack_auth_url_v3}}
+          openstack_username:            {{openstack_username}}
+          openstack_api_key:             {{openstack_api_key}}
+          openstack_project:             {{openstack_project}}
+          openstack_domain:              {{openstack_domain}}
+          openstack_floating_ip:         {{bats_dynamic_centos_director_public_ip}}
+          private_key_data:              {{bosh_private_key}}
         ensure:
           put: centos-dynamic-director-state-file
           params: {from: deployment/centos-dynamic-director-manifest-state.json}
@@ -496,26 +482,24 @@ jobs:
 
       - task: test
         file: bosh-cpi-src-in/ci/tasks/run-dynamic-networking-bats.yml
-        config:
-          params:
-            stemcell_name:                            "bosh-openstack-kvm-centos-7-go_agent"
-            bats_vm_floating_ip:                      {{bats_dynamic_centos_floating_ip}}
-            bosh_admin_password:                      {{bosh_admin_password}}
-            bosh_director_public_ip:                  {{bats_dynamic_centos_director_public_ip}}
-            openstack_flavor_with_ephemeral_disk:     {{openstack_flavor_with_ephemeral_disk}}
-            openstack_flavor_with_no_ephemeral_disk:  {{openstack_flavor_with_no_ephemeral_disk}}
-            openstack_security_group:                 {{openstack_security_group}}
-            primary_network_id:                       {{bats_dynamic_centos_primary_net_id}}
-            private_key_data:                         {{bosh_private_key}}
+        params:
+          stemcell_name:                            "bosh-openstack-kvm-centos-7-go_agent"
+          bats_vm_floating_ip:                      {{bats_dynamic_centos_floating_ip}}
+          bosh_admin_password:                      {{bosh_admin_password}}
+          bosh_director_public_ip:                  {{bats_dynamic_centos_director_public_ip}}
+          openstack_flavor_with_ephemeral_disk:     {{openstack_flavor_with_ephemeral_disk}}
+          openstack_flavor_with_no_ephemeral_disk:  {{openstack_flavor_with_no_ephemeral_disk}}
+          openstack_security_group:                 {{openstack_security_group}}
+          primary_network_id:                       {{bats_dynamic_centos_primary_net_id}}
+          private_key_data:                         {{bosh_private_key}}
 
       - task: teardown-director
         file: bosh-cpi-src-in/ci/tasks/teardown-director.yml
-        config:
-          params:
-            bosh_admin_password:                     {{bosh_admin_password}}
-            bosh_director_ip:                        {{bats_dynamic_centos_director_public_ip}}
-            director_manifest_file:                  "centos-dynamic-director-manifest.yml"
-            director_state_file:                     "centos-dynamic-director-manifest-state.json"
+        params:
+          bosh_admin_password:                     {{bosh_admin_password}}
+          bosh_director_ip:                        {{bats_dynamic_centos_director_public_ip}}
+          director_manifest_file:                  "centos-dynamic-director-manifest.yml"
+          director_state_file:                     "centos-dynamic-director-manifest-state.json"
         ensure:
           put: centos-dynamic-director-state-file
           params: {from: teardown/centos-dynamic-director-manifest-state.json}
@@ -530,10 +514,9 @@ jobs:
 
       - task: promote
         file: bosh-cpi-src-in/ci/tasks/promote-candidate.yml
-        config:
-          params:
-            aws_access_key_id: {{s3_openstack_cpi_blobs_access_key}}
-            aws_secret_access_key: {{s3_openstack_cpi_blobs_secret_key}}
+        params:
+          aws_access_key_id: {{s3_openstack_cpi_blobs_access_key}}
+          aws_secret_access_key: {{s3_openstack_cpi_blobs_secret_key}}
       - put: release-version-semver
         params: {file: release-version-semver/number}
 
