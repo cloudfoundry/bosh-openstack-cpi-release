@@ -273,7 +273,7 @@ module Bosh::OpenStackCloud
             cloud_error_message = "VM creation with name '#{server_params[:name]}' received a timeout. " +
                 "The VM might still have been created by OpenStack.\nOriginal message: "
             raise Bosh::Clouds::VMCreationFailed.new(false), cloud_error_message + e.message
-          rescue Excon::Errors::NotFound, Fog::Compute::OpenStack::NotFound => e
+          rescue Excon::Errors::BadRequest, Excon::Errors::NotFound, Fog::Compute::OpenStack::NotFound => e
             not_existing_net_ids = not_existing_net_ids(nics)
             if not_existing_net_ids.empty?
               raise e
