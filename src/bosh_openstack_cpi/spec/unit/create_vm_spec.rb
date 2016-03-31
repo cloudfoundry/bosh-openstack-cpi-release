@@ -646,6 +646,34 @@ describe Bosh::OpenStackCloud::Cloud, "create_vm" do
       end
     end
 
+    context "when OpenStack raises a BadRequest error" do
+      let(:networks) { double('networks') }
+      let(:bad_request_error) { Excon::Errors::BadRequest.new('Message does not matter here') }
+
+      before(:each) do
+        network = double(Fog::Network)
+        allow(cloud).to receive(:generate_unique_name).and_return(unique_name)
+        allow(cloud.compute.servers).to receive(:create).and_raise(bad_request_error)
+        allow(network).to receive(:networks).and_return(networks)
+        allow(Fog::Network).to receive(:new).and_return(network)
+      end
+
+      it "raises a VMCreationFailed error with subnet ID" do
+        allow(networks).to receive(:get).and_return(nil)
+
+        expect {
+          cloud.create_vm(
+              "agent-id",
+              "sc-id",
+              resource_pool_spec,
+              {"network_a" => dynamic_network_with_netid_spec},
+              nil,
+              {"test_env" => "value"}
+          )
+        }.to raise_error(Bosh::Clouds::VMCreationFailed, /'vm-#{unique_name}'.*?'net'/)
+      end
+    end
+
     it "destroys the server successfully and raises a Retryable Error" do
       allow(server).to receive(:destroy)
 
