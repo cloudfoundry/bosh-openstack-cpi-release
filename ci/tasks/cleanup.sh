@@ -35,6 +35,7 @@ openstack_delete_entities() {
   local list_args=$2
   local delete_args=$3
   id_list=$(openstack $entity list $list_args --format json | jq --raw-output '.[].ID')
+  echo $id_list
   for id in $id_list
   do
     echo "Deleting $entity $id ..."
@@ -57,8 +58,11 @@ done
 
 # Destroy all images and snapshots and volumes
 
+echo "openstack cli version:"
+openstack --version
+
 echo "Deleting images #########################"
-openstack_delete_entities "image" "--private"
+openstack_delete_entities "image" "--private --limit 1000"
 echo "Deleting snapshots #########################"
 openstack_delete_entities "snapshot"
 echo "Deleting volumes #########################"

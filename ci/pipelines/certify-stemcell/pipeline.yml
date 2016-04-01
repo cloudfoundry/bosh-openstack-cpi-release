@@ -306,6 +306,7 @@ jobs:
     serial_groups: [e2e-centos, e2e-ubuntu, test-upgrade-centos, test-upgrade-ubuntu] #can't run while anything else is running
     plan:
       - {trigger: false, get: bosh-cpi-src-in}
+      - {trigger: true,  get: cleanup-time-trigger}
 
       - task: cleanup-e2e
         file: bosh-cpi-src-in/ci/tasks/cleanup.yml
@@ -397,3 +398,7 @@ resources:
         - .final_builds/**
         - docs/**
         - README.md
+  - name: cleanup-time-trigger
+    type: time
+    source:
+      interval: 24h
