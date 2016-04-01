@@ -360,6 +360,7 @@ jobs:
     serial_groups: [e2e-centos, e2e-ubuntu, e2e-ubuntu-config-drive, e2e-centos-config-drive, test-upgrade-centos, test-upgrade-ubuntu] #can't run while anything else is running
     plan:
       - {trigger: false, get: bosh-cpi-src-in}
+      - {trigger: true,  get: cleanup-time-trigger}
 
       - task: cleanup-e2e
         file: bosh-cpi-src-in/ci/tasks/cleanup.yml
@@ -479,3 +480,9 @@ resources:
       bucket: {{s3_openstack_cpi_receipts_bucket_name}}
       regexp: receipt-.*\.json
       region_name: us-east-1
+
+  - name: cleanup-time-trigger
+    type: time
+    source:
+      interval: 24h
+
