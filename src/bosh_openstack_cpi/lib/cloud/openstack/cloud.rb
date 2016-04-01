@@ -192,8 +192,8 @@ module Bosh::OpenStackCloud
         security_groups_to_be_used = retrieve_and_validate_security_groups(network_configurator, resource_pool)
         @logger.debug("Using security groups: `#{security_groups_to_be_used.map { |sg| sg.name }.join(', ')}'")
 
-        if @config_drive
-          network_configurator.create_ports_for_manual_networks @openstack, security_groups_to_be_used.map { |sg| sg.id }
+        if network_configurator.manual_port_creation? @config_drive
+          network_configurator.prepare_ports_for_manual_networks(@openstack, security_groups_to_be_used.map { |sg| sg.id })
         end
 
         nics = network_configurator.nics
