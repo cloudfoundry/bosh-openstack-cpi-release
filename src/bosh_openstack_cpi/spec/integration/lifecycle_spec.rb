@@ -133,7 +133,7 @@ describe Bosh::OpenStackCloud::Cloud do
 
       it 'sets the vm name according to the metadata' do
         vm = cpi.compute.servers.get(@human_readable_vm_name_id)
-        expect(vm.name).to eq 'openstack_cpi_spec/0'
+        expect(vm.name).to eq 'openstack_cpi_spec/instance_id'
       end
 
     end
@@ -414,8 +414,7 @@ describe Bosh::OpenStackCloud::Cloud do
     @logger.info("Setting VM metadata vm_id=#{vm_id}")
     cpi.set_vm_metadata(vm_id, {
       'deployment' => 'deployment',
-      'job' => 'openstack_cpi_spec',
-      'index' => '0',
+      'name' => 'openstack_cpi_spec/instance_id',
     })
 
     vm_id

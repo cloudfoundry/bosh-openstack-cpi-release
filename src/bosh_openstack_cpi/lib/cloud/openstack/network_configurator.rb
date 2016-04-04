@@ -136,26 +136,20 @@ module Bosh::OpenStackCloud
     end
 
     ##
-    # Creates network ports via Neutron, if multiple manual networks
-    # are configured.
+    # Creates network ports via Neutron
     #
-    def create_ports_for_manual_networks(openstack, security_group_ids)
-      if multiple_manual_networks?
-        @networks.each do |network_info|
-          network = network_info['network']
-          if network.is_a?(ManualNetwork)
-            port = with_openstack {
-              openstack.network.ports.create({
-                                                 network_id: network_info['net_id'],
-                                                 fixed_ips: [{ip_address: network.private_ip}],
-                                                 security_groups: security_group_ids
-                                             })
-            }
-            network_info['port_id'] = port.id
-            @network_spec[network.name]['mac'] = port.mac_address
-          end
+    def prepare_ports_for_manual_networks(openstack, security_group_ids)
+      @networks.each do |network_info|
+        if network(network_info).is_a?(ManualNetwork)
+          port = create_port_for_manual_network(network_info, openstack, security_group_ids)
+          add_port_to_network_spec(network_info, port)
         end
       end
+    end
+
+    def add_port_to_network_spec(network_info, port)
+      network_info['port_id'] = port.id
+      @network_spec[network(network_info).name]['mac'] = port.mac_address
     end
 
     ##
@@ -165,22 +159,43 @@ module Bosh::OpenStackCloud
     def nics
       @networks.inject([]) do |memo, network_info|
         net_id = network_info['net_id']
-        network = network_info['network']
+        network = network(network_info)
         nic = {}
         nic['net_id'] = net_id if net_id
         if network.is_a?(ManualNetwork)
-          nic['v4_fixed_ip'] = network.private_ip
-          nic['port_id'] = network_info['port_id'] if network_info['port_id']
+          if network_info['port_id']
+            nic['port_id'] = network_info['port_id']
+          else
+            nic['v4_fixed_ip'] = network.private_ip
+          end
         end
         memo << nic if nic.any?
         memo
       end
     end
 
+    def manual_port_creation?(config_drive)
+      config_drive && multiple_manual_networks?
+    end
+
     private
 
+    def create_port_for_manual_network(network_info, openstack, security_group_ids)
+      with_openstack {
+        openstack.network.ports.create({
+                                           network_id: network_info['net_id'],
+                                           fixed_ips: [{ip_address: network(network_info).private_ip}],
+                                           security_groups: security_group_ids
+                                       })
+      }
+    end
+
     def multiple_manual_networks?
-      @networks.count { |network_info| network_info['network'].is_a?(ManualNetwork) } > 1
+      @networks.count { |network_info| network(network_info).is_a?(ManualNetwork) } > 1
+    end
+
+    def network(network_info)
+      network_info['network']
     end
 
     def manual_network?(network)
