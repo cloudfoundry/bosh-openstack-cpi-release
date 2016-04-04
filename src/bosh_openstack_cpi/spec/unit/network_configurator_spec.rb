@@ -251,6 +251,28 @@ describe Bosh::OpenStackCloud::NetworkConfigurator do
     end
 
     context 'when manual network' do
+
+      let(:nc) do
+        manual_network = { 'network_a' => manual_network_spec(ip: '10.0.0.1') }
+        Bosh::OpenStackCloud::NetworkConfigurator.new(manual_network)
+      end
+
+      context 'and no port id is available in network spec' do
+        it 'should set fixed ip only' do
+          expect(nc.nics).to eq([{'net_id' => 'net', 'v4_fixed_ip' => '10.0.0.1'}])
+        end
+      end
+
+      context 'and port id is available in network spec' do
+        it 'should set port id only' do
+          port = double('port', id: '117717c1-81cb-4ac4-96ab-99aaf1be9ca8', mac_address: 'AA:BB:CC:DD:EE:FF')
+          expect(nc).to receive(:create_port_for_manual_network).and_return(port)
+          nc.prepare_ports_for_manual_networks(nil, nil)
+
+          expect(nc.nics).to eq([{'net_id' => 'net', 'port_id' => '117717c1-81cb-4ac4-96ab-99aaf1be9ca8'}])
+        end
+      end
+
       context 'when multiple networks' do
         it 'should extract net_id and IP address from all' do
           nc = Bosh::OpenStackCloud::NetworkConfigurator.new(several_manual_networks)
@@ -285,8 +307,8 @@ describe Bosh::OpenStackCloud::NetworkConfigurator do
         nc.prepare_ports_for_manual_networks(openstack, security_groups_to_be_used)
 
         expect(nc.nics).to eq([
-                                  {'net_id' => 'net', 'port_id' => '117717c1-81cb-4ac4-96ab-99aaf1be9ca8', 'v4_fixed_ip' => '10.0.0.1'},
-                                  {'net_id' => 'bar', 'port_id' => '217715c1-81cb-4ac4-96eb-99aaf1be9ca8', 'v4_fixed_ip' => '10.0.0.2'}
+                                  {'net_id' => 'net', 'port_id' => '117717c1-81cb-4ac4-96ab-99aaf1be9ca8'},
+                                  {'net_id' => 'bar', 'port_id' => '217715c1-81cb-4ac4-96eb-99aaf1be9ca8'}
                               ])
       end
 

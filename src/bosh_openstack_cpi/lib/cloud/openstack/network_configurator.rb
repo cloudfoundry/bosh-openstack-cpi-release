@@ -163,8 +163,11 @@ module Bosh::OpenStackCloud
         nic = {}
         nic['net_id'] = net_id if net_id
         if network.is_a?(ManualNetwork)
-          nic['v4_fixed_ip'] = network.private_ip
-          nic['port_id'] = network_info['port_id'] if network_info['port_id']
+          if network_info['port_id']
+            nic['port_id'] = network_info['port_id']
+          else
+            nic['v4_fixed_ip'] = network.private_ip
+          end
         end
         memo << nic if nic.any?
         memo
