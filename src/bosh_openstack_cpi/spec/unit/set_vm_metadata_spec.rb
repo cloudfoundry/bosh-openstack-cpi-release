@@ -41,16 +41,32 @@ describe Bosh::OpenStackCloud::Cloud do
     end
 
     context 'for normal job' do
-      let(:metadata) { {'job' => 'job', 'index' => 'index'} }
+      context "when bosh provides NO 'name' property" do
+        let(:metadata) { {'job' => 'job', 'index' => 'index'} }
 
-      it "sets the vm name 'job/index'" do
-        @cloud.set_vm_metadata("i-foobar", metadata)
-        expect(@cloud.compute).to have_received(:update_server).with('i-foobar', {'name' => 'job/index'})
+        it "sets the vm name 'job/index'" do
+          @cloud.set_vm_metadata("i-foobar", metadata)
+          expect(@cloud.compute).to have_received(:update_server).with('i-foobar', {'name' => 'job/index'})
+        end
+
+        it 'logs job name & index' do
+          @cloud.set_vm_metadata("i-foobar", metadata)
+          expect(Bosh::Clouds::Config.logger).to have_received(:debug).with("Rename VM with id 'i-foobar' to 'job/index'")
+        end
       end
 
-      it 'logs job name & index' do
-        @cloud.set_vm_metadata("i-foobar", metadata)
-        expect(Bosh::Clouds::Config.logger).to have_received(:debug).with("Rename VM with id 'i-foobar' to 'job/index'")
+      context "when bosh provides a 'name' property" do
+        let(:metadata) { {'name' => 'job/id'} }
+
+        it "sets the vm name 'job/id'" do
+          @cloud.set_vm_metadata("i-foobar", metadata)
+          expect(@cloud.compute).to have_received(:update_server).with('i-foobar', {'name' => 'job/id'})
+        end
+
+        it 'logs instance name' do
+          @cloud.set_vm_metadata("i-foobar", metadata)
+          expect(Bosh::Clouds::Config.logger).to have_received(:debug).with("Rename VM with id 'i-foobar' to 'job/id'")
+        end
       end
 
     end

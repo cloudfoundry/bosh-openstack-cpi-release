@@ -646,10 +646,14 @@ module Bosh::OpenStackCloud
           end
 
           if server.metadata.get(REGISTRY_KEY_TAG)
+            name = metadata['name']
             job = metadata['job']
             index = metadata['index']
             compiling = metadata['compiling']
-            if job && index
+            if name
+              @logger.debug("Rename VM with id '#{server_id}' to '#{name}'")
+              @openstack.compute.update_server(server_id, {'name' => "#{name}"})
+            elsif job && index
               @logger.debug("Rename VM with id '#{server_id}' to '#{job}/#{index}'")
               @openstack.compute.update_server(server_id, {'name' => "#{job}/#{index}"})
             elsif compiling
