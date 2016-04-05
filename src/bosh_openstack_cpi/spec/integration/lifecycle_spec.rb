@@ -215,6 +215,10 @@ describe Bosh::OpenStackCloud::Cloud do
 
         expect(network_interface_1['OS-EXT-IPS-MAC:mac_addr']).to eq(registry_settings['networks']['network_1']['mac'])
         expect(network_interface_2['OS-EXT-IPS-MAC:mac_addr']).to eq(registry_settings['networks']['network_2']['mac'])
+
+        ports = cpi.network.ports.all(:device_id => @multiple_nics_vm_id)
+        clean_up_vm(@multiple_nics_vm_id, network_spec) if @multiple_nics_vm_id
+        expect(ports.find{ |port| cpi.network.ports.get port.id }).to be_nil
       end
 
       def where_ip_address_is(ip)

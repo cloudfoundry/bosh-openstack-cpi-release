@@ -13,14 +13,20 @@ describe Bosh::OpenStackCloud::Cloud do
     server = double("server", :id => "i-foobar", :name => "i-foobar")
 
     cloud = mock_cloud do |openstack|
-      expect(openstack.servers).to receive(:get).with("i-foobar").and_return(server)
+      allow(openstack.servers).to receive(:get).with("i-foobar").and_return(server)
     end
 
-    expect(server).to receive(:destroy).and_return(true)
-    expect(cloud).to receive(:wait_resource).with(server, [:terminated, :deleted], :state, true)
-
-    expect(@registry).to receive(:delete_settings).with("i-foobar")
+    allow(Bosh::OpenStackCloud::NetworkConfigurator).to receive(:port_ids).and_return(['port_id'])
+    allow(Bosh::OpenStackCloud::NetworkConfigurator).to receive(:cleanup_ports)
+    allow(server).to receive(:destroy)
+    allow(cloud).to receive(:wait_resource)
+    allow(@registry).to receive(:delete_settings)
 
     cloud.delete_vm("i-foobar")
+
+    expect(server).to have_received(:destroy)
+    expect(cloud).to have_received(:wait_resource).with(server, [:terminated, :deleted], :state, true)
+    expect(Bosh::OpenStackCloud::NetworkConfigurator).to have_received(:cleanup_ports).with(any_args, ['port_id'])
+    expect(@registry).to have_received(:delete_settings).with("i-foobar")
   end
 end

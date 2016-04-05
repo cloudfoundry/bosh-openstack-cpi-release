@@ -425,4 +425,75 @@ describe Bosh::OpenStackCloud::NetworkConfigurator do
       end
     end
   end
+
+  describe '.port_ids' do
+    let(:neutron) { double(Fog::Network) }
+    let(:openstack) { instance_double(Bosh::OpenStackCloud::Openstack) }
+
+    context 'when neutron is available' do
+
+      it 'should return all device ports' do
+        port = double('port', :id => 'port_id')
+        ports = double('ports', :all => [])
+        allow(openstack).to receive(:network).and_return(neutron)
+        allow(neutron).to receive(:ports).and_return(ports)
+        allow(ports).to receive(:all).with(:device_id => 'server_id').and_return([port])
+
+        expect(Bosh::OpenStackCloud::NetworkConfigurator.port_ids(openstack, 'server_id')).to eq(['port_id'])
+      end
+    end
+
+    context 'when neutron returns error or is not available' do
+      it 'should return no ports' do
+        allow(openstack).to receive(:network).and_raise(Bosh::Clouds::CloudError)
+
+        expect(Bosh::OpenStackCloud::NetworkConfigurator.port_ids(openstack, 'server_id')).to eq([])
+      end
+    end
+  end
+
+  describe '.cleanup_ports' do
+    let(:neutron) { double(Fog::Network) }
+    let(:openstack) { instance_double(Bosh::OpenStackCloud::Openstack) }
+    let(:port_a) { double('port_a', :id => 'port_a_id') }
+    let(:port_b) { double('port_b', :id => 'port_b_id') }
+
+    context 'when neutron is available' do
+      it 'should delete all ports' do
+        ports = double('ports')
+        allow(openstack).to receive(:network).and_return(neutron).exactly(2).times
+        allow(neutron).to receive(:ports).and_return(ports).exactly(2).times
+        allow(ports).to receive(:get).with('port_a_id').and_return(port_a)
+        allow(ports).to receive(:get).with('port_b_id').and_return(port_b)
+        allow(port_a).to receive(:destroy)
+        allow(port_b).to receive(:destroy)
+
+        expect(Bosh::OpenStackCloud::NetworkConfigurator.cleanup_ports(openstack, ['port_a_id', 'port_b_id']))
+      end
+
+      it 'should not fail on already deleted ports' do
+        ports = double('ports')
+        allow(openstack).to receive(:network).and_return(neutron).exactly(2).times
+        allow(neutron).to receive(:ports).and_return(ports).exactly(2).times
+        allow(ports).to receive(:get).with('port_a_id').and_return(nil)
+        allow(ports).to receive(:get).with('port_b_id').and_return(nil)
+
+        expect{
+          Bosh::OpenStackCloud::NetworkConfigurator.cleanup_ports(openstack, ['port_a_id', 'port_b_id'])
+        }.to_not raise_error
+      end
+    end
+
+    context 'when neutron is not available' do
+      it 'should not raise any error' do
+        allow(openstack).to receive(:network).and_return(neutron).and_raise(Bosh::Clouds::CloudError)
+
+        expect{
+          Bosh::OpenStackCloud::NetworkConfigurator.cleanup_ports(openstack, [port_a, port_b])
+        }.to_not raise_error
+      end
+    end
+
+  end
+
 end
