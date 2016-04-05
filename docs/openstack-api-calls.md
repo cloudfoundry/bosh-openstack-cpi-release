@@ -45,6 +45,18 @@ POST /v1.1/images
 ```
 GET /
 GET /v2.0/networks/<resource_id>
+GET /v2.0/ports
+GET /v2.0/ports
+GET /v2.0/ports
+GET /v2.0/ports
+GET /v2.0/ports
+GET /v2.0/ports
+GET /v2.0/ports
+GET /v2.0/ports
+GET /v2.0/ports
+GET /v2.0/ports
+GET /v2.0/ports
+GET /v2.0/ports/<resource_id>
 POST /v2.0/ports body: {"port":{"network_id":"<resource_id>","fixed_ips":[{"ip_address":"<ip_address>"}],"security_groups":["<resource_id>"]}}
 ```
 ### All calls for API endpoint 'volume (cinder)'
