@@ -80,6 +80,10 @@ module Bosh::OpenStackCloud
       @openstack.auth_url
     end
 
+    def network
+      @openstack.network
+    end
+
     ##
     # Creates a new OpenStack Image using stemcell image. It requires access
     # to the OpenStack Glance service.
@@ -354,8 +358,10 @@ module Bosh::OpenStackCloud
         @logger.info("Deleting server `#{server_id}'...")
         server = with_openstack { @openstack.compute.servers.get(server_id) }
         if server
+          server_port_ids = NetworkConfigurator.port_ids(@openstack, server_id)
           with_openstack { server.destroy }
           wait_resource(server, [:terminated, :deleted], :state, true)
+          NetworkConfigurator.cleanup_ports(@openstack, server_port_ids)
 
           @logger.info("Deleting settings for server `#{server.id}'...")
           @registry.delete_settings(server.name)

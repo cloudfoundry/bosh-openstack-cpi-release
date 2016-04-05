@@ -178,6 +178,31 @@ module Bosh::OpenStackCloud
       config_drive && multiple_manual_networks?
     end
 
+    def self.port_ids(openstack, server_id)
+      begin
+        ports = with_openstack {
+          openstack.network.ports.all(:device_id => server_id)
+        }
+        return ports.map { |port| port.id }
+      rescue Bosh::Clouds::CloudError => e
+        Bosh::Clouds::Config.logger.debug(e.backtrace)
+      end
+      []
+    end
+
+    def self.cleanup_ports(openstack, port_ids)
+      begin
+        port_ids.each do |port_id|
+          with_openstack {
+            port = openstack.network.ports.get(port_id)
+            port.destroy if port
+          }
+        end
+      rescue Bosh::Clouds::CloudError => e
+        Bosh::Clouds::Config.logger.debug(e.backtrace)
+      end
+    end
+
     private
 
     def create_port_for_manual_network(network_info, openstack, security_group_ids)
