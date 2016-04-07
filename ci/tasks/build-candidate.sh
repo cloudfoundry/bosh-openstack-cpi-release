@@ -18,7 +18,7 @@ popd
 echo "using bosh CLI version..."
 bosh version
 
-cpi_release_name="bosh-openstack-cpi"
+cpi_release_name="bosh-openstack-cpi-wip"
 
 echo "building CPI release..."
 bosh create release --name $cpi_release_name --version $semver --with-tarball
