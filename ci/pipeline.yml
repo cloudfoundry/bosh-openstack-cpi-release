@@ -522,7 +522,7 @@ resources:
   - name: bosh-cpi-dev-artifacts
     type: s3
     source:
-      regexp: bosh-openstack-cpi-([0-9.]+)\.tgz
+      regexp: bosh-openstack-cpi-wip-([0-9.]+)\.tgz
       bucket: {{s3_openstack_cpi_pipeline_bucket_name}} # OpenStack CPI account
       region_name: us-east-1
       access_key_id:      {{s3_openstack_cpi_pipeline_access_key}}
@@ -613,7 +613,7 @@ resources:
     type: git
     source:
       uri: https://github.com/cloudfoundry-incubator/bosh-openstack-cpi-release.git
-      branch: master
+      branch: new-bats
       ignore_paths:
         - releases/bosh-openstack-cpi/**
         - .final_builds/**
@@ -624,7 +624,7 @@ resources:
     type: git
     source:
       uri: git@github.com:cloudfoundry-incubator/bosh-openstack-cpi-release.git
-      branch: master
+      branch: new-bats
       private_key: {{github_deployment_key__bosh-openstack-cpi-release}}
 
   - name: version-semver
@@ -654,7 +654,7 @@ resources:
     type: git
     source:
       uri: https://github.com/cloudfoundry/bosh-acceptance-tests.git
-      branch: master
+      branch: develop
 
   - name: bosh-release
     type: bosh-io-release
