@@ -33,7 +33,6 @@ source /etc/profile.d/chruby-with-ruby-2.1.2.sh
 
 export BOSH_INIT_LOG_LEVEL=DEBUG
 
-semver=`cat version-semver/number`
 cpi_release_name="bosh-openstack-cpi"
 deployment_dir="${PWD}/deployment"
 manifest_filename="${base_os}-${network_type_to_test}-director-manifest.yml"
@@ -42,7 +41,7 @@ private_key=${deployment_dir}/bats.pem
 bosh_vcap_password_hash=$(ruby -e 'require "securerandom";puts ENV["bosh_admin_password"].crypt("$6$#{SecureRandom.base64(14)}")')
 
 echo "setting up artifacts used in $manifest_filename"
-cp ./bosh-cpi-dev-artifacts/${cpi_release_name}-${semver}.tgz ${deployment_dir}/${cpi_release_name}.tgz
+cp ./bosh-cpi-dev-artifacts/*.tgz ${deployment_dir}/${cpi_release_name}.tgz
 cp ./bosh-release/release.tgz ${deployment_dir}/bosh-release.tgz
 cp ./stemcell/stemcell.tgz ${deployment_dir}/stemcell.tgz
 cp ./director-state-file/${director_state_filename} ${deployment_dir}/${director_state_filename}
