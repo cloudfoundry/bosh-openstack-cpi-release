@@ -111,4 +111,4 @@ cd bats
 ./write_gemfile
 
 bundle install
-bundle exec rspec spec
+bundle exec rspec --tag ~raw_ephemeral_disk spec
