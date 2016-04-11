@@ -57,17 +57,29 @@ Figure below shows the flow control for the method `create_stemcell(image_path, 
 
 ##Create VM ##
 
+Implementation of
+`def create_vm(agent_id, stemcell_id, resource_pool, network_spec = nil, disk_locality = nil, environment = nil)` method.
+
+1. Retrieve `security_groups` available on OpenStack and validate them against configured.
+2. If option `config_drive`  and multiple manual networks are set, create network ports for manual networks.
+3. Find stemcell image for passed `stemcell_id`.
+4. Find OpenStack flavour for configured `instance_type`.
+5. Create VM.
+6. If option `human_readable_vm_names` is provided, tag the created VM with it's BOSH registry key.
+7. Update BOSH registry settings for the new VM
+
 ![openstack_cpi_create_vm](images/openstack_cpi_create_vm.png)
 
 ##Delete VM ##
 
 Implementation of `delete_vm(server_id)`. This method deletes the VM created in Nova Compute.
 
-1. Get the `server_id` of the VM to be deleted
-	* 1.1, 1.2 : Send the request `get_server_details` to Compute API Server through  `Fog::Connection`
-2.  If `server` object returned is not null call `server.destroy`. This will send `delete_server` request to Nova Compute.
-	* 2.1, 2.2 : Create and send the `delete_server` request through `Fog::Connection` 
-3.  Delete the settings from Registry by calling `delete_settings` method.
+1. Get the `server` of the VM to be deleted
+If `server` object returned is not null
+2. If Neutron exists, get network port ids for server.
+3. Call `server.destroy`. This will send `delete_server` request to Nova Compute.
+4. If Neutron exists, delete network ports
+5. Delete the settings from Registry by calling `delete_settings` method.
 
 Figure below shows the flow control for `delete_vm` method
 
