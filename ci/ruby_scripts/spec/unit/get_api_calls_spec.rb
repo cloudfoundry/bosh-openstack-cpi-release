@@ -77,7 +77,7 @@ describe 'Get API calls script' do
       expect(requests.map &to_body_value('volume_size')).to all (eq('<volume_size>'))
     end
 
-    ['user_data', 'display_description', 'device', 'password', 'fixed_ip', 'availability_zone', 'key_name', 'username', 'tenantName', 'name', 'token', 'ip_address'].each do |key|
+    ['user_data', 'display_description', 'device', 'password', 'fixed_ip', 'availability_zone', 'key_name', 'username', 'tenantName', 'name', 'token', 'ip_address', 'device_id'].each do |key|
       it "scrubs '#{key}' values from body" do
         requests = requests_with_body "{\"#{key}\":\"aribitrary_value\"}"
 
@@ -86,6 +86,13 @@ describe 'Get API calls script' do
         expect(requests.map &to_body_value(key)).to all (eq("<#{key}>"))
       end
 
+      it "scrubs '#{key}' values from query" do
+        requests = requests_with_query "#{key}=aribitrary_value"
+
+        scrub_random_values!(requests)
+
+        expect(requests.map { |request| request[:query] }).to all (eq("#{key}=<#{key}>"))
+      end
     end
 
     def to_path
@@ -96,6 +103,13 @@ describe 'Get API calls script' do
       lambda do |req|
          JSON.parse(req[:body])[key]
       end
+    end
+
+    def requests_with_query(query)
+      [{
+           path: '',
+           query: query
+       }]
     end
 
     def requests_with_body(body)

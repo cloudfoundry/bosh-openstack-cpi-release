@@ -20,6 +20,10 @@ def scrub_random_body_value!(request, key)
   request[:body].gsub!(/"#{key}":\".*?\"/, "\"#{key}\":\"<#{key}>\"")
 end
 
+def scrub_random_query_value!(query, key)
+  query.gsub!(/(\A|&)#{key}=.*?(\Z|&)/, "\\1#{key}=<#{key}>\\2")
+end
+
 def scrub_random_values!(requests)
   requests.each do |request|
     tenant_id_regex = /[a-fA-F0-9]{32}/
@@ -32,11 +36,17 @@ def scrub_random_values!(requests)
     # life cycle test uses this fake ids which doesn't match any uuid reqex
     request[:path].gsub!('non-existing-disk', '<resource_id>')
     request[:path].gsub!('non-existing-vm-id', '<resource_id>')
+    keys_to_scrub = ['user_data', 'display_description', 'device', 'password', 'fixed_ip', 'availability_zone', 'key_name', 'username', 'tenantName', 'name', 'token', 'ip_address', 'device_id']
+    if request[:query]
+      keys_to_scrub.each do |key|
+        scrub_random_query_value!(request[:query], key)
+      end
+    end
     if request[:body]
       request[:body].gsub!(resource_id_regex, '<resource_id>')
       request[:body].gsub!(/"volume_size":\d+/, "\"volume_size\":\"<volume_size>\"")
       request[:body].gsub!(/"size":\d+/, "\"size\":\"<size>\"")
-      ['user_data', 'display_description', 'device', 'password', 'fixed_ip', 'availability_zone', 'key_name', 'username', 'tenantName', 'name', 'token', 'ip_address'].each do |key|
+      keys_to_scrub.each do |key|
         scrub_random_body_value!(request, key)
       end
     end
@@ -75,7 +85,9 @@ def run
           path: path_regex.match(matched[1])[1],
       }
       query = query_regex.match(matched[1])
-      request[:query] = query[1] if query
+      if query && query[1] != '{}'
+        request[:query] = to_query_string(query[1])
+      end
       body = body_regex.match(matched[1])
       request[:body] = unescape_double_quote(body[1]) if body
 
@@ -112,13 +124,35 @@ def request_of(catalog_entry_type)
   lambda { |request| request[:target][:type] == catalog_entry_type }
 end
 
+def to_query_string(query_hash_string)
+  def remove_colon(symbol_string)
+    symbol_string[1..-1]
+  end
+
+  def remove_braces(hash_string)
+    hash_string[1..hash_string.length-2]
+  end
+
+  remove_braces(query_hash_string)
+      .split(', ')
+      .map { |key_value| remove_colon(key_value)
+                             .gsub('=>', '=')
+                             .gsub('"', '') }
+      .sort
+      .join('&')
+end
+
 def to_formatted_line
   lambda { | request|
+    query = ''
+    if request[:query]
+      query = "?#{request[:query]}"
+    end
     body = ''
     if request[:body]
       body = " body: #{unescape_double_quote(request[:body])}"
     end
-    "#{request[:method]} #{request[:path]}#{body}"
+    "#{request[:method]} #{request[:path]}#{query}#{body}"
   }
 end
 
