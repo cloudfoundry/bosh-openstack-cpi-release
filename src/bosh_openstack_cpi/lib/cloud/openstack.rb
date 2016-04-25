@@ -12,7 +12,7 @@ require "pp"
 require "set"
 require "tmpdir"
 require "securerandom"
-require "yajl"
+require "json"
 
 require "common/exec"
 require "common/thread_pool"

@@ -37,7 +37,7 @@ describe Bosh::OpenStackCloud::Cloud, "create_vm" do
       os_scheduler_hints: scheduler_hints,
       nics: nics,
       config_drive: false,
-      user_data: Yajl::Encoder.encode(user_data(unique_name, network_spec, nameserver, false)),
+      user_data: JSON.dump(user_data(unique_name, network_spec, nameserver, false)),
       availability_zone: "foobar-1a"
     }
 
