@@ -1,6 +1,12 @@
 source 'https://rubygems.org'
 
-gemspec
+gem 'bosh_common'
+gem 'bosh_cpi'
+gem 'bosh-registry'
+gem 'fog',           '~>1.34.0'
+gem 'httpclient',    '=2.7.1'
+gem 'yajl-ruby',     '>=0.8.2'
+gem 'membrane',      '~>1.1.0'
 
 group :development, :test do
   gem 'rspec', '~> 3.0.0'
