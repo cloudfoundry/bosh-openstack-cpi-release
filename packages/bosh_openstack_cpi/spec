@@ -3,4 +3,8 @@ name: bosh_openstack_cpi
 dependencies:
 - ruby_openstack_cpi
 files:
-- bosh_openstack_cpi/**/*
+- bosh_openstack_cpi/Gemfile
+- bosh_openstack_cpi/Gemfile.lock
+- bosh_openstack_cpi/bin/**/*
+- bosh_openstack_cpi/lib/**/*
+- bosh_openstack_cpi/vendor/package/**/*
