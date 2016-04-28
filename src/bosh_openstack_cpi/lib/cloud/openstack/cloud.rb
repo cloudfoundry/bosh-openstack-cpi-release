@@ -256,13 +256,12 @@ module Bosh::OpenStackCloud
         if @boot_from_volume
           boot_vol_size = flavor.disk * 1024
 
-          boot_vol_id = create_boot_disk(boot_vol_size, stemcell_id, availability_zone, @boot_volume_cloud_properties)
-          cloud_error("Failed to create boot volume.") if boot_vol_id.nil?
-          @logger.debug("Using boot volume: `#{boot_vol_id}'")
-
-          server_params[:block_device_mapping] = [{
+          server_params[:block_device_mapping_v2] = [{
+                                                   :uuid => image.id,
+                                                   :source_type => "image",
+                                                   :dest_type => "volume",
                                                    :volume_size => boot_vol_size,
-                                                   :volume_id => boot_vol_id,
+                                                   :boot_index => "0",
                                                    :delete_on_termination => "1",
                                                    :device_name => "/dev/vda"
                                                  }]
