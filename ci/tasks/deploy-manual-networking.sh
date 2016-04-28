@@ -56,7 +56,8 @@ name: bosh
 
 releases:
   - name: bosh
-    url: file://bosh-release.tgz
+    url: https://bosh.io/d/github.com/cloudfoundry/bosh?v=255.10
+    sha1: 013e75a62b0511ec714e89444964c63cbc289b09
   - name: ${cpi_release_name}
     url: file://${cpi_release_name}.tgz
 
