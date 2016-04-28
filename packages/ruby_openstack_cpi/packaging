@@ -26,7 +26,7 @@ tar xzf ruby_openstack_cpi/ruby-2.1.7.tar.gz
   set -e
   cd ruby-2.1.7
   LDFLAGS="-Wl,-rpath -Wl,${BOSH_INSTALL_TARGET}" CFLAGS='-fPIC' ./configure --prefix=${BOSH_INSTALL_TARGET} --disable-install-doc --with-opt-dir=/usr/local/opt/openssl:${BOSH_INSTALL_TARGET}
-  make 
+  make
   make install
 )
 
@@ -44,4 +44,4 @@ tar zxvf ruby_openstack_cpi/rubygems-2.1.11.tgz
   fi
 )
 
-${BOSH_INSTALL_TARGET}/bin/gem install ruby_openstack_cpi/bundler-1.8.2.gem --local --no-ri --no-rdoc
+${BOSH_INSTALL_TARGET}/bin/gem install ruby_openstack_cpi/bundler-1.11.2.gem --local --no-ri --no-rdoc
