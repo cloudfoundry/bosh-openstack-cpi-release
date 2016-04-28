@@ -1,3 +1,5 @@
+$LOAD_PATH.unshift File.expand_path('../../lib', __FILE__)
+
 require 'tmpdir'
 require 'zlib'
 require 'archive/tar/minitar'
@@ -64,7 +66,7 @@ end
 
 def mock_registry(endpoint = 'http://registry:3333')
   registry = double('registry', :endpoint => endpoint)
-  allow(Bosh::Registry::Client).to receive(:new).and_return(registry)
+  allow(Bosh::Cpi::RegistryClient).to receive(:new).and_return(registry)
   registry
 end
 

@@ -90,7 +90,7 @@ describe Bosh::OpenStackCloud::Cloud do
     )
   end
 
-  before { allow(Bosh::Registry::Client).to receive(:new).and_return(double('registry').as_null_object) }
+  before { allow(Bosh::Cpi::RegistryClient).to receive(:new).and_return(double('registry').as_null_object) }
 
   describe 'dynamic network' do
     # even for dynamic networking we need to set the net_id as we may be in an environment
@@ -198,7 +198,7 @@ describe Bosh::OpenStackCloud::Cloud do
       it 'creates writes the mac addresses of the two networks to the registry' do
         registry = double('registry')
         registry_settings = nil
-        allow(Bosh::Registry::Client).to receive(:new).and_return(registry)
+        allow(Bosh::Cpi::RegistryClient).to receive(:new).and_return(registry)
         allow(registry).to receive_messages(endpoint: nil, delete_settings:nil)
         allow(registry).to receive(:update_settings) do |_, settings|
           registry_settings = settings

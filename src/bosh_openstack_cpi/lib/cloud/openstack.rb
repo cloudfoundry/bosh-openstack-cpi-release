@@ -5,20 +5,20 @@ module Bosh
   module OpenStackCloud; end
 end
 
-require "fog"
+require "fog/openstack"
 require "httpclient"
 require "json"
 require "pp"
 require "set"
 require "tmpdir"
 require "securerandom"
-require "yajl"
+require "json"
 
 require "common/exec"
 require "common/thread_pool"
 require "common/thread_formatter"
 
-require 'bosh/registry/client'
+require "bosh/cpi/registry_client"
 require "cloud"
 require "cloud/openstack/helpers"
 require "cloud/openstack/cloud"
