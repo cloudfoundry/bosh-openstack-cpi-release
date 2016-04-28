@@ -63,7 +63,7 @@ PLATFORMS
 DEPENDENCIES
   bosh_common
   bosh_cpi
-  fog-openstack
+  fog-openstack (= 0.1.3)
   httpclient (= 2.7.1)
   membrane (~> 1.1.0)
   minitar (~> 0.5.4)
