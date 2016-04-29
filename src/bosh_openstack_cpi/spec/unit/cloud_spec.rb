@@ -11,7 +11,7 @@ describe Bosh::OpenStackCloud::Cloud do
     before {
       expect(Fog::Compute).to_not receive(:new)
       expect(Fog::Image).to_not receive(:new)
-      expect(Fog::Volume).to_not receive(:new)
+      expect(Fog::Volume::OpenStack::V1).to_not receive(:new)
       expect(Fog::Network).to_not receive(:new)
     }
 

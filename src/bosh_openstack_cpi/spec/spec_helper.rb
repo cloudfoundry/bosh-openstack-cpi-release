@@ -83,9 +83,9 @@ def mock_cloud(options = nil)
   glance = double(Fog::Image)
   allow(Fog::Image).to receive(:new).and_return(glance)
 
-  volume = double(Fog::Volume)
+  volume = double(Fog::Volume::OpenStack::V1)
   allow(volume).to receive(:volumes).and_return(volumes)
-  allow(Fog::Volume).to receive(:new).and_return(volume)
+  allow(Fog::Volume::OpenStack::V1).to receive(:new).and_return(volume)
 
   openstack = double(Fog::Compute)
 
@@ -111,8 +111,8 @@ def mock_glance(options = nil)
   openstack = double(Fog::Compute)
   allow(Fog::Compute).to receive(:new).and_return(openstack)
 
-  volume = double(Fog::Volume)
-  allow(Fog::Volume).to receive(:new).and_return(volume)
+  volume = double(Fog::Volume::OpenStack::V1)
+  allow(Fog::Volume::OpenStack::V1).to receive(:new).and_return(volume)
 
   glance = double(Fog::Image)
   allow(glance).to receive(:images).and_return(images)
