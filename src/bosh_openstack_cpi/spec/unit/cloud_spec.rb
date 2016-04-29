@@ -10,7 +10,7 @@ describe Bosh::OpenStackCloud::Cloud do
 
     before {
       expect(Fog::Compute).to_not receive(:new)
-      expect(Fog::Image).to_not receive(:new)
+      expect(Fog::Image::OpenStack::V1).to_not receive(:new)
       expect(Fog::Volume::OpenStack::V1).to_not receive(:new)
       expect(Fog::Network).to_not receive(:new)
     }
@@ -147,7 +147,7 @@ describe Bosh::OpenStackCloud::Cloud do
     before { allow(Fog::Compute).to receive(:new).and_return(compute) }
 
     let(:image) { instance_double('Fog::Image') }
-    before { allow(Fog::Image).to receive(:new).and_return(image) }
+    before { allow(Fog::Image::OpenStack::V1).to receive(:new).and_return(image) }
 
     context 'when server has no registry_key tag' do
       it 'uses the server name as key' do

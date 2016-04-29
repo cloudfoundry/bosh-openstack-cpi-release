@@ -51,7 +51,7 @@ module Bosh::OpenStackCloud
         begin
           Bosh::Common.retryable(@connect_retry_options) do |tries, error|
             @logger.error("Failed #{tries} times, last failure due to: #{error.inspect}") unless error.nil?
-            @glance = Fog::Image.new(params)
+            @glance = Fog::Image::OpenStack::V1.new(params)
           end
         rescue Excon::Errors::SocketError => e
           cloud_error(socket_error_msg + "#{e.message}")

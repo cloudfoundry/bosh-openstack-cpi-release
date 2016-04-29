@@ -80,8 +80,8 @@ def mock_cloud(options = nil)
   key_pairs = double('key_pairs')
   security_groups = [double('default_sec_group', id: 'default_sec_group_id', name: 'default')]
 
-  glance = double(Fog::Image)
-  allow(Fog::Image).to receive(:new).and_return(glance)
+  glance = double(Fog::Image::OpenStack::V1)
+  allow(Fog::Image::OpenStack::V1).to receive(:new).and_return(glance)
 
   volume = double(Fog::Volume::OpenStack::V1)
   allow(volume).to receive(:volumes).and_return(volumes)
@@ -114,10 +114,10 @@ def mock_glance(options = nil)
   volume = double(Fog::Volume::OpenStack::V1)
   allow(Fog::Volume::OpenStack::V1).to receive(:new).and_return(volume)
 
-  glance = double(Fog::Image)
+  glance = double(Fog::Image::OpenStack::V1)
   allow(glance).to receive(:images).and_return(images)
 
-  allow(Fog::Image).to receive(:new).and_return(glance)
+  allow(Fog::Image::OpenStack::V1).to receive(:new).and_return(glance)
 
   yield glance if block_given?
 
