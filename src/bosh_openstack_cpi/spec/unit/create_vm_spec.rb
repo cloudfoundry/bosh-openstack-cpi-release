@@ -42,8 +42,12 @@ describe Bosh::OpenStackCloud::Cloud, "create_vm" do
     }
 
     if volume_id
-      params[:block_device_mapping] = [{ :volume_size => 2048,
-        :volume_id => volume_id,
+      params[:block_device_mapping_v2] = [{
+        :uuid => "sc-id",
+        :source_type => "image",
+        :dest_type => "volume",
+        :volume_size => 2048,
+        :boot_index => "0",
         :delete_on_termination => "1",
         :device_name => "/dev/vda" }]
     end
@@ -479,15 +483,13 @@ describe Bosh::OpenStackCloud::Cloud, "create_vm" do
         expect(openstack.servers).to receive(:create).with(openstack_params("network_a" => network_spec)).and_return(server)
         expect(openstack.images).to receive(:find).and_return(image)
         expect(openstack.flavors).to receive(:find).and_return(flavor)
-        expect(openstack.volumes).to receive(:create).with(disk_params).and_return(boot_volume)
         expect(openstack.key_pairs).to receive(:find).and_return(key_pair)
         expect(openstack.addresses).to receive(:each).and_yield(address)
       end
 
-      expect(cloud).to receive(:generate_unique_name).exactly(2).times.and_return(unique_name, unique_vol_name)
+      expect(cloud).to receive(:generate_unique_name).and_return(unique_name)
       expect(address).to receive(:server=).with(nil)
       expect(cloud).to receive(:wait_resource).with(server, :active, :state)
-      expect(cloud).to receive(:wait_resource).with(boot_volume, :available)
 
       expect(@registry).to receive(:update_settings).
         with("vm-#{unique_name}", agent_settings(unique_name, network_spec))
@@ -528,15 +530,13 @@ describe Bosh::OpenStackCloud::Cloud, "create_vm" do
         expect(openstack.servers).to receive(:create).with(openstack_params("network_a" => network_spec)).and_return(server)
         expect(openstack.images).to receive(:find).and_return(image)
         expect(openstack.flavors).to receive(:find).and_return(flavor)
-        expect(openstack.volumes).to receive(:create).with(disk_params).and_return(boot_volume)
         expect(openstack.key_pairs).to receive(:find).and_return(key_pair)
         expect(openstack.addresses).to receive(:each).and_yield(address)
       end
 
-      expect(cloud).to receive(:generate_unique_name).exactly(2).times.and_return(unique_name, unique_vol_name)
+      expect(cloud).to receive(:generate_unique_name).and_return(unique_name)
       expect(address).to receive(:server=).with(nil)
       expect(cloud).to receive(:wait_resource).with(server, :active, :state)
-      expect(cloud).to receive(:wait_resource).with(boot_volume, :available)
 
       expect(@registry).to receive(:update_settings).
         with("vm-#{unique_name}", agent_settings(unique_name, network_spec))
