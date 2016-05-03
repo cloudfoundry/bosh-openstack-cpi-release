@@ -188,6 +188,24 @@ def resource_pool_spec
   }
 end
 
+def resource_pool_spec_with_root_disk
+  {
+    'key_name' => 'test_key',
+    'availability_zone' => 'foobar-1a',
+    'instance_type' => 'm1.tiny',
+    'root_disk' => { 'size' => 10240, 'type' => 'Standard' }
+  }
+end
+
+def resource_pool_spec_with_0_root_disk
+  {
+    'key_name' => 'test_key',
+    'availability_zone' => 'foobar-1a',
+    'instance_type' => 'm1.tiny',
+    'root_disk' => { 'size' => 0 }
+  }
+end
+
 RSpec.configure do |config|
   config.before(:each) { allow(Bosh::Clouds::Config).to receive(:logger).and_return(double.as_null_object)  }
 end

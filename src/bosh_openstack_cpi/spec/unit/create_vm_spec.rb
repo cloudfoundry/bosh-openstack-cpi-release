@@ -27,7 +27,7 @@ describe Bosh::OpenStackCloud::Cloud, "create_vm" do
     }
   end
 
-  def openstack_params(network_spec = { "network_a" => dynamic_network_spec}, boot_from_volume = false )
+  def openstack_params(network_spec = { "network_a" => dynamic_network_spec}, boot_from_volume = false, using_root_disk = false )
     params = {
       name: "vm-#{unique_name}",
       image_ref: "sc-id",
@@ -42,14 +42,25 @@ describe Bosh::OpenStackCloud::Cloud, "create_vm" do
     }
 
     if boot_from_volume
-      params[:block_device_mapping_v2] = [{
-        :uuid => "sc-id",
-        :source_type => "image",
-        :dest_type => "volume",
-        :volume_size => 2048,
-        :boot_index => "0",
-        :delete_on_termination => "1",
-        :device_name => "/dev/vda" }]
+      if using_root_disk
+        params[:block_device_mapping_v2] = [{
+          :uuid => "sc-id",
+          :source_type => "image",
+          :dest_type => "volume",
+          :volume_size => 10240,
+          :boot_index => "0",
+          :delete_on_termination => "1",
+          :device_name => "/dev/vda" }]
+      else
+        params[:block_device_mapping_v2] = [{
+          :uuid => "sc-id",
+          :source_type => "image",
+          :dest_type => "volume",
+          :volume_size => 2048,
+          :boot_index => "0",
+          :delete_on_termination => "1",
+          :device_name => "/dev/vda" }]
+      end
     end
 
     params
@@ -74,6 +85,7 @@ describe Bosh::OpenStackCloud::Cloud, "create_vm" do
   let(:server) { double("server", :id => "i-test", :name => "i-test") }
   let(:image) { double("image", :id => "sc-id", :name => "sc-id") }
   let(:flavor) { double("flavor", :id => "f-test", :name => "m1.tiny", :ram => 1024, :disk => 2, :ephemeral => 2) }
+  let(:flavor_no_disk_size) { double("flavor", :id => "f-test", :name => "m1.tiny", :ram => 1024, :disk => 0, :ephemeral => 2) }
   let(:key_pair) { double("key_pair", :id => "k-test", :name => "test_key",
                    :fingerprint => "00:01:02:03:04", :public_key => "public openssh key") }
   let(:configured_security_groups) { %w[default] }
@@ -544,6 +556,122 @@ describe Bosh::OpenStackCloud::Cloud, "create_vm" do
         nil, { "test_env" => "value" })
 
       expect(vm_id).to eq("i-test")
+    end
+  end
+
+  context "when boot_from_volume is set and the flavor has no disk size" do
+    let(:volume_id) { "v-foobar" }
+    it "creates an OpenStack server with a boot volume" do
+      network_spec = dynamic_network_spec
+      address = double("address", :id => "a-test", :ip => "10.0.0.1",
+        :instance_id => "i-test")
+
+      unique_vol_name = SecureRandom.uuid
+      disk_params = {
+        :display_name => "volume-#{unique_vol_name}",
+        :size => 2,
+        :imageRef => "sc-id",
+        :availability_zone => "foobar-1a"
+      }
+      boot_volume = double("volume", :id => "v-foobar")
+
+      cloud_options = mock_cloud_options
+      cloud_options['properties']['openstack']['boot_from_volume'] = true
+
+      cloud = mock_cloud(cloud_options['properties']) do |openstack|
+        expect(openstack.images).to receive(:find).and_return(image)
+        expect(openstack.flavors).to receive(:find).and_return(flavor_no_disk_size)
+        expect(openstack.key_pairs).to receive(:find).and_return(key_pair)
+      end
+
+      expect(cloud).to receive(:generate_unique_name).and_return(unique_name)
+
+      expect{
+        cloud.create_vm("agent-id", "sc-id",
+        resource_pool_spec,
+        { "network_a" => network_spec },
+        nil, { "test_env" => "value" })
+      }.to raise_error(Bosh::Clouds::CloudError, /Flavor `#{resource_pool_spec['instance_type']}' should have at least a 1GB boot disk/)
+    end
+  end
+
+  context "when boot_from_volume is set with a root_disk" do
+    let(:volume_id) { "v-foobar" }
+    let(:root_disk) { true }
+    it "creates an OpenStack server with a boot volume" do
+      network_spec = dynamic_network_spec
+      address = double("address", :id => "a-test", :ip => "10.0.0.1",
+        :instance_id => "i-test")
+
+      unique_vol_name = SecureRandom.uuid
+      disk_params = {
+        :display_name => "volume-#{unique_vol_name}",
+        :size => 2,
+        :imageRef => "sc-id",
+        :availability_zone => "foobar-1a"
+      }
+      boot_volume = double("volume", :id => "v-foobar")
+
+      cloud_options = mock_cloud_options
+      cloud_options['properties']['openstack']['boot_from_volume'] = true
+
+      cloud = mock_cloud(cloud_options['properties']) do |openstack|
+        expect(openstack.servers).to receive(:create).with(openstack_params({"network_a" => network_spec}, true, true)).and_return(server)
+        expect(openstack.images).to receive(:find).and_return(image)
+        expect(openstack.flavors).to receive(:find).and_return(flavor)
+        expect(openstack.key_pairs).to receive(:find).and_return(key_pair)
+        expect(openstack.addresses).to receive(:each).and_yield(address)
+      end
+
+      expect(cloud).to receive(:generate_unique_name).and_return(unique_name)
+      expect(address).to receive(:server=).with(nil)
+      expect(cloud).to receive(:wait_resource).with(server, :active, :state)
+
+      expect(@registry).to receive(:update_settings).
+        with("vm-#{unique_name}", agent_settings(unique_name, network_spec))
+
+      vm_id = cloud.create_vm("agent-id", "sc-id",
+        resource_pool_spec_with_root_disk,
+        { "network_a" => network_spec },
+        nil, { "test_env" => "value" })
+      expect(vm_id).to eq("i-test")
+    end
+  end
+
+  context "when boot_from_volume is set with 0 size root_disk" do
+    let(:volume_id) { "v-foobar" }
+    let(:root_disk) { true }
+    it "creates an OpenStack server with a boot volume" do
+      network_spec = dynamic_network_spec
+      address = double("address", :id => "a-test", :ip => "10.0.0.1",
+        :instance_id => "i-test")
+
+      unique_vol_name = SecureRandom.uuid
+      disk_params = {
+        :display_name => "volume-#{unique_vol_name}",
+        :size => 2,
+        :imageRef => "sc-id",
+        :availability_zone => "foobar-1a"
+      }
+      boot_volume = double("volume", :id => "v-foobar")
+
+      cloud_options = mock_cloud_options
+      cloud_options['properties']['openstack']['boot_from_volume'] = true
+
+      cloud = mock_cloud(cloud_options['properties']) do |openstack|
+        expect(openstack.images).to receive(:find).and_return(image)
+        expect(openstack.flavors).to receive(:find).and_return(flavor)
+        expect(openstack.key_pairs).to receive(:find).and_return(key_pair)
+      end
+
+      expect(cloud).to receive(:generate_unique_name).and_return(unique_name)
+
+      expect{
+        cloud.create_vm("agent-id", "sc-id",
+          resource_pool_spec_with_0_root_disk,
+          { "network_a" => network_spec },
+          nil, { "test_env" => "value" })
+        }.to raise_error(ArgumentError)
     end
   end
 

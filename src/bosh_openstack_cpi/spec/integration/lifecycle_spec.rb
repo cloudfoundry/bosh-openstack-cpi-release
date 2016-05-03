@@ -243,6 +243,99 @@ describe Bosh::OpenStackCloud::Cloud do
     end
   end
 
+  context 'when booting from volume with a boot_volume_type' do
+    let(:boot_from_volume) { true }
+    let(:boot_volume_type) { @boot_volume_type }
+
+    let(:network_spec) do
+      {
+        'default' => {
+          'type' => 'manual',
+          'ip' => @manual_ip,
+          'cloud_properties' => {
+            'net_id' => @net_id
+          }
+        }
+      }
+    end
+
+    it 'exercises the vm lifecycle' do
+      expect {
+        vm_lifecycle(@stemcell_id, network_spec, [])
+      }.to_not raise_error
+    end
+  end
+
+  context 'when booting from volume with ephemeral disk and root disk size = 0' do
+    let(:boot_from_volume) { true }
+
+    let(:network_spec) do
+      {
+        'default' => {
+          'type' => 'manual',
+          'ip' => @manual_ip,
+          'cloud_properties' => {
+            'net_id' => @net_id
+          }
+        }
+      }
+    end
+
+    let(:resource_pool) do
+      {
+        'ephemeral_disk' => {
+          'size' => 0,
+          'type' => 'gp2'
+        },
+        'root_disk' => {
+          'size' => 0,
+          'type' => 'standard'
+        }
+      }
+    end
+
+    it 'exercises the vm lifecycle' do
+      expect {
+        vm_lifecycle(@stemcell_id, network_spec, [], resource_pool)
+      }.to_not raise_error
+    end
+  end
+
+  context 'when booting from volume with ephemeral disk and root disk size > 0' do
+    let(:boot_from_volume) { true }
+
+    let(:network_spec) do
+      {
+        'default' => {
+          'type' => 'manual',
+          'ip' => @manual_ip,
+          'cloud_properties' => {
+            'net_id' => @net_id
+          }
+        }
+      }
+    end
+
+    let(:resource_pool) do
+      {
+        'ephemeral_disk' => {
+          'size' => 3000,
+          'type' => 'gp2'
+        },
+        'root_disk' => {
+          'size' => 2000,
+          'type' => 'standard'
+        }
+      }
+    end
+
+    it 'exercises the vm lifecycle' do
+      expect {
+        vm_lifecycle(@stemcell_id, network_spec, [], resource_pool)
+      }.to_not raise_error
+    end
+  end
+
   context 'when using cloud_properties' do
     let(:cloud_properties) { { 'type' => @volume_type } }
 
@@ -356,8 +449,8 @@ describe Bosh::OpenStackCloud::Cloud do
     end
   end
 
-  def vm_lifecycle(stemcell_id, network_spec, disk_locality, cloud_properties = {})
-    vm_id = create_vm(stemcell_id, network_spec, disk_locality)
+  def vm_lifecycle(stemcell_id, network_spec, disk_locality, cloud_properties = {}, resource_pool = {})
+    vm_id = create_vm(stemcell_id, network_spec, disk_locality, resource_pool)
     disk_id = create_disk(vm_id, cloud_properties)
     disk_snapshot_id = create_disk_snapshot(disk_id) unless @disable_snapshots
   rescue Exception => create_error
@@ -371,12 +464,12 @@ describe Bosh::OpenStackCloud::Cloud do
     run_all_and_raise_any_errors(create_error, funcs)
   end
 
-  def create_vm(stemcell_id, network_spec, disk_locality)
+  def create_vm(stemcell_id, network_spec, disk_locality, resource_pool = {})
     @logger.info("Creating VM with stemcell_id=#{stemcell_id}")
     vm_id = cpi.create_vm(
       'agent-007',
       stemcell_id,
-      { 'instance_type' => @instance_type },
+      { 'instance_type' => @instance_type }.merge(resource_pool),
       network_spec,
       disk_locality,
       { 'key' => 'value'}
