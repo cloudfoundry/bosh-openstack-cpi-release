@@ -12,9 +12,12 @@ groups:
       - certify-centos
       - certify-ubuntu
 
-tags:
-  default: &tags []
-  suse-liberty: ['suse-liberty']
+custom:
+  tags:
+    default: &tags []
+    suse-liberty: ['suse-liberty']
+  timeouts:
+    long: &timeouts-long 2h
 
 jobs:
   - name: e2e-centos
@@ -22,15 +25,16 @@ jobs:
     serial_groups: [e2e-centos]
     plan:
       - aggregate:
-        - {trigger: false, get: bosh-cpi-src-in, tags: *tags}
-        - {trigger: false, get: dummy-release, tags: *tags}
-        - {trigger: true, get: bosh-init, tags: *tags}
-        - {trigger: true, get: bosh-cpi-release, resource: bosh-cpi-dev-artifacts, tags: *tags}
-        - {trigger: true, get: bosh-release, tags: *tags}
-        - {trigger: true, get: stemcell, resource: centos-stemcell, tags: *tags}
+        - {trigger: false, get: bosh-cpi-src-in, tags: *tags, timeout: *timeouts-long}
+        - {trigger: false, get: dummy-release, tags: *tags, timeout: *timeouts-long}
+        - {trigger: true, get: bosh-init, tags: *tags, timeout: *timeouts-long}
+        - {trigger: true, get: bosh-cpi-release, resource: bosh-cpi-dev-artifacts, tags: *tags, timeout: *timeouts-long}
+        - {trigger: true, get: bosh-release, tags: *tags, timeout: *timeouts-long}
+        - {trigger: true, get: stemcell, resource: centos-stemcell, tags: *tags, timeout: *timeouts-long}
 
       - task: deploy-integration-director
         tags: *tags
+        timeout: *timeouts-long
         file: bosh-cpi-src-in/ci/pipelines/certify-stemcell/tasks/deploy-director.yml
         params: &centos-deploy-director-params
           v3_e2e_flavor:               "m1.medium"
@@ -62,6 +66,7 @@ jobs:
 
       - task: deploy-dummy-release
         tags: *tags
+        timeout: *timeouts-long
         file: bosh-cpi-src-in/ci/pipelines/certify-stemcell/tasks/deploy-dummy-release.yml
         params:
           instance_flavor:         "m1.medium"
@@ -74,6 +79,7 @@ jobs:
 
       - task: teardown-director
         tags: *tags
+        timeout: *timeouts-long
         file: bosh-cpi-src-in/ci/pipelines/certify-stemcell/tasks/teardown-director.yml
         params:
           bosh_admin_password: {{bosh_admin_password}}
@@ -84,15 +90,16 @@ jobs:
     serial_groups: [e2e-ubuntu]
     plan:
       - aggregate:
-        - {trigger: false, get: bosh-cpi-src-in, tags: *tags}
-        - {trigger: false, get: dummy-release, tags: *tags}
-        - {trigger: true, get: bosh-init, tags: *tags}
-        - {trigger: true, get: bosh-cpi-release, resource: bosh-cpi-dev-artifacts, tags: *tags}
-        - {trigger: true, get: bosh-release, tags: *tags}
-        - {trigger: true, get: stemcell, resource: ubuntu-stemcell, tags: *tags}
+        - {trigger: false, get: bosh-cpi-src-in, tags: *tags, timeout: *timeouts-long}
+        - {trigger: false, get: dummy-release, tags: *tags, timeout: *timeouts-long}
+        - {trigger: true, get: bosh-init, tags: *tags, timeout: *timeouts-long}
+        - {trigger: true, get: bosh-cpi-release, resource: bosh-cpi-dev-artifacts, tags: *tags, timeout: *timeouts-long}
+        - {trigger: true, get: bosh-release, tags: *tags, timeout: *timeouts-long}
+        - {trigger: true, get: stemcell, resource: ubuntu-stemcell, tags: *tags, timeout: *timeouts-long}
 
       - task: deploy-integration-director
         tags: *tags
+        timeout: *timeouts-long
         file: bosh-cpi-src-in/ci/pipelines/certify-stemcell/tasks/deploy-director.yml
         params:
           <<:                    *centos-deploy-director-params
@@ -101,6 +108,7 @@ jobs:
 
       - task: deploy-dummy-release
         tags: *tags
+        timeout: *timeouts-long
         file: bosh-cpi-src-in/ci/pipelines/certify-stemcell/tasks/deploy-dummy-release.yml
         params:
           instance_flavor:         "m1.medium"
@@ -113,6 +121,7 @@ jobs:
 
       - task: teardown-director
         tags: *tags
+        timeout: *timeouts-long
         file: bosh-cpi-src-in/ci/pipelines/certify-stemcell/tasks/teardown-director.yml
         params:
           bosh_admin_password: {{bosh_admin_password}}
@@ -123,15 +132,16 @@ jobs:
     serial_groups: [e2e-centos-config-drive]
     plan:
       - aggregate:
-        - {trigger: false, get: bosh-cpi-src-in, tags: *tags}
-        - {trigger: false, get: dummy-release, tags: *tags}
-        - {trigger: true, get: bosh-init, tags: *tags}
-        - {trigger: true, get: bosh-cpi-release, resource: bosh-cpi-dev-artifacts, tags: *tags}
-        - {trigger: true, get: bosh-release, tags: *tags}
-        - {trigger: true, get: stemcell, resource: centos-stemcell, tags: *tags}
+        - {trigger: false, get: bosh-cpi-src-in, tags: *tags, timeout: *timeouts-long}
+        - {trigger: false, get: dummy-release, tags: *tags, timeout: *timeouts-long}
+        - {trigger: true, get: bosh-init, tags: *tags, timeout: *timeouts-long}
+        - {trigger: true, get: bosh-cpi-release, resource: bosh-cpi-dev-artifacts, tags: *tags, timeout: *timeouts-long}
+        - {trigger: true, get: bosh-release, tags: *tags, timeout: *timeouts-long}
+        - {trigger: true, get: stemcell, resource: centos-stemcell, tags: *tags, timeout: *timeouts-long}
 
       - task: deploy-integration-director
         tags: *tags
+        timeout: *timeouts-long
         file: bosh-cpi-src-in/ci/pipelines/certify-stemcell/tasks/deploy-director.yml
         params: &e2e-centos-config-drive-director-params
           v3_e2e_flavor:               "m1.medium"
@@ -165,6 +175,7 @@ jobs:
 
       - task: deploy-dummy-release
         tags: *tags
+        timeout: *timeouts-long
         file: bosh-cpi-src-in/ci/pipelines/certify-stemcell/tasks/deploy-dummy-release-multiple-manual-networks.yml
         params:
           instance_flavor:           "m1.medium"
@@ -186,6 +197,7 @@ jobs:
 
       - task: teardown-director
         tags: *tags
+        timeout: *timeouts-long
         file: bosh-cpi-src-in/ci/pipelines/certify-stemcell/tasks/teardown-director.yml
         params:
           bosh_admin_password: {{bosh_admin_password}}
@@ -196,15 +208,16 @@ jobs:
     serial_groups: [e2e-ubuntu-config-drive]
     plan:
       - aggregate:
-        - {trigger: false, get: bosh-cpi-src-in, tags: *tags}
-        - {trigger: false, get: dummy-release, tags: *tags}
-        - {trigger: true, get: bosh-init, tags: *tags}
-        - {trigger: true, get: bosh-cpi-release, resource: bosh-cpi-dev-artifacts, tags: *tags}
-        - {trigger: true, get: bosh-release, tags: *tags}
-        - {trigger: true, get: stemcell, resource: ubuntu-stemcell, tags: *tags}
+        - {trigger: false, get: bosh-cpi-src-in, tags: *tags, timeout: *timeouts-long}
+        - {trigger: false, get: dummy-release, tags: *tags, timeout: *timeouts-long}
+        - {trigger: true, get: bosh-init, tags: *tags, timeout: *timeouts-long}
+        - {trigger: true, get: bosh-cpi-release, resource: bosh-cpi-dev-artifacts, tags: *tags, timeout: *timeouts-long}
+        - {trigger: true, get: bosh-release, tags: *tags, timeout: *timeouts-long}
+        - {trigger: true, get: stemcell, resource: ubuntu-stemcell, tags: *tags, timeout: *timeouts-long}
 
       - task: deploy-integration-director
         tags: *tags
+        timeout: *timeouts-long
         file: bosh-cpi-src-in/ci/pipelines/certify-stemcell/tasks/deploy-director.yml
         params:
           <<: *e2e-centos-config-drive-director-params
@@ -213,6 +226,7 @@ jobs:
 
       - task: deploy-dummy-release
         tags: *tags
+        timeout: *timeouts-long
         file: bosh-cpi-src-in/ci/pipelines/certify-stemcell/tasks/deploy-dummy-release-multiple-manual-networks.yml
         params:
           instance_flavor:           "m1.medium"
@@ -234,6 +248,7 @@ jobs:
 
       - task: teardown-director
         tags: *tags
+        timeout: *timeouts-long
         file: bosh-cpi-src-in/ci/pipelines/certify-stemcell/tasks/teardown-director.yml
         params:
           bosh_admin_password: {{bosh_admin_password}}
@@ -244,16 +259,17 @@ jobs:
     serial_groups: [test-upgrade-centos]
     plan:
       - aggregate:
-        - {trigger: false, get: bosh-cpi-src-in, tags: *tags}
-        - {trigger: true,  get: bosh-init, tags: *tags}
-        - {trigger: false, get: old-bosh-init, tags: *tags}
-        - {trigger: true,  get: bosh-cpi-release, resource: bosh-cpi-dev-artifacts, tags: *tags}
-        - {trigger: true,  get: bosh-release, tags: *tags}
-        - {trigger: true,  get: stemcell, resource: centos-stemcell, tags: *tags}
-        - {trigger: false, get: dummy-release, tags: *tags}
+        - {trigger: false, get: bosh-cpi-src-in, tags: *tags, timeout: *timeouts-long}
+        - {trigger: true,  get: bosh-init, tags: *tags, timeout: *timeouts-long}
+        - {trigger: false, get: old-bosh-init, tags: *tags, timeout: *timeouts-long}
+        - {trigger: true,  get: bosh-cpi-release, resource: bosh-cpi-dev-artifacts, tags: *tags, timeout: *timeouts-long}
+        - {trigger: true,  get: bosh-release, tags: *tags, timeout: *timeouts-long}
+        - {trigger: true,  get: stemcell, resource: centos-stemcell, tags: *tags, timeout: *timeouts-long}
+        - {trigger: false, get: dummy-release, tags: *tags, timeout: *timeouts-long}
 
       - task: deploy-old-director
         tags: *tags
+        timeout: *timeouts-long
         file: bosh-cpi-src-in/ci/pipelines/certify-stemcell/tasks/deploy-old-director.yml
         params: &centos-deploy-old-director-params
           dns:                               {{dns}}
@@ -288,6 +304,7 @@ jobs:
 
       - task: deploy-dummy-release-with-old-cpi
         tags: *tags
+        timeout: *timeouts-long
         file: bosh-cpi-src-in/ci/pipelines/certify-stemcell/tasks/deploy-dummy-release.yml
         params:
           instance_flavor:             "m1.medium"
@@ -301,6 +318,7 @@ jobs:
 
       - task: test-upgrade
         tags: *tags
+        timeout: *timeouts-long
         file: bosh-cpi-src-in/ci/pipelines/certify-stemcell/tasks/test-upgrade.yml
         params: &centos-test-upgrade-params
           dns:                             {{dns}}
@@ -328,6 +346,7 @@ jobs:
 
       - task: teardown-director
         tags: *tags
+        timeout: *timeouts-long
         file: bosh-cpi-src-in/ci/pipelines/certify-stemcell/tasks/teardown.yml
 
   - name: test-upgrade-ubuntu
@@ -335,16 +354,17 @@ jobs:
     serial_groups: [test-upgrade-ubuntu]
     plan:
       - aggregate:
-        - {trigger: false, get: bosh-cpi-src-in, tags: *tags}
-        - {trigger: true,  get: bosh-init, tags: *tags}
-        - {trigger: false, get: old-bosh-init, tags: *tags}
-        - {trigger: true,  get: bosh-cpi-release, resource: bosh-cpi-dev-artifacts, tags: *tags}
-        - {trigger: true,  get: bosh-release, tags: *tags}
-        - {trigger: true,  get: stemcell, resource: ubuntu-stemcell, tags: *tags}
-        - {trigger: false, get: dummy-release, tags: *tags}
+        - {trigger: false, get: bosh-cpi-src-in, tags: *tags, timeout: *timeouts-long}
+        - {trigger: true,  get: bosh-init, tags: *tags, timeout: *timeouts-long}
+        - {trigger: false, get: old-bosh-init, tags: *tags, timeout: *timeouts-long}
+        - {trigger: true,  get: bosh-cpi-release, resource: bosh-cpi-dev-artifacts, tags: *tags, timeout: *timeouts-long}
+        - {trigger: true,  get: bosh-release, tags: *tags, timeout: *timeouts-long}
+        - {trigger: true,  get: stemcell, resource: ubuntu-stemcell, tags: *tags, timeout: *timeouts-long}
+        - {trigger: false, get: dummy-release, tags: *tags, timeout: *timeouts-long}
 
       - task: deploy-old-director
         tags: *tags
+        timeout: *timeouts-long
         file: bosh-cpi-src-in/ci/pipelines/certify-stemcell/tasks/deploy-old-director.yml
         params:
           <<:                              *centos-deploy-old-director-params
@@ -356,6 +376,7 @@ jobs:
 
       - task: deploy-dummy-release-with-old-cpi
         tags: *tags
+        timeout: *timeouts-long
         file: bosh-cpi-src-in/ci/pipelines/certify-stemcell/tasks/deploy-dummy-release.yml
         params:
           instance_flavor:             "m1.medium"
@@ -369,6 +390,7 @@ jobs:
 
       - task: test-upgrade
         tags: *tags
+        timeout: *timeouts-long
         file: bosh-cpi-src-in/ci/pipelines/certify-stemcell/tasks/test-upgrade.yml
         params:
           <<:                              *centos-test-upgrade-params
@@ -377,17 +399,19 @@ jobs:
 
       - task: teardown-director
         tags: *tags
+        timeout: *timeouts-long
         file: bosh-cpi-src-in/ci/pipelines/certify-stemcell/tasks/teardown.yml
 
   - name: cleanup
     serial: true
     serial_groups: [e2e-centos, e2e-ubuntu, e2e-ubuntu-config-drive, e2e-centos-config-drive, test-upgrade-centos, test-upgrade-ubuntu] #can't run while anything else is running
     plan:
-      - {trigger: false, get: bosh-cpi-src-in, tags: *tags}
-      - {trigger: true,  get: cleanup-time-trigger, tags: *tags}
+      - {trigger: false, get: bosh-cpi-src-in, tags: *tags, timeout: *timeouts-long}
+      - {trigger: true,  get: cleanup-time-trigger, tags: *tags, timeout: *timeouts-long}
 
       - task: cleanup-e2e
         tags: *tags
+        timeout: *timeouts-long
         file: bosh-cpi-src-in/ci/tasks/cleanup.yml
         params:
           BOSH_OPENSTACK_IDENTITY_API_VERSION: 3
@@ -401,13 +425,14 @@ jobs:
   - name: certify-ubuntu
     plan:
       - aggregate:
-        - {trigger: false, get: bosh-cpi-src-in, tags: *tags}
-        - {trigger: true,  get: bosh-cpi-release, passed: [e2e-ubuntu, e2e-ubuntu-config-drive, test-upgrade-ubuntu], resource: bosh-cpi-dev-artifacts, tags: *tags}
-        - {trigger: true,  get: bosh-release,     passed: [e2e-ubuntu, e2e-ubuntu-config-drive, test-upgrade-ubuntu], tags: *tags}
-        - {trigger: true,  get: stemcell,         passed: [e2e-ubuntu, e2e-ubuntu-config-drive, test-upgrade-ubuntu], resource: ubuntu-stemcell, tags: *tags}
+        - {trigger: false, get: bosh-cpi-src-in, tags: *tags, timeout: *timeouts-long}
+        - {trigger: true,  get: bosh-cpi-release, passed: [e2e-ubuntu, e2e-ubuntu-config-drive, test-upgrade-ubuntu], resource: bosh-cpi-dev-artifacts, tags: *tags, timeout: *timeouts-long}
+        - {trigger: true,  get: bosh-release,     passed: [e2e-ubuntu, e2e-ubuntu-config-drive, test-upgrade-ubuntu], tags: *tags, timeout: *timeouts-long}
+        - {trigger: true,  get: stemcell,         passed: [e2e-ubuntu, e2e-ubuntu-config-drive, test-upgrade-ubuntu], resource: ubuntu-stemcell, tags: *tags, timeout: *timeouts-long}
 
       - task: generate-certification
         tags: *tags
+        timeout: *timeouts-long
         file: bosh-cpi-src-in/ci/pipelines/certify-stemcell/tasks/generate-certification.yml
         params:
           bosh_release_name: bosh
@@ -416,19 +441,21 @@ jobs:
 
       - put: certification
         tags: *tags
+        timeout: *timeouts-long
         params:
           file: certification-receipt/*.json
 
   - name: certify-centos
     plan:
       - aggregate:
-        - {trigger: false, get: bosh-cpi-src-in, tags: *tags}
-        - {trigger: true,  get: bosh-cpi-release, passed: [e2e-centos, e2e-centos-config-drive, test-upgrade-centos], resource: bosh-cpi-dev-artifacts, tags: *tags}
-        - {trigger: true,  get: bosh-release,     passed: [e2e-centos, e2e-centos-config-drive, test-upgrade-centos], tags: *tags}
-        - {trigger: true,  get: stemcell,         passed: [e2e-centos, e2e-centos-config-drive, test-upgrade-centos], resource: centos-stemcell, tags: *tags}
+        - {trigger: false, get: bosh-cpi-src-in, tags: *tags, timeout: *timeouts-long}
+        - {trigger: true,  get: bosh-cpi-release, passed: [e2e-centos, e2e-centos-config-drive, test-upgrade-centos], resource: bosh-cpi-dev-artifacts, tags: *tags, timeout: *timeouts-long}
+        - {trigger: true,  get: bosh-release,     passed: [e2e-centos, e2e-centos-config-drive, test-upgrade-centos], tags: *tags, timeout: *timeouts-long}
+        - {trigger: true,  get: stemcell,         passed: [e2e-centos, e2e-centos-config-drive, test-upgrade-centos], resource: centos-stemcell, tags: *tags, timeout: *timeouts-long}
 
       - task: generate-certification
         tags: *tags
+        timeout: *timeouts-long
         file: bosh-cpi-src-in/ci/pipelines/certify-stemcell/tasks/generate-certification.yml
         params:
           bosh_release_name: bosh
@@ -437,6 +464,7 @@ jobs:
 
       - put: certification
         tags: *tags
+        timeout: *timeouts-long
         params:
           file: certification-receipt/*.json
 

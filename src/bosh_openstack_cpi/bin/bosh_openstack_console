@@ -10,6 +10,7 @@
 #                                {"default" => {"type" => "dynamic", "cloud_properties" => {"security_groups" => ["name" => "default"]}}},
 #                                [],
 #                                {"foo" =>"bar"})
+$LOAD_PATH.unshift File.expand_path('../../lib', __FILE__)
 
 require "bosh_openstack_cpi"
 require "irb"

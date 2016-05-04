@@ -247,7 +247,7 @@ module Bosh::OpenStackCloud
           :os_scheduler_hints => resource_pool['scheduler_hints'],
           :nics => nics,
           :config_drive => @use_config_drive,
-          :user_data => Yajl::Encoder.encode(user_data(registry_key, network_configurator.network_spec))
+          :user_data => JSON.dump(user_data(registry_key, network_configurator.network_spec))
         }
 
         availability_zone = @az_provider.select(disk_locality, resource_pool['availability_zone'])
@@ -986,7 +986,7 @@ module Bosh::OpenStackCloud
       registry_user       = registry_properties.fetch('user')
       registry_password   = registry_properties.fetch('password')
 
-      @registry = Bosh::Registry::Client.new(registry_endpoint,
+      @registry = Bosh::Cpi::RegistryClient.new(registry_endpoint,
                                              registry_user,
                                              registry_password)
     end

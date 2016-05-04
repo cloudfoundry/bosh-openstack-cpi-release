@@ -7,11 +7,11 @@ ruby_openstack_cpi/yaml-0.1.5.tar.gz:
   object_id: 6ea9080c-2ec1-4f5c-98d1-d3d5db8f1bf8
   sha: 8b78cb9f759c7d80db8a7328c0ebecfe34fde737
   size: 504897
-ruby_openstack_cpi/bundler-1.8.2.gem:
-  object_id: b1679c6f-12a6-4f30-8190-a32615573b36
-  sha: e9b810268eea94ac5e825b5ae8a2d5fd19fb5905
-  size: 235008
 ruby_openstack_cpi/ruby-2.1.7.tar.gz:
   object_id: f1564a13-9316-4564-af5b-fc13d3f0793f
   sha: e2e195a4a58133e3ad33b955c829bb536fa3c075
   size: 15151458
+ruby_openstack_cpi/bundler-1.11.2.gem:
+  object_id: 2bf4f522-de3d-47f1-861e-08a2c3e15672
+  sha: 8eb956dec72da753d3d2a2126c78508b17af434e
+  size: 263168
