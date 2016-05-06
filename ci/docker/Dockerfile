@@ -45,3 +45,9 @@ RUN ["/bin/bash", "-l", "-c", "gem install bundler --no-ri --no-rdoc"]
 
 #BOSH CLI
 RUN ["/bin/bash", "-l", "-c", "gem install bosh_cli --no-ri --no-rdoc"]
+
+# receipt generator
+RUN cd /tmp && \
+    curl -o certify-artifacts -L https://s3.amazonaws.com/bosh-certification-generator-releases/certify-artifacts-linux-amd64 && \
+    chmod +x certify-artifacts && \
+    mv certify-artifacts /bin/certify-artifacts
