@@ -40,22 +40,29 @@ groups:
       - bats-centos-dynamic
       - promote-candidate
 
+tags:
+  default: &tags []
+  suse-liberty: ['suse-liberty']
+
 jobs:
   - name: build-candidate
     serial: true
     plan:
       - aggregate:
-        - {trigger: true,  get: bosh-cpi-src-in}
-        - {trigger: false, get: version-semver, params: {bump: patch}}
-        - {trigger: true,  get: pipeline-time-trigger}
+        - {trigger: true,  get: bosh-cpi-src-in, tags: *tags}
+        - {trigger: false, get: version-semver, params: {bump: patch}, tags: *tags}
+        - {trigger: true,  get: pipeline-time-trigger, tags: *tags}
 
       - put: version-semver
+        tags: *tags
         params: {file: version-semver/number}
 
       - task: build
+        tags: *tags
         file: bosh-cpi-src-in/ci/tasks/build-candidate.yml
 
       - put: bosh-cpi-dev-artifacts
+        tags: *tags
         params: {from: candidate/.*\.tgz}
 
   - name: cleanup
@@ -68,9 +75,10 @@ jobs:
       - centos-director-dynamic
 
     plan:
-      - {trigger: false, get: bosh-cpi-src-in}
+      - {trigger: false, get: bosh-cpi-src-in, tags: *tags}
 
       - task: cleanup-lifecycle
+        tags: *tags
         file: bosh-cpi-src-in/ci/tasks/cleanup.yml
         params:
           BOSH_OPENSTACK_AUTH_URL:    {{openstack_auth_url_v2}}
@@ -80,6 +88,7 @@ jobs:
           BOSH_OPENSTACK_CA_CERT:     {{bosh_openstack_ca_cert}}
 
       - task: cleanup-bats
+        tags: *tags
         file: bosh-cpi-src-in/ci/tasks/cleanup.yml
         params:
           BOSH_OPENSTACK_AUTH_URL:    {{openstack_auth_url_v2}}
@@ -93,11 +102,12 @@ jobs:
     serial_groups: [cleanup-lock-lifecycle] # prevents cleanup job from starting if lifecycle job is running
     plan:
       - aggregate:
-        - {trigger: true,  passed: [build-candidate], get: bosh-cpi-dev-artifacts} # used for job chaining only not for tasks
-        - {trigger: false, passed: [build-candidate], get: bosh-cpi-src-in}
-        - {trigger: false,                            get: openstack-lifecycle-stemcell}
+        - {trigger: true,  passed: [build-candidate], get: bosh-cpi-dev-artifacts, tags: *tags} # used for job chaining only not for tasks
+        - {trigger: false, passed: [build-candidate], get: bosh-cpi-src-in, tags: *tags}
+        - {trigger: false,                            get: openstack-lifecycle-stemcell, tags: *tags}
 
       - task: test
+        tags: *tags
         file: bosh-cpi-src-in/ci/tasks/run-lifecycle.yml
         params:
           BOSH_OPENSTACK_DOMAIN:              {{lifecycle_openstack_domain}}
@@ -120,19 +130,22 @@ jobs:
           BOSH_OPENSTACK_CA_CERT:             {{bosh_openstack_ca_cert}}
 
       - put: lifecycle-log
+        tags: *tags
         params: {from: output/lifecycle.log}
 
   - name: publish-api-calls
     serial: true
     plan:
       - aggregate:
-        - {trigger: true, passed: [lifecycle], get: lifecycle-log}
-        - {trigger: false, passed: [lifecycle], get: bosh-cpi-src-in}
+        - {trigger: true, passed: [lifecycle], get: lifecycle-log, tags: *tags}
+        - {trigger: false, passed: [lifecycle], get: bosh-cpi-src-in, tags: *tags}
       - task: publish
+        tags: *tags
         file: bosh-cpi-src-in/ci/tasks/publish-api-calls.yml
         params:
           publish_api_calls_enabled:  {{publish_api_calls_enabled}}
       - put: bosh-cpi-src-out
+        tags: *tags
         params: {repository: publish/repo, rebase: true}
 
   - name: deploy-ubuntu-manual
@@ -140,15 +153,16 @@ jobs:
     serial_groups: [ubuntu-director-manual] # shouldn't deploy while bats or cleanup is running
     plan:
       - aggregate:
-        - {trigger: true,  passed: [build-candidate], get: bosh-cpi-dev-artifacts}
-        - {trigger: false, passed: [build-candidate], get: version-semver}
-        - {trigger: false, passed: [build-candidate], get: bosh-cpi-src-in}
-        - {trigger: false,                            get: director-state-file, resource: ubuntu-manual-director-state-file}
-        - {trigger: false,                            get: bosh-init}
-        - {trigger: false,                            get: bosh-release}
-        - {trigger: false,                            get: stemcell, resource: openstack-ubuntu-stemcell}
+        - {trigger: true,  passed: [build-candidate], get: bosh-cpi-dev-artifacts, tags: *tags}
+        - {trigger: false, passed: [build-candidate], get: version-semver, tags: *tags}
+        - {trigger: false, passed: [build-candidate], get: bosh-cpi-src-in, tags: *tags}
+        - {trigger: false,                            get: director-state-file, resource: ubuntu-manual-director-state-file, tags: *tags}
+        - {trigger: false,                            get: bosh-init, tags: *tags}
+        - {trigger: false,                            get: bosh-release, tags: *tags}
+        - {trigger: false,                            get: stemcell, resource: openstack-ubuntu-stemcell, tags: *tags}
 
       - task: deploy
+        tags: *tags
         file: bosh-cpi-src-in/ci/tasks/deploy-manual-networking.yml
         params:
           base_os:                       "ubuntu"
@@ -176,9 +190,11 @@ jobs:
           openstack_net_gateway:         {{bats_manual_ubuntu_primary_net_gateway}}
         ensure:
           put: ubuntu-manual-director-state-file
+          tags: *tags
           params: {from: deployment/ubuntu-manual-director-manifest-state.json}
 
       - put: ubuntu-manual-director-manifest-file
+        tags: *tags
         params: {from: deployment/ubuntu-manual-director-manifest.yml}
 
   - name: bats-ubuntu-manual
@@ -186,17 +202,18 @@ jobs:
     serial_groups: [ubuntu-director-manual] # can't run while deploying
     plan:
       - aggregate:
-        - {trigger: true,  passed: [deploy-ubuntu-manual], get: bosh-cpi-dev-artifacts}
-        - {trigger: false, passed: [deploy-ubuntu-manual], get: bosh-cpi-src-in}
-        - {trigger: false, passed: [deploy-ubuntu-manual], get: stemcell, resource: openstack-ubuntu-stemcell}
-        - {trigger: false, passed: [deploy-ubuntu-manual], get: director-state-file, resource: ubuntu-manual-director-state-file}
-        - {trigger: false, passed: [deploy-ubuntu-manual], get: director-manifest-file, resource: ubuntu-manual-director-manifest-file}
-        - {trigger: false, passed: [deploy-ubuntu-manual], get: version-semver}
-        - {trigger: false,                                 get: bosh-release}
-        - {trigger: false,                                 get: bats}
-        - {trigger: false,                                 get: bosh-init}
+        - {trigger: true,  passed: [deploy-ubuntu-manual], get: bosh-cpi-dev-artifacts, tags: *tags}
+        - {trigger: false, passed: [deploy-ubuntu-manual], get: bosh-cpi-src-in, tags: *tags}
+        - {trigger: false, passed: [deploy-ubuntu-manual], get: stemcell, resource: openstack-ubuntu-stemcell, tags: *tags}
+        - {trigger: false, passed: [deploy-ubuntu-manual], get: director-state-file, resource: ubuntu-manual-director-state-file, tags: *tags}
+        - {trigger: false, passed: [deploy-ubuntu-manual], get: director-manifest-file, resource: ubuntu-manual-director-manifest-file, tags: *tags}
+        - {trigger: false, passed: [deploy-ubuntu-manual], get: version-semver, tags: *tags}
+        - {trigger: false,                                 get: bosh-release, tags: *tags}
+        - {trigger: false,                                 get: bats, tags: *tags}
+        - {trigger: false,                                 get: bosh-init, tags: *tags}
 
       - task: test
+        tags: *tags
         file: bosh-cpi-src-in/ci/tasks/run-manual-networking-bats.yml
         params:
           stemcell_name:                            "bosh-openstack-kvm-ubuntu-trusty-go_agent"
@@ -223,6 +240,7 @@ jobs:
           secondary_network_dhcp_pool:              {{bats_manual_ubuntu_secondary_net_dhcp_pool}}
 
       - task: teardown-director
+        tags: *tags
         file: bosh-cpi-src-in/ci/tasks/teardown-director.yml
         params:
           bosh_admin_password:                     {{bosh_admin_password}}
@@ -231,6 +249,7 @@ jobs:
           director_state_file:                     "ubuntu-manual-director-manifest-state.json"
         ensure:
           put: ubuntu-manual-director-state-file
+          tags: *tags
           params: {from: teardown/ubuntu-manual-director-manifest-state.json}
 
   - name: deploy-ubuntu-dynamic
@@ -238,15 +257,16 @@ jobs:
     serial_groups: [ubuntu-director-dynamic] # shouldn't deploy while bats are running
     plan:
       - aggregate:
-        - {trigger: true,  passed: [build-candidate], get: bosh-cpi-dev-artifacts}
-        - {trigger: false, passed: [build-candidate], get: version-semver}
-        - {trigger: false, passed: [build-candidate], get: bosh-cpi-src-in}
-        - {trigger: false,                            get: director-state-file, resource: ubuntu-dynamic-director-state-file}
-        - {trigger: false,                            get: bosh-init}
-        - {trigger: false,                            get: bosh-release}
-        - {trigger: false,                            get: stemcell, resource: openstack-ubuntu-stemcell}
+        - {trigger: true,  passed: [build-candidate], get: bosh-cpi-dev-artifacts, tags: *tags}
+        - {trigger: false, passed: [build-candidate], get: version-semver, tags: *tags}
+        - {trigger: false, passed: [build-candidate], get: bosh-cpi-src-in, tags: *tags}
+        - {trigger: false,                            get: director-state-file, resource: ubuntu-dynamic-director-state-file, tags: *tags}
+        - {trigger: false,                            get: bosh-init, tags: *tags}
+        - {trigger: false,                            get: bosh-release, tags: *tags}
+        - {trigger: false,                            get: stemcell, resource: openstack-ubuntu-stemcell, tags: *tags}
 
       - task: deploy
+        tags: *tags
         file: bosh-cpi-src-in/ci/tasks/deploy-dynamic-networking.yml
         params:
           base_os:                       "ubuntu"
@@ -271,9 +291,11 @@ jobs:
           private_key_data:              {{bosh_private_key}}
         ensure:
           put: ubuntu-dynamic-director-state-file
+          tags: *tags
           params: {from: deployment/ubuntu-dynamic-director-manifest-state.json}
 
       - put: ubuntu-dynamic-director-manifest-file
+        tags: *tags
         params: {from: deployment/ubuntu-dynamic-director-manifest.yml}
 
   - name: bats-ubuntu-dynamic
@@ -281,17 +303,18 @@ jobs:
     serial_groups: [ubuntu-director-dynamic] # can't run while deploying
     plan:
       - aggregate:
-        - {trigger: true,  passed: [deploy-ubuntu-dynamic], get: bosh-cpi-dev-artifacts}
-        - {trigger: false, passed: [deploy-ubuntu-dynamic], get: bosh-cpi-src-in}
-        - {trigger: false, passed: [deploy-ubuntu-dynamic], get: director-state-file, resource: ubuntu-dynamic-director-state-file}
-        - {trigger: false, passed: [deploy-ubuntu-dynamic], get: director-manifest-file, resource: ubuntu-dynamic-director-manifest-file}
-        - {trigger: false, passed: [deploy-ubuntu-dynamic], get: stemcell, resource: openstack-ubuntu-stemcell}
-        - {trigger: false, passed: [deploy-ubuntu-dynamic], get: version-semver}
-        - {trigger: false,                                  get: bosh-release}
-        - {trigger: false,                                  get: bats}
-        - {trigger: false,                                  get: bosh-init}
+        - {trigger: true,  passed: [deploy-ubuntu-dynamic], get: bosh-cpi-dev-artifacts, tags: *tags}
+        - {trigger: false, passed: [deploy-ubuntu-dynamic], get: bosh-cpi-src-in, tags: *tags}
+        - {trigger: false, passed: [deploy-ubuntu-dynamic], get: director-state-file, resource: ubuntu-dynamic-director-state-file, tags: *tags}
+        - {trigger: false, passed: [deploy-ubuntu-dynamic], get: director-manifest-file, resource: ubuntu-dynamic-director-manifest-file, tags: *tags}
+        - {trigger: false, passed: [deploy-ubuntu-dynamic], get: stemcell, resource: openstack-ubuntu-stemcell, tags: *tags}
+        - {trigger: false, passed: [deploy-ubuntu-dynamic], get: version-semver, tags: *tags}
+        - {trigger: false,                                  get: bosh-release, tags: *tags}
+        - {trigger: false,                                  get: bats, tags: *tags}
+        - {trigger: false,                                  get: bosh-init, tags: *tags}
 
       - task: test
+        tags: *tags
         file: bosh-cpi-src-in/ci/tasks/run-dynamic-networking-bats.yml
         params:
           stemcell_name:                            "bosh-openstack-kvm-ubuntu-trusty-go_agent"
@@ -305,6 +328,7 @@ jobs:
           private_key_data:                         {{bosh_private_key}}
 
       - task: teardown-director
+        tags: *tags
         file: bosh-cpi-src-in/ci/tasks/teardown-director.yml
         params:
           bosh_admin_password:                     {{bosh_admin_password}}
@@ -313,6 +337,7 @@ jobs:
           director_state_file:                     "ubuntu-dynamic-director-manifest-state.json"
         ensure:
           put: ubuntu-dynamic-director-state-file
+          tags: *tags
           params: {from: teardown/ubuntu-dynamic-director-manifest-state.json}
 
   - name: deploy-centos-manual
@@ -320,15 +345,16 @@ jobs:
     serial_groups: [centos-director-manual] # shouldn't deploy while bats are running
     plan:
       - aggregate:
-        - {trigger: true,  passed: [build-candidate], get: bosh-cpi-dev-artifacts}
-        - {trigger: false, passed: [build-candidate], get: version-semver}
-        - {trigger: false, passed: [build-candidate], get: bosh-cpi-src-in}
-        - {trigger: false,                            get: director-state-file, resource: centos-manual-director-state-file}
-        - {trigger: false,                            get: bosh-init}
-        - {trigger: false,                            get: bosh-release}
-        - {trigger: false,                            get: stemcell, resource: openstack-centos-stemcell}
+        - {trigger: true,  passed: [build-candidate], get: bosh-cpi-dev-artifacts, tags: *tags}
+        - {trigger: false, passed: [build-candidate], get: version-semver, tags: *tags}
+        - {trigger: false, passed: [build-candidate], get: bosh-cpi-src-in, tags: *tags}
+        - {trigger: false,                            get: director-state-file, resource: centos-manual-director-state-file, tags: *tags}
+        - {trigger: false,                            get: bosh-init, tags: *tags}
+        - {trigger: false,                            get: bosh-release, tags: *tags}
+        - {trigger: false,                            get: stemcell, resource: openstack-centos-stemcell, tags: *tags}
 
       - task: deploy
+        tags: *tags
         file: bosh-cpi-src-in/ci/tasks/deploy-manual-networking.yml
         params:
           base_os:                       "centos"
@@ -356,9 +382,11 @@ jobs:
           private_key_data:              {{bosh_private_key}}
         ensure:
           put: centos-manual-director-state-file
+          tags: *tags
           params: {from: deployment/centos-manual-director-manifest-state.json}
 
       - put: centos-manual-director-manifest-file
+        tags: *tags
         params: {from: deployment/centos-manual-director-manifest.yml}
 
   - name: bats-centos-manual
@@ -366,17 +394,18 @@ jobs:
     serial_groups: [centos-director-manual] # can't run while deploying
     plan:
       - aggregate:
-        - {trigger: true,  passed: [deploy-centos-manual], get: bosh-cpi-dev-artifacts}
-        - {trigger: false, passed: [deploy-centos-manual], get: stemcell, resource: openstack-centos-stemcell}
-        - {trigger: false, passed: [deploy-centos-manual], get: director-state-file, resource: centos-manual-director-state-file}
-        - {trigger: false, passed: [deploy-centos-manual], get: director-manifest-file, resource: centos-manual-director-manifest-file}
-        - {trigger: false, passed: [deploy-centos-manual], get: bosh-cpi-src-in}
-        - {trigger: false, passed: [deploy-centos-manual], get: version-semver}
-        - {trigger: false,                                 get: bosh-release}
-        - {trigger: false,                                 get: bats}
-        - {trigger: false,                                 get: bosh-init}
+        - {trigger: true,  passed: [deploy-centos-manual], get: bosh-cpi-dev-artifacts, tags: *tags}
+        - {trigger: false, passed: [deploy-centos-manual], get: stemcell, resource: openstack-centos-stemcell, tags: *tags}
+        - {trigger: false, passed: [deploy-centos-manual], get: director-state-file, resource: centos-manual-director-state-file, tags: *tags}
+        - {trigger: false, passed: [deploy-centos-manual], get: director-manifest-file, resource: centos-manual-director-manifest-file, tags: *tags}
+        - {trigger: false, passed: [deploy-centos-manual], get: bosh-cpi-src-in, tags: *tags}
+        - {trigger: false, passed: [deploy-centos-manual], get: version-semver, tags: *tags}
+        - {trigger: false,                                 get: bosh-release, tags: *tags}
+        - {trigger: false,                                 get: bats, tags: *tags}
+        - {trigger: false,                                 get: bosh-init, tags: *tags}
 
       - task: test
+        tags: *tags
         file: bosh-cpi-src-in/ci/tasks/run-manual-networking-bats.yml
         params:
           stemcell_name:                            "bosh-openstack-kvm-centos-7-go_agent"
@@ -403,6 +432,7 @@ jobs:
           secondary_network_dhcp_pool:              {{bats_manual_centos_secondary_net_dhcp_pool}}
 
       - task: teardown-director
+        tags: *tags
         file: bosh-cpi-src-in/ci/tasks/teardown-director.yml
         params:
           bosh_admin_password:                     {{bosh_admin_password}}
@@ -411,6 +441,7 @@ jobs:
           director_state_file:                     "centos-manual-director-manifest-state.json"
         ensure:
           put: centos-manual-director-state-file
+          tags: *tags
           params: {from: teardown/centos-manual-director-manifest-state.json}
 
   - name: deploy-centos-dynamic
@@ -418,15 +449,16 @@ jobs:
     serial_groups: [centos-director-dynamic] # shouldn't deploy while bats are running
     plan:
       - aggregate:
-        - {trigger: true,  passed: [build-candidate], get: bosh-cpi-dev-artifacts}
-        - {trigger: false, passed: [build-candidate], get: version-semver}
-        - {trigger: false, passed: [build-candidate], get: bosh-cpi-src-in}
-        - {trigger: false,                            get: director-state-file, resource: centos-dynamic-director-state-file}
-        - {trigger: false,                            get: bosh-init}
-        - {trigger: false,                            get: bosh-release}
-        - {trigger: false,                            get: stemcell, resource: openstack-centos-stemcell}
+        - {trigger: true,  passed: [build-candidate], get: bosh-cpi-dev-artifacts, tags: *tags}
+        - {trigger: false, passed: [build-candidate], get: version-semver, tags: *tags}
+        - {trigger: false, passed: [build-candidate], get: bosh-cpi-src-in, tags: *tags}
+        - {trigger: false,                            get: director-state-file, resource: centos-dynamic-director-state-file, tags: *tags}
+        - {trigger: false,                            get: bosh-init, tags: *tags}
+        - {trigger: false,                            get: bosh-release, tags: *tags}
+        - {trigger: false,                            get: stemcell, resource: openstack-centos-stemcell, tags: *tags}
 
       - task: deploy
+        tags: *tags
         file: bosh-cpi-src-in/ci/tasks/deploy-dynamic-networking.yml
         params:
           base_os:                       "centos"
@@ -451,9 +483,11 @@ jobs:
           private_key_data:              {{bosh_private_key}}
         ensure:
           put: centos-dynamic-director-state-file
+          tags: *tags
           params: {from: deployment/centos-dynamic-director-manifest-state.json}
 
       - put: centos-dynamic-director-manifest-file
+        tags: *tags
         params: {from: deployment/centos-dynamic-director-manifest.yml}
 
   - name: bats-centos-dynamic
@@ -461,17 +495,18 @@ jobs:
     serial_groups: [centos-director-dynamic] # can't run while deploying
     plan:
       - aggregate:
-        - {trigger: true,  passed: [deploy-centos-dynamic], get: bosh-cpi-dev-artifacts}
-        - {trigger: false, passed: [deploy-centos-dynamic], get: stemcell, resource: openstack-centos-stemcell}
-        - {trigger: false, passed: [deploy-centos-dynamic], get: director-state-file, resource: centos-dynamic-director-state-file}
-        - {trigger: false, passed: [deploy-centos-dynamic], get: director-manifest-file, resource: centos-dynamic-director-manifest-file}
-        - {trigger: false, passed: [deploy-centos-dynamic], get: bosh-cpi-src-in}
-        - {trigger: false, passed: [deploy-centos-dynamic], get: version-semver}
-        - {trigger: false,                                  get: bosh-release}
-        - {trigger: false,                                  get: bats}
-        - {trigger: false,                                  get: bosh-init}
+        - {trigger: true,  passed: [deploy-centos-dynamic], get: bosh-cpi-dev-artifacts, tags: *tags}
+        - {trigger: false, passed: [deploy-centos-dynamic], get: stemcell, resource: openstack-centos-stemcell, tags: *tags}
+        - {trigger: false, passed: [deploy-centos-dynamic], get: director-state-file, resource: centos-dynamic-director-state-file, tags: *tags}
+        - {trigger: false, passed: [deploy-centos-dynamic], get: director-manifest-file, resource: centos-dynamic-director-manifest-file, tags: *tags}
+        - {trigger: false, passed: [deploy-centos-dynamic], get: bosh-cpi-src-in, tags: *tags}
+        - {trigger: false, passed: [deploy-centos-dynamic], get: version-semver, tags: *tags}
+        - {trigger: false,                                  get: bosh-release, tags: *tags}
+        - {trigger: false,                                  get: bats, tags: *tags}
+        - {trigger: false,                                  get: bosh-init, tags: *tags}
 
       - task: test
+        tags: *tags
         file: bosh-cpi-src-in/ci/tasks/run-dynamic-networking-bats.yml
         params:
           stemcell_name:                            "bosh-openstack-kvm-centos-7-go_agent"
@@ -485,6 +520,7 @@ jobs:
           private_key_data:                         {{bosh_private_key}}
 
       - task: teardown-director
+        tags: *tags
         file: bosh-cpi-src-in/ci/tasks/teardown-director.yml
         params:
           bosh_admin_password:                     {{bosh_admin_password}}
@@ -493,25 +529,29 @@ jobs:
           director_state_file:                     "centos-dynamic-director-manifest-state.json"
         ensure:
           put: centos-dynamic-director-state-file
+          tags: *tags
           params: {from: teardown/centos-dynamic-director-manifest-state.json}
 
   - name: promote-candidate
     serial: true
     plan:
       - aggregate:
-        - {trigger: false,  passed: [lifecycle, bats-ubuntu-manual, bats-centos-manual, bats-ubuntu-dynamic, bats-centos-dynamic], get: bosh-cpi-dev-artifacts}
-        - {trigger: false, passed: [lifecycle, bats-ubuntu-manual, bats-centos-manual, bats-ubuntu-dynamic, bats-centos-dynamic], get: bosh-cpi-src-in}
-        - {trigger: false, get: release-version-semver, params: {bump: major}}
+        - {trigger: false,  passed: [lifecycle, bats-ubuntu-manual, bats-centos-manual, bats-ubuntu-dynamic, bats-centos-dynamic], get: bosh-cpi-dev-artifacts, tags: *tags}
+        - {trigger: false, passed: [lifecycle, bats-ubuntu-manual, bats-centos-manual, bats-ubuntu-dynamic, bats-centos-dynamic], get: bosh-cpi-src-in, tags: *tags}
+        - {trigger: false, get: release-version-semver, params: {bump: major}, tags: *tags}
 
       - task: promote
+        tags: *tags
         file: bosh-cpi-src-in/ci/tasks/promote-candidate.yml
         params:
           aws_access_key_id: {{s3_openstack_cpi_blobs_access_key}}
           aws_secret_access_key: {{s3_openstack_cpi_blobs_secret_key}}
       - put: release-version-semver
+        tags: *tags
         params: {file: release-version-semver/number}
 
       - put: bosh-cpi-src-out
+        tags: *tags
         params: {repository: promote/repo, rebase: true, tag: promote/integer_version, tag_prefix: "v"}
 
 resources:

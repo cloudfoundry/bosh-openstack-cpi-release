@@ -12,20 +12,25 @@ groups:
       - certify-centos
       - certify-ubuntu
 
+tags:
+  default: &tags []
+  suse-liberty: ['suse-liberty']
+
 jobs:
   - name: e2e-centos
     serial: true
     serial_groups: [e2e-centos]
     plan:
       - aggregate:
-        - {trigger: false, get: bosh-cpi-src-in}
-        - {trigger: false, get: dummy-release}
-        - {trigger: true, get: bosh-init}
-        - {trigger: true, get: bosh-cpi-release, resource: bosh-cpi-dev-artifacts}
-        - {trigger: true, get: bosh-release}
-        - {trigger: true, get: stemcell, resource: centos-stemcell}
+        - {trigger: false, get: bosh-cpi-src-in, tags: *tags}
+        - {trigger: false, get: dummy-release, tags: *tags}
+        - {trigger: true, get: bosh-init, tags: *tags}
+        - {trigger: true, get: bosh-cpi-release, resource: bosh-cpi-dev-artifacts, tags: *tags}
+        - {trigger: true, get: bosh-release, tags: *tags}
+        - {trigger: true, get: stemcell, resource: centos-stemcell, tags: *tags}
 
       - task: deploy-integration-director
+        tags: *tags
         file: bosh-cpi-src-in/ci/pipelines/certify-stemcell/tasks/deploy-director.yml
         params: &centos-deploy-director-params
           v3_e2e_flavor:               "m1.medium"
@@ -56,6 +61,7 @@ jobs:
           v3_e2e_blobstore_secret_key: {{v3_e2e_blobstore_secret_key}}
 
       - task: deploy-dummy-release
+        tags: *tags
         file: bosh-cpi-src-in/ci/pipelines/certify-stemcell/tasks/deploy-dummy-release.yml
         params:
           instance_flavor:         "m1.medium"
@@ -67,6 +73,7 @@ jobs:
           stemcell_name:           "bosh-openstack-kvm-centos-7-go_agent"
 
       - task: teardown-director
+        tags: *tags
         file: bosh-cpi-src-in/ci/pipelines/certify-stemcell/tasks/teardown-director.yml
         params:
           bosh_admin_password: {{bosh_admin_password}}
@@ -77,14 +84,15 @@ jobs:
     serial_groups: [e2e-ubuntu]
     plan:
       - aggregate:
-        - {trigger: false, get: bosh-cpi-src-in}
-        - {trigger: false, get: dummy-release}
-        - {trigger: true, get: bosh-init}
-        - {trigger: true, get: bosh-cpi-release, resource: bosh-cpi-dev-artifacts}
-        - {trigger: true, get: bosh-release}
-        - {trigger: true, get: stemcell, resource: ubuntu-stemcell}
+        - {trigger: false, get: bosh-cpi-src-in, tags: *tags}
+        - {trigger: false, get: dummy-release, tags: *tags}
+        - {trigger: true, get: bosh-init, tags: *tags}
+        - {trigger: true, get: bosh-cpi-release, resource: bosh-cpi-dev-artifacts, tags: *tags}
+        - {trigger: true, get: bosh-release, tags: *tags}
+        - {trigger: true, get: stemcell, resource: ubuntu-stemcell, tags: *tags}
 
       - task: deploy-integration-director
+        tags: *tags
         file: bosh-cpi-src-in/ci/pipelines/certify-stemcell/tasks/deploy-director.yml
         params:
           <<:                    *centos-deploy-director-params
@@ -92,6 +100,7 @@ jobs:
           director_manual_ip:    {{v3_e2e_ubuntu_director_manual_ip}}
 
       - task: deploy-dummy-release
+        tags: *tags
         file: bosh-cpi-src-in/ci/pipelines/certify-stemcell/tasks/deploy-dummy-release.yml
         params:
           instance_flavor:         "m1.medium"
@@ -103,6 +112,7 @@ jobs:
           stemcell_name:           "bosh-openstack-kvm-ubuntu-trusty-go_agent"
 
       - task: teardown-director
+        tags: *tags
         file: bosh-cpi-src-in/ci/pipelines/certify-stemcell/tasks/teardown-director.yml
         params:
           bosh_admin_password: {{bosh_admin_password}}
@@ -113,14 +123,15 @@ jobs:
     serial_groups: [e2e-centos-config-drive]
     plan:
       - aggregate:
-        - {trigger: false, get: bosh-cpi-src-in}
-        - {trigger: false, get: dummy-release}
-        - {trigger: true, get: bosh-init}
-        - {trigger: true, get: bosh-cpi-release, resource: bosh-cpi-dev-artifacts}
-        - {trigger: true, get: bosh-release}
-        - {trigger: true, get: stemcell, resource: centos-stemcell}
+        - {trigger: false, get: bosh-cpi-src-in, tags: *tags}
+        - {trigger: false, get: dummy-release, tags: *tags}
+        - {trigger: true, get: bosh-init, tags: *tags}
+        - {trigger: true, get: bosh-cpi-release, resource: bosh-cpi-dev-artifacts, tags: *tags}
+        - {trigger: true, get: bosh-release, tags: *tags}
+        - {trigger: true, get: stemcell, resource: centos-stemcell, tags: *tags}
 
       - task: deploy-integration-director
+        tags: *tags
         file: bosh-cpi-src-in/ci/pipelines/certify-stemcell/tasks/deploy-director.yml
         params: &e2e-centos-config-drive-director-params
           v3_e2e_flavor:               "m1.medium"
@@ -152,6 +163,7 @@ jobs:
           v3_e2e_blobstore_secret_key: {{v3_e2e_blobstore_secret_key}}
 
       - task: deploy-dummy-release
+        tags: *tags
         file: bosh-cpi-src-in/ci/pipelines/certify-stemcell/tasks/deploy-dummy-release.yml
         params:
           instance_flavor:           "m1.medium"
@@ -163,6 +175,7 @@ jobs:
           stemcell_name:             "bosh-openstack-kvm-centos-7-go_agent"
 
       - task: teardown-director
+        tags: *tags
         file: bosh-cpi-src-in/ci/pipelines/certify-stemcell/tasks/teardown-director.yml
         params:
           bosh_admin_password: {{bosh_admin_password}}
@@ -173,14 +186,15 @@ jobs:
     serial_groups: [e2e-ubuntu-config-drive]
     plan:
       - aggregate:
-        - {trigger: false, get: bosh-cpi-src-in}
-        - {trigger: false, get: dummy-release}
-        - {trigger: true, get: bosh-init}
-        - {trigger: true, get: bosh-cpi-release, resource: bosh-cpi-dev-artifacts}
-        - {trigger: true, get: bosh-release}
-        - {trigger: true, get: stemcell, resource: ubuntu-stemcell}
+        - {trigger: false, get: bosh-cpi-src-in, tags: *tags}
+        - {trigger: false, get: dummy-release, tags: *tags}
+        - {trigger: true, get: bosh-init, tags: *tags}
+        - {trigger: true, get: bosh-cpi-release, resource: bosh-cpi-dev-artifacts, tags: *tags}
+        - {trigger: true, get: bosh-release, tags: *tags}
+        - {trigger: true, get: stemcell, resource: ubuntu-stemcell, tags: *tags}
 
       - task: deploy-integration-director
+        tags: *tags
         file: bosh-cpi-src-in/ci/pipelines/certify-stemcell/tasks/deploy-director.yml
         params:
           <<: *e2e-centos-config-drive-director-params
@@ -188,6 +202,7 @@ jobs:
           director_manual_ip:   {{v3_e2e_ubuntu_config_drive_manual_ip}}
 
       - task: deploy-dummy-release
+        tags: *tags
         file: bosh-cpi-src-in/ci/pipelines/certify-stemcell/tasks/deploy-dummy-release.yml
         params:
           instance_flavor:           "m1.medium"
@@ -199,6 +214,7 @@ jobs:
           stemcell_name:             "bosh-openstack-kvm-ubuntu-trusty-go_agent"
 
       - task: teardown-director
+        tags: *tags
         file: bosh-cpi-src-in/ci/pipelines/certify-stemcell/tasks/teardown-director.yml
         params:
           bosh_admin_password: {{bosh_admin_password}}
@@ -209,15 +225,16 @@ jobs:
     serial_groups: [test-upgrade-centos]
     plan:
       - aggregate:
-        - {trigger: false, get: bosh-cpi-src-in}
-        - {trigger: true,  get: bosh-init}
-        - {trigger: false, get: old-bosh-init}
-        - {trigger: true,  get: bosh-cpi-release, resource: bosh-cpi-dev-artifacts}
-        - {trigger: true,  get: bosh-release}
-        - {trigger: true,  get: stemcell, resource: centos-stemcell}
-        - {trigger: false, get: dummy-release}
+        - {trigger: false, get: bosh-cpi-src-in, tags: *tags}
+        - {trigger: true,  get: bosh-init, tags: *tags}
+        - {trigger: false, get: old-bosh-init, tags: *tags}
+        - {trigger: true,  get: bosh-cpi-release, resource: bosh-cpi-dev-artifacts, tags: *tags}
+        - {trigger: true,  get: bosh-release, tags: *tags}
+        - {trigger: true,  get: stemcell, resource: centos-stemcell, tags: *tags}
+        - {trigger: false, get: dummy-release, tags: *tags}
 
       - task: deploy-old-director
+        tags: *tags
         file: bosh-cpi-src-in/ci/pipelines/certify-stemcell/tasks/deploy-old-director.yml
         params: &centos-deploy-old-director-params
           dns:                               {{dns}}
@@ -251,6 +268,7 @@ jobs:
           old_bosh_stemcell_sha1:            a1a9715bb821a3b860d480295edad0b9b087fd3b
 
       - task: deploy-dummy-release-with-old-cpi
+        tags: *tags
         file: bosh-cpi-src-in/ci/pipelines/certify-stemcell/tasks/deploy-dummy-release.yml
         params:
           instance_flavor:             "m1.medium"
@@ -263,6 +281,7 @@ jobs:
           delete_deployment_when_done: "false"
 
       - task: test-upgrade
+        tags: *tags
         file: bosh-cpi-src-in/ci/pipelines/certify-stemcell/tasks/test-upgrade.yml
         params: &centos-test-upgrade-params
           dns:                             {{dns}}
@@ -289,6 +308,7 @@ jobs:
           v3_e2e_private_key_data:         {{v3_e2e_private_key_data}}
 
       - task: teardown-director
+        tags: *tags
         file: bosh-cpi-src-in/ci/pipelines/certify-stemcell/tasks/teardown.yml
 
   - name: test-upgrade-ubuntu
@@ -296,15 +316,16 @@ jobs:
     serial_groups: [test-upgrade-ubuntu]
     plan:
       - aggregate:
-        - {trigger: false, get: bosh-cpi-src-in}
-        - {trigger: true,  get: bosh-init}
-        - {trigger: false, get: old-bosh-init}
-        - {trigger: true,  get: bosh-cpi-release, resource: bosh-cpi-dev-artifacts}
-        - {trigger: true,  get: bosh-release}
-        - {trigger: true,  get: stemcell, resource: ubuntu-stemcell}
-        - {trigger: false, get: dummy-release}
+        - {trigger: false, get: bosh-cpi-src-in, tags: *tags}
+        - {trigger: true,  get: bosh-init, tags: *tags}
+        - {trigger: false, get: old-bosh-init, tags: *tags}
+        - {trigger: true,  get: bosh-cpi-release, resource: bosh-cpi-dev-artifacts, tags: *tags}
+        - {trigger: true,  get: bosh-release, tags: *tags}
+        - {trigger: true,  get: stemcell, resource: ubuntu-stemcell, tags: *tags}
+        - {trigger: false, get: dummy-release, tags: *tags}
 
       - task: deploy-old-director
+        tags: *tags
         file: bosh-cpi-src-in/ci/pipelines/certify-stemcell/tasks/deploy-old-director.yml
         params:
           <<:                              *centos-deploy-old-director-params
@@ -315,6 +336,7 @@ jobs:
           old_bosh_stemcell_sha1:          a65173c58f36b108b4fe701f09588d3a7e9ed75f
 
       - task: deploy-dummy-release-with-old-cpi
+        tags: *tags
         file: bosh-cpi-src-in/ci/pipelines/certify-stemcell/tasks/deploy-dummy-release.yml
         params:
           instance_flavor:             "m1.medium"
@@ -327,6 +349,7 @@ jobs:
           delete_deployment_when_done: "false"
 
       - task: test-upgrade
+        tags: *tags
         file: bosh-cpi-src-in/ci/pipelines/certify-stemcell/tasks/test-upgrade.yml
         params:
           <<:                              *centos-test-upgrade-params
@@ -334,16 +357,18 @@ jobs:
           v3_upgrade_director_manual_ip:   {{v3_ubuntu_upgrade_director_manual_ip}}
 
       - task: teardown-director
+        tags: *tags
         file: bosh-cpi-src-in/ci/pipelines/certify-stemcell/tasks/teardown.yml
 
   - name: cleanup
     serial: true
     serial_groups: [e2e-centos, e2e-ubuntu, e2e-ubuntu-config-drive, e2e-centos-config-drive, test-upgrade-centos, test-upgrade-ubuntu] #can't run while anything else is running
     plan:
-      - {trigger: false, get: bosh-cpi-src-in}
-      - {trigger: true,  get: cleanup-time-trigger}
+      - {trigger: false, get: bosh-cpi-src-in, tags: *tags}
+      - {trigger: true,  get: cleanup-time-trigger, tags: *tags}
 
       - task: cleanup-e2e
+        tags: *tags
         file: bosh-cpi-src-in/ci/tasks/cleanup.yml
         params:
           BOSH_OPENSTACK_IDENTITY_API_VERSION: 3
@@ -357,12 +382,13 @@ jobs:
   - name: certify-ubuntu
     plan:
       - aggregate:
-        - {trigger: false, get: bosh-cpi-src-in}
-        - {trigger: true,  get: bosh-cpi-release, passed: [e2e-ubuntu, e2e-ubuntu-config-drive, test-upgrade-ubuntu], resource: bosh-cpi-dev-artifacts}
-        - {trigger: true,  get: bosh-release,     passed: [e2e-ubuntu, e2e-ubuntu-config-drive, test-upgrade-ubuntu]}
-        - {trigger: true,  get: stemcell,         passed: [e2e-ubuntu, e2e-ubuntu-config-drive, test-upgrade-ubuntu], resource: ubuntu-stemcell}
+        - {trigger: false, get: bosh-cpi-src-in, tags: *tags}
+        - {trigger: true,  get: bosh-cpi-release, passed: [e2e-ubuntu, e2e-ubuntu-config-drive, test-upgrade-ubuntu], resource: bosh-cpi-dev-artifacts, tags: *tags}
+        - {trigger: true,  get: bosh-release,     passed: [e2e-ubuntu, e2e-ubuntu-config-drive, test-upgrade-ubuntu], tags: *tags}
+        - {trigger: true,  get: stemcell,         passed: [e2e-ubuntu, e2e-ubuntu-config-drive, test-upgrade-ubuntu], resource: ubuntu-stemcell, tags: *tags}
 
       - task: generate-certification
+        tags: *tags
         file: bosh-cpi-src-in/ci/pipelines/certify-stemcell/tasks/generate-certification.yml
         params:
           bosh_release_name: bosh
@@ -370,18 +396,20 @@ jobs:
           stemcell_name: bosh-openstack-kvm-ubuntu-trusty-go_agent
 
       - put: certification
+        tags: *tags
         params:
           file: certification-receipt/*.json
 
   - name: certify-centos
     plan:
       - aggregate:
-        - {trigger: false, get: bosh-cpi-src-in}
-        - {trigger: true,  get: bosh-cpi-release, passed: [e2e-centos, e2e-centos-config-drive, test-upgrade-centos], resource: bosh-cpi-dev-artifacts}
-        - {trigger: true,  get: bosh-release,     passed: [e2e-centos, e2e-centos-config-drive, test-upgrade-centos]}
-        - {trigger: true,  get: stemcell,         passed: [e2e-centos, e2e-centos-config-drive, test-upgrade-centos], resource: centos-stemcell}
+        - {trigger: false, get: bosh-cpi-src-in, tags: *tags}
+        - {trigger: true,  get: bosh-cpi-release, passed: [e2e-centos, e2e-centos-config-drive, test-upgrade-centos], resource: bosh-cpi-dev-artifacts, tags: *tags}
+        - {trigger: true,  get: bosh-release,     passed: [e2e-centos, e2e-centos-config-drive, test-upgrade-centos], tags: *tags}
+        - {trigger: true,  get: stemcell,         passed: [e2e-centos, e2e-centos-config-drive, test-upgrade-centos], resource: centos-stemcell, tags: *tags}
 
       - task: generate-certification
+        tags: *tags
         file: bosh-cpi-src-in/ci/pipelines/certify-stemcell/tasks/generate-certification.yml
         params:
           bosh_release_name: bosh
@@ -389,6 +417,7 @@ jobs:
           stemcell_name: bosh-openstack-kvm-centos-7-go_agent
 
       - put: certification
+        tags: *tags
         params:
           file: certification-receipt/*.json
 
@@ -466,4 +495,3 @@ resources:
     type: time
     source:
       interval: 24h
-
