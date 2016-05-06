@@ -5,6 +5,7 @@ set -e
 source bosh-cpi-src-in/ci/tasks/utils.sh
 
 ensure_not_replace_value base_os
+ensure_not_replace_value bosh_admin_password
 ensure_not_replace_value dns
 ensure_not_replace_value network_type_to_test
 ensure_not_replace_value openstack_flavor
@@ -38,6 +39,7 @@ deployment_dir="${PWD}/deployment"
 manifest_filename="${base_os}-${network_type_to_test}-director-manifest.yml"
 director_state_filename="${base_os}-${network_type_to_test}-director-manifest-state.json"
 private_key=${deployment_dir}/bats.pem
+bosh_vcap_password_hash=$(ruby -e 'require "securerandom";puts ENV["bosh_admin_password"].crypt("$6$#{SecureRandom.base64(14)}")')
 
 echo "setting up artifacts used in $manifest_filename"
 cp ./bosh-cpi-dev-artifacts/${cpi_release_name}-${semver}.tgz ${deployment_dir}/${cpi_release_name}.tgz
@@ -82,6 +84,9 @@ resource_pools:
       url: file://stemcell.tgz
     cloud_properties:
       instance_type: $openstack_flavor
+    env:
+      bosh:
+        password: ${bosh_vcap_password_hash}
 
 disk_pools:
   - name: default
@@ -134,9 +139,9 @@ jobs:
         address: ${openstack_manual_ip}
         host: ${openstack_manual_ip}
         db: *db
-        http: {user: admin, password: admin, port: ${bosh_registry_port}}
+        http: {user: admin, password: ${bosh_admin_password}, port: ${bosh_registry_port}}
         username: admin
-        password: admin
+        password: ${bosh_admin_password}
         port: ${bosh_registry_port}
 
       # Tells the Director/agents how to contact blobstore
@@ -152,10 +157,15 @@ jobs:
         name: micro
         db: *db
         cpi_job: openstack_cpi
+        user_management:
+          provider: local
+          local:
+            users:
+              - {name: admin, password: ${bosh_admin_password}}
 
       hm:
-        http: {user: hm, password: hm-password}
-        director_account: {user: admin, password: admin}
+        http: {user: hm, password: ${bosh_admin_password}}
+        director_account: {user: admin, password: ${bosh_admin_password}}
 
       dns:
         address: 127.0.0.1
@@ -217,7 +227,7 @@ bosh version
 echo "targeting bosh director at ${openstack_floating_ip}"
 bosh -n target ${openstack_floating_ip} || failed_exit_code=$?
 if [ -z "$failed_exit_code" ]; then
-  bosh login admin admin
+  bosh login admin ${bosh_admin_password}
   echo "cleanup director (especially orphan disks)"
   bosh -n cleanup --all
 fi

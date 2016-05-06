@@ -157,6 +157,7 @@ jobs:
         config:
           params:
             base_os:                       "ubuntu"
+            bosh_admin_password:           {{bosh_admin_password}}
             network_type_to_test:          "manual"
             openstack_flavor:              "m1.small"
             openstack_connection_timeout:  "600"
@@ -209,7 +210,7 @@ jobs:
             openstack_security_group:                 {{openstack_security_group}}
             openstack_flavor_with_ephemeral_disk:     {{openstack_flavor_with_ephemeral_disk}}
             openstack_flavor_with_no_ephemeral_disk:  {{openstack_flavor_with_no_ephemeral_disk}}
-            desired_vcap_user_password:               {{bosh_desired_vcap_user_password}}
+            bosh_admin_password:                      {{bosh_admin_password}}
             bosh_director_public_ip:                  {{bats_manual_ubuntu_director_public_ip}}
             bosh_director_private_ip:                 {{bats_manual_ubuntu_director_private_ip}}
             bats_vm_floating_ip:                      {{bats_manual_ubuntu_floating_ip}}
@@ -231,6 +232,7 @@ jobs:
         file: bosh-cpi-src-in/ci/tasks/teardown-director.yml
         config:
           params:
+            bosh_admin_password:                     {{bosh_admin_password}}
             bosh_director_ip:                        {{bats_manual_ubuntu_director_public_ip}}
             director_manifest_file:                  "ubuntu-manual-director-manifest.yml"
             director_state_file:                     "ubuntu-manual-director-manifest-state.json"
@@ -256,6 +258,7 @@ jobs:
         config:
           params:
             base_os:                       "ubuntu"
+            bosh_admin_password:           {{bosh_admin_password}}
             network_type_to_test:          "dynamic"
             openstack_flavor:              "m1.small"
             openstack_connection_timeout:  "600"
@@ -302,8 +305,8 @@ jobs:
           params:
             stemcell_name:                            "bosh-openstack-kvm-ubuntu-trusty-go_agent"
             bats_vm_floating_ip:                      {{bats_dynamic_ubuntu_floating_ip}}
+            bosh_admin_password:                      {{bosh_admin_password}}
             bosh_director_public_ip:                  {{bats_dynamic_ubuntu_director_public_ip}}
-            desired_vcap_user_password:               {{bosh_desired_vcap_user_password}}
             openstack_flavor_with_ephemeral_disk:     {{openstack_flavor_with_ephemeral_disk}}
             openstack_flavor_with_no_ephemeral_disk:  {{openstack_flavor_with_no_ephemeral_disk}}
             openstack_security_group:                 {{openstack_security_group}}
@@ -314,6 +317,7 @@ jobs:
         file: bosh-cpi-src-in/ci/tasks/teardown-director.yml
         config:
           params:
+            bosh_admin_password:                     {{bosh_admin_password}}
             bosh_director_ip:                        {{bats_dynamic_ubuntu_director_public_ip}}
             director_manifest_file:                  "ubuntu-dynamic-director-manifest.yml"
             director_state_file:                     "ubuntu-dynamic-director-manifest-state.json"
@@ -339,6 +343,7 @@ jobs:
         config:
           params:
             base_os:                       "centos"
+            bosh_admin_password:           {{bosh_admin_password}}
             network_type_to_test:          "manual"
             openstack_flavor:              "m1.small"
             openstack_connection_timeout:  "600"
@@ -391,7 +396,7 @@ jobs:
             openstack_security_group:                 {{openstack_security_group}}
             openstack_flavor_with_ephemeral_disk:     {{openstack_flavor_with_ephemeral_disk}}
             openstack_flavor_with_no_ephemeral_disk:  {{openstack_flavor_with_no_ephemeral_disk}}
-            desired_vcap_user_password:               {{bosh_desired_vcap_user_password}}
+            bosh_admin_password:                      {{bosh_admin_password}}
             bosh_director_public_ip:                  {{bats_manual_centos_director_public_ip}}
             bosh_director_private_ip:                 {{bats_manual_centos_director_private_ip}}
             bats_vm_floating_ip:                      {{bats_manual_centos_floating_ip}}
@@ -413,6 +418,7 @@ jobs:
         file: bosh-cpi-src-in/ci/tasks/teardown-director.yml
         config:
           params:
+            bosh_admin_password:                     {{bosh_admin_password}}
             bosh_director_ip:                        {{bats_manual_centos_director_public_ip}}
             director_manifest_file:                  "centos-manual-director-manifest.yml"
             director_state_file:                     "centos-manual-director-manifest-state.json"
@@ -438,6 +444,7 @@ jobs:
         config:
           params:
             base_os:                       "centos"
+            bosh_admin_password:           {{bosh_admin_password}}
             network_type_to_test:          "dynamic"
             openstack_flavor:              "m1.small"
             openstack_connection_timeout:  "600"
@@ -484,8 +491,8 @@ jobs:
           params:
             stemcell_name:                            "bosh-openstack-kvm-centos-7-go_agent"
             bats_vm_floating_ip:                      {{bats_dynamic_centos_floating_ip}}
+            bosh_admin_password:                      {{bosh_admin_password}}
             bosh_director_public_ip:                  {{bats_dynamic_centos_director_public_ip}}
-            desired_vcap_user_password:               {{bosh_desired_vcap_user_password}}
             openstack_flavor_with_ephemeral_disk:     {{openstack_flavor_with_ephemeral_disk}}
             openstack_flavor_with_no_ephemeral_disk:  {{openstack_flavor_with_no_ephemeral_disk}}
             openstack_security_group:                 {{openstack_security_group}}
@@ -496,6 +503,7 @@ jobs:
         file: bosh-cpi-src-in/ci/tasks/teardown-director.yml
         config:
           params:
+            bosh_admin_password:                     {{bosh_admin_password}}
             bosh_director_ip:                        {{bats_dynamic_centos_director_public_ip}}
             director_manifest_file:                  "centos-dynamic-director-manifest.yml"
             director_state_file:                     "centos-dynamic-director-manifest-state.json"
