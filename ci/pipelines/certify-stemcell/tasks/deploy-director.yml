@@ -14,6 +14,7 @@ run:
 params:
   BOSH_INIT_LOG_LEVEL:            warn
   dns:                            replace-me
+  v3_e2e_config_drive:            replace-me
   v3_e2e_flavor:                  replace-me
   v3_e2e_connection_timeout:      replace-me
   v3_e2e_read_timeout:            replace-me
