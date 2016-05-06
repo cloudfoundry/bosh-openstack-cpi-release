@@ -19,3 +19,5 @@ certify-artifacts --release $bosh_release_name/$bosh_release_version \
                   --release $cpi_release_name/$cpi_release_version \
                   --stemcell $stemcell_name/$stemcell_version \
                  > certification-receipt/${timestamp}-${contents_hash}-receipt.json
+
+cat certification-receipt/${timestamp}-${contents_hash}-receipt.json
