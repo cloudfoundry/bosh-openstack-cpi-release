@@ -466,3 +466,4 @@ resources:
     type: time
     source:
       interval: 24h
+
