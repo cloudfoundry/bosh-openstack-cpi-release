@@ -14,4 +14,4 @@ params:
   stemcell_name:               replace-me
   network_id:                  replace-me
   instance_flavor:             replace-me
-  delete_deployment_when_done: true
+  delete_deployment_when_done: "true"
