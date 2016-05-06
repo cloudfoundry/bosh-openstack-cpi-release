@@ -19,7 +19,7 @@ jobs:
         - {trigger: false, get: bosh-cpi-src-in}
         - {trigger: false, get: dummy-release}
         - {trigger: true, get: bosh-init}
-        - {trigger: true, get: bosh-cpi-dev-artifacts}
+        - {trigger: true, get: bosh-cpi-release, resource: bosh-cpi-dev-artifacts}
         - {trigger: true, get: bosh-release}
         - {trigger: true, get: stemcell, resource: centos-stemcell}
 
@@ -78,7 +78,7 @@ jobs:
         - {trigger: false, get: bosh-cpi-src-in}
         - {trigger: false, get: dummy-release}
         - {trigger: true, get: bosh-init}
-        - {trigger: true, get: bosh-cpi-dev-artifacts}
+        - {trigger: true, get: bosh-cpi-release, resource: bosh-cpi-dev-artifacts}
         - {trigger: true, get: bosh-release}
         - {trigger: true, get: stemcell, resource: ubuntu-stemcell}
 
@@ -115,7 +115,7 @@ jobs:
         - {trigger: false, get: bosh-cpi-src-in}
         - {trigger: false, get: dummy-release}
         - {trigger: true, get: bosh-init}
-        - {trigger: true, get: bosh-cpi-dev-artifacts}
+        - {trigger: true, get: bosh-cpi-release, resource: bosh-cpi-dev-artifacts}
         - {trigger: true, get: bosh-release}
         - {trigger: true, get: stemcell, resource: centos-stemcell}
 
@@ -175,7 +175,7 @@ jobs:
         - {trigger: false, get: bosh-cpi-src-in}
         - {trigger: false, get: dummy-release}
         - {trigger: true, get: bosh-init}
-        - {trigger: true, get: bosh-cpi-dev-artifacts}
+        - {trigger: true, get: bosh-cpi-release, resource: bosh-cpi-dev-artifacts}
         - {trigger: true, get: bosh-release}
         - {trigger: true, get: stemcell, resource: ubuntu-stemcell}
 
@@ -212,7 +212,7 @@ jobs:
         - {trigger: false, get: bosh-cpi-src-in}
         - {trigger: true,  get: bosh-init}
         - {trigger: false, get: old-bosh-init}
-        - {trigger: true,  get: bosh-cpi-dev-artifacts}
+        - {trigger: true,  get: bosh-cpi-release, resource: bosh-cpi-dev-artifacts}
         - {trigger: true,  get: bosh-release}
         - {trigger: true,  get: stemcell, resource: centos-stemcell}
         - {trigger: false, get: dummy-release}
@@ -299,7 +299,7 @@ jobs:
         - {trigger: false, get: bosh-cpi-src-in}
         - {trigger: true,  get: bosh-init}
         - {trigger: false, get: old-bosh-init}
-        - {trigger: true,  get: bosh-cpi-dev-artifacts}
+        - {trigger: true,  get: bosh-cpi-release, resource: bosh-cpi-dev-artifacts}
         - {trigger: true,  get: bosh-release}
         - {trigger: true,  get: stemcell, resource: ubuntu-stemcell}
         - {trigger: false, get: dummy-release}
