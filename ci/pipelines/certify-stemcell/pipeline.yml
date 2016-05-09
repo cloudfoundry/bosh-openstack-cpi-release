@@ -25,12 +25,12 @@ jobs:
     serial_groups: [e2e-centos]
     plan:
       - aggregate:
-        - {trigger: false, get: bosh-cpi-src-in, tags: *tags, timeout: *timeouts-long}
-        - {trigger: false, get: dummy-release, tags: *tags, timeout: *timeouts-long}
-        - {trigger: true, get: bosh-init, tags: *tags, timeout: *timeouts-long}
-        - {trigger: true, get: bosh-cpi-release, resource: bosh-cpi-dev-artifacts, tags: *tags, timeout: *timeouts-long}
-        - {trigger: true, get: bosh-release, tags: *tags, timeout: *timeouts-long}
-        - {trigger: true, get: stemcell, resource: centos-stemcell, tags: *tags, timeout: *timeouts-long}
+        - {trigger: false, get: bosh-cpi-src-in,  passed: [cleanup], tags: *tags, timeout: *timeouts-long}
+        - {trigger: false, get: dummy-release,                       tags: *tags, timeout: *timeouts-long}
+        - {trigger: true,  get: bosh-init,        passed: [cleanup], tags: *tags, timeout: *timeouts-long}
+        - {trigger: true,  get: bosh-cpi-release, passed: [cleanup], tags: *tags, timeout: *timeouts-long, resource: bosh-cpi-dev-artifacts}
+        - {trigger: true,  get: bosh-release,     passed: [cleanup], tags: *tags, timeout: *timeouts-long}
+        - {trigger: true,  get: stemcell,         passed: [cleanup], tags: *tags, timeout: *timeouts-long, resource: centos-stemcell}
 
       - task: deploy-integration-director
         tags: *tags
@@ -90,12 +90,12 @@ jobs:
     serial_groups: [e2e-ubuntu]
     plan:
       - aggregate:
-        - {trigger: false, get: bosh-cpi-src-in, tags: *tags, timeout: *timeouts-long}
-        - {trigger: false, get: dummy-release, tags: *tags, timeout: *timeouts-long}
-        - {trigger: true, get: bosh-init, tags: *tags, timeout: *timeouts-long}
-        - {trigger: true, get: bosh-cpi-release, resource: bosh-cpi-dev-artifacts, tags: *tags, timeout: *timeouts-long}
-        - {trigger: true, get: bosh-release, tags: *tags, timeout: *timeouts-long}
-        - {trigger: true, get: stemcell, resource: ubuntu-stemcell, tags: *tags, timeout: *timeouts-long}
+        - {trigger: false, get: bosh-cpi-src-in,  passed: [cleanup], tags: *tags, timeout: *timeouts-long}
+        - {trigger: false, get: dummy-release,                       tags: *tags, timeout: *timeouts-long}
+        - {trigger: true,  get: bosh-init,        passed: [cleanup], tags: *tags, timeout: *timeouts-long}
+        - {trigger: true,  get: bosh-cpi-release, passed: [cleanup], tags: *tags, timeout: *timeouts-long, resource: bosh-cpi-dev-artifacts}
+        - {trigger: true,  get: bosh-release,     passed: [cleanup], tags: *tags, timeout: *timeouts-long}
+        - {trigger: true,  get: stemcell,         passed: [cleanup], tags: *tags, timeout: *timeouts-long, resource: ubuntu-stemcell}
 
       - task: deploy-integration-director
         tags: *tags
@@ -132,12 +132,12 @@ jobs:
     serial_groups: [e2e-centos-config-drive]
     plan:
       - aggregate:
-        - {trigger: false, get: bosh-cpi-src-in, tags: *tags, timeout: *timeouts-long}
-        - {trigger: false, get: dummy-release, tags: *tags, timeout: *timeouts-long}
-        - {trigger: true, get: bosh-init, tags: *tags, timeout: *timeouts-long}
-        - {trigger: true, get: bosh-cpi-release, resource: bosh-cpi-dev-artifacts, tags: *tags, timeout: *timeouts-long}
-        - {trigger: true, get: bosh-release, tags: *tags, timeout: *timeouts-long}
-        - {trigger: true, get: stemcell, resource: centos-stemcell, tags: *tags, timeout: *timeouts-long}
+        - {trigger: false, get: bosh-cpi-src-in,  passed: [cleanup], tags: *tags, timeout: *timeouts-long}
+        - {trigger: false, get: dummy-release,                       tags: *tags, timeout: *timeouts-long}
+        - {trigger: true,  get: bosh-init,        passed: [cleanup], tags: *tags, timeout: *timeouts-long}
+        - {trigger: true,  get: bosh-cpi-release, passed: [cleanup], tags: *tags, timeout: *timeouts-long, resource: bosh-cpi-dev-artifacts}
+        - {trigger: true,  get: bosh-release,     passed: [cleanup], tags: *tags, timeout: *timeouts-long}
+        - {trigger: true,  get: stemcell,         passed: [cleanup], tags: *tags, timeout: *timeouts-long, resource: centos-stemcell}
 
       - task: deploy-integration-director
         tags: *tags
@@ -198,12 +198,12 @@ jobs:
     serial_groups: [e2e-ubuntu-config-drive]
     plan:
       - aggregate:
-        - {trigger: false, get: bosh-cpi-src-in, tags: *tags, timeout: *timeouts-long}
-        - {trigger: false, get: dummy-release, tags: *tags, timeout: *timeouts-long}
-        - {trigger: true, get: bosh-init, tags: *tags, timeout: *timeouts-long}
-        - {trigger: true, get: bosh-cpi-release, resource: bosh-cpi-dev-artifacts, tags: *tags, timeout: *timeouts-long}
-        - {trigger: true, get: bosh-release, tags: *tags, timeout: *timeouts-long}
-        - {trigger: true, get: stemcell, resource: ubuntu-stemcell, tags: *tags, timeout: *timeouts-long}
+        - {trigger: false, get: bosh-cpi-src-in,  passed: [cleanup], tags: *tags, timeout: *timeouts-long}
+        - {trigger: false, get: dummy-release,                       tags: *tags, timeout: *timeouts-long}
+        - {trigger: true,  get: bosh-init,        passed: [cleanup], tags: *tags, timeout: *timeouts-long}
+        - {trigger: true,  get: bosh-cpi-release, passed: [cleanup], tags: *tags, timeout: *timeouts-long, resource: bosh-cpi-dev-artifacts}
+        - {trigger: true,  get: bosh-release,     passed: [cleanup], tags: *tags, timeout: *timeouts-long}
+        - {trigger: true,  get: stemcell,         passed: [cleanup], tags: *tags, timeout: *timeouts-long, resource: ubuntu-stemcell}
 
       - task: deploy-integration-director
         tags: *tags
@@ -240,13 +240,13 @@ jobs:
     serial_groups: [test-upgrade-centos]
     plan:
       - aggregate:
-        - {trigger: false, get: bosh-cpi-src-in, tags: *tags, timeout: *timeouts-long}
-        - {trigger: true,  get: bosh-init, tags: *tags, timeout: *timeouts-long}
-        - {trigger: false, get: old-bosh-init, tags: *tags, timeout: *timeouts-long}
-        - {trigger: true,  get: bosh-cpi-release, resource: bosh-cpi-dev-artifacts, tags: *tags, timeout: *timeouts-long}
-        - {trigger: true,  get: bosh-release, tags: *tags, timeout: *timeouts-long}
-        - {trigger: true,  get: stemcell, resource: centos-stemcell, tags: *tags, timeout: *timeouts-long}
-        - {trigger: false, get: dummy-release, tags: *tags, timeout: *timeouts-long}
+        - {trigger: false, get: bosh-cpi-src-in,  passed: [cleanup], tags: *tags, timeout: *timeouts-long}
+        - {trigger: false, get: dummy-release,                       tags: *tags, timeout: *timeouts-long}
+        - {trigger: true,  get: bosh-init,        passed: [cleanup], tags: *tags, timeout: *timeouts-long}
+        - {trigger: true,  get: bosh-cpi-release, passed: [cleanup], tags: *tags, timeout: *timeouts-long, resource: bosh-cpi-dev-artifacts}
+        - {trigger: true,  get: bosh-release,     passed: [cleanup], tags: *tags, timeout: *timeouts-long}
+        - {trigger: true,  get: stemcell,         passed: [cleanup], tags: *tags, timeout: *timeouts-long, resource: centos-stemcell}
+        - {trigger: false, get: old-bosh-init,                       tags: *tags, timeout: *timeouts-long}
 
       - task: deploy-old-director
         tags: *tags
@@ -335,13 +335,13 @@ jobs:
     serial_groups: [test-upgrade-ubuntu]
     plan:
       - aggregate:
-        - {trigger: false, get: bosh-cpi-src-in, tags: *tags, timeout: *timeouts-long}
-        - {trigger: true,  get: bosh-init, tags: *tags, timeout: *timeouts-long}
-        - {trigger: false, get: old-bosh-init, tags: *tags, timeout: *timeouts-long}
-        - {trigger: true,  get: bosh-cpi-release, resource: bosh-cpi-dev-artifacts, tags: *tags, timeout: *timeouts-long}
-        - {trigger: true,  get: bosh-release, tags: *tags, timeout: *timeouts-long}
-        - {trigger: true,  get: stemcell, resource: ubuntu-stemcell, tags: *tags, timeout: *timeouts-long}
-        - {trigger: false, get: dummy-release, tags: *tags, timeout: *timeouts-long}
+        - {trigger: false, get: bosh-cpi-src-in,  passed: [cleanup], tags: *tags, timeout: *timeouts-long}
+        - {trigger: false, get: dummy-release,                       tags: *tags, timeout: *timeouts-long}
+        - {trigger: true,  get: bosh-init,        passed: [cleanup], tags: *tags, timeout: *timeouts-long}
+        - {trigger: true,  get: bosh-cpi-release, passed: [cleanup], tags: *tags, timeout: *timeouts-long, resource: bosh-cpi-dev-artifacts}
+        - {trigger: true,  get: bosh-release,     passed: [cleanup], tags: *tags, timeout: *timeouts-long}
+        - {trigger: true,  get: stemcell,         passed: [cleanup], tags: *tags, timeout: *timeouts-long, resource: ubuntu-stemcell}
+        - {trigger: false, get: old-bosh-init,                       tags: *tags, timeout: *timeouts-long}
 
       - task: deploy-old-director
         tags: *tags
@@ -387,8 +387,13 @@ jobs:
     serial: true
     serial_groups: [e2e-centos, e2e-ubuntu, e2e-ubuntu-config-drive, e2e-centos-config-drive, test-upgrade-centos, test-upgrade-ubuntu] #can't run while anything else is running
     plan:
-      - {trigger: false, get: bosh-cpi-src-in, tags: *tags, timeout: *timeouts-long}
-      - {trigger: true,  get: cleanup-time-trigger, tags: *tags, timeout: *timeouts-long}
+      - aggregate:
+        - {trigger: false, get: bosh-cpi-src-in,   tags: *tags, timeout: *timeouts-long}
+        - {trigger: true,  get: bosh-init,         tags: *tags, timeout: *timeouts-long}
+        - {trigger: true,  get: bosh-cpi-release,  tags: *tags, timeout: *timeouts-long, resource: bosh-cpi-dev-artifacts}
+        - {trigger: true,  get: bosh-release,      tags: *tags, timeout: *timeouts-long}
+        - {trigger: true,  get: stemcell,          tags: *tags, timeout: *timeouts-long, resource: centos-stemcell}
+        - {trigger: true,  get: stemcell,          tags: *tags, timeout: *timeouts-long, resource: ubuntu-stemcell}
 
       - task: cleanup-e2e
         tags: *tags
@@ -518,8 +523,3 @@ resources:
       bucket: {{s3_openstack_cpi_receipts_bucket_name}}
       regexp: receipt-.*\.json
       region_name: us-east-1
-
-  - name: cleanup-time-trigger
-    type: time
-    source:
-      interval: 24h

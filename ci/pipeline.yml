@@ -81,7 +81,9 @@ jobs:
       - centos-director-dynamic
 
     plan:
-      - {trigger: false, get: bosh-cpi-src-in, tags: *tags, timeout: *timeouts-long}
+      - aggregate:
+        - {trigger: true, get: bosh-cpi-src-in, tags: *tags, timeout: *timeouts-long}
+        - {trigger: true,  get: pipeline-time-trigger, tags: *tags, timeout: *timeouts-long}
 
       - task: cleanup-lifecycle
         tags: *tags
@@ -167,13 +169,13 @@ jobs:
     serial_groups: [ubuntu-director-manual] # shouldn't deploy while bats or cleanup is running
     plan:
       - aggregate:
-        - {trigger: true,  passed: [build-candidate], get: bosh-cpi-dev-artifacts, tags: *tags, timeout: *timeouts-long}
-        - {trigger: false, passed: [build-candidate], get: version-semver, tags: *tags, timeout: *timeouts-long}
-        - {trigger: false, passed: [build-candidate], get: bosh-cpi-src-in, tags: *tags, timeout: *timeouts-long}
-        - {trigger: false,                            get: director-state-file, resource: ubuntu-manual-director-state-file, tags: *tags, timeout: *timeouts-long}
-        - {trigger: false,                            get: bosh-init, tags: *tags, timeout: *timeouts-long}
-        - {trigger: false,                            get: bosh-release, tags: *tags, timeout: *timeouts-long}
-        - {trigger: false,                            get: stemcell, resource: openstack-ubuntu-stemcell, tags: *tags, timeout: *timeouts-long}
+        - {trigger: true,  passed: [build-candidate],          get: bosh-cpi-dev-artifacts, tags: *tags, timeout: *timeouts-long}
+        - {trigger: false, passed: [build-candidate],          get: version-semver, tags: *tags, timeout: *timeouts-long}
+        - {trigger: false, passed: [build-candidate, cleanup], get: bosh-cpi-src-in, tags: *tags, timeout: *timeouts-long}
+        - {trigger: false,                                     get: director-state-file, resource: ubuntu-manual-director-state-file, tags: *tags, timeout: *timeouts-long}
+        - {trigger: false,                                     get: bosh-init, tags: *tags, timeout: *timeouts-long}
+        - {trigger: false,                                     get: bosh-release, tags: *tags, timeout: *timeouts-long}
+        - {trigger: false,                                     get: stemcell, resource: openstack-ubuntu-stemcell, tags: *tags, timeout: *timeouts-long}
 
       - task: deploy
         tags: *tags
@@ -277,13 +279,13 @@ jobs:
     serial_groups: [ubuntu-director-dynamic] # shouldn't deploy while bats are running
     plan:
       - aggregate:
-        - {trigger: true,  passed: [build-candidate], get: bosh-cpi-dev-artifacts, tags: *tags, timeout: *timeouts-long}
-        - {trigger: false, passed: [build-candidate], get: version-semver, tags: *tags, timeout: *timeouts-long}
-        - {trigger: false, passed: [build-candidate], get: bosh-cpi-src-in, tags: *tags, timeout: *timeouts-long}
-        - {trigger: false,                            get: director-state-file, resource: ubuntu-dynamic-director-state-file, tags: *tags, timeout: *timeouts-long}
-        - {trigger: false,                            get: bosh-init, tags: *tags, timeout: *timeouts-long}
-        - {trigger: false,                            get: bosh-release, tags: *tags, timeout: *timeouts-long}
-        - {trigger: false,                            get: stemcell, resource: openstack-ubuntu-stemcell, tags: *tags, timeout: *timeouts-long}
+        - {trigger: true,  passed: [build-candidate],          get: bosh-cpi-dev-artifacts, tags: *tags, timeout: *timeouts-long}
+        - {trigger: false, passed: [build-candidate],          get: version-semver, tags: *tags, timeout: *timeouts-long}
+        - {trigger: false, passed: [build-candidate, cleanup], get: bosh-cpi-src-in, tags: *tags, timeout: *timeouts-long}
+        - {trigger: false,                                     get: director-state-file, resource: ubuntu-dynamic-director-state-file, tags: *tags, timeout: *timeouts-long}
+        - {trigger: false,                                     get: bosh-init, tags: *tags, timeout: *timeouts-long}
+        - {trigger: false,                                     get: bosh-release, tags: *tags, timeout: *timeouts-long}
+        - {trigger: false,                                     get: stemcell, resource: openstack-ubuntu-stemcell, tags: *tags, timeout: *timeouts-long}
 
       - task: deploy
         tags: *tags
@@ -371,13 +373,13 @@ jobs:
     serial_groups: [centos-director-manual] # shouldn't deploy while bats are running
     plan:
       - aggregate:
-        - {trigger: true,  passed: [build-candidate], get: bosh-cpi-dev-artifacts, tags: *tags, timeout: *timeouts-long}
-        - {trigger: false, passed: [build-candidate], get: version-semver, tags: *tags, timeout: *timeouts-long}
-        - {trigger: false, passed: [build-candidate], get: bosh-cpi-src-in, tags: *tags, timeout: *timeouts-long}
-        - {trigger: false,                            get: director-state-file, resource: centos-manual-director-state-file, tags: *tags, timeout: *timeouts-long}
-        - {trigger: false,                            get: bosh-init, tags: *tags, timeout: *timeouts-long}
-        - {trigger: false,                            get: bosh-release, tags: *tags, timeout: *timeouts-long}
-        - {trigger: false,                            get: stemcell, resource: openstack-centos-stemcell, tags: *tags, timeout: *timeouts-long}
+        - {trigger: true,  passed: [build-candidate],          get: bosh-cpi-dev-artifacts, tags: *tags, timeout: *timeouts-long}
+        - {trigger: false, passed: [build-candidate],          get: version-semver, tags: *tags, timeout: *timeouts-long}
+        - {trigger: false, passed: [build-candidate, cleanup], get: bosh-cpi-src-in, tags: *tags, timeout: *timeouts-long}
+        - {trigger: false,                                     get: director-state-file, resource: centos-manual-director-state-file, tags: *tags, timeout: *timeouts-long}
+        - {trigger: false,                                     get: bosh-init, tags: *tags, timeout: *timeouts-long}
+        - {trigger: false,                                     get: bosh-release, tags: *tags, timeout: *timeouts-long}
+        - {trigger: false,                                     get: stemcell, resource: openstack-centos-stemcell, tags: *tags, timeout: *timeouts-long}
 
       - task: deploy
         tags: *tags
@@ -481,13 +483,13 @@ jobs:
     serial_groups: [centos-director-dynamic] # shouldn't deploy while bats are running
     plan:
       - aggregate:
-        - {trigger: true,  passed: [build-candidate], get: bosh-cpi-dev-artifacts, tags: *tags, timeout: *timeouts-long}
-        - {trigger: false, passed: [build-candidate], get: version-semver, tags: *tags, timeout: *timeouts-long}
-        - {trigger: false, passed: [build-candidate], get: bosh-cpi-src-in, tags: *tags, timeout: *timeouts-long}
-        - {trigger: false,                            get: director-state-file, resource: centos-dynamic-director-state-file, tags: *tags, timeout: *timeouts-long}
-        - {trigger: false,                            get: bosh-init, tags: *tags, timeout: *timeouts-long}
-        - {trigger: false,                            get: bosh-release, tags: *tags, timeout: *timeouts-long}
-        - {trigger: false,                            get: stemcell, resource: openstack-centos-stemcell, tags: *tags, timeout: *timeouts-long}
+        - {trigger: true,  passed: [build-candidate],          get: bosh-cpi-dev-artifacts, tags: *tags, timeout: *timeouts-long}
+        - {trigger: false, passed: [build-candidate],          get: version-semver, tags: *tags, timeout: *timeouts-long}
+        - {trigger: false, passed: [build-candidate, cleanup], get: bosh-cpi-src-in, tags: *tags, timeout: *timeouts-long}
+        - {trigger: false,                                     get: director-state-file, resource: centos-dynamic-director-state-file, tags: *tags, timeout: *timeouts-long}
+        - {trigger: false,                                     get: bosh-init, tags: *tags, timeout: *timeouts-long}
+        - {trigger: false,                                     get: bosh-release, tags: *tags, timeout: *timeouts-long}
+        - {trigger: false,                                     get: stemcell, resource: openstack-centos-stemcell, tags: *tags, timeout: *timeouts-long}
 
       - task: deploy
         tags: *tags
