@@ -27,7 +27,7 @@ describe Bosh::OpenStackCloud::Cloud, "create_vm" do
     }
   end
 
-  def openstack_params(network_spec = { "network_a" => dynamic_network_spec} )
+  def openstack_params(network_spec = { "network_a" => dynamic_network_spec}, boot_from_volume = false )
     params = {
       name: "vm-#{unique_name}",
       image_ref: "sc-id",
@@ -41,7 +41,7 @@ describe Bosh::OpenStackCloud::Cloud, "create_vm" do
       availability_zone: "foobar-1a"
     }
 
-    if volume_id
+    if boot_from_volume
       params[:block_device_mapping_v2] = [{
         :uuid => "sc-id",
         :source_type => "image",
@@ -76,7 +76,6 @@ describe Bosh::OpenStackCloud::Cloud, "create_vm" do
   let(:flavor) { double("flavor", :id => "f-test", :name => "m1.tiny", :ram => 1024, :disk => 2, :ephemeral => 2) }
   let(:key_pair) { double("key_pair", :id => "k-test", :name => "test_key",
                    :fingerprint => "00:01:02:03:04", :public_key => "public openssh key") }
-  let(:volume_id) { nil }
   let(:configured_security_groups) { %w[default] }
   let(:nameserver) { nil }
   let(:nics) { [] }
@@ -461,7 +460,6 @@ describe Bosh::OpenStackCloud::Cloud, "create_vm" do
   end
 
   context "when boot_from_volume is set" do
-    let(:volume_id) { "v-foobar" }
     it "creates an OpenStack server with a boot volume" do
       network_spec = dynamic_network_spec
       address = double("address", :id => "a-test", :ip => "10.0.0.1",
@@ -480,7 +478,7 @@ describe Bosh::OpenStackCloud::Cloud, "create_vm" do
       cloud_options['properties']['openstack']['boot_from_volume'] = true
 
       cloud = mock_cloud(cloud_options['properties']) do |openstack|
-        expect(openstack.servers).to receive(:create).with(openstack_params("network_a" => network_spec)).and_return(server)
+        expect(openstack.servers).to receive(:create).with(openstack_params({"network_a" => network_spec}, true)).and_return(server)
         expect(openstack.images).to receive(:find).and_return(image)
         expect(openstack.flavors).to receive(:find).and_return(flavor)
         expect(openstack.key_pairs).to receive(:find).and_return(key_pair)
@@ -503,7 +501,6 @@ describe Bosh::OpenStackCloud::Cloud, "create_vm" do
   end
 
   context "when boot_from_volume is set with a volume_type" do
-    let(:volume_id) { "v-foobar" }
 
     it "creates an OpenStack server with a boot volume" do
       network_spec = dynamic_network_spec
@@ -527,7 +524,7 @@ describe Bosh::OpenStackCloud::Cloud, "create_vm" do
       }
 
       cloud = mock_cloud(cloud_options['properties']) do |openstack|
-        expect(openstack.servers).to receive(:create).with(openstack_params("network_a" => network_spec)).and_return(server)
+        expect(openstack.servers).to receive(:create).with(openstack_params({"network_a" => network_spec}, true)).and_return(server)
         expect(openstack.images).to receive(:find).and_return(image)
         expect(openstack.flavors).to receive(:find).and_return(flavor)
         expect(openstack.key_pairs).to receive(:find).and_return(key_pair)
