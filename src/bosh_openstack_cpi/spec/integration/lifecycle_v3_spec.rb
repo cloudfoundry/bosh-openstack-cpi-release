@@ -11,7 +11,6 @@ describe Bosh::OpenStackCloud::Cloud do
     @api_key           = LifecycleHelper.get_config(:api_key, 'BOSH_OPENSTACK_API_KEY_V3')
     @project           = LifecycleHelper.get_config(:tenant, 'BOSH_OPENSTACK_PROJECT')
     @net_id            = LifecycleHelper.get_config(:net_id, 'BOSH_OPENSTACK_NET_ID')
-    @boot_volume_type  = LifecycleHelper.get_config(:volume_type, 'BOSH_OPENSTACK_VOLUME_TYPE')
     @manual_ip         = LifecycleHelper.get_config(:manual_ip, 'BOSH_OPENSTACK_MANUAL_IP')
     @disable_snapshots = LifecycleHelper.get_config(:disable_snapshots, 'BOSH_OPENSTACK_DISABLE_SNAPSHOTS', false)
     @default_key_name  = LifecycleHelper.get_config(:default_key_name, 'BOSH_OPENSTACK_DEFAULT_KEY_NAME', 'jenkins')
@@ -32,7 +31,6 @@ describe Bosh::OpenStackCloud::Cloud do
   after(:each) { File.delete(@ca_cert_path) if @ca_cert_path }
 
   let(:boot_from_volume) { false }
-  let(:boot_volume_type) { nil }
   let(:config_drive) { nil }
 
   subject(:cpi) do
@@ -49,9 +47,6 @@ describe Bosh::OpenStackCloud::Cloud do
         'default_security_groups' => %w(default),
         'wait_resource_poll_interval' => 5,
         'boot_from_volume' => boot_from_volume,
-        'boot_volume_cloud_properties' => {
-          'type' => boot_volume_type
-        },
         'config_drive' => config_drive,
         'ignore_server_availability_zone' => str_to_bool(@ignore_server_az),
         'connection_options' => {

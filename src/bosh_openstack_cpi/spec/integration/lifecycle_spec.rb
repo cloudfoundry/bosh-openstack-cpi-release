@@ -15,7 +15,7 @@ describe Bosh::OpenStackCloud::Cloud do
     @net_id              = LifecycleHelper.get_config(:net_id, 'BOSH_OPENSTACK_NET_ID')
     @net_id_no_dhcp_1    = LifecycleHelper.get_config(:net_id, 'BOSH_OPENSTACK_NET_ID_NO_DHCP_1')
     @net_id_no_dhcp_2    = LifecycleHelper.get_config(:net_id, 'BOSH_OPENSTACK_NET_ID_NO_DHCP_2')
-    @boot_volume_type    = LifecycleHelper.get_config(:volume_type, 'BOSH_OPENSTACK_VOLUME_TYPE')
+    @volume_type         = LifecycleHelper.get_config(:volume_type, 'BOSH_OPENSTACK_VOLUME_TYPE')
     @manual_ip           = LifecycleHelper.get_config(:manual_ip, 'BOSH_OPENSTACK_MANUAL_IP')
     @no_dhcp_manual_ip_1 = LifecycleHelper.get_config(:manual_ip, 'BOSH_OPENSTACK_NO_DHCP_MANUAL_IP_1')
     @no_dhcp_manual_ip_2 = LifecycleHelper.get_config(:manual_ip, 'BOSH_OPENSTACK_NO_DHCP_MANUAL_IP_2')
@@ -48,15 +48,14 @@ describe Bosh::OpenStackCloud::Cloud do
   end
 
   let(:boot_from_volume) { false }
-  let(:boot_volume_type) { nil }
   let(:config_drive) { nil }
   let(:human_readable_vm_names) { false }
 
   subject(:cpi) do
-    create_cpi(boot_from_volume, boot_volume_type, config_drive, human_readable_vm_names)
+    create_cpi(boot_from_volume, config_drive, human_readable_vm_names)
   end
 
-  def create_cpi(boot_from_value, boot_volume_type, config_drive, human_readable_vm_names)
+  def create_cpi(boot_from_value, config_drive, human_readable_vm_names)
     described_class.new(
         'openstack' => {
             'auth_url' => @auth_url,
@@ -69,9 +68,6 @@ describe Bosh::OpenStackCloud::Cloud do
             'default_security_groups' => %w(default),
             'wait_resource_poll_interval' => 5,
             'boot_from_volume' => boot_from_value,
-            'boot_volume_cloud_properties' => {
-                'type' => boot_volume_type
-            },
             'config_drive' => config_drive,
             'ignore_server_availability_zone' => str_to_bool(@ignore_server_az),
             'human_readable_vm_names' => human_readable_vm_names,
@@ -247,31 +243,8 @@ describe Bosh::OpenStackCloud::Cloud do
     end
   end
 
-  context 'when booting from volume with a boot_volume_type' do
-    let(:boot_from_volume) { true }
-    let(:boot_volume_type) { @boot_volume_type }
-
-    let(:network_spec) do
-      {
-        'default' => {
-          'type' => 'manual',
-          'ip' => @manual_ip,
-          'cloud_properties' => {
-            'net_id' => @net_id
-          }
-        }
-      }
-    end
-
-    it 'exercises the vm lifecycle' do
-      expect {
-        vm_lifecycle(@stemcell_id, network_spec, [])
-      }.to_not raise_error
-    end
-  end
-
   context 'when using cloud_properties' do
-    let(:cloud_properties) { { 'type' => @boot_volume_type } }
+    let(:cloud_properties) { { 'type' => @volume_type } }
 
     let(:network_spec) do
       {

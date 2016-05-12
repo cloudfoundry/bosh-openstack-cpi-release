@@ -42,7 +42,6 @@ module Bosh::OpenStackCloud
       @stemcell_public_visibility =openstack_properties["stemcell_public_visibility"]
       @wait_resource_poll_interval =openstack_properties["wait_resource_poll_interval"]
       @boot_from_volume =openstack_properties["boot_from_volume"]
-      @boot_volume_cloud_properties =openstack_properties["boot_volume_cloud_properties"] || {}
       @use_dhcp =openstack_properties.fetch('use_dhcp', true)
       @human_readable_vm_names =openstack_properties.fetch('human_readable_vm_names', false)
       @use_config_drive = !!openstack_properties.fetch("config_drive", nil)
@@ -448,42 +447,6 @@ module Bosh::OpenStackCloud
         wait_resource(new_volume, :available)
 
         new_volume.id.to_s
-      end
-    end
-
-    ##
-    # Creates a new OpenStack boot volume
-    #
-    # @param [Integer] size disk size in MiB
-    # @param [String] stemcell_id OpenStack image UUID that will be used to
-    #   populate the boot volume
-    # @param [optional, String] availability_zone to be passed to the volume API
-    # @param [optional, String] volume_type to be passed to the volume API
-    # @return [String] OpenStack volume UUID
-    def create_boot_disk(size, stemcell_id, availability_zone = nil, boot_volume_cloud_properties = {})
-      volume_service_client = @openstack.volume
-      with_thread_name("create_boot_disk(#{size}, #{stemcell_id}, #{availability_zone}, #{boot_volume_cloud_properties})") do
-        raise ArgumentError, "Disk size needs to be an integer" unless size.kind_of?(Integer)
-        cloud_error("Minimum disk size is 1 GiB") if (size < 1024)
-
-        volume_params = {
-          :display_name => "volume-#{generate_unique_name}",
-          :size => (size / 1024.0).ceil,
-          :imageRef => stemcell_id
-        }
-
-        if availability_zone && @az_provider.constrain_to_server_availability_zone?
-          volume_params[:availability_zone] = availability_zone
-        end
-        volume_params[:volume_type] = boot_volume_cloud_properties["type"] if boot_volume_cloud_properties["type"]
-
-        @logger.info("Creating new boot volume...")
-        boot_volume = with_openstack { volume_service_client.volumes.create(volume_params) }
-
-        @logger.info("Creating new boot volume `#{boot_volume.id}'...")
-        wait_resource(boot_volume, :available)
-
-        boot_volume.id.to_s
       end
     end
 
