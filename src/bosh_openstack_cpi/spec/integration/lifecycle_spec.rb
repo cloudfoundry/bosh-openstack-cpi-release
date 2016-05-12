@@ -33,7 +33,7 @@ describe Bosh::OpenStackCloud::Cloud do
     # some environments may not have this set, and it isn't strictly necessary so don't raise if it isn't set
     @region             = LifecycleHelper.get_config(:region, 'BOSH_OPENSTACK_REGION', nil)
     Bosh::Clouds::Config.configure(OpenStruct.new(:logger => @logger, :cpi_task_log => nil))
-    @cpi_for_stemcell   = create_cpi(false, nil, nil, false)
+    @cpi_for_stemcell   = create_cpi(false, nil, false)
     @stemcell_id        = upload_stemcell
   end
 
