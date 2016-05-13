@@ -1037,7 +1037,7 @@ module Bosh::OpenStackCloud
 
         flavor.disk * 1024
       else
-        root_disk_size = resource_pool['root_disk']['size'].to_i
+        root_disk_size = resource_pool['root_disk']['size']
         if root_disk_size == 0
           raise ArgumentError, "root_disk must be at least 1"
         end
