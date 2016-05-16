@@ -193,7 +193,7 @@ def resource_pool_spec_with_root_disk
     'key_name' => 'test_key',
     'availability_zone' => 'foobar-1a',
     'instance_type' => 'm1.tiny',
-    'root_disk' => { 'size' => 10240, 'type' => 'Standard' }
+    'root_disk' => { 'size' => 10240 }
   }
 end
 

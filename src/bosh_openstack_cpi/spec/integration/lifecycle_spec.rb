@@ -243,9 +243,8 @@ describe Bosh::OpenStackCloud::Cloud do
     end
   end
 
-  context 'when booting from volume with a boot_volume_type' do
+  context 'when booting from volume with a boot_from_volume' do
     let(:boot_from_volume) { true }
-    let(:boot_volume_type) { @boot_volume_type }
 
     let(:network_spec) do
       {
@@ -283,13 +282,8 @@ describe Bosh::OpenStackCloud::Cloud do
 
     let(:resource_pool) do
       {
-        'ephemeral_disk' => {
-          'size' => 0,
-          'type' => 'gp2'
-        },
         'root_disk' => {
-          'size' => 0,
-          'type' => 'standard'
+          'size' => 0
         }
       }
     end
@@ -318,13 +312,8 @@ describe Bosh::OpenStackCloud::Cloud do
 
     let(:resource_pool) do
       {
-        'ephemeral_disk' => {
-          'size' => 3000,
-          'type' => 'gp2'
-        },
         'root_disk' => {
-          'size' => 2000,
-          'type' => 'standard'
+          'size' => 2000
         }
       }
     end

@@ -27,7 +27,7 @@ describe Bosh::OpenStackCloud::Cloud, "create_vm" do
     }
   end
 
-  def openstack_params(network_spec = { "network_a" => dynamic_network_spec}, boot_from_volume = false, using_root_disk = false )
+  def openstack_params(network_spec = { "network_a" => dynamic_network_spec}, boot_from_volume = false, volume_size = 2048 )
     params = {
       name: "vm-#{unique_name}",
       image_ref: "sc-id",
@@ -42,25 +42,14 @@ describe Bosh::OpenStackCloud::Cloud, "create_vm" do
     }
 
     if boot_from_volume
-      if using_root_disk
-        params[:block_device_mapping_v2] = [{
-          :uuid => "sc-id",
-          :source_type => "image",
-          :dest_type => "volume",
-          :volume_size => 10240,
-          :boot_index => "0",
-          :delete_on_termination => "1",
-          :device_name => "/dev/vda" }]
-      else
-        params[:block_device_mapping_v2] = [{
-          :uuid => "sc-id",
-          :source_type => "image",
-          :dest_type => "volume",
-          :volume_size => 2048,
-          :boot_index => "0",
-          :delete_on_termination => "1",
-          :device_name => "/dev/vda" }]
-      end
+      params[:block_device_mapping_v2] = [{
+        :uuid => "sc-id",
+        :source_type => "image",
+        :dest_type => "volume",
+        :volume_size => volume_size,
+        :boot_index => "0",
+        :delete_on_termination => "1",
+        :device_name => "/dev/vda" }]
     end
 
     params
@@ -591,13 +580,12 @@ describe Bosh::OpenStackCloud::Cloud, "create_vm" do
         resource_pool_spec,
         { "network_a" => network_spec },
         nil, { "test_env" => "value" })
-      }.to raise_error(Bosh::Clouds::CloudError, /Flavor `#{resource_pool_spec['instance_type']}' should have at least a 1GB boot disk/)
+      }.to raise_error(Bosh::Clouds::CloudError, /Flavor '#{resource_pool_spec['instance_type']}' has a root disk size of 0. Either pick a different flavor or define root_disk.size in your VM cloud_properties/)
     end
   end
 
   context "when boot_from_volume is set with a root_disk" do
     let(:volume_id) { "v-foobar" }
-    let(:root_disk) { true }
     it "creates an OpenStack server with a boot volume" do
       network_spec = dynamic_network_spec
       address = double("address", :id => "a-test", :ip => "10.0.0.1",
@@ -616,7 +604,7 @@ describe Bosh::OpenStackCloud::Cloud, "create_vm" do
       cloud_options['properties']['openstack']['boot_from_volume'] = true
 
       cloud = mock_cloud(cloud_options['properties']) do |openstack|
-        expect(openstack.servers).to receive(:create).with(openstack_params({"network_a" => network_spec}, true, true)).and_return(server)
+        expect(openstack.servers).to receive(:create).with(openstack_params({"network_a" => network_spec}, true, 10240)).and_return(server)
         expect(openstack.images).to receive(:find).and_return(image)
         expect(openstack.flavors).to receive(:find).and_return(flavor)
         expect(openstack.key_pairs).to receive(:find).and_return(key_pair)
@@ -640,7 +628,6 @@ describe Bosh::OpenStackCloud::Cloud, "create_vm" do
 
   context "when boot_from_volume is set with 0 size root_disk" do
     let(:volume_id) { "v-foobar" }
-    let(:root_disk) { true }
     it "creates an OpenStack server with a boot volume" do
       network_spec = dynamic_network_spec
       address = double("address", :id => "a-test", :ip => "10.0.0.1",

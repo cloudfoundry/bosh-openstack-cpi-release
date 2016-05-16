@@ -1032,16 +1032,16 @@ module Bosh::OpenStackCloud
     def relative_and_validate_disk_size(flavor, resource_pool)
       if resource_pool['root_disk'].nil?
         if flavor.disk == 0
-          cloud_error("Flavor `#{resource_pool['instance_type']}' should have at least a 1GB boot disk")
+          cloud_error("Flavor '#{resource_pool['instance_type']}' has a root disk size of 0. Either pick a different flavor or define root_disk.size in your VM cloud_properties")
         end
 
         flavor.disk * 1024
       else
         root_disk_size = resource_pool['root_disk']['size']
         if root_disk_size == 0
-          raise ArgumentError, "root_disk must be at least 1"
+          raise ArgumentError, "root_disk must at least be 1"
         end
-        @logger.debug("Using root_disk of size `#{root_disk_size}', instead of flavor.disk")
+        @logger.debug("Using root_disk of size '#{root_disk_size}', instead of flavor.disk")
 
         root_disk_size
       end
