@@ -253,7 +253,8 @@ module Bosh::OpenStackCloud
         server_params[:availability_zone] = availability_zone if availability_zone
 
         if @boot_from_volume
-          boot_vol_size = relative_and_validate_disk_size(flavor, resource_pool)
+          volume_configurator = Bosh::OpenStackCloud::VolumeConfigurator.new(@logger)
+          boot_vol_size = volume_configurator.select_boot_volume_size(flavor, resource_pool)
 
           server_params[:block_device_mapping_v2] = [{
                                                    :uuid => image.id,
@@ -1027,24 +1028,6 @@ module Bosh::OpenStackCloud
       keypair = with_openstack { @openstack.compute.key_pairs.find { |k| k.name == keyname } }
       cloud_error("Key-pair `#{keyname}' not found") if keypair.nil?
       @logger.debug("Using key-pair: `#{keypair.name}' (#{keypair.fingerprint})")
-    end
-
-    def relative_and_validate_disk_size(flavor, resource_pool)
-      if resource_pool['root_disk'].nil?
-        if flavor.disk == 0
-          cloud_error("Flavor '#{resource_pool['instance_type']}' has a root disk size of 0. Either pick a different flavor or define root_disk.size in your VM cloud_properties")
-        end
-
-        flavor.disk * 1024
-      else
-        root_disk_size = resource_pool['root_disk']['size']
-        if root_disk_size == 0
-          raise ArgumentError, "root_disk must at least be 1"
-        end
-        @logger.debug("Using root_disk of size '#{root_disk_size}', instead of flavor.disk")
-
-        root_disk_size
-      end
     end
 
   end
