@@ -5,38 +5,41 @@ require 'logger'
 require 'ostruct'
 
 describe Bosh::OpenStackCloud::Cloud do
+  # @formatter:off
   before(:all) do
-    @domain              = LifecycleHelper.get_config(:domain, 'BOSH_OPENSTACK_DOMAIN')
-    @logger              = Logger.new(STDERR)
-    @auth_url            = LifecycleHelper.get_config(:auth_url, 'BOSH_OPENSTACK_AUTH_URL_V3')
-    @username            = LifecycleHelper.get_config(:username, 'BOSH_OPENSTACK_USERNAME')
-    @api_key             = LifecycleHelper.get_config(:api_key, 'BOSH_OPENSTACK_API_KEY')
-    @project             = LifecycleHelper.get_config(:project, 'BOSH_OPENSTACK_PROJECT')
-    @stemcell_path       = LifecycleHelper.get_config(:stemcell_path, 'BOSH_OPENSTACK_STEMCELL_PATH')
-    @net_id              = LifecycleHelper.get_config(:net_id, 'BOSH_OPENSTACK_NET_ID')
-    @net_id_no_dhcp_1    = LifecycleHelper.get_config(:net_id, 'BOSH_OPENSTACK_NET_ID_NO_DHCP_1')
-    @net_id_no_dhcp_2    = LifecycleHelper.get_config(:net_id, 'BOSH_OPENSTACK_NET_ID_NO_DHCP_2')
-    @boot_volume_type    = LifecycleHelper.get_config(:volume_type, 'BOSH_OPENSTACK_VOLUME_TYPE', nil)
-    @manual_ip           = LifecycleHelper.get_config(:manual_ip, 'BOSH_OPENSTACK_MANUAL_IP')
-    @no_dhcp_manual_ip_1 = LifecycleHelper.get_config(:manual_ip, 'BOSH_OPENSTACK_NO_DHCP_MANUAL_IP_1')
-    @no_dhcp_manual_ip_2 = LifecycleHelper.get_config(:manual_ip, 'BOSH_OPENSTACK_NO_DHCP_MANUAL_IP_2')
-    @disable_snapshots   = LifecycleHelper.get_config(:disable_snapshots, 'BOSH_OPENSTACK_DISABLE_SNAPSHOTS', false)
-    @default_key_name    = LifecycleHelper.get_config(:default_key_name, 'BOSH_OPENSTACK_DEFAULT_KEY_NAME', 'jenkins')
-    @config_drive        = LifecycleHelper.get_config(:config_drive, 'BOSH_OPENSTACK_CONFIG_DRIVE', 'cdrom')
-    @ignore_server_az    = LifecycleHelper.get_config(:ignore_server_az, 'BOSH_OPENSTACK_IGNORE_SERVER_AZ', 'false')
-    @instance_type       = LifecycleHelper.get_config(:instance_type, 'BOSH_OPENSTACK_INSTANCE_TYPE', 'm1.small')
-    @connect_timeout     = LifecycleHelper.get_config(:instance_type, 'BOSH_OPENSTACK_CONNECT_TIMEOUT', '120')
-    @read_timeout        = LifecycleHelper.get_config(:instance_type, 'BOSH_OPENSTACK_READ_TIMEOUT', '120')
-    @write_timeout       = LifecycleHelper.get_config(:instance_type, 'BOSH_OPENSTACK_WRITE_TIMEOUT', '120')
-    ca_cert              = LifecycleHelper.get_config(:ca_cert, 'BOSH_OPENSTACK_CA_CERT', nil)
-    @ca_cert_path        = write_ssl_ca_file(ca_cert, @logger) if ca_cert
+    @domain                          = LifecycleHelper.get_config(:domain, 'BOSH_OPENSTACK_DOMAIN')
+    @logger                          = Logger.new(STDERR)
+    @auth_url                        = LifecycleHelper.get_config(:auth_url, 'BOSH_OPENSTACK_AUTH_URL_V3')
+    @username                        = LifecycleHelper.get_config(:username, 'BOSH_OPENSTACK_USERNAME')
+    @api_key                         = LifecycleHelper.get_config(:api_key, 'BOSH_OPENSTACK_API_KEY')
+    @project                         = LifecycleHelper.get_config(:project, 'BOSH_OPENSTACK_PROJECT')
+    @stemcell_path                   = LifecycleHelper.get_config(:stemcell_path, 'BOSH_OPENSTACK_STEMCELL_PATH')
+    @net_id                          = LifecycleHelper.get_config(:net_id, 'BOSH_OPENSTACK_NET_ID')
+    @net_id_no_dhcp_1                = LifecycleHelper.get_config(:net_id, 'BOSH_OPENSTACK_NET_ID_NO_DHCP_1')
+    @net_id_no_dhcp_2                = LifecycleHelper.get_config(:net_id, 'BOSH_OPENSTACK_NET_ID_NO_DHCP_2')
+    @volume_type                     = LifecycleHelper.get_config(:volume_type, 'BOSH_OPENSTACK_VOLUME_TYPE', nil)
+    @manual_ip                       = LifecycleHelper.get_config(:manual_ip, 'BOSH_OPENSTACK_MANUAL_IP')
+    @no_dhcp_manual_ip_1             = LifecycleHelper.get_config(:manual_ip, 'BOSH_OPENSTACK_NO_DHCP_MANUAL_IP_1')
+    @no_dhcp_manual_ip_2             = LifecycleHelper.get_config(:manual_ip, 'BOSH_OPENSTACK_NO_DHCP_MANUAL_IP_2')
+    @disable_snapshots               = LifecycleHelper.get_config(:disable_snapshots, 'BOSH_OPENSTACK_DISABLE_SNAPSHOTS', false)
+    @default_key_name                = LifecycleHelper.get_config(:default_key_name, 'BOSH_OPENSTACK_DEFAULT_KEY_NAME', 'jenkins')
+    @config_drive                    = LifecycleHelper.get_config(:config_drive, 'BOSH_OPENSTACK_CONFIG_DRIVE', 'cdrom')
+    @ignore_server_az                = LifecycleHelper.get_config(:ignore_server_az, 'BOSH_OPENSTACK_IGNORE_SERVER_AZ', 'false')
+    @instance_type                   = LifecycleHelper.get_config(:instance_type, 'BOSH_OPENSTACK_INSTANCE_TYPE', 'm1.small')
+    @instance_type_with_no_root_disk = LifecycleHelper.get_config(:instance_type_with_no_root_disk, 'BOSH_OPENSTACK_FLAVOR_WITH_NO_ROOT_DISK')
+    @connect_timeout                 = LifecycleHelper.get_config(:instance_type, 'BOSH_OPENSTACK_CONNECT_TIMEOUT', '120')
+    @read_timeout                    = LifecycleHelper.get_config(:instance_type, 'BOSH_OPENSTACK_READ_TIMEOUT', '120')
+    @write_timeout                   = LifecycleHelper.get_config(:instance_type, 'BOSH_OPENSTACK_WRITE_TIMEOUT', '120')
+    ca_cert                          = LifecycleHelper.get_config(:ca_cert, 'BOSH_OPENSTACK_CA_CERT', nil)
+    @ca_cert_path                    = write_ssl_ca_file(ca_cert, @logger) if ca_cert
 
     # some environments may not have this set, and it isn't strictly necessary so don't raise if it isn't set
-    @region             = LifecycleHelper.get_config(:region, 'BOSH_OPENSTACK_REGION', nil)
+    @region                          = LifecycleHelper.get_config(:region, 'BOSH_OPENSTACK_REGION', nil)
+    @cpi_for_stemcell                = create_cpi(false, nil, false)
+    @stemcell_id                     = upload_stemcell
     Bosh::Clouds::Config.configure(OpenStruct.new(:logger => @logger, :cpi_task_log => nil))
-    @cpi_for_stemcell   = create_cpi(false, nil, nil, false)
-    @stemcell_id        = upload_stemcell
   end
+  # @formatter:on
 
   before { allow(Bosh::Clouds::Config).to receive(:logger).and_return(@logger) }
 
@@ -49,15 +52,14 @@ describe Bosh::OpenStackCloud::Cloud do
   end
 
   let(:boot_from_volume) { false }
-  let(:boot_volume_type) { nil }
   let(:config_drive) { nil }
   let(:human_readable_vm_names) { false }
 
   subject(:cpi) do
-    create_cpi(boot_from_volume, boot_volume_type, config_drive, human_readable_vm_names)
+    create_cpi(boot_from_volume, config_drive, human_readable_vm_names)
   end
 
-  def create_cpi(boot_from_value, boot_volume_type, config_drive, human_readable_vm_names)
+  def create_cpi(boot_from_value, config_drive, human_readable_vm_names)
     described_class.new(
         'openstack' => {
             'auth_url' => @auth_url,
@@ -71,9 +73,6 @@ describe Bosh::OpenStackCloud::Cloud do
             'default_security_groups' => %w(default),
             'wait_resource_poll_interval' => 5,
             'boot_from_volume' => boot_from_value,
-            'boot_volume_cloud_properties' => {
-                'type' => boot_volume_type
-            },
             'config_drive' => config_drive,
             'ignore_server_availability_zone' => str_to_bool(@ignore_server_az),
             'human_readable_vm_names' => human_readable_vm_names,
@@ -176,19 +175,19 @@ describe Bosh::OpenStackCloud::Cloud do
       let(:multiple_network_spec) do
         {
           'network_1' => {
-              'type' => 'manual',
-              'ip' => @no_dhcp_manual_ip_1,
-              'cloud_properties' => {
-                  'net_id' => @net_id_no_dhcp_1
-              }
+            'type' => 'manual',
+            'ip' => @no_dhcp_manual_ip_1,
+            'cloud_properties' => {
+              'net_id' => @net_id_no_dhcp_1
+            }
           },
           'network_2' => {
-              'type' => 'manual',
-              'ip' => @no_dhcp_manual_ip_2,
-              'cloud_properties' => {
-                  'net_id' => @net_id_no_dhcp_2
-              },
-              'use_dhcp' => false
+            'type' => 'manual',
+            'ip' => @no_dhcp_manual_ip_2,
+            'cloud_properties' => {
+              'net_id' => @net_id_no_dhcp_2
+            },
+            'use_dhcp' => false
           }
         }
       end
@@ -201,7 +200,7 @@ describe Bosh::OpenStackCloud::Cloud do
         registry = double('registry')
         registry_settings = nil
         allow(Bosh::Cpi::RegistryClient).to receive(:new).and_return(registry)
-        allow(registry).to receive_messages(endpoint: nil, delete_settings:nil)
+        allow(registry).to receive_messages(endpoint: nil, delete_settings: nil)
         allow(registry).to receive(:update_settings) do |_, settings|
           registry_settings = settings
         end
@@ -218,7 +217,7 @@ describe Bosh::OpenStackCloud::Cloud do
 
         ports = cpi.network.ports.all(:device_id => @multiple_nics_vm_id)
         clean_up_vm(@multiple_nics_vm_id, network_spec) if @multiple_nics_vm_id
-        expect(ports.find{ |port| cpi.network.ports.get port.id }).to be_nil
+        expect(ports.find { |port| cpi.network.ports.get port.id }).to be_nil
       end
 
       def where_ip_address_is(ip)
@@ -247,33 +246,41 @@ describe Bosh::OpenStackCloud::Cloud do
         vm_lifecycle(@stemcell_id, network_spec, [])
       }.to_not raise_error
     end
-  end
 
-  context 'when booting from volume with a boot_volume_type' do
-    let(:boot_from_volume) { true }
-    let(:boot_volume_type) { @boot_volume_type }
-
-    let(:network_spec) do
-      {
-        'default' => {
-          'type' => 'manual',
-          'ip' => @manual_ip,
-          'cloud_properties' => {
-            'net_id' => @net_id
-          }
+    context 'and flavor has root disk size 0' do
+      let(:resource_pool) do
+        {
+          'instance_type' => @instance_type_with_no_root_disk
         }
-      }
-    end
+      end
 
-    it 'exercises the vm lifecycle' do
-      expect {
-        vm_lifecycle(@stemcell_id, network_spec, [])
-      }.to_not raise_error
+      context 'and root disk size given in manifest' do
+        before do
+          resource_pool['root_disk'] = {
+            'size' => 20
+          }
+        end
+
+        it 'exercises the vm lifecycle' do
+          expect {
+            vm_lifecycle(@stemcell_id, network_spec, [], {}, resource_pool)
+          }.to_not raise_error
+        end
+      end
+
+      context 'and root disk size not given in manifest' do
+
+        it 'raises an error' do
+          expect {
+            vm_lifecycle(@stemcell_id, network_spec, [], {}, resource_pool)
+          }.to raise_error(Bosh::Clouds::CloudError, /Flavor '#{@instance_type_with_no_root_disk}' has a root disk size of 0/)
+        end
+      end
     end
   end
 
   context 'when using cloud_properties' do
-    let(:cloud_properties) { { 'type' => @boot_volume_type } }
+    let(:cloud_properties) { { 'type' => @volume_type } }
 
     let(:network_spec) do
       {
@@ -318,11 +325,11 @@ describe Bosh::OpenStackCloud::Cloud do
     let(:network_spec_that_fails) do
       {
         'default' => {
-            'type' => 'manual',
-            'ip' => @manual_ip,
-            'cloud_properties' => {
-                'net_id' => @net_id
-            }
+          'type' => 'manual',
+          'ip' => @manual_ip,
+          'cloud_properties' => {
+            'net_id' => @net_id
+          }
         },
         'vip' => {
           'type' => 'vip',
@@ -347,12 +354,12 @@ describe Bosh::OpenStackCloud::Cloud do
 
     it 'better error message for wrong net ID' do
       network_spec_with_wrong_net_id = {
-          'default' => {
-              'type' => 'dynamic',
-              'cloud_properties' => {
-                  'net_id' => '00000000-0000-0000-0000-000000000000'
-              }
+        'default' => {
+          'type' => 'dynamic',
+          'cloud_properties' => {
+            'net_id' => '00000000-0000-0000-0000-000000000000'
           }
+        }
       }
       expect {
         create_vm(@stemcell_id, network_spec_with_wrong_net_id, [])
@@ -385,8 +392,8 @@ describe Bosh::OpenStackCloud::Cloud do
     end
   end
 
-  def vm_lifecycle(stemcell_id, network_spec, disk_locality, cloud_properties = {})
-    vm_id = create_vm(stemcell_id, network_spec, disk_locality)
+  def vm_lifecycle(stemcell_id, network_spec, disk_locality, cloud_properties = {}, resource_pool = {})
+    vm_id = create_vm(stemcell_id, network_spec, disk_locality, resource_pool)
     disk_id = create_disk(vm_id, cloud_properties)
     disk_snapshot_id = create_disk_snapshot(disk_id) unless @disable_snapshots
   rescue Exception => create_error
@@ -400,15 +407,15 @@ describe Bosh::OpenStackCloud::Cloud do
     run_all_and_raise_any_errors(create_error, funcs)
   end
 
-  def create_vm(stemcell_id, network_spec, disk_locality)
+  def create_vm(stemcell_id, network_spec, disk_locality, resource_pool = {})
     @logger.info("Creating VM with stemcell_id=#{stemcell_id}")
     vm_id = cpi.create_vm(
       'agent-007',
       stemcell_id,
-      { 'instance_type' => @instance_type },
+      { 'instance_type' => @instance_type }.merge(resource_pool),
       network_spec,
       disk_locality,
-      { 'key' => 'value'}
+      { 'key' => 'value' }
     )
     expect(vm_id).to be
 

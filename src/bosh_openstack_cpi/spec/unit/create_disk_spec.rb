@@ -22,28 +22,6 @@ describe Bosh::OpenStackCloud::Cloud do
       expect(Fog::Volume::OpenStack::V1).to receive(:new)
       expect(cloud.create_disk(2048, {})).to eq("v-foobar")
     end
-
-    it "connects when creating an OpenStack boot volume" do
-      unique_name = SecureRandom.uuid
-      stemcell_id = SecureRandom.uuid
-      disk_params = {
-        :display_name => "volume-#{unique_name}",
-        :size => 2,
-        :imageRef => stemcell_id
-      }
-      boot_volume = double("volume", :id => "v-foobar")
-
-      cloud = mock_cloud do |openstack|
-        allow(openstack.volumes).to receive(:create).
-          with(disk_params).and_return(boot_volume)
-      end
-
-      allow(cloud).to receive(:generate_unique_name).and_return(unique_name)
-      allow(cloud).to receive(:wait_resource).with(boot_volume, :available)
-
-      expect(Fog::Volume::OpenStack::V1).to receive(:new)
-      expect(cloud.create_boot_disk(2048, stemcell_id)).to eq("v-foobar")
-    end
   end
 
   it "creates an OpenStack volume" do
@@ -85,94 +63,6 @@ describe Bosh::OpenStackCloud::Cloud do
     expect(cloud).to receive(:wait_resource).with(volume, :available)
 
     expect(cloud.create_disk(2048, {"type" => "foo"})).to eq("v-foobar")
-  end
-
-  it "creates an OpenStack boot volume" do
-    unique_name = SecureRandom.uuid
-    stemcell_id = SecureRandom.uuid
-    disk_params = {
-      :display_name => "volume-#{unique_name}",
-      :size => 2,
-      :imageRef => stemcell_id
-    }
-    boot_volume = double("volume", :id => "v-foobar")
-
-    cloud = mock_cloud do |openstack|
-      expect(openstack.volumes).to receive(:create).
-        with(disk_params).and_return(boot_volume)
-    end
-
-    expect(cloud).to receive(:generate_unique_name).and_return(unique_name)
-    expect(cloud).to receive(:wait_resource).with(boot_volume, :available)
-
-    expect(cloud.create_boot_disk(2048, stemcell_id)).to eq("v-foobar")
-  end
-
-  it "creates an OpenStack boot volume with an availability_zone" do
-    unique_name = SecureRandom.uuid
-    stemcell_id = SecureRandom.uuid
-    disk_params = {
-      :display_name => "volume-#{unique_name}",
-      :size => 2,
-      :imageRef => stemcell_id,
-      :availability_zone => "foobar-land"
-    }
-    boot_volume = double("volume", :id => "v-foobar")
-
-    cloud = mock_cloud do |openstack|
-      expect(openstack.volumes).to receive(:create).
-        with(disk_params).and_return(boot_volume)
-    end
-
-    expect(cloud).to receive(:generate_unique_name).and_return(unique_name)
-    expect(cloud).to receive(:wait_resource).with(boot_volume, :available)
-
-    expect(cloud.create_boot_disk(2048, stemcell_id, "foobar-land")).to eq("v-foobar")
-  end
-
-  it "creates an OpenStack boot volume ignoring the server availability zone" do
-    unique_name = SecureRandom.uuid
-    stemcell_id = SecureRandom.uuid
-    disk_params = {
-        :display_name => "volume-#{unique_name}",
-        :size => 2,
-        :imageRef => stemcell_id
-    }
-    boot_volume = double("volume", :id => "v-foobar")
-
-    cloud_options = mock_cloud_options
-    cloud_options['properties']['openstack']['ignore_server_availability_zone'] = true
-
-    cloud = mock_cloud(cloud_options['properties']) do |openstack|
-      expect(openstack.volumes).to receive(:create).with(disk_params).and_return(boot_volume)
-    end
-
-    expect(cloud).to receive(:generate_unique_name).and_return(unique_name)
-    expect(cloud).to receive(:wait_resource).with(boot_volume, :available)
-
-    expect(cloud.create_boot_disk(2048, stemcell_id, nil)).to eq("v-foobar")
-  end
-
-  it "creates an OpenStack boot volume with a volume_type" do
-    unique_name = SecureRandom.uuid
-    stemcell_id = SecureRandom.uuid
-    disk_params = {
-      :display_name => "volume-#{unique_name}",
-      :size => 2,
-      :imageRef => stemcell_id,
-      :volume_type => "foo"
-    }
-    boot_volume = double("volume", :id => "v-foobar")
-
-    cloud = mock_cloud do |openstack|
-      expect(openstack.volumes).to receive(:create).
-        with(disk_params).and_return(boot_volume)
-    end
-
-    expect(cloud).to receive(:generate_unique_name).and_return(unique_name)
-    expect(cloud).to receive(:wait_resource).with(boot_volume, :available)
-
-    expect(cloud.create_boot_disk(2048, stemcell_id, nil, {"type" => "foo"})).to eq("v-foobar")
   end
 
   it "rounds up disk size" do
