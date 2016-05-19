@@ -260,7 +260,7 @@ describe Bosh::OpenStackCloud::Cloud do
 
         it 'exercises the vm lifecycle' do
           expect {
-            vm_lifecycle(@stemcell_id, network_spec, [], resource_pool)
+            vm_lifecycle(@stemcell_id, network_spec, [], {}, resource_pool)
           }.to_not raise_error
         end
       end
@@ -269,7 +269,7 @@ describe Bosh::OpenStackCloud::Cloud do
 
         it 'raises an error' do
           expect {
-            vm_lifecycle(@stemcell_id, network_spec, [], resource_pool)
+            vm_lifecycle(@stemcell_id, network_spec, [], {}, resource_pool)
           }.to raise_error(Bosh::Clouds::CloudError, /Flavor '#{@instance_type_with_no_root_disk}' has a root disk size of 0/)
         end
       end

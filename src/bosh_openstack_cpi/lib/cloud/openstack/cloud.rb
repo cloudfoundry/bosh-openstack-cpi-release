@@ -255,11 +255,10 @@ module Bosh::OpenStackCloud
         if @boot_from_volume
           volume_configurator = Bosh::OpenStackCloud::VolumeConfigurator.new(@logger)
           boot_vol_size = volume_configurator.select_boot_volume_size(flavor, resource_pool)
-
           server_params[:block_device_mapping_v2] = [{
                                                    :uuid => image.id,
                                                    :source_type => "image",
-                                                   :dest_type => "volume",
+                                                   :destination_type => "volume",
                                                    :volume_size => boot_vol_size,
                                                    :boot_index => "0",
                                                    :delete_on_termination => "1",
