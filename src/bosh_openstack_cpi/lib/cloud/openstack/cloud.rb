@@ -253,12 +253,12 @@ module Bosh::OpenStackCloud
         server_params[:availability_zone] = availability_zone if availability_zone
 
         if @boot_from_volume
-          boot_vol_size = flavor.disk * 1024
-
+          volume_configurator = Bosh::OpenStackCloud::VolumeConfigurator.new(@logger)
+          boot_vol_size = volume_configurator.select_boot_volume_size(flavor, resource_pool)
           server_params[:block_device_mapping_v2] = [{
                                                    :uuid => image.id,
                                                    :source_type => "image",
-                                                   :dest_type => "volume",
+                                                   :destination_type => "volume",
                                                    :volume_size => boot_vol_size,
                                                    :boot_index => "0",
                                                    :delete_on_termination => "1",

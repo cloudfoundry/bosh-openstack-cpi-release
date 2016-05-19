@@ -46,7 +46,7 @@ describe Bosh::OpenStackCloud::Cloud, "create_vm" do
         :uuid => "sc-id",
         :source_type => "image",
         :dest_type => "volume",
-        :volume_size => 2048,
+        :volume_size => 2,
         :boot_index => "0",
         :delete_on_termination => "1",
         :device_name => "/dev/vda" }]
@@ -465,15 +465,6 @@ describe Bosh::OpenStackCloud::Cloud, "create_vm" do
       address = double("address", :id => "a-test", :ip => "10.0.0.1",
         :instance_id => "i-test")
 
-      unique_vol_name = SecureRandom.uuid
-      disk_params = {
-        :display_name => "volume-#{unique_vol_name}",
-        :size => 2,
-        :imageRef => "sc-id",
-        :availability_zone => "foobar-1a"
-      }
-      boot_volume = double("volume", :id => "v-foobar")
-
       cloud_options = mock_cloud_options
       cloud_options['properties']['openstack']['boot_from_volume'] = true
 
@@ -506,16 +497,6 @@ describe Bosh::OpenStackCloud::Cloud, "create_vm" do
       network_spec = dynamic_network_spec
       address = double("address", :id => "a-test", :ip => "10.0.0.1",
         :instance_id => "i-test")
-
-      unique_vol_name = SecureRandom.uuid
-      disk_params = {
-        :display_name => "volume-#{unique_vol_name}",
-        :size => 2,
-        :imageRef => "sc-id",
-        :availability_zone => "foobar-1a",
-        :volume_type => "foo"
-      }
-      boot_volume = double("volume", :id => "v-foobar")
 
       cloud_options = mock_cloud_options
       cloud_options['properties']['openstack']['boot_from_volume'] = true
