@@ -45,7 +45,7 @@ describe Bosh::OpenStackCloud::Cloud, "create_vm" do
       params[:block_device_mapping_v2] = [{
         :uuid => "sc-id",
         :source_type => "image",
-        :dest_type => "volume",
+        :destination_type => "volume",
         :volume_size => 2,
         :boot_index => "0",
         :delete_on_termination => "1",
