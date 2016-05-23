@@ -35,7 +35,7 @@ openstack_delete_entities() {
   local list_args=$2
   local delete_args=$3
   id_list=$(openstack $entity list $list_args --format json | jq --raw-output '.[].ID')
-  echo $id_list
+  echo "Received list of all ${entity}s: ${id_list}"
   for id in $id_list
   do
     echo "Deleting $entity $id ..."
@@ -43,30 +43,37 @@ openstack_delete_entities() {
   done
 }
 
-for instance in $(openstack server list --format json | jq --raw-output .[].ID)
-do
-  echo "Checking server $instance for attached volumes ..."
-  volumes=$(openstack server show --format json $instance | jq --raw-output '.[] | select(.Field=="os-extended-volumes:volumes_attached") | .Value[].id')
-  for volume in $volumes
+openstack_delete_ports() {
+  for port in $(openstack port list --format json | jq --raw-output '.[].ID')
   do
-    echo "Detaching volume $volume from $instance ..."
-    openstack server remove volume $instance $volume
-  done
-  echo "Deleting server $instance ..."
-  openstack server delete $instance --wait
-done
 
+  # don't delete ports that are:
+  # 'network:floatingip', 'network:router_gateway',
+  # 'network:dhcp', 'network:router_interface'
+  # Maybe we could just filter for 'network:'?
+    port_to_be_deleted=`openstack port show --format json $port | jq --raw-output '. | select(.device_owner | contains("network:floatingip") or contains("network:router_gateway") or contains("network:dhcp") or contains("network:router_interface") | not ) | .id'`
+    if [ ! -z ${port_to_be_deleted} ];
+    then
+      echo "Deleting port ${port_to_be_deleted}"
+      openstack port delete ${port_to_be_deleted}
+    fi
+  done
+}
 # Destroy all images and snapshots and volumes
 
 echo "openstack cli version:"
 openstack --version
 
+echo "Deleting servers #########################"
+openstack_delete_entities "server"
 echo "Deleting images #########################"
 openstack_delete_entities "image" "--private --limit 1000"
 echo "Deleting snapshots #########################"
 openstack_delete_entities "snapshot"
 echo "Deleting volumes #########################"
 openstack_delete_entities "volume"
+echo "Deleting ports #########################"
+openstack_delete_ports
 
 if [ -d "$tmpdir" ]; then
     echo "Deleting temp dir with cacert.pem"
