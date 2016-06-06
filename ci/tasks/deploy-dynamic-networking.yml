@@ -25,7 +25,7 @@ params:
   openstack_state_timeout:       ""
   private_key_data:              ""
   bosh_registry_port:            ""
-  bosh_openstack_ca_cert:        ""
+  bosh_openstack_ca_cert:        replace-me
   openstack_net_id:              ""
   openstack_security_group:      ""
   openstack_default_key_name:    ""
