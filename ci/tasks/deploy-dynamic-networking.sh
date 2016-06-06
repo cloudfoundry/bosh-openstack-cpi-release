@@ -2,28 +2,26 @@
 
 set -e
 
-source bosh-cpi-src-in/ci/tasks/utils.sh
-
-ensure_not_replace_value bosh_admin_password
-ensure_not_replace_value base_os
-ensure_not_replace_value dns
-ensure_not_replace_value network_type_to_test
-ensure_not_replace_value openstack_flavor
-ensure_not_replace_value openstack_connection_timeout
-ensure_not_replace_value openstack_read_timeout
-ensure_not_replace_value openstack_write_timeout
-ensure_not_replace_value openstack_state_timeout
-ensure_not_replace_value private_key_data
-ensure_not_replace_value bosh_registry_port
-ensure_not_replace_value openstack_net_id
-ensure_not_replace_value openstack_security_group
-ensure_not_replace_value openstack_default_key_name
-ensure_not_replace_value openstack_auth_url
-ensure_not_replace_value openstack_username
-ensure_not_replace_value openstack_api_key
-ensure_not_replace_value openstack_tenant
-ensure_not_replace_value openstack_floating_ip
-optional_value bosh_openstack_ca_cert
+: {bosh_admin_password:?}
+: {base_os:?}
+: {dns:?}
+: {network_type_to_test:?}
+: {openstack_flavor:?}
+: {openstack_connection_timeout:?}
+: {openstack_read_timeout:?}
+: {openstack_write_timeout:?}
+: {openstack_state_timeout:?}
+: {private_key_data:?}
+: {bosh_registry_port:?}
+: {openstack_net_id:?}
+: {openstack_security_group:?}
+: {openstack_default_key_name:?}
+: {openstack_auth_url:?}
+: {openstack_username:?}
+: {openstack_api_key:?}
+: {openstack_tenant:?}
+: {openstack_floating_ip:?}
+: {bosh_openstack_ca_cert=""}
 
 source /etc/profile.d/chruby-with-ruby-2.1.2.sh
 
@@ -42,6 +40,12 @@ cp ./bosh-cpi-dev-artifacts/${cpi_release_name}-${semver}.tgz ${deployment_dir}/
 cp ./bosh-release/release.tgz ${deployment_dir}/bosh-release.tgz
 cp ./stemcell/stemcell.tgz ${deployment_dir}/stemcell.tgz
 cp ./director-state-file/${director_state_filename} ${deployment_dir}/${director_state_filename}
+
+echo "Calculating MD5 of original stemcell:"
+echo $(md5sum stemcell/stemcell.tgz)
+
+echo "Calculating MD5 of copied stemcell:"
+echo $(md5sum ${deployment_dir}/stemcell.tgz)
 
 echo "${private_key_data}" > ${private_key}
 chmod go-r ${private_key}
