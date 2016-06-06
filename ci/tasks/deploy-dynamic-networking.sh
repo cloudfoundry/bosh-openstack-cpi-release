@@ -2,6 +2,8 @@
 
 set -e
 
+source bosh-cpi-src-in/ci/tasks/utils.sh
+
 : {bosh_admin_password:?}
 : {base_os:?}
 : {dns:?}
@@ -22,7 +24,7 @@ set -e
 : {openstack_project:?}
 : {openstack_domain:?}
 : {openstack_floating_ip:?}
-: {bosh_openstack_ca_cert=""}
+optional_value bosh_openstack_ca_cert
 
 source /etc/profile.d/chruby-with-ruby-2.1.2.sh
 
