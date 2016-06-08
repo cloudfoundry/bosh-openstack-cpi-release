@@ -1,4 +1,6 @@
-set -e
+#!/usr/bin/env bash
+
+set -e -x
 
 openssl_version=`PATH=/usr/local/opt/openssl/bin:$PATH openssl version`
 openssl_major_version=`echo $openssl_version | cut -f2 -d\ | cut -f1 -d.`
@@ -8,10 +10,9 @@ if [ $openssl_major_version == 0 ]; then
   exit 1
 fi
 
+echo "Installing yaml"
 tar xzf ruby_openstack_cpi/yaml-0.1.5.tar.gz
-(
-  set -e
-  cd yaml-0.1.5
+pushd yaml-0.1.5 > /dev/null
   if [ `uname -m` == "ppc64le" ]; then
     CFLAGS='-fPIC' ./configure --build=ppc64le --prefix=${BOSH_INSTALL_TARGET} --disable-shared
   else
@@ -19,29 +20,20 @@ tar xzf ruby_openstack_cpi/yaml-0.1.5.tar.gz
   fi
   make
   make install
-)
+popd > /dev/null
 
+echo "Installing ruby"
 tar xzf ruby_openstack_cpi/ruby-2.1.7.tar.gz
-(
-  set -e
-  cd ruby-2.1.7
+pushd ruby-2.1.7 > /dev/null
   LDFLAGS="-Wl,-rpath -Wl,${BOSH_INSTALL_TARGET}" CFLAGS='-fPIC' ./configure --prefix=${BOSH_INSTALL_TARGET} --disable-install-doc --with-opt-dir=/usr/local/opt/openssl:${BOSH_INSTALL_TARGET}
   make
   make install
-)
+popd > /dev/null
 
+echo "Installing rubygems"
 tar zxvf ruby_openstack_cpi/rubygems-2.1.11.tgz
-
-(
-  set -e
-  cd rubygems-2.1.11
-
+pushd rubygems-2.1.11
   ${BOSH_INSTALL_TARGET}/bin/ruby setup.rb
-
-  if [[ $? != 0 ]] ; then
-    echo "Cannot install rubygems"
-    exit 1
-  fi
-)
+popd > /dev/null
 
 ${BOSH_INSTALL_TARGET}/bin/gem install ruby_openstack_cpi/bundler-1.11.2.gem --local --no-ri --no-rdoc
