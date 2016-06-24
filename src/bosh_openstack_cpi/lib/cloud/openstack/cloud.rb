@@ -148,15 +148,12 @@ module Bosh::OpenStackCloud
     # @param [Hash] properties CPI-specific properties
     # @return [Hash] normalized properties
     def normalize_image_properties(properties)
-      # The stemcell comes with the hypervisor attribute but glance expects hypervisor_type instead.
-      properties['hypervisor_type'] = properties.delete('hypervisor') if properties.has_key?('hypervisor')
-
       image_properties = {}
-      vanilla_options = ['name', 'version', 'os_type', 'os_distro', 'architecture', 'auto_disk_config',
-                         'hw_vif_model', 'hypervisor_type', 'vmware_adaptertype', 'vmware_disktype',
-                         'vmware_linked_clone', 'vmware_ostype']
-      vanilla_options.reject{ |o| properties[o].nil? }.each do |key|
-        image_properties[key.to_sym] = properties[key]
+      image_options = ['name', 'version', 'os_type', 'os_distro', 'architecture', 'auto_disk_config',
+                       'hw_vif_model', 'hypervisor_type', 'vmware_adaptertype', 'vmware_disktype',
+                       'vmware_linked_clone', 'vmware_ostype']
+      image_options.reject { |image_option| properties[property_option_for_image_option(image_option)].nil? }.each do |image_option|
+        image_properties[image_option.to_sym] = properties[property_option_for_image_option(image_option)]
       end
       image_properties
     end
@@ -682,6 +679,14 @@ module Bosh::OpenStackCloud
     end
 
     private
+
+    def property_option_for_image_option(image_option)
+      if image_option == 'hypervisor_type'
+        'hypervisor'
+      else
+        image_option
+      end
+    end
 
     ##
     # Generates an unique name

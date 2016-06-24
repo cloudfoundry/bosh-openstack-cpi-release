@@ -182,16 +182,20 @@ describe Bosh::OpenStackCloud::Cloud do
     let(:cloud_options) { mock_cloud_options }
     subject { Bosh::OpenStackCloud::Cloud.new(cloud_options['properties']) }
 
-    it 'rejects nil values and converts keys to symbols' do
+    it 'rejects nil values' do
       properties = {
-        "name" => "name",
         "version" => nil
       }
 
-      image_properties = subject.normalize_image_properties(properties)
+      expect(subject.normalize_image_properties(properties)).to_not have_key(:version)
+    end
 
-      expect(image_properties).to have_key(:name)
-      expect(image_properties).to_not have_key(:version)
+    it 'converts keys to symbols' do
+      properties = {
+        "name" => "name",
+      }
+
+      expect(subject.normalize_image_properties(properties)).to have_key(:name)
     end
 
     it 'maps hypervisor key to hypervisor_type' do
