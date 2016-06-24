@@ -111,13 +111,7 @@ module Bosh::OpenStackCloud
               :is_public => @stemcell_public_visibility.nil? ? false : @stemcell_public_visibility,
             }
 
-            image_properties = {}
-            vanilla_options = ['name', 'version', 'os_type', 'os_distro', 'architecture', 'auto_disk_config',
-                               'hw_vif_model', 'hypervisor_type', 'vmware_adaptertype', 'vmware_disktype',
-                               'vmware_linked_clone', 'vmware_ostype']
-            vanilla_options.reject{ |o| cloud_properties[o].nil? }.each do |key|
-              image_properties[key.to_sym] = cloud_properties[key]
-            end
+            image_properties = normalize_image_properties(cloud_properties)
             image_params[:properties] = image_properties unless image_properties.empty?
 
             # If image_location is set in cloud properties, then pass the copy-from parm. Then Glance will fetch it
@@ -146,6 +140,25 @@ module Bosh::OpenStackCloud
           raise e
         end
       end
+    end
+
+    ##
+    # Normalizes the image properties hash that is passed to the OpenStack Glance service.
+    #
+    # @param [Hash] properties CPI-specific properties
+    # @return [Hash] normalized properties
+    def normalize_image_properties(properties)
+      # The stemcell comes with the hypervisor attribute but glance expects hypervisor_type instead.
+      properties['hypervisor_type'] = properties.delete('hypervisor') if properties.has_key?('hypervisor')
+
+      image_properties = {}
+      vanilla_options = ['name', 'version', 'os_type', 'os_distro', 'architecture', 'auto_disk_config',
+                         'hw_vif_model', 'hypervisor_type', 'vmware_adaptertype', 'vmware_disktype',
+                         'vmware_linked_clone', 'vmware_ostype']
+      vanilla_options.reject{ |o| properties[o].nil? }.each do |key|
+        image_properties[key.to_sym] = properties[key]
+      end
+      image_properties
     end
 
     ##
