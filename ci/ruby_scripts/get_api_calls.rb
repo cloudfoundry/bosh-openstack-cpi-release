@@ -3,7 +3,7 @@ require 'json'
 def target_service(request, catalog)
   service_catalog = catalog['access']['serviceCatalog']
   url = /(http|https):\/\/#{request[:host]}:#{request[:port]}/
-  url_with_version = /#{url}#{request[:path][/\/v[1-9](\.[0-9]+)?\//]}/
+  url_with_version = /#{url}#{request[:path][/\/v[1-9](\.[0-9]+)?/]}/
 
   catalog_entry = find_versioned_target_service(service_catalog, url_with_version)
   if catalog_entry.empty?

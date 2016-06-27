@@ -164,37 +164,73 @@ describe 'Get API calls script' do
 
     end
 
-    it 'can distinguish different service versions by path' do
-      request = {
-          host: 'sample-host.org',
-          port: 8080,
-          path: '/v2/project-id'
-      }
+    context 'with versioned services' do
+      let(:request) do
+        {
+            host: 'sample-host.org',
+            port: 8080,
+            path: '/v2/path'
+        }
+      end
 
-      catalog = {
-          'access' => {
+      context 'and path only with version segment' do
+
+        let(:catalog) do
+          {
+            'access' => {
               'serviceCatalog'=> [{
-                  'endpoints' => [{
-                      'publicURL' => 'http://sample-host.org:8080/v1/project-id'
-                  }],
-                  'type' => 'servicebambule',
-                  'name' => 'bambule'
+                'endpoints' => [{
+                  'publicURL' => 'http://sample-host.org:8080/v1'
+                }],
+                'type' => 'servicebambule',
+                'name' => 'bambule'
+              },{
+                'endpoints' => [{
+                  'publicURL' => 'http://sample-host.org:8080/v2.0'
+                }],
+                'type' => 'servicebambulev2',
+                'name' => 'bambule'
+              }]
+            }
+          }
+        end
 
+        it 'can distinguish different service versions' do
+          expect(target_service(request, catalog)).to eq({
+            type: 'servicebambulev2',
+            name: 'bambule'
+          })
+        end
+      end
+
+      context 'and path with version and project id segment' do
+        let(:catalog) do
+          {
+            'access' => {
+              'serviceCatalog'=> [{
+                'endpoints' => [{
+                  'publicURL' => 'http://sample-host.org:8080/v1/project-id'
+                }],
+                'type' => 'servicebambule',
+                'name' => 'bambule'
               },{
                   'endpoints' => [{
-                      'publicURL' => 'http://sample-host.org:8080/v2/project-id'
+                    'publicURL' => 'http://sample-host.org:8080/v2.0/project-id'
                   }],
                   'type' => 'servicebambulev2',
                   'name' => 'bambule'
               }]
+            }
           }
-      }
+        end
 
-      expect(target_service request, catalog).to eq({
-          type: 'servicebambulev2',
-          name: 'bambule'
-      })
-
+        it 'can distinguish different service versions' do
+          expect(target_service(request, catalog)).to eq({
+            type: 'servicebambulev2',
+            name: 'bambule'
+          })
+        end
+      end
     end
   end
 end
