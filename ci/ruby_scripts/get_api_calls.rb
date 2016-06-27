@@ -1,10 +1,15 @@
 require 'json'
 
 def target_service(request, catalog)
+  service_catalog = catalog['access']['serviceCatalog']
   url = /(http|https):\/\/#{request[:host]}:#{request[:port]}/
-  catalog_entry = catalog['access']['serviceCatalog'].select do |catalog_entry|
-    catalog_entry['endpoints'].any? { |endpoint| endpoint['publicURL'] =~ url }
+  url_with_version = /#{url}#{request[:path][/\/v[1-9](\.[0-9]+)?\//]}/
+
+  catalog_entry = find_versioned_target_service(service_catalog, url_with_version)
+  if catalog_entry.empty?
+    catalog_entry = find_unversioned_target_service(service_catalog, url)
   end
+
   if catalog_entry.empty?
     puts "nothing found for url '#{url}'"
   else
@@ -13,6 +18,20 @@ def target_service(request, catalog)
         type: catalog_entry[0]['type'],
         name: catalog_entry[0]['name']
     }
+  end
+end
+
+def find_versioned_target_service(service_catalog, url)
+  match_service_url(service_catalog, url)
+end
+
+def find_unversioned_target_service(service_catalog, url)
+  match_service_url(service_catalog, url)
+end
+
+def match_service_url(service_catalog, url_pattern)
+  service_catalog.select do |catalog_entry|
+    catalog_entry['endpoints'].any? { |endpoint| endpoint['publicURL'] =~ url_pattern }
   end
 end
 
@@ -45,6 +64,7 @@ def scrub_random_values!(requests)
     if request[:body]
       request[:body].gsub!(resource_id_regex, '<resource_id>')
       request[:body].gsub!(/"volume_size":\d+/, "\"volume_size\":\"<volume_size>\"")
+      request[:body].gsub!(/"flavorRef":"\d+"/, "\"flavorRef\":\"<flavorRef_id>\"")
       request[:body].gsub!(/"size":\d+/, "\"size\":\"<size>\"")
       keys_to_scrub.each do |key|
         scrub_random_body_value!(request, key)

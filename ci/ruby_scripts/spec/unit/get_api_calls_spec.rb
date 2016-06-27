@@ -129,4 +129,72 @@ describe 'Get API calls script' do
 
   end
 
+  describe '#target_service' do
+    it 'identifies service targeted' do
+
+      request = {
+          host: 'sample-host.org',
+          port: 8080,
+          path: 'v2/blablub'
+      }
+
+      catalog = {
+          'access' => {
+              'serviceCatalog'=> [{
+                  'endpoints' => [{
+                      'publicURL' => 'http://sample-host.org:8080'
+                  }],
+                  'type' => 'servicebambule',
+                  'name' => 'bambule'
+
+              },{
+                  'endpoints' => [{
+                      'publicURL' => 'http://sample-host.org:9090'
+                  }],
+                  'type' => 'servicerambuno',
+                  'name' => 'rambuno'
+              }]
+          }
+      }
+
+      expect(target_service request, catalog).to eq({
+        type: 'servicebambule',
+        name: 'bambule'
+      })
+
+    end
+
+    it 'can distinguish different service versions by path' do
+      request = {
+          host: 'sample-host.org',
+          port: 8080,
+          path: '/v2/project-id'
+      }
+
+      catalog = {
+          'access' => {
+              'serviceCatalog'=> [{
+                  'endpoints' => [{
+                      'publicURL' => 'http://sample-host.org:8080/v1/project-id'
+                  }],
+                  'type' => 'servicebambule',
+                  'name' => 'bambule'
+
+              },{
+                  'endpoints' => [{
+                      'publicURL' => 'http://sample-host.org:8080/v2/project-id'
+                  }],
+                  'type' => 'servicebambulev2',
+                  'name' => 'bambule'
+              }]
+          }
+      }
+
+      expect(target_service request, catalog).to eq({
+          type: 'servicebambulev2',
+          name: 'bambule'
+      })
+
+    end
+  end
 end
