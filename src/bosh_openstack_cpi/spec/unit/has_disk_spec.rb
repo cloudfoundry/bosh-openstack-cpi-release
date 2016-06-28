@@ -3,7 +3,7 @@ require 'spec_helper'
 describe Bosh::OpenStackCloud::Cloud do
   describe 'has_disk?' do
     context 'when disk is found' do
-      let(:disk) { instance_double('Fog::Volume') }
+      let(:disk) { instance_double('Fog::Volume::OpenStack::V1') }
 
       it 'returns true' do
         cloud = mock_cloud(mock_cloud_options['properties']) do |openstack|

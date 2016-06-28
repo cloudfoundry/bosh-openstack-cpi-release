@@ -88,7 +88,7 @@ module Bosh::OpenStackCloud
       begin
         Bosh::Common.retryable(@connect_retry_options) do |tries, error|
           @logger.error("Failed #{tries} times, last failure due to: #{error.inspect}") unless error.nil?
-          @glance = Fog::Image.new(@openstack_params)
+          @glance = Fog::Image::OpenStack::V1.new(@openstack_params)
         end
       rescue Excon::Errors::SocketError => e
         cloud_error(socket_error_msg + "#{e.message}")
@@ -695,7 +695,7 @@ module Bosh::OpenStackCloud
       begin
         Bosh::Common.retryable(@connect_retry_options) do |tries, error|
           @logger.error("Failed #{tries} times, last failure due to: #{error.inspect}") unless error.nil?
-          @volume ||= Fog::Volume.new(@openstack_params)
+          @volume ||= Fog::Volume::OpenStack::V1.new(@openstack_params)
         end
       rescue Bosh::Common::RetryCountExceeded, Excon::Errors::ClientError, Excon::Errors::ServerError => e
         cloud_error("Unable to connect to the OpenStack Volume API: #{e.message}. Check task debug log for details.")

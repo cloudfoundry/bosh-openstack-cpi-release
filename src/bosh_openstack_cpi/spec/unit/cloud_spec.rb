@@ -13,8 +13,8 @@ describe Bosh::OpenStackCloud::Cloud do
     let(:compute) { instance_double('Fog::Compute') }
     before { allow(Fog::Compute).to receive(:new).and_return(compute) }
 
-    let(:image) { instance_double('Fog::Image') }
-    before { allow(Fog::Image).to receive(:new).and_return(image) }
+    let(:image) { instance_double('Fog::Image::OpenStack::V1') }
+    before { allow(Fog::Image::OpenStack::V1).to receive(:new).and_return(image) }
 
     describe 'validation' do
       let(:options) do
@@ -206,38 +206,38 @@ describe Bosh::OpenStackCloud::Cloud do
         instance_double(Fog::Compute)
       end
 
-      allow(Fog::Image).to receive(:new).and_return(instance_double(Fog::Image))
-      allow(Fog::Volume).to receive(:new).and_return(instance_double(Fog::Volume))
+      allow(Fog::Image::OpenStack::V1).to receive(:new).and_return(instance_double(Fog::Image::OpenStack::V1))
+      allow(Fog::Volume::OpenStack::V1).to receive(:new).and_return(instance_double(Fog::Volume::OpenStack::V1))
       expect {
         Bosh::OpenStackCloud::Cloud.new(cloud_options['properties'])
       }.to_not raise_error
 
       retry_count = 0
-      allow(Fog::Image).to receive(:new) do
+      allow(Fog::Image::OpenStack::V1).to receive(:new) do
         retry_count += 1
         if retry_count < Bosh::OpenStackCloud::Cloud::CONNECT_RETRY_COUNT
           raise Excon::Errors::GatewayTimeout.new('Gateway Timeout')
         end
-        instance_double(Fog::Image)
+        instance_double(Fog::Image::OpenStack::V1)
       end
 
       allow(Fog::Compute).to receive(:new).and_return(instance_double(Fog::Compute))
-      allow(Fog::Volume).to receive(:new).and_return(instance_double(Fog::Volume))
+      allow(Fog::Volume::OpenStack::V1).to receive(:new).and_return(instance_double(Fog::Volume::OpenStack::V1))
       expect {
         Bosh::OpenStackCloud::Cloud.new(cloud_options['properties'])
       }.to_not raise_error
 
       retry_count = 0
-      allow(Fog::Volume).to receive(:new) do
+      allow(Fog::Volume::OpenStack::V1).to receive(:new) do
         retry_count += 1
         if retry_count < Bosh::OpenStackCloud::Cloud::CONNECT_RETRY_COUNT
           raise Excon::Errors::GatewayTimeout.new('Gateway Timeout')
         end
-        instance_double(Fog::Volume)
+        instance_double(Fog::Volume::OpenStack::V1)
       end
 
       allow(Fog::Compute).to receive(:new).and_return(instance_double(Fog::Compute))
-      allow(Fog::Image).to receive(:new).and_return(instance_double(Fog::Image))
+      allow(Fog::Image::OpenStack::V1).to receive(:new).and_return(instance_double(Fog::Image::OpenStack::V1))
       expect {
         Bosh::OpenStackCloud::Cloud.new(cloud_options['properties'])
       }.to_not raise_error
@@ -245,8 +245,8 @@ describe Bosh::OpenStackCloud::Cloud do
 
     it 'raises a CloudError exception if cannot connect to the OpenStack Compute API 5 times' do
       allow(Fog::Compute).to receive(:new).and_raise(Excon::Errors::Unauthorized, 'Unauthorized')
-      allow(Fog::Image).to receive(:new).and_return(instance_double(Fog::Image))
-      allow(Fog::Volume).to receive(:new).and_return(instance_double(Fog::Volume))
+      allow(Fog::Image::OpenStack::V1).to receive(:new).and_return(instance_double(Fog::Image::OpenStack::V1))
+      allow(Fog::Volume::OpenStack::V1).to receive(:new).and_return(instance_double(Fog::Volume::OpenStack::V1))
       expect {
         Bosh::OpenStackCloud::Cloud.new(cloud_options['properties'])
       }.to raise_error(Bosh::Clouds::CloudError,
@@ -255,8 +255,8 @@ describe Bosh::OpenStackCloud::Cloud do
 
     it 'raises a CloudError exception if cannot connect to the OpenStack Image Service API 5 times' do
       allow(Fog::Compute).to receive(:new).and_return(instance_double(Fog::Compute))
-      allow(Fog::Image).to receive(:new).and_raise(Excon::Errors::Unauthorized, 'Unauthorized')
-      allow(Fog::Volume).to receive(:new).and_return(instance_double(Fog::Volume))
+      allow(Fog::Image::OpenStack::V1).to receive(:new).and_raise(Excon::Errors::Unauthorized, 'Unauthorized')
+      allow(Fog::Volume::OpenStack::V1).to receive(:new).and_return(instance_double(Fog::Volume::OpenStack::V1))
       expect {
         Bosh::OpenStackCloud::Cloud.new(cloud_options['properties'])
       }.to raise_error(Bosh::Clouds::CloudError,
@@ -277,7 +277,7 @@ describe Bosh::OpenStackCloud::Cloud do
 
       it 'raises a CloudError exception enriched with the targeted OpenStack KeyStone API url for Image API' do
         allow(Fog::Compute).to receive(:new).and_return(instance_double(Fog::Compute))
-        allow(Fog::Image).to receive(:new).and_raise(socket_error)
+        allow(Fog::Image::OpenStack::V1).to receive(:new).and_raise(socket_error)
 
         expect {
           Bosh::OpenStackCloud::Cloud.new(cloud_options['properties'])
@@ -294,21 +294,21 @@ describe Bosh::OpenStackCloud::Cloud do
       it 'should add optional options to the Fog connection' do
         cloud_options['properties']['openstack']['connection_options'] = connection_options
         allow(Fog::Compute).to receive(:new).and_return(compute)
-        allow(Fog::Image).to receive(:new).and_return(image)
+        allow(Fog::Image::OpenStack::V1).to receive(:new).and_return(image)
         Bosh::OpenStackCloud::Cloud.new(cloud_options['properties'])
 
         expect(Fog::Compute).to have_received(:new).with(hash_including(connection_options: merged_connection_options))
-        expect(Fog::Image).to have_received(:new).with(hash_including(connection_options: merged_connection_options))
+        expect(Fog::Image::OpenStack::V1).to have_received(:new).with(hash_including(connection_options: merged_connection_options))
       end
     end
 
     context 'when keystone V3 API is used' do
-      let(:volume) { double('Fog::Volume') }
+      let(:volume) { double('Fog::Volume::OpenStack::V1') }
       let(:volumes) { double('volumes') }
       let(:new_volume) { double('new_volume') }
       let(:cloud_options) { mock_cloud_options(3) }
       before do
-        allow(Fog::Volume).to receive(:new).and_return(volume)
+        allow(Fog::Volume::OpenStack::V1).to receive(:new).and_return(volume)
         allow(new_volume).to receive(:id).and_return(1)
         allow(volumes).to receive(:create).and_return(new_volume)
         allow(volume).to receive(:volumes).and_return(volumes)
@@ -316,7 +316,7 @@ describe Bosh::OpenStackCloud::Cloud do
 
       before do
         allow(Fog::Compute).to receive(:new).and_return(compute)
-        allow(Fog::Image).to receive(:new).and_return(image)
+        allow(Fog::Image::OpenStack::V1).to receive(:new).and_return(image)
       end
 
       it "should pass 'domain' and 'project' as options to the Fog::Compute connection" do
@@ -325,18 +325,18 @@ describe Bosh::OpenStackCloud::Cloud do
         expect(Fog::Compute).to have_received(:new).with(hash_including(openstack_domain_name: 'some_domain'))
       end
 
-      it "should pass 'domain' and 'project' as options to the Fog::Image connection" do
+      it "should pass 'domain' and 'project' as options to the Fog::Image::OpenStack::V1 connection" do
         Bosh::OpenStackCloud::Cloud.new(cloud_options['properties'])
-        expect(Fog::Image).to have_received(:new).with(hash_including(openstack_project_name: 'admin'))
-        expect(Fog::Image).to have_received(:new).with(hash_including(openstack_domain_name: 'some_domain'))
+        expect(Fog::Image::OpenStack::V1).to have_received(:new).with(hash_including(openstack_project_name: 'admin'))
+        expect(Fog::Image::OpenStack::V1).to have_received(:new).with(hash_including(openstack_domain_name: 'some_domain'))
       end
 
-      it "should pass 'domain' and 'project' as options to the Fog::Volume connection" do
+      it "should pass 'domain' and 'project' as options to the Fog::Volume::OpenStack::V1 connection" do
         cpi = Bosh::OpenStackCloud::Cloud.new(cloud_options['properties'])
         allow(cpi).to receive(:wait_resource).with(any_args).and_return(true)
         cpi.create_disk(1024, {})
-        expect(Fog::Volume).to have_received(:new).with(hash_including(openstack_project_name: 'admin'))
-        expect(Fog::Volume).to have_received(:new).with(hash_including(openstack_domain_name: 'some_domain'))
+        expect(Fog::Volume::OpenStack::V1).to have_received(:new).with(hash_including(openstack_project_name: 'admin'))
+        expect(Fog::Volume::OpenStack::V1).to have_received(:new).with(hash_including(openstack_domain_name: 'some_domain'))
       end
     end
   end
