@@ -116,7 +116,7 @@ describe Bosh::OpenStackCloud::Cloud do
         'container_format' => 'bare',
         'disk_format' => 'qcow2',
         'hw_vif_model' => 'fake-hw_vif_model',
-        'hypervisor_type' => 'fake-hypervisor_type',
+        'hypervisor' => 'fake-hypervisor_type',
         'vmware_adaptertype' => 'fake-vmware_adaptertype',
         'vmware_disktype' => 'fake-vmware_disktype',
         'vmware_linked_clone' => 'fake-vmware_linked_clone',

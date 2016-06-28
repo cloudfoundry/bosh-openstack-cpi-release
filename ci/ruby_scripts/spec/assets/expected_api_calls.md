@@ -8,5 +8,9 @@ GET /v2.0/ports?device_id=<device_id>&name=<name>
 DELETE /v1/<tenant_id>/volumes
 GET /v1/<tenant_id>/volumes
 POST /v1/<tenant_id>/volumes body: {"volume":{"display_name":"volume-<resource_id>","display_description":"<display_description>","size":"<size>","atest":"<test>"}}
-POST /v1/<tenant_id>/volumes body: {"volume":{"display_name":"volume-<resource_id>","display_description":"<display_description>","size":"<size>","btest":"<test>"}}
+POST /v1/<tenant_id>/volumes body: {"volume":{"display_name":"volume-<resource_id>","display_description":"<display_description>","size":"<size>","flavorRef":"<flavorRef_id>","btest":"<test>"}}
+```
+### All calls for API endpoint 'volumev2 (cinder)'
+```
+POST /v2/<tenant_id>/volumes body: {"volume":{"display_name":"volume-<resource_id>","display_description":"<display_description>","size":"<size>","btest":"<test>"}}
 ```

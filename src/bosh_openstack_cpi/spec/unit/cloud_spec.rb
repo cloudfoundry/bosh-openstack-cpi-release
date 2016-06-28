@@ -177,5 +177,37 @@ describe Bosh::OpenStackCloud::Cloud do
       end
     end
   end
+
+  describe :image_properties do
+    let(:cloud_options) { mock_cloud_options }
+    subject { Bosh::OpenStackCloud::Cloud.new(cloud_options['properties']) }
+
+    it 'rejects nil values' do
+      properties = {
+        "version" => nil
+      }
+
+      expect(subject.normalize_image_properties(properties)).to_not have_key(:version)
+    end
+
+    it 'converts keys to symbols' do
+      properties = {
+        "name" => "name",
+      }
+
+      expect(subject.normalize_image_properties(properties)).to have_key(:name)
+    end
+
+    it 'maps hypervisor key to hypervisor_type' do
+      properties = {
+        "hypervisor" => "kvm"
+      }
+
+      image_properties = subject.normalize_image_properties(properties)
+
+      expect(image_properties[:hypervisor_type]).to eq("kvm")
+      expect(image_properties).to_not have_key(:hypervisor)
+    end
+  end
 end
 
