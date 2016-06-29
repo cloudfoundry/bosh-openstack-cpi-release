@@ -5,7 +5,7 @@ module Bosh
   module OpenStackCloud; end
 end
 
-require "fog"
+require "fog/openstack"
 require "httpclient"
 require "json"
 require "pp"
