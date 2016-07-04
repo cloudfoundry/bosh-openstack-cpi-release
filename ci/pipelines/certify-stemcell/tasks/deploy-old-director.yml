@@ -39,3 +39,5 @@ params:
   old_bosh_stemcell_name:            replace-me
   old_bosh_stemcell_version:         replace-me
   old_bosh_stemcell_sha1:            replace-me
+  time_server_1:                     replace-me
+  time_server_2:                     replace-me

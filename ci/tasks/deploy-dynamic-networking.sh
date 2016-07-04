@@ -24,6 +24,8 @@ ensure_not_replace_value openstack_api_key
 ensure_not_replace_value openstack_tenant
 ensure_not_replace_value openstack_floating_ip
 optional_value bosh_openstack_ca_cert
+ensure_not_replace_value time_server_1
+ensure_not_replace_value time_server_2
 
 source /etc/profile.d/chruby-with-ruby-2.1.2.sh
 
@@ -186,8 +188,8 @@ jobs:
       agent: {mbus: "nats://nats:${bosh_admin_password}@${openstack_floating_ip}:4222"}
 
       ntp: &ntp
-        - 0.north-america.pool.ntp.org
-        - 1.north-america.pool.ntp.org
+        - ${time_server_1}
+        - ${time_server_2}
 
 cloud_provider:
   template: {name: openstack_cpi, release: ${cpi_release_name}}

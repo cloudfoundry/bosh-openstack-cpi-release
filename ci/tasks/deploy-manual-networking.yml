@@ -37,3 +37,5 @@ params:
   openstack_manual_ip:           replace-me
   openstack_net_cidr:            replace-me
   openstack_net_gateway:         replace-me
+  time_server_1:                 replace-me
+  time_server_2:                 replace-me

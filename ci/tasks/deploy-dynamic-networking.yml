@@ -34,3 +34,5 @@ params:
   openstack_api_key:             replace-me
   openstack_tenant:              replace-me
   openstack_floating_ip:         replace-me
+  time_server_1:                 replace-me
+  time_server_2:                 replace-me

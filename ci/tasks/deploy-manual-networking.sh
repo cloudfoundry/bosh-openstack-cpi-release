@@ -26,6 +26,8 @@ ensure_not_replace_value openstack_floating_ip
 ensure_not_replace_value openstack_manual_ip
 ensure_not_replace_value openstack_net_cidr
 ensure_not_replace_value openstack_net_gateway
+ensure_not_replace_value time_server_1
+ensure_not_replace_value time_server_2
 optional_value bosh_openstack_ca_cert
 
 
@@ -193,8 +195,8 @@ jobs:
       agent: {mbus: "nats://nats:${bosh_admin_password}@${openstack_manual_ip}:4222"}
 
       ntp: &ntp
-        - 0.north-america.pool.ntp.org
-        - 1.north-america.pool.ntp.org
+        - ${time_server_1}
+        - ${time_server_2}
 
 cloud_provider:
   template: {name: openstack_cpi, release: ${cpi_release_name}}

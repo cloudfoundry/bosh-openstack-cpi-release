@@ -40,3 +40,5 @@ params:
   v3_e2e_blobstore_host:          replace-me
   v3_e2e_blobstore_access_key:    replace-me
   v3_e2e_blobstore_secret_key:    replace-me
+  time_server_1:                  replace-me
+  time_server_2:                  replace-me
