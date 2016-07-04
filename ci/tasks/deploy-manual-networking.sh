@@ -26,6 +26,8 @@ source bosh-cpi-src-in/ci/tasks/utils.sh
 : {openstack_manual_ip:?}
 : {openstack_net_cidr:?}
 : {openstack_net_gateway:?}
+: {time_server_1:?}
+: {time_server_2:?}
 optional_value bosh_openstack_ca_cert
 
 source /etc/profile.d/chruby-with-ruby-2.1.2.sh
@@ -191,8 +193,8 @@ jobs:
       agent: {mbus: "nats://nats:${bosh_admin_password}@${openstack_manual_ip}:4222"}
 
       ntp: &ntp
-        - 0.north-america.pool.ntp.org
-        - 1.north-america.pool.ntp.org
+        - ${time_server_1}
+        - ${time_server_2}
 
 cloud_provider:
   template: {name: openstack_cpi, release: ${cpi_release_name}}
