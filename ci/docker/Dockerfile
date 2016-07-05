@@ -17,7 +17,7 @@ RUN apt-get install -y postgresql-9.3 postgresql-client-9.3 libpq-dev; apt-get c
 
 RUN apt-get install -y python python-pip libyaml-dev libpython-dev jq; apt-get clean
 
-RUN pip install python-openstackclient
+RUN pip install python-openstackclient==2.4.0
 
 # chruby
 RUN mkdir /tmp/chruby && \

@@ -29,6 +29,8 @@ ensure_not_replace_value v3_e2e_blobstore_bucket
 ensure_not_replace_value v3_e2e_blobstore_host
 ensure_not_replace_value v3_e2e_blobstore_access_key
 ensure_not_replace_value v3_e2e_blobstore_secret_key
+ensure_not_replace_value time_server_1
+ensure_not_replace_value time_server_2
 optional_value v3_e2e_use_dhcp
 optional_value bosh_openstack_ca_cert
 optional_value v3_e2e_config_drive
@@ -189,8 +191,8 @@ jobs:
       agent: {mbus: "nats://nats:${bosh_admin_password}@${director_manual_ip}:4222"}
 
       ntp: &ntp
-        - 0.north-america.pool.ntp.org
-        - 1.north-america.pool.ntp.org
+        - ${time_server_1}
+        - ${time_server_2}
 
 cloud_provider:
   template: {name: openstack_cpi, release: bosh-openstack-cpi}

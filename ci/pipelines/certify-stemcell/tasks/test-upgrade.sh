@@ -25,6 +25,8 @@ ensure_not_replace_value v3_e2e_project
 ensure_not_replace_value v3_e2e_domain
 ensure_not_replace_value v3_e2e_username
 ensure_not_replace_value v3_e2e_private_key_data
+ensure_not_replace_value time_server_1
+ensure_not_replace_value time_server_2
 optional_value           bosh_openstack_ca_cert
 
 source /etc/profile.d/chruby-with-ruby-2.1.2.sh
@@ -186,8 +188,8 @@ jobs:
       agent: {mbus: "nats://nats:${bosh_admin_password}@${v3_upgrade_director_manual_ip}:4222"}
 
       ntp: &ntp
-        - 0.north-america.pool.ntp.org
-        - 1.north-america.pool.ntp.org
+        - ${time_server_1}
+        - ${time_server_2}
 
 cloud_provider:
   template: {name: openstack_cpi, release: bosh-openstack-cpi}

@@ -212,6 +212,8 @@ jobs:
           openstack_manual_ip:           {{bats_manual_ubuntu_director_private_ip}}
           openstack_net_cidr:            {{bats_manual_ubuntu_primary_net_cidr}}
           openstack_net_gateway:         {{bats_manual_ubuntu_primary_net_gateway}}
+          time_server_1:                 {{time_server_1}}
+          time_server_2:                 {{time_server_2}}
         ensure:
           put: ubuntu-manual-director-state-file
           tags: *tags
@@ -319,6 +321,8 @@ jobs:
           openstack_project:             {{openstack_project}}
           openstack_domain:              {{openstack_domain}}
           openstack_floating_ip:         {{bats_dynamic_ubuntu_director_public_ip}}
+          time_server_1:                 {{time_server_1}}
+          time_server_2:                 {{time_server_2}}
           private_key_data:              {{bosh_private_key}}
         ensure:
           put: ubuntu-dynamic-director-state-file
@@ -417,6 +421,8 @@ jobs:
           openstack_manual_ip:           {{bats_manual_centos_director_private_ip}}
           openstack_net_cidr:            {{bats_manual_centos_primary_net_cidr}}
           openstack_net_gateway:         {{bats_manual_centos_primary_net_gateway}}
+          time_server_1:                 {{time_server_1}}
+          time_server_2:                 {{time_server_2}}
           private_key_data:              {{bosh_private_key}}
         ensure:
           put: centos-manual-director-state-file
@@ -525,6 +531,8 @@ jobs:
           openstack_project:             {{openstack_project}}
           openstack_domain:              {{openstack_domain}}
           openstack_floating_ip:         {{bats_dynamic_centos_director_public_ip}}
+          time_server_1:                 {{time_server_1}}
+          time_server_2:                 {{time_server_2}}
           private_key_data:              {{bosh_private_key}}
         ensure:
           put: centos-dynamic-director-state-file

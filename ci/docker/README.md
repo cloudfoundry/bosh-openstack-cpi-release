@@ -1,6 +1,6 @@
 # Building docker image
 
-Required vagrant version is 1.7.4.
+Last tested vagrant version 1.8.4. Use the latest if possible.
 
 ```
 vagrant up

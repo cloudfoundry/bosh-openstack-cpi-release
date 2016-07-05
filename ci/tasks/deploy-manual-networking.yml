@@ -38,3 +38,5 @@ params:
   openstack_manual_ip:           ""
   openstack_net_cidr:            ""
   openstack_net_gateway:         ""
+  time_server_1:                 ""
+  time_server_2:                 ""
