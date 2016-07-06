@@ -10,6 +10,8 @@ ensure_not_replace_value BOSH_OPENSTACK_API_KEY
 ensure_not_replace_value BOSH_OPENSTACK_PROJECT
 optional_value BOSH_OPENSTACK_CA_CERT
 
+exit_code=0
+
 export OS_IDENTITY_API_VERSION=$BOSH_OPENSTACK_IDENTITY_API_VERSION
 export OS_DEFAULT_DOMAIN=$BOSH_OPENSTACK_DOMAIN_NAME
 export OS_AUTH_URL=$BOSH_OPENSTACK_AUTH_URL
@@ -39,7 +41,7 @@ openstack_delete_entities() {
   for id in $id_list
   do
     echo "Deleting $entity $id ..."
-    openstack $entity delete $delete_args $id
+    openstack $entity delete $delete_args $id || exit_code=$?
   done
 }
 
@@ -55,7 +57,7 @@ openstack_delete_ports() {
     if [ ! -z ${port_to_be_deleted} ];
     then
       echo "Deleting port ${port_to_be_deleted}"
-      openstack port delete ${port_to_be_deleted}
+      openstack port delete ${port_to_be_deleted} || exit_code=$?
     fi
   done
 }
@@ -79,3 +81,5 @@ if [ -d "$tmpdir" ]; then
     echo "Deleting temp dir with cacert.pem"
     rm -rf "$tmpdir"
 fi
+
+exit ${exit_code}
