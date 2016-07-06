@@ -206,6 +206,7 @@ module Bosh::OpenStackCloud
         @logger.debug("Using security groups: `#{security_groups_to_be_used.map { |sg| sg.name }.join(', ')}'")
 
         if network_configurator.manual_port_creation? @config_drive
+          @logger.debug('Manual port creation because of multiple manual networks')
           network_configurator.prepare_ports_for_manual_networks(@openstack, security_groups_to_be_used.map { |sg| sg.id })
         end
 
@@ -367,6 +368,7 @@ module Bosh::OpenStackCloud
         server = with_openstack { @openstack.compute.servers.get(server_id) }
         if server
           server_port_ids = NetworkConfigurator.port_ids(@openstack, server_id)
+          @logger.debug("Network ports: `#{server_port_ids.join(', ')}' found for server #{server_id}")
           with_openstack { server.destroy }
           wait_resource(server, [:terminated, :deleted], :state, true)
           NetworkConfigurator.cleanup_ports(@openstack, server_port_ids)
