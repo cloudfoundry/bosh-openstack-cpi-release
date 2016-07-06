@@ -114,9 +114,9 @@ jobs:
     serial_groups: [cleanup-lock-lifecycle] # prevents cleanup job from starting if lifecycle job is running
     plan:
       - aggregate:
-        - {trigger: true,  passed: [build-candidate], get: bosh-cpi-dev-artifacts, tags: *tags, timeout: *timeouts-long} # used for job chaining only not for tasks
-        - {trigger: false, passed: [build-candidate], get: bosh-cpi-src-in, tags: *tags, timeout: *timeouts-long}
-        - {trigger: false,                            get: openstack-lifecycle-stemcell, tags: *tags, timeout: *timeouts-long}
+        - {trigger: true,  passed: [build-candidate],          get: bosh-cpi-dev-artifacts, tags: *tags, timeout: *timeouts-long} # used for job chaining only not for tasks
+        - {trigger: false, passed: [build-candidate, cleanup], get: bosh-cpi-src-in, tags: *tags, timeout: *timeouts-long}
+        - {trigger: false,                                     get: openstack-lifecycle-stemcell, tags: *tags, timeout: *timeouts-long}
 
       - task: test
         tags: *tags
