@@ -141,7 +141,11 @@ module Bosh::OpenStackCloud
     def prepare_ports_for_manual_networks(openstack, security_group_ids)
       @networks.each do |network_info|
         if network(network_info).is_a?(ManualNetwork)
-          port = create_port_for_manual_network(network_info, openstack, security_group_ids)
+          ip_address = network(network_info).private_ip
+          net_id = network_info['net_id']
+          @logger.debug("Creating port for IP #{ip_address} in network #{net_id}")
+          port = create_port_for_manual_network(openstack, net_id, ip_address, security_group_ids)
+          @logger.debug("Port with ID #{port.id} and MAC address #{port.mac_address} created")
           add_port_to_network_spec(network_info, port)
         end
       end
@@ -195,7 +199,10 @@ module Bosh::OpenStackCloud
         port_ids.each do |port_id|
           with_openstack {
             port = openstack.network.ports.get(port_id)
-            port.destroy if port
+            if port
+              Bosh::Clouds::Config.logger.debug("Deleting port #{port_id}")
+              port.destroy
+            end
           }
         end
       rescue Bosh::Clouds::CloudError => e
@@ -205,11 +212,11 @@ module Bosh::OpenStackCloud
 
     private
 
-    def create_port_for_manual_network(network_info, openstack, security_group_ids)
+    def create_port_for_manual_network(openstack, net_id, ip_address, security_group_ids)
       with_openstack {
         openstack.network.ports.create({
-                                           network_id: network_info['net_id'],
-                                           fixed_ips: [{ip_address: network(network_info).private_ip}],
+                                           network_id: net_id,
+                                           fixed_ips: [{ip_address: ip_address}],
                                            security_groups: security_group_ids
                                        })
       }
