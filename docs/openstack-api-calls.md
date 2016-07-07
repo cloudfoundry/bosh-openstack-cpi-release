@@ -48,7 +48,6 @@ POST /v1/images
 ```
 ### All calls for API endpoint 'network (neutron)'
 ```
-DELETE /v2.0/ports/<resource_id>
 GET /
 GET /v2.0/networks/<resource_id>
 GET /v2.0/ports/<resource_id>
