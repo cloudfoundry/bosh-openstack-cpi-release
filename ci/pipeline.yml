@@ -69,7 +69,7 @@ jobs:
       - put: bosh-cpi-dev-artifacts
         tags: *tags
         timeout: *timeouts-long
-        params: {from: candidate/.*\.tgz}
+        params: {file: candidate/*.tgz}
 
   - name: cleanup
     serial: true
@@ -148,7 +148,7 @@ jobs:
       - put: lifecycle-log
         tags: *tags
         timeout: *timeouts-long
-        params: {from: output/lifecycle.log}
+        params: {file: output/lifecycle.log}
 
   - name: publish-api-calls
     serial: true
@@ -216,12 +216,12 @@ jobs:
           put: ubuntu-manual-director-state-file
           tags: *tags
           timeout: *timeouts-long
-          params: {from: deployment/ubuntu-manual-director-manifest-state.json}
+          params: {file: deployment/ubuntu-manual-director-manifest-state.json}
 
       - put: ubuntu-manual-director-manifest-file
         tags: *tags
         timeout: *timeouts-long
-        params: {from: deployment/ubuntu-manual-director-manifest.yml}
+        params: {file: deployment/ubuntu-manual-director-manifest.yml}
 
   - name: bats-ubuntu-manual
     serial: true
@@ -279,7 +279,7 @@ jobs:
           put: ubuntu-manual-director-state-file
           tags: *tags
           timeout: *timeouts-long
-          params: {from: teardown/ubuntu-manual-director-manifest-state.json}
+          params: {file: teardown/ubuntu-manual-director-manifest-state.json}
 
   - name: deploy-ubuntu-dynamic
     serial: true
@@ -325,12 +325,12 @@ jobs:
           put: ubuntu-dynamic-director-state-file
           tags: *tags
           timeout: *timeouts-long
-          params: {from: deployment/ubuntu-dynamic-director-manifest-state.json}
+          params: {file: deployment/ubuntu-dynamic-director-manifest-state.json}
 
       - put: ubuntu-dynamic-director-manifest-file
         tags: *tags
         timeout: *timeouts-long
-        params: {from: deployment/ubuntu-dynamic-director-manifest.yml}
+        params: {file: deployment/ubuntu-dynamic-director-manifest.yml}
 
   - name: bats-ubuntu-dynamic
     serial: true
@@ -375,7 +375,7 @@ jobs:
           put: ubuntu-dynamic-director-state-file
           tags: *tags
           timeout: *timeouts-long
-          params: {from: teardown/ubuntu-dynamic-director-manifest-state.json}
+          params: {file: teardown/ubuntu-dynamic-director-manifest-state.json}
 
   - name: deploy-centos-manual
     serial: true
@@ -424,12 +424,12 @@ jobs:
           put: centos-manual-director-state-file
           tags: *tags
           timeout: *timeouts-long
-          params: {from: deployment/centos-manual-director-manifest-state.json}
+          params: {file: deployment/centos-manual-director-manifest-state.json}
 
       - put: centos-manual-director-manifest-file
         tags: *tags
         timeout: *timeouts-long
-        params: {from: deployment/centos-manual-director-manifest.yml}
+        params: {file: deployment/centos-manual-director-manifest.yml}
 
   - name: bats-centos-manual
     serial: true
@@ -487,7 +487,7 @@ jobs:
           put: centos-manual-director-state-file
           tags: *tags
           timeout: *timeouts-long
-          params: {from: teardown/centos-manual-director-manifest-state.json}
+          params: {file: teardown/centos-manual-director-manifest-state.json}
 
   - name: deploy-centos-dynamic
     serial: true
@@ -533,12 +533,12 @@ jobs:
           put: centos-dynamic-director-state-file
           tags: *tags
           timeout: *timeouts-long
-          params: {from: deployment/centos-dynamic-director-manifest-state.json}
+          params: {file: deployment/centos-dynamic-director-manifest-state.json}
 
       - put: centos-dynamic-director-manifest-file
         tags: *tags
         timeout: *timeouts-long
-        params: {from: deployment/centos-dynamic-director-manifest.yml}
+        params: {file: deployment/centos-dynamic-director-manifest.yml}
 
   - name: bats-centos-dynamic
     serial: true
@@ -583,7 +583,7 @@ jobs:
           put: centos-dynamic-director-state-file
           tags: *tags
           timeout: *timeouts-long
-          params: {from: teardown/centos-dynamic-director-manifest-state.json}
+          params: {file: teardown/centos-dynamic-director-manifest-state.json}
 
   - name: promote-candidate
     serial: true
