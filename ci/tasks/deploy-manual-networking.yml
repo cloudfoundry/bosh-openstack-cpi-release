@@ -4,20 +4,17 @@ image: docker:///boshcpi/openstack-cpi-release
 inputs:
   - name: bosh-cpi-src-in
   - name: bosh-init
-  - name: director-state-file
   - name: bosh-release
   - name: bosh-cpi-dev-artifacts
   - name: version-semver
   - name: stemcell
 outputs:
-  - name: deployment
+  - name: bosh-director-deployment
 run:
   path: bosh-cpi-src-in/ci/tasks/deploy-manual-networking.sh
 params:
-  base_os:                       ""
   bosh_admin_password:           ""
   dns:                           ""
-  network_type_to_test:          ""
   openstack_flavor:              ""
   openstack_connection_timeout:  ""
   openstack_read_timeout:        ""
