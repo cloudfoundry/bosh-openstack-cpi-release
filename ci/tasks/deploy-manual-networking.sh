@@ -4,10 +4,8 @@ set -e
 
 source bosh-cpi-src-in/ci/tasks/utils.sh
 
-: {base_os:?}
 : {bosh_admin_password:?}
 : {dns:?}
-: {network_type_to_test:?}
 : {openstack_flavor:?}
 : {openstack_connection_timeout:?}
 : {openstack_read_timeout:?}
@@ -36,9 +34,8 @@ export BOSH_INIT_LOG_LEVEL=DEBUG
 
 semver=`cat version-semver/number`
 cpi_release_name="bosh-openstack-cpi"
-deployment_dir="${PWD}/deployment"
-manifest_filename="${base_os}-${network_type_to_test}-director-manifest.yml"
-director_state_filename="${base_os}-${network_type_to_test}-director-manifest-state.json"
+deployment_dir="${PWD}/bosh-director-deployment"
+manifest_filename="bosh.yml"
 private_key=${deployment_dir}/bats.pem
 bosh_vcap_password_hash=$(ruby -e 'require "securerandom";puts ENV["bosh_admin_password"].crypt("$6$#{SecureRandom.base64(14)}")')
 
@@ -46,7 +43,6 @@ echo "setting up artifacts used in $manifest_filename"
 cp ./bosh-cpi-dev-artifacts/${cpi_release_name}-${semver}.tgz ${deployment_dir}/${cpi_release_name}.tgz
 cp ./bosh-release/release.tgz ${deployment_dir}/bosh-release.tgz
 cp ./stemcell/stemcell.tgz ${deployment_dir}/stemcell.tgz
-cp ./director-state-file/${director_state_filename} ${deployment_dir}/${director_state_filename}
 
 echo "Calculating MD5 of original stemcell:"
 echo $(md5sum stemcell/stemcell.tgz)
@@ -235,9 +231,6 @@ fi
 initver=$(cat bosh-init/version)
 bosh_init="${PWD}/bosh-init/bosh-init-${initver}-linux-amd64"
 chmod +x $bosh_init
-
-echo "deleting existing BOSH Director VM..."
-$bosh_init delete ${deployment_dir}/${manifest_filename}
 
 echo "deploying BOSH..."
 $bosh_init deploy ${deployment_dir}/${manifest_filename}
