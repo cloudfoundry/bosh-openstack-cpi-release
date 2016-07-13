@@ -11,14 +11,8 @@ All instructions include the variables to fill in `monospace`.
 - Install [concourse](http://concourse.ci/)
 - Create S3 buckets for the artifacts created during the build
  - `s3_openstack_cpi_pipeline_bucket_name`
- - `s3_openstack_cpi_state_files_bucket_name`
 - Credentials for these S3 buckets
  - `s3_openstack_cpi_pipeline_access_key`, `s3_openstack_cpi_pipeline_secret_key`
- - `s3_openstack_cpi_state_files_access_key`, `s3_openstack_cpi_state_files_secret_key`
-- Create a github repository used for locks in the pipeline
- - `pipeline_lock_repository_url`
-- Choose a name for the pipeline lock in this repository
- - `pipeline_lock_pool_name`
 
 ### OpenStack Prerequisites
 
