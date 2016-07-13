@@ -5,13 +5,9 @@ groups:
       - build-candidate
       - lifecycle
       - publish-api-calls
-      - deploy-ubuntu-manual
       - bats-ubuntu-manual
-      - deploy-centos-manual
       - bats-centos-manual
-      - deploy-ubuntu-dynamic
       - bats-ubuntu-dynamic
-      - deploy-centos-dynamic
       - bats-centos-dynamic
       - promote-candidate
       - cleanup
@@ -25,18 +21,14 @@ groups:
   - name: ubuntu
     jobs:
       - build-candidate
-      - deploy-ubuntu-manual
       - bats-ubuntu-manual
-      - deploy-ubuntu-dynamic
       - bats-ubuntu-dynamic
       - promote-candidate
 
   - name: centos
     jobs:
       - build-candidate
-      - deploy-centos-manual
       - bats-centos-manual
-      - deploy-centos-dynamic
       - bats-centos-dynamic
       - promote-candidate
 
@@ -75,10 +67,10 @@ jobs:
     serial: true
     serial_groups:
       - cleanup-lock-lifecycle
-      - ubuntu-director-manual
-      - centos-director-manual
-      - ubuntu-director-dynamic
-      - centos-director-dynamic
+      - cleanup-lock-bats-ubuntu-manual
+      - cleanup-lock-bats-centos-manual
+      - cleanup-lock-bats-ubuntu-dynamic
+      - cleanup-lock-bats-centos-dynamic
 
     plan:
       - aggregate:
@@ -109,7 +101,7 @@ jobs:
 
   - name: lifecycle
     serial: true
-    serial_groups: [cleanup-lock-lifecycle] # prevents cleanup job from starting if lifecycle job is running
+    serial_groups: [cleanup-lock-lifecycle]
     plan:
       - aggregate:
         - {trigger: true,  passed: [build-candidate],          get: bosh-cpi-dev-artifacts, tags: *tags, timeout: *timeouts-long} # used for job chaining only not for tasks
@@ -164,27 +156,25 @@ jobs:
         timeout: *timeouts-long
         params: {repository: publish/repo, rebase: true}
 
-  - name: deploy-ubuntu-manual
+  - name: bats-ubuntu-manual
     serial: true
-    serial_groups: [ubuntu-director-manual] # shouldn't deploy while bats or cleanup is running
+    serial_groups: [cleanup-lock-bats-ubuntu-manual]
     plan:
       - aggregate:
         - {trigger: true,  passed: [build-candidate],          get: bosh-cpi-dev-artifacts, tags: *tags, timeout: *timeouts-long}
         - {trigger: false, passed: [build-candidate],          get: version-semver, tags: *tags, timeout: *timeouts-long}
         - {trigger: false, passed: [build-candidate, cleanup], get: bosh-cpi-src-in, tags: *tags, timeout: *timeouts-long}
-        - {trigger: false,                                     get: director-state-file, resource: ubuntu-manual-director-state-file, tags: *tags, timeout: *timeouts-long}
         - {trigger: false,                                     get: bosh-init, tags: *tags, timeout: *timeouts-long}
         - {trigger: false,                                     get: bosh-release, tags: *tags, timeout: *timeouts-long}
         - {trigger: false,                                     get: stemcell, resource: openstack-ubuntu-stemcell, tags: *tags, timeout: *timeouts-long}
+        - {trigger: false,                                     get: bats, tags: *tags, timeout: *timeouts-long}
 
       - task: deploy
         tags: *tags
         timeout: *timeouts-long
         file: bosh-cpi-src-in/ci/tasks/deploy-manual-networking.yml
         params:
-          base_os:                       "ubuntu"
           bosh_admin_password:           {{bosh_admin_password}}
-          network_type_to_test:          "manual"
           openstack_flavor:              "m1.small"
           openstack_connection_timeout:  "600"
           openstack_read_timeout:        "180"
@@ -207,31 +197,6 @@ jobs:
           openstack_net_gateway:         {{bats_manual_ubuntu_primary_net_gateway}}
           time_server_1:                 {{time_server_1}}
           time_server_2:                 {{time_server_2}}
-        ensure:
-          put: ubuntu-manual-director-state-file
-          tags: *tags
-          timeout: *timeouts-long
-          params: {from: deployment/ubuntu-manual-director-manifest-state.json}
-
-      - put: ubuntu-manual-director-manifest-file
-        tags: *tags
-        timeout: *timeouts-long
-        params: {from: deployment/ubuntu-manual-director-manifest.yml}
-
-  - name: bats-ubuntu-manual
-    serial: true
-    serial_groups: [ubuntu-director-manual] # can't run while deploying
-    plan:
-      - aggregate:
-        - {trigger: true,  passed: [deploy-ubuntu-manual], get: bosh-cpi-dev-artifacts, tags: *tags, timeout: *timeouts-long}
-        - {trigger: false, passed: [deploy-ubuntu-manual], get: bosh-cpi-src-in, tags: *tags, timeout: *timeouts-long}
-        - {trigger: false, passed: [deploy-ubuntu-manual], get: stemcell, resource: openstack-ubuntu-stemcell, tags: *tags, timeout: *timeouts-long}
-        - {trigger: false, passed: [deploy-ubuntu-manual], get: director-state-file, resource: ubuntu-manual-director-state-file, tags: *tags, timeout: *timeouts-long}
-        - {trigger: false, passed: [deploy-ubuntu-manual], get: director-manifest-file, resource: ubuntu-manual-director-manifest-file, tags: *tags, timeout: *timeouts-long}
-        - {trigger: false, passed: [deploy-ubuntu-manual], get: version-semver, tags: *tags, timeout: *timeouts-long}
-        - {trigger: false,                                 get: bosh-release, tags: *tags, timeout: *timeouts-long}
-        - {trigger: false,                                 get: bats, tags: *tags, timeout: *timeouts-long}
-        - {trigger: false,                                 get: bosh-init, tags: *tags, timeout: *timeouts-long}
 
       - task: test
         tags: *tags
@@ -268,35 +233,26 @@ jobs:
         params:
           bosh_admin_password:                     {{bosh_admin_password}}
           bosh_director_ip:                        {{bats_manual_ubuntu_director_public_ip}}
-          director_manifest_file:                  "ubuntu-manual-director-manifest.yml"
-          director_state_file:                     "ubuntu-manual-director-manifest-state.json"
-        ensure:
-          put: ubuntu-manual-director-state-file
-          tags: *tags
-          timeout: *timeouts-long
-          params: {from: teardown/ubuntu-manual-director-manifest-state.json}
 
-  - name: deploy-ubuntu-dynamic
+  - name: bats-ubuntu-dynamic
     serial: true
-    serial_groups: [ubuntu-director-dynamic] # shouldn't deploy while bats are running
+    serial_groups: [cleanup-lock-bats-ubuntu-dynamic]
     plan:
       - aggregate:
         - {trigger: true,  passed: [build-candidate],          get: bosh-cpi-dev-artifacts, tags: *tags, timeout: *timeouts-long}
         - {trigger: false, passed: [build-candidate],          get: version-semver, tags: *tags, timeout: *timeouts-long}
         - {trigger: false, passed: [build-candidate, cleanup], get: bosh-cpi-src-in, tags: *tags, timeout: *timeouts-long}
-        - {trigger: false,                                     get: director-state-file, resource: ubuntu-dynamic-director-state-file, tags: *tags, timeout: *timeouts-long}
         - {trigger: false,                                     get: bosh-init, tags: *tags, timeout: *timeouts-long}
         - {trigger: false,                                     get: bosh-release, tags: *tags, timeout: *timeouts-long}
         - {trigger: false,                                     get: stemcell, resource: openstack-ubuntu-stemcell, tags: *tags, timeout: *timeouts-long}
+        - {trigger: false,                                     get: bats, tags: *tags, timeout: *timeouts-long}
 
       - task: deploy
         tags: *tags
         timeout: *timeouts-long
         file: bosh-cpi-src-in/ci/tasks/deploy-dynamic-networking.yml
         params:
-          base_os:                       "ubuntu"
           bosh_admin_password:           {{bosh_admin_password}}
-          network_type_to_test:          "dynamic"
           openstack_flavor:              "m1.small"
           openstack_connection_timeout:  "600"
           openstack_read_timeout:        "180"
@@ -316,31 +272,6 @@ jobs:
           time_server_1:                 {{time_server_1}}
           time_server_2:                 {{time_server_2}}
           private_key_data:              {{bosh_private_key}}
-        ensure:
-          put: ubuntu-dynamic-director-state-file
-          tags: *tags
-          timeout: *timeouts-long
-          params: {from: deployment/ubuntu-dynamic-director-manifest-state.json}
-
-      - put: ubuntu-dynamic-director-manifest-file
-        tags: *tags
-        timeout: *timeouts-long
-        params: {from: deployment/ubuntu-dynamic-director-manifest.yml}
-
-  - name: bats-ubuntu-dynamic
-    serial: true
-    serial_groups: [ubuntu-director-dynamic] # can't run while deploying
-    plan:
-      - aggregate:
-        - {trigger: true,  passed: [deploy-ubuntu-dynamic], get: bosh-cpi-dev-artifacts, tags: *tags, timeout: *timeouts-long}
-        - {trigger: false, passed: [deploy-ubuntu-dynamic], get: bosh-cpi-src-in, tags: *tags, timeout: *timeouts-long}
-        - {trigger: false, passed: [deploy-ubuntu-dynamic], get: director-state-file, resource: ubuntu-dynamic-director-state-file, tags: *tags, timeout: *timeouts-long}
-        - {trigger: false, passed: [deploy-ubuntu-dynamic], get: director-manifest-file, resource: ubuntu-dynamic-director-manifest-file, tags: *tags, timeout: *timeouts-long}
-        - {trigger: false, passed: [deploy-ubuntu-dynamic], get: stemcell, resource: openstack-ubuntu-stemcell, tags: *tags, timeout: *timeouts-long}
-        - {trigger: false, passed: [deploy-ubuntu-dynamic], get: version-semver, tags: *tags, timeout: *timeouts-long}
-        - {trigger: false,                                  get: bosh-release, tags: *tags, timeout: *timeouts-long}
-        - {trigger: false,                                  get: bats, tags: *tags, timeout: *timeouts-long}
-        - {trigger: false,                                  get: bosh-init, tags: *tags, timeout: *timeouts-long}
 
       - task: test
         tags: *tags
@@ -364,35 +295,26 @@ jobs:
         params:
           bosh_admin_password:                     {{bosh_admin_password}}
           bosh_director_ip:                        {{bats_dynamic_ubuntu_director_public_ip}}
-          director_manifest_file:                  "ubuntu-dynamic-director-manifest.yml"
-          director_state_file:                     "ubuntu-dynamic-director-manifest-state.json"
-        ensure:
-          put: ubuntu-dynamic-director-state-file
-          tags: *tags
-          timeout: *timeouts-long
-          params: {from: teardown/ubuntu-dynamic-director-manifest-state.json}
 
-  - name: deploy-centos-manual
+  - name: bats-centos-manual
     serial: true
-    serial_groups: [centos-director-manual] # shouldn't deploy while bats are running
+    serial_groups: [cleanup-lock-bats-centos-manual]
     plan:
       - aggregate:
         - {trigger: true,  passed: [build-candidate],          get: bosh-cpi-dev-artifacts, tags: *tags, timeout: *timeouts-long}
         - {trigger: false, passed: [build-candidate],          get: version-semver, tags: *tags, timeout: *timeouts-long}
         - {trigger: false, passed: [build-candidate, cleanup], get: bosh-cpi-src-in, tags: *tags, timeout: *timeouts-long}
-        - {trigger: false,                                     get: director-state-file, resource: centos-manual-director-state-file, tags: *tags, timeout: *timeouts-long}
         - {trigger: false,                                     get: bosh-init, tags: *tags, timeout: *timeouts-long}
         - {trigger: false,                                     get: bosh-release, tags: *tags, timeout: *timeouts-long}
         - {trigger: false,                                     get: stemcell, resource: openstack-centos-stemcell, tags: *tags, timeout: *timeouts-long}
+        - {trigger: false,                                     get: bats, tags: *tags, timeout: *timeouts-long}
 
       - task: deploy
         tags: *tags
         timeout: *timeouts-long
         file: bosh-cpi-src-in/ci/tasks/deploy-manual-networking.yml
         params:
-          base_os:                       "centos"
           bosh_admin_password:           {{bosh_admin_password}}
-          network_type_to_test:          "manual"
           openstack_flavor:              "m1.small"
           openstack_connection_timeout:  "600"
           openstack_read_timeout:        "180"
@@ -415,31 +337,6 @@ jobs:
           time_server_1:                 {{time_server_1}}
           time_server_2:                 {{time_server_2}}
           private_key_data:              {{bosh_private_key}}
-        ensure:
-          put: centos-manual-director-state-file
-          tags: *tags
-          timeout: *timeouts-long
-          params: {from: deployment/centos-manual-director-manifest-state.json}
-
-      - put: centos-manual-director-manifest-file
-        tags: *tags
-        timeout: *timeouts-long
-        params: {from: deployment/centos-manual-director-manifest.yml}
-
-  - name: bats-centos-manual
-    serial: true
-    serial_groups: [centos-director-manual] # can't run while deploying
-    plan:
-      - aggregate:
-        - {trigger: true,  passed: [deploy-centos-manual], get: bosh-cpi-dev-artifacts, tags: *tags, timeout: *timeouts-long}
-        - {trigger: false, passed: [deploy-centos-manual], get: stemcell, resource: openstack-centos-stemcell, tags: *tags, timeout: *timeouts-long}
-        - {trigger: false, passed: [deploy-centos-manual], get: director-state-file, resource: centos-manual-director-state-file, tags: *tags, timeout: *timeouts-long}
-        - {trigger: false, passed: [deploy-centos-manual], get: director-manifest-file, resource: centos-manual-director-manifest-file, tags: *tags, timeout: *timeouts-long}
-        - {trigger: false, passed: [deploy-centos-manual], get: bosh-cpi-src-in, tags: *tags, timeout: *timeouts-long}
-        - {trigger: false, passed: [deploy-centos-manual], get: version-semver, tags: *tags, timeout: *timeouts-long}
-        - {trigger: false,                                 get: bosh-release, tags: *tags, timeout: *timeouts-long}
-        - {trigger: false,                                 get: bats, tags: *tags, timeout: *timeouts-long}
-        - {trigger: false,                                 get: bosh-init, tags: *tags, timeout: *timeouts-long}
 
       - task: test
         tags: *tags
@@ -476,35 +373,26 @@ jobs:
         params:
           bosh_admin_password:                     {{bosh_admin_password}}
           bosh_director_ip:                        {{bats_manual_centos_director_public_ip}}
-          director_manifest_file:                  "centos-manual-director-manifest.yml"
-          director_state_file:                     "centos-manual-director-manifest-state.json"
-        ensure:
-          put: centos-manual-director-state-file
-          tags: *tags
-          timeout: *timeouts-long
-          params: {from: teardown/centos-manual-director-manifest-state.json}
 
-  - name: deploy-centos-dynamic
+  - name: bats-centos-dynamic
     serial: true
-    serial_groups: [centos-director-dynamic] # shouldn't deploy while bats are running
+    serial_groups: [cleanup-lock-bats-centos-dynamic]
     plan:
       - aggregate:
         - {trigger: true,  passed: [build-candidate],          get: bosh-cpi-dev-artifacts, tags: *tags, timeout: *timeouts-long}
         - {trigger: false, passed: [build-candidate],          get: version-semver, tags: *tags, timeout: *timeouts-long}
         - {trigger: false, passed: [build-candidate, cleanup], get: bosh-cpi-src-in, tags: *tags, timeout: *timeouts-long}
-        - {trigger: false,                                     get: director-state-file, resource: centos-dynamic-director-state-file, tags: *tags, timeout: *timeouts-long}
         - {trigger: false,                                     get: bosh-init, tags: *tags, timeout: *timeouts-long}
         - {trigger: false,                                     get: bosh-release, tags: *tags, timeout: *timeouts-long}
         - {trigger: false,                                     get: stemcell, resource: openstack-centos-stemcell, tags: *tags, timeout: *timeouts-long}
+        - {trigger: false,                                     get: bats, tags: *tags, timeout: *timeouts-long}
 
       - task: deploy
         tags: *tags
         timeout: *timeouts-long
         file: bosh-cpi-src-in/ci/tasks/deploy-dynamic-networking.yml
         params:
-          base_os:                       "centos"
           bosh_admin_password:           {{bosh_admin_password}}
-          network_type_to_test:          "dynamic"
           openstack_flavor:              "m1.small"
           openstack_connection_timeout:  "600"
           openstack_read_timeout:        "180"
@@ -524,31 +412,6 @@ jobs:
           time_server_1:                 {{time_server_1}}
           time_server_2:                 {{time_server_2}}
           private_key_data:              {{bosh_private_key}}
-        ensure:
-          put: centos-dynamic-director-state-file
-          tags: *tags
-          timeout: *timeouts-long
-          params: {from: deployment/centos-dynamic-director-manifest-state.json}
-
-      - put: centos-dynamic-director-manifest-file
-        tags: *tags
-        timeout: *timeouts-long
-        params: {from: deployment/centos-dynamic-director-manifest.yml}
-
-  - name: bats-centos-dynamic
-    serial: true
-    serial_groups: [centos-director-dynamic] # can't run while deploying
-    plan:
-      - aggregate:
-        - {trigger: true,  passed: [deploy-centos-dynamic], get: bosh-cpi-dev-artifacts, tags: *tags, timeout: *timeouts-long}
-        - {trigger: false, passed: [deploy-centos-dynamic], get: stemcell, resource: openstack-centos-stemcell, tags: *tags, timeout: *timeouts-long}
-        - {trigger: false, passed: [deploy-centos-dynamic], get: director-state-file, resource: centos-dynamic-director-state-file, tags: *tags, timeout: *timeouts-long}
-        - {trigger: false, passed: [deploy-centos-dynamic], get: director-manifest-file, resource: centos-dynamic-director-manifest-file, tags: *tags, timeout: *timeouts-long}
-        - {trigger: false, passed: [deploy-centos-dynamic], get: bosh-cpi-src-in, tags: *tags, timeout: *timeouts-long}
-        - {trigger: false, passed: [deploy-centos-dynamic], get: version-semver, tags: *tags, timeout: *timeouts-long}
-        - {trigger: false,                                  get: bosh-release, tags: *tags, timeout: *timeouts-long}
-        - {trigger: false,                                  get: bats, tags: *tags, timeout: *timeouts-long}
-        - {trigger: false,                                  get: bosh-init, tags: *tags, timeout: *timeouts-long}
 
       - task: test
         tags: *tags
@@ -572,19 +435,12 @@ jobs:
         params:
           bosh_admin_password:                     {{bosh_admin_password}}
           bosh_director_ip:                        {{bats_dynamic_centos_director_public_ip}}
-          director_manifest_file:                  "centos-dynamic-director-manifest.yml"
-          director_state_file:                     "centos-dynamic-director-manifest-state.json"
-        ensure:
-          put: centos-dynamic-director-state-file
-          tags: *tags
-          timeout: *timeouts-long
-          params: {from: teardown/centos-dynamic-director-manifest-state.json}
 
   - name: promote-candidate
     serial: true
     plan:
       - aggregate:
-        - {trigger: false,  passed: [lifecycle, bats-ubuntu-manual, bats-centos-manual, bats-ubuntu-dynamic, bats-centos-dynamic], get: bosh-cpi-dev-artifacts, tags: *tags, timeout: *timeouts-long}
+        - {trigger: false, passed: [lifecycle, bats-ubuntu-manual, bats-centos-manual, bats-ubuntu-dynamic, bats-centos-dynamic], get: bosh-cpi-dev-artifacts, tags: *tags, timeout: *timeouts-long}
         - {trigger: false, passed: [lifecycle, bats-ubuntu-manual, bats-centos-manual, bats-ubuntu-dynamic, bats-centos-dynamic], get: bosh-cpi-src-in, tags: *tags, timeout: *timeouts-long}
         - {trigger: false, get: release-version-semver, params: {bump: major}, tags: *tags, timeout: *timeouts-long}
 
@@ -623,78 +479,6 @@ resources:
       region_name: us-east-1
       access_key_id:      {{s3_openstack_cpi_pipeline_access_key}}
       secret_access_key:  {{s3_openstack_cpi_pipeline_secret_key}}
-
-  - name: ubuntu-manual-director-state-file
-    type: s3
-    source:
-      bucket: {{s3_openstack_cpi_state_files_bucket_name}}
-      versioned_file: ubuntu-manual-director-manifest-state.json
-      region_name: us-east-1
-      access_key_id: {{s3_openstack_cpi_state_files_access_key}}
-      secret_access_key: {{s3_openstack_cpi_state_files_secret_key}}
-
-  - name: ubuntu-manual-director-manifest-file
-    type: s3
-    source:
-      bucket: {{s3_openstack_cpi_state_files_bucket_name}}
-      versioned_file: ubuntu-manual-director-manifest.yml
-      region_name: us-east-1
-      access_key_id: {{s3_openstack_cpi_state_files_access_key}}
-      secret_access_key: {{s3_openstack_cpi_state_files_secret_key}}
-
-  - name: centos-manual-director-state-file
-    type: s3
-    source:
-      bucket: {{s3_openstack_cpi_state_files_bucket_name}}
-      versioned_file: centos-manual-director-manifest-state.json
-      region_name: us-east-1
-      access_key_id: {{s3_openstack_cpi_state_files_access_key}}
-      secret_access_key: {{s3_openstack_cpi_state_files_secret_key}}
-
-  - name: centos-manual-director-manifest-file
-    type: s3
-    source:
-      bucket: {{s3_openstack_cpi_state_files_bucket_name}}
-      versioned_file: centos-manual-director-manifest.yml
-      region_name: us-east-1
-      access_key_id: {{s3_openstack_cpi_state_files_access_key}}
-      secret_access_key: {{s3_openstack_cpi_state_files_secret_key}}
-
-  - name: ubuntu-dynamic-director-state-file
-    type: s3
-    source:
-      bucket: {{s3_openstack_cpi_state_files_bucket_name}}
-      versioned_file: ubuntu-dynamic-director-manifest-state.json
-      region_name: us-east-1
-      access_key_id: {{s3_openstack_cpi_state_files_access_key}}
-      secret_access_key: {{s3_openstack_cpi_state_files_secret_key}}
-
-  - name: ubuntu-dynamic-director-manifest-file
-    type: s3
-    source:
-      bucket: {{s3_openstack_cpi_state_files_bucket_name}}
-      versioned_file: ubuntu-dynamic-director-manifest.yml
-      region_name: us-east-1
-      access_key_id: {{s3_openstack_cpi_state_files_access_key}}
-      secret_access_key: {{s3_openstack_cpi_state_files_secret_key}}
-
-  - name: centos-dynamic-director-state-file
-    type: s3
-    source:
-      bucket: {{s3_openstack_cpi_state_files_bucket_name}}
-      versioned_file: centos-dynamic-director-manifest-state.json
-      region_name: us-east-1
-      access_key_id: {{s3_openstack_cpi_state_files_access_key}}
-      secret_access_key: {{s3_openstack_cpi_state_files_secret_key}}
-
-  - name: centos-dynamic-director-manifest-file
-    type: s3
-    source:
-      bucket: {{s3_openstack_cpi_state_files_bucket_name}}
-      versioned_file: centos-dynamic-director-manifest.yml
-      region_name: us-east-1
-      access_key_id: {{s3_openstack_cpi_state_files_access_key}}
-      secret_access_key: {{s3_openstack_cpi_state_files_secret_key}}
 
   - name: bosh-cpi-src-in
     type: git
