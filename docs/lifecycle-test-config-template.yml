@@ -1,0 +1,34 @@
+---
+# Keystone V2 tests
+auth_url_v2: <replace-me>
+region: <replace-me>
+username: <replace-me>
+api_key: <replace-me> # The password
+tenant: <replace-me>
+stemcell_path: <replace-me> # Local file system path to extracted stemcell directory
+default_key_name: 'bosh-lifecycle'
+net_id: <replace-me> # Network UUID
+net_id_no_dhcp_1: <replace-me> # Network UUID
+net_id_no_dhcp_2: <replace-me> # Network UUID
+manual_ip: <replace-me> # An ip from net_id network
+no_dhcp_manual_ip_1: <replace-me> # An ip from net_id_no_dhcp_1 network
+no_dhcp_manual_ip_2: <replace-me> # An ip from net_id_no_dhcp_2 network
+flavor_with_no_root_disk: <replace-me> # A flavor with no root disk
+# Keystone V3 tests
+auth_url_v3: <replace-me>
+username_v3: <replace-me>
+api_key_v3: <replace-me> # The password
+domain: <replace-me>
+project: <replace-me>
+
+# Optional configuration:
+#insecure: true
+#ca_cert: <replace-me>
+#disable_snapshots: true
+#config_drive: <replace-me>
+#ignore_server_az: 'true'
+#instance_type: <replace-me>
+#connect_timeout: <replace-me>
+#read_timeout: <replace-me>
+#write_timeout: <replace-me>
+#volume_type: <replace-me>

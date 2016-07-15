@@ -211,14 +211,13 @@ RSpec.configure do |config|
 end
 
 class LifecycleHelper
-  def self.get_config(key, env_key, default=:none)
+  def self.get_config(key, default=:none)
     env_file = ENV['LIFECYCLE_ENV_FILE']
     env_name = ENV['LIFECYCLE_ENV_NAME']
+    env_key = "BOSH_OPENSTACK_#{key.to_s.upcase}"
 
-    if env_file && env_name
-      @configs ||= YAML.load_file(env_file)
-      config = @configs[env_name]
-      raise "no such env #{env_name} in #{env_file} (available: #{@configs.keys.sort.join(", ")})" unless config
+    if env_file
+      config = load_config_from_file(env_file, env_name)
 
       value = config[key.to_s]
       present = config.has_key?(key.to_s)
@@ -232,6 +231,20 @@ class LifecycleHelper
     end
     present ? value : default
   end
+
+  def self.load_config_from_file(env_file, env_name)
+    @configs ||= YAML.load_file(env_file)
+    config =
+        if env_name
+          unless @configs[env_name]
+            raise "no such env #{env_name} in #{env_file} (available: #{@configs.keys.sort.join(", ")})"
+          end
+          @configs[env_name]
+        else
+          @configs
+        end
+    config
+  end
 end
 
 def write_ssl_ca_file(ca_cert, logger)
@@ -239,5 +252,28 @@ def write_ssl_ca_file(ca_cert, logger)
     logger.info("cacert.pem file: #{path}")
     File.write(path, ca_cert)
   end
+end
+
+def connection_options(additional_options = {})
+  options = {
+      'connect_timeout' => LifecycleHelper.get_config(:connect_timeout, '120').to_i,
+      'read_timeout' => LifecycleHelper.get_config(:read_timeout, '120').to_i,
+      'write_timeout' => LifecycleHelper.get_config(:write_timeout, '120').to_i
+  }
+  additional_options.each { |key, value|
+    options[key] = value
+  }
+  options
+end
+
+def additional_connection_options(logger)
+  additional_connection_options = {}
+  ca_cert = LifecycleHelper.get_config(:ca_cert, nil)
+  if ca_cert
+    additional_connection_options['ssl_ca_file'] = write_ssl_ca_file(ca_cert, logger)
+  elsif LifecycleHelper.get_config(:insecure, false)
+    additional_connection_options['ssl_verify_peer'] = false
+  end
+  additional_connection_options
 end
 

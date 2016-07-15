@@ -9,32 +9,26 @@ describe Bosh::OpenStackCloud::Cloud do
   before(:all) do
     @domain                          = LifecycleHelper.get_config(:domain, 'BOSH_OPENSTACK_DOMAIN')
     @logger                          = Logger.new(STDERR)
-    @auth_url                        = LifecycleHelper.get_config(:auth_url, 'BOSH_OPENSTACK_AUTH_URL_V3')
-    @username                        = LifecycleHelper.get_config(:username, 'BOSH_OPENSTACK_USERNAME')
-    @api_key                         = LifecycleHelper.get_config(:api_key, 'BOSH_OPENSTACK_API_KEY')
-    @project                         = LifecycleHelper.get_config(:project, 'BOSH_OPENSTACK_PROJECT')
-    @stemcell_path                   = LifecycleHelper.get_config(:stemcell_path, 'BOSH_OPENSTACK_STEMCELL_PATH')
-    @net_id                          = LifecycleHelper.get_config(:net_id, 'BOSH_OPENSTACK_NET_ID')
-    @net_id_no_dhcp_1                = LifecycleHelper.get_config(:net_id, 'BOSH_OPENSTACK_NET_ID_NO_DHCP_1')
-    @net_id_no_dhcp_2                = LifecycleHelper.get_config(:net_id, 'BOSH_OPENSTACK_NET_ID_NO_DHCP_2')
-    @volume_type                     = LifecycleHelper.get_config(:volume_type, 'BOSH_OPENSTACK_VOLUME_TYPE', nil)
-    @manual_ip                       = LifecycleHelper.get_config(:manual_ip, 'BOSH_OPENSTACK_MANUAL_IP')
-    @no_dhcp_manual_ip_1             = LifecycleHelper.get_config(:manual_ip, 'BOSH_OPENSTACK_NO_DHCP_MANUAL_IP_1')
-    @no_dhcp_manual_ip_2             = LifecycleHelper.get_config(:manual_ip, 'BOSH_OPENSTACK_NO_DHCP_MANUAL_IP_2')
-    @disable_snapshots               = LifecycleHelper.get_config(:disable_snapshots, 'BOSH_OPENSTACK_DISABLE_SNAPSHOTS', false)
-    @default_key_name                = LifecycleHelper.get_config(:default_key_name, 'BOSH_OPENSTACK_DEFAULT_KEY_NAME', 'jenkins')
-    @config_drive                    = LifecycleHelper.get_config(:config_drive, 'BOSH_OPENSTACK_CONFIG_DRIVE', 'cdrom')
-    @ignore_server_az                = LifecycleHelper.get_config(:ignore_server_az, 'BOSH_OPENSTACK_IGNORE_SERVER_AZ', 'false')
-    @instance_type                   = LifecycleHelper.get_config(:instance_type, 'BOSH_OPENSTACK_INSTANCE_TYPE', 'm1.small')
-    @instance_type_with_no_root_disk = LifecycleHelper.get_config(:instance_type_with_no_root_disk, 'BOSH_OPENSTACK_FLAVOR_WITH_NO_ROOT_DISK')
-    @connect_timeout                 = LifecycleHelper.get_config(:instance_type, 'BOSH_OPENSTACK_CONNECT_TIMEOUT', '120')
-    @read_timeout                    = LifecycleHelper.get_config(:instance_type, 'BOSH_OPENSTACK_READ_TIMEOUT', '120')
-    @write_timeout                   = LifecycleHelper.get_config(:instance_type, 'BOSH_OPENSTACK_WRITE_TIMEOUT', '120')
-    ca_cert                          = LifecycleHelper.get_config(:ca_cert, 'BOSH_OPENSTACK_CA_CERT', nil)
-    @ca_cert_path                    = write_ssl_ca_file(ca_cert, @logger) if ca_cert
-
+    @auth_url                        = LifecycleHelper.get_config(:auth_url_v2)
+    @username                        = LifecycleHelper.get_config(:username)
+    @api_key                         = LifecycleHelper.get_config(:api_key)
+    @project                         = LifecycleHelper.get_config(:project)
+    @stemcell_path                   = LifecycleHelper.get_config(:stemcell_path)
+    @net_id                          = LifecycleHelper.get_config(:net_id)
+    @net_id_no_dhcp_1                = LifecycleHelper.get_config(:net_id_no_dhcp_1)
+    @net_id_no_dhcp_2                = LifecycleHelper.get_config(:net_id_no_dhcp_2)
+    @volume_type                     = LifecycleHelper.get_config(:volume_type, nil)
+    @manual_ip                       = LifecycleHelper.get_config(:manual_ip)
+    @no_dhcp_manual_ip_1             = LifecycleHelper.get_config(:no_dhcp_manual_ip_1)
+    @no_dhcp_manual_ip_2             = LifecycleHelper.get_config(:no_dhcp_manual_ip_2)
+    @disable_snapshots               = LifecycleHelper.get_config(:disable_snapshots, false)
+    @default_key_name                = LifecycleHelper.get_config(:default_key_name)
+    @config_drive                    = LifecycleHelper.get_config(:config_drive, 'cdrom')
+    @ignore_server_az                = LifecycleHelper.get_config(:ignore_server_az, 'false')
+    @instance_type                   = LifecycleHelper.get_config(:instance_type, 'm1.small')
+    @instance_type_with_no_root_disk = LifecycleHelper.get_config(:flavor_with_no_root_disk)
     # some environments may not have this set, and it isn't strictly necessary so don't raise if it isn't set
-    @region                          = LifecycleHelper.get_config(:region, 'BOSH_OPENSTACK_REGION', nil)
+    @region                          = LifecycleHelper.get_config(:region, nil)
     Bosh::Clouds::Config.configure(OpenStruct.new(:logger => @logger, :cpi_task_log => nil))
     @cpi_for_stemcell                = create_cpi(false, nil, false)
     @stemcell_id                     = upload_stemcell
@@ -61,33 +55,28 @@ describe Bosh::OpenStackCloud::Cloud do
 
   def create_cpi(boot_from_value, config_drive, human_readable_vm_names)
     described_class.new(
-        'openstack' => {
-            'auth_url' => @auth_url,
-            'username' => @username,
-            'api_key' => @api_key,
-            'project' => @project,
-            'domain' => @domain,
-            'region' => @region,
-            'endpoint_type' => 'publicURL',
-            'default_key_name' => @default_key_name,
-            'default_security_groups' => %w(default),
-            'wait_resource_poll_interval' => 5,
-            'boot_from_volume' => boot_from_value,
-            'config_drive' => config_drive,
-            'ignore_server_availability_zone' => str_to_bool(@ignore_server_az),
-            'human_readable_vm_names' => human_readable_vm_names,
-            'connection_options' => {
-                'connect_timeout' => @connect_timeout.to_i,
-                'read_timeout' => @read_timeout.to_i,
-                'write_timeout' => @write_timeout.to_i,
-                'ssl_ca_file' => @ca_cert_path
-            }
-        },
-        'registry' => {
-            'endpoint' => 'fake',
-            'user' => 'fake',
-            'password' => 'fake'
-        }
+      'openstack' => {
+        'auth_url' => @auth_url,
+        'username' => @username,
+        'api_key' => @api_key,
+        'project' => @project,
+        'domain' => @domain,
+        'region' => @region,
+        'endpoint_type' => 'publicURL',
+        'default_key_name' => @default_key_name,
+        'default_security_groups' => %w(default),
+        'wait_resource_poll_interval' => 5,
+        'boot_from_volume' => boot_from_value,
+        'config_drive' => config_drive,
+        'ignore_server_availability_zone' => str_to_bool(@ignore_server_az),
+        'human_readable_vm_names' => human_readable_vm_names,
+        'connection_options' => connection_options(additional_connection_options(@logger))
+      },
+      'registry' => {
+        'endpoint' => 'fake',
+        'user' => 'fake',
+        'password' => 'fake'
+      }
     )
   end
 
