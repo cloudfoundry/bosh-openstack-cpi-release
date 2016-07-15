@@ -9,7 +9,7 @@ describe Bosh::OpenStackCloud::Cloud do
   before(:all) do
     @domain                          = LifecycleHelper.get_config(:domain, 'BOSH_OPENSTACK_DOMAIN')
     @logger                          = Logger.new(STDERR)
-    @auth_url                        = LifecycleHelper.get_config(:auth_url_v2)
+    @auth_url                        = LifecycleHelper.get_config(:auth_url_v3)
     @username                        = LifecycleHelper.get_config(:username)
     @api_key                         = LifecycleHelper.get_config(:api_key)
     @project                         = LifecycleHelper.get_config(:project)
