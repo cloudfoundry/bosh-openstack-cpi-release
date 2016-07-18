@@ -3,7 +3,7 @@
 * Documentation: [bosh.io/docs](https://bosh.io/docs)
 * IRC: [`#bosh` on freenode](https://webchat.freenode.net/?channels=bosh)
 * Mailing list: [cf-bosh](https://lists.cloudfoundry.org/pipermail/cf-bosh)
-* CI: <https://main.bosh-ci.cf-app.com/pipelines/bosh-openstack-cpi>
+* CI: <https://bosh-cpi.ci.cf-app.com/pipelines/bosh-openstack-cpi>
 * Roadmap: [Pivotal Tracker](https://www.pivotaltracker.com/n/projects/1456570)
 
 This is a BOSH release for the OpenStack CPI.
