@@ -74,8 +74,9 @@ jobs:
 
     plan:
       - aggregate:
-        - {trigger: true, get: bosh-cpi-src-in, tags: *tags, timeout: *timeouts-long}
-        - {trigger: true,  get: pipeline-time-trigger, tags: *tags, timeout: *timeouts-long}
+        - {trigger: true,  passed: [build-candidate], get: bosh-cpi-src-in, tags: *tags, timeout: *timeouts-long}
+        - {trigger: true,  passed: [build-candidate], get: bosh-cpi-dev-artifacts, tags: *tags, timeout: *timeouts-long}
+        - {trigger: false, passed: [build-candidate], get: version-semver, tags: *tags, timeout: *timeouts-long}
 
       - task: cleanup-lifecycle
         tags: *tags
@@ -106,9 +107,9 @@ jobs:
     serial_groups: [cleanup-lock-lifecycle]
     plan:
       - aggregate:
-        - {trigger: true,  passed: [build-candidate],          get: bosh-cpi-dev-artifacts, tags: *tags, timeout: *timeouts-long} # used for job chaining only not for tasks
-        - {trigger: false, passed: [build-candidate, cleanup], get: bosh-cpi-src-in, tags: *tags, timeout: *timeouts-long}
-        - {trigger: false,                                     get: openstack-lifecycle-stemcell, tags: *tags, timeout: *timeouts-long}
+        - {trigger: true,  passed: [cleanup], get: bosh-cpi-dev-artifacts, tags: *tags, timeout: *timeouts-long} # used for job chaining only not for tasks
+        - {trigger: false, passed: [cleanup], get: bosh-cpi-src-in, tags: *tags, timeout: *timeouts-long}
+        - {trigger: false,                    get: openstack-lifecycle-stemcell, tags: *tags, timeout: *timeouts-long}
 
       - task: test
         tags: *tags
@@ -167,13 +168,13 @@ jobs:
     serial_groups: [cleanup-lock-bats-ubuntu-manual]
     plan:
       - aggregate:
-        - {trigger: true,  passed: [build-candidate],          get: bosh-cpi-dev-artifacts, tags: *tags, timeout: *timeouts-long}
-        - {trigger: false, passed: [build-candidate],          get: version-semver, tags: *tags, timeout: *timeouts-long}
-        - {trigger: false, passed: [build-candidate, cleanup], get: bosh-cpi-src-in, tags: *tags, timeout: *timeouts-long}
-        - {trigger: false,                                     get: bosh-init, tags: *tags, timeout: *timeouts-long}
-        - {trigger: false,                                     get: bosh-release, tags: *tags, timeout: *timeouts-long}
-        - {trigger: false,                                     get: stemcell, resource: openstack-ubuntu-stemcell, tags: *tags, timeout: *timeouts-long}
-        - {trigger: false,                                     get: bats, tags: *tags, timeout: *timeouts-long}
+        - {trigger: true,  passed: [cleanup], get: bosh-cpi-dev-artifacts, tags: *tags, timeout: *timeouts-long}
+        - {trigger: false, passed: [cleanup], get: version-semver, tags: *tags, timeout: *timeouts-long}
+        - {trigger: false, passed: [cleanup], get: bosh-cpi-src-in, tags: *tags, timeout: *timeouts-long}
+        - {trigger: false,                    get: bosh-init, tags: *tags, timeout: *timeouts-long}
+        - {trigger: false,                    get: bosh-release, tags: *tags, timeout: *timeouts-long}
+        - {trigger: false,                    get: stemcell, resource: openstack-ubuntu-stemcell, tags: *tags, timeout: *timeouts-long}
+        - {trigger: false,                    get: bats, tags: *tags, timeout: *timeouts-long}
 
       - task: deploy
         tags: *tags
@@ -246,13 +247,13 @@ jobs:
     serial_groups: [cleanup-lock-bats-ubuntu-dynamic]
     plan:
       - aggregate:
-        - {trigger: true,  passed: [build-candidate],          get: bosh-cpi-dev-artifacts, tags: *tags, timeout: *timeouts-long}
-        - {trigger: false, passed: [build-candidate],          get: version-semver, tags: *tags, timeout: *timeouts-long}
-        - {trigger: false, passed: [build-candidate, cleanup], get: bosh-cpi-src-in, tags: *tags, timeout: *timeouts-long}
-        - {trigger: false,                                     get: bosh-init, tags: *tags, timeout: *timeouts-long}
-        - {trigger: false,                                     get: bosh-release, tags: *tags, timeout: *timeouts-long}
-        - {trigger: false,                                     get: stemcell, resource: openstack-ubuntu-stemcell, tags: *tags, timeout: *timeouts-long}
-        - {trigger: false,                                     get: bats, tags: *tags, timeout: *timeouts-long}
+        - {trigger: true,  passed: [cleanup], get: bosh-cpi-dev-artifacts, tags: *tags, timeout: *timeouts-long}
+        - {trigger: false, passed: [cleanup], get: version-semver, tags: *tags, timeout: *timeouts-long}
+        - {trigger: false, passed: [cleanup], get: bosh-cpi-src-in, tags: *tags, timeout: *timeouts-long}
+        - {trigger: false,                    get: bosh-init, tags: *tags, timeout: *timeouts-long}
+        - {trigger: false,                    get: bosh-release, tags: *tags, timeout: *timeouts-long}
+        - {trigger: false,                    get: stemcell, resource: openstack-ubuntu-stemcell, tags: *tags, timeout: *timeouts-long}
+        - {trigger: false,                    get: bats, tags: *tags, timeout: *timeouts-long}
 
       - task: deploy
         tags: *tags
@@ -309,13 +310,13 @@ jobs:
     serial_groups: [cleanup-lock-bats-centos-manual]
     plan:
       - aggregate:
-        - {trigger: true,  passed: [build-candidate],          get: bosh-cpi-dev-artifacts, tags: *tags, timeout: *timeouts-long}
-        - {trigger: false, passed: [build-candidate],          get: version-semver, tags: *tags, timeout: *timeouts-long}
-        - {trigger: false, passed: [build-candidate, cleanup], get: bosh-cpi-src-in, tags: *tags, timeout: *timeouts-long}
-        - {trigger: false,                                     get: bosh-init, tags: *tags, timeout: *timeouts-long}
-        - {trigger: false,                                     get: bosh-release, tags: *tags, timeout: *timeouts-long}
-        - {trigger: false,                                     get: stemcell, resource: openstack-centos-stemcell, tags: *tags, timeout: *timeouts-long}
-        - {trigger: false,                                     get: bats, tags: *tags, timeout: *timeouts-long}
+        - {trigger: true,  passed: [cleanup], get: bosh-cpi-dev-artifacts, tags: *tags, timeout: *timeouts-long}
+        - {trigger: false, passed: [cleanup], get: version-semver, tags: *tags, timeout: *timeouts-long}
+        - {trigger: false, passed: [cleanup], get: bosh-cpi-src-in, tags: *tags, timeout: *timeouts-long}
+        - {trigger: false,                    get: bosh-init, tags: *tags, timeout: *timeouts-long}
+        - {trigger: false,                    get: bosh-release, tags: *tags, timeout: *timeouts-long}
+        - {trigger: false,                    get: stemcell, resource: openstack-centos-stemcell, tags: *tags, timeout: *timeouts-long}
+        - {trigger: false,                    get: bats, tags: *tags, timeout: *timeouts-long}
 
       - task: deploy
         tags: *tags
@@ -388,13 +389,13 @@ jobs:
     serial_groups: [cleanup-lock-bats-centos-dynamic]
     plan:
       - aggregate:
-        - {trigger: true,  passed: [build-candidate],          get: bosh-cpi-dev-artifacts, tags: *tags, timeout: *timeouts-long}
-        - {trigger: false, passed: [build-candidate],          get: version-semver, tags: *tags, timeout: *timeouts-long}
-        - {trigger: false, passed: [build-candidate, cleanup], get: bosh-cpi-src-in, tags: *tags, timeout: *timeouts-long}
-        - {trigger: false,                                     get: bosh-init, tags: *tags, timeout: *timeouts-long}
-        - {trigger: false,                                     get: bosh-release, tags: *tags, timeout: *timeouts-long}
-        - {trigger: false,                                     get: stemcell, resource: openstack-centos-stemcell, tags: *tags, timeout: *timeouts-long}
-        - {trigger: false,                                     get: bats, tags: *tags, timeout: *timeouts-long}
+        - {trigger: true,  passed: [cleanup], get: bosh-cpi-dev-artifacts, tags: *tags, timeout: *timeouts-long}
+        - {trigger: false, passed: [cleanup], get: version-semver, tags: *tags, timeout: *timeouts-long}
+        - {trigger: false, passed: [cleanup], get: bosh-cpi-src-in, tags: *tags, timeout: *timeouts-long}
+        - {trigger: false,                    get: bosh-init, tags: *tags, timeout: *timeouts-long}
+        - {trigger: false,                    get: bosh-release, tags: *tags, timeout: *timeouts-long}
+        - {trigger: false,                    get: stemcell, resource: openstack-centos-stemcell, tags: *tags, timeout: *timeouts-long}
+        - {trigger: false,                    get: bats, tags: *tags, timeout: *timeouts-long}
 
       - task: deploy
         tags: *tags
