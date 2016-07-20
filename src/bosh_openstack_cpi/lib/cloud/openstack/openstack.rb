@@ -51,7 +51,7 @@ module Bosh::OpenStackCloud
         begin
           Bosh::Common.retryable(@connect_retry_options) do |tries, error|
             @logger.error("Failed #{tries} times, last failure due to: #{error.inspect}") unless error.nil?
-            @glance = Fog::Image::OpenStack::V1.new(params)
+            @glance = Fog::Image::OpenStack::V1.new(params_without_provider)
           end
         rescue Excon::Errors::SocketError => e
           cloud_error(socket_error_msg + "#{e.message}")
@@ -62,17 +62,17 @@ module Bosh::OpenStackCloud
       @glance
     end
 
-      ##
-      # Creates a client for the OpenStack volume service, or return
-      # the existing connectuion
-      #
-      #
+    ##
+    # Creates a client for the OpenStack volume service, or return
+    # the existing connection
+    #
+    #
     def volume
       unless @volume
         begin
           Bosh::Common.retryable(@connect_retry_options) do |tries, error|
             @logger.error("Failed #{tries} times, last failure due to: #{error.inspect}") unless error.nil?
-            @volume ||= Fog::Volume::OpenStack::V1.new(params)
+            @volume ||= Fog::Volume::OpenStack::V1.new(params_without_provider)
           end
         rescue Excon::Errors::SocketError => e
           cloud_error(socket_error_msg + "#{e.message}")
@@ -121,6 +121,10 @@ module Bosh::OpenStackCloud
           :openstack_endpoint_type => options['endpoint_type'],
           :connection_options => options['connection_options'].merge(@extra_connection_options)
       }
+    end
+
+    def params_without_provider
+      params.reject{ |key, _| key == :provider }
     end
 
     def socket_error_msg
