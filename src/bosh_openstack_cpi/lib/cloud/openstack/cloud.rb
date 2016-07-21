@@ -104,33 +104,50 @@ module Bosh::OpenStackCloud
         begin
           Dir.mktmpdir do |tmp_dir|
             @logger.info('Creating new image...')
+
+            is_glance_v1 = @openstack.image.class.to_s.include?('Fog::Image::OpenStack::V1')
+
             image_params = {
-              :name => "BOSH-#{generate_unique_name}",
+              :name => "#{cloud_properties['name']}/#{cloud_properties['version']}",
               :disk_format => cloud_properties['disk_format'],
               :container_format => cloud_properties['container_format'],
-              :is_public => @stemcell_public_visibility.nil? ? false : @stemcell_public_visibility,
             }
 
-            image_properties = normalize_image_properties(cloud_properties)
-            image_params[:properties] = image_properties unless image_properties.empty?
-
-            # If image_location is set in cloud properties, then pass the copy-from parm. Then Glance will fetch it
-            # from the remote location on a background job and store it in its repository.
-            # Otherwise, unpack image to temp directory and upload to Glance the root image.
-            if cloud_properties['image_location']
-              @logger.info("Using remote image from `#{cloud_properties['image_location']}'...")
-              image_params[:copy_from] = cloud_properties['image_location']
+            is_public = !@stemcell_public_visibility.nil? && @stemcell_public_visibility.to_s != 'false'
+            if is_glance_v1
+              image_params[:is_public] = is_public.to_s
             else
-              @logger.info("Extracting stemcell file to `#{tmp_dir}'...")
-              unpack_image(tmp_dir, image_path)
-              image_params[:location] = File.join(tmp_dir, 'root.img')
+              image_params[:visibility] = is_public ? 'public' : 'private'
             end
 
-            # Upload image using Glance service
+            image_properties = normalize_image_properties(cloud_properties)
+
+            if is_glance_v1
+              image_params[:properties] = image_properties unless image_properties.empty?
+            else
+              image_params.merge!(image_properties)
+            end
+
+            @logger.info("Extracting stemcell file to `#{tmp_dir}'...")
+            unpack_image(tmp_dir, image_path)
+            image_location = File.join(tmp_dir, 'root.img')
+
+            # v1 performs file upload as part of initial create request
+            if is_glance_v1
+              image_params[:location] = image_location
+            end
+
             @logger.debug("Using image parms: `#{image_params.inspect}'")
             image = with_openstack { @openstack.image.images.create(image_params) }
 
-            @logger.info("Creating new image `#{image.id}'...")
+            # v2 performs the file upload as a subsequent request
+            unless is_glance_v1
+              wait_resource(image, :queued)
+              @logger.info("Performing file upload for image: '#{image.id}'...")
+              image.upload_data(File.open(image_location, 'rb'))
+            end
+
+            @logger.info("Waiting for image '#{image.id}' to have status 'active'...")
             wait_resource(image, :active)
 
             image.id.to_s
@@ -149,11 +166,11 @@ module Bosh::OpenStackCloud
     # @return [Hash] normalized properties
     def normalize_image_properties(properties)
       image_properties = {}
-      image_options = ['name', 'version', 'os_type', 'os_distro', 'architecture', 'auto_disk_config',
+      image_options = ['version', 'os_type', 'os_distro', 'architecture', 'auto_disk_config',
                        'hw_vif_model', 'hypervisor_type', 'vmware_adaptertype', 'vmware_disktype',
                        'vmware_linked_clone', 'vmware_ostype']
       image_options.reject { |image_option| properties[property_option_for_image_option(image_option)].nil? }.each do |image_option|
-        image_properties[image_option.to_sym] = properties[property_option_for_image_option(image_option)]
+        image_properties[image_option.to_sym] = properties[property_option_for_image_option(image_option)].to_s
       end
       image_properties
     end
@@ -436,9 +453,14 @@ module Bosh::OpenStackCloud
         raise ArgumentError, 'Disk size needs to be an integer' unless size.kind_of?(Integer)
         cloud_error('Minimum disk size is 1 GiB') if (size < 1024)
 
+        unique_name = generate_unique_name
         volume_params = {
-          :display_name => "volume-#{generate_unique_name}",
+          # cinder v1 requires display_ prefix
+          :display_name => "volume-#{unique_name}",
           :display_description => '',
+          # cinder v2 does not require prefix
+          :name => "volume-#{unique_name}",
+          :description => '',
           :size => (size / 1024.0).ceil
         }
 

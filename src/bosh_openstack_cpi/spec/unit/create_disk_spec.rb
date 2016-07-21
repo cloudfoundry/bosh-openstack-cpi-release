@@ -6,7 +6,9 @@ describe Bosh::OpenStackCloud::Cloud do
       unique_name = SecureRandom.uuid
       disk_params = {
         :display_name => "volume-#{unique_name}",
-        :display_description => "",
+        :display_description => '',
+        :name => "volume-#{unique_name}",
+        :description => '',
         :size => 2
       }
       volume = double("volume", :id => "v-foobar")
@@ -19,7 +21,7 @@ describe Bosh::OpenStackCloud::Cloud do
       allow(cloud).to receive(:generate_unique_name).and_return(unique_name)
       allow(cloud).to receive(:wait_resource).with(volume, :available)
 
-      expect(Fog::Volume::OpenStack::V1).to receive(:new)
+      expect(Fog::Volume::OpenStack::V2).to receive(:new)
       expect(cloud.create_disk(2048, {})).to eq("v-foobar")
     end
   end
@@ -29,6 +31,8 @@ describe Bosh::OpenStackCloud::Cloud do
     disk_params = {
       :display_name => "volume-#{unique_name}",
       :display_description => "",
+      :name => "volume-#{unique_name}",
+      :description => "",
       :size => 2
     }
     volume = double("volume", :id => "v-foobar")
@@ -49,6 +53,8 @@ describe Bosh::OpenStackCloud::Cloud do
     disk_params = {
       :display_name => "volume-#{unique_name}",
       :display_description => "",
+      :name => "volume-#{unique_name}",
+      :description => "",
       :size => 2,
       :volume_type => "foo"
     }
@@ -70,6 +76,8 @@ describe Bosh::OpenStackCloud::Cloud do
     disk_params = {
       :display_name => "volume-#{unique_name}",
       :display_description => "",
+      :name => "volume-#{unique_name}",
+      :description => "",
       :size => 3
     }
     volume = double("volume", :id => "v-foobar")
@@ -96,6 +104,8 @@ describe Bosh::OpenStackCloud::Cloud do
     disk_params = {
       :display_name => "volume-#{unique_name}",
       :display_description => "",
+      :name => "volume-#{unique_name}",
+      :description => "",
       :size => 1,
       :availability_zone => "foobar-land"
     }
@@ -121,6 +131,8 @@ describe Bosh::OpenStackCloud::Cloud do
     disk_params = {
         :display_name => "volume-#{unique_name}",
         :display_description => "",
+        :name => "volume-#{unique_name}",
+        :description => "",
         :size => 1
     }
     server = double("server", :id => "i-test",

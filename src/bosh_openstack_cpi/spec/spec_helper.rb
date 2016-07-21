@@ -3,6 +3,7 @@ $LOAD_PATH.unshift File.expand_path('../../lib', __FILE__)
 require 'tmpdir'
 require 'zlib'
 require 'archive/tar/minitar'
+require 'webmock'
 include Archive::Tar
 
 require 'cloud/openstack'
@@ -80,12 +81,12 @@ def mock_cloud(options = nil)
   key_pairs = double('key_pairs')
   security_groups = [double('default_sec_group', id: 'default_sec_group_id', name: 'default')]
 
-  glance = double(Fog::Image::OpenStack::V1)
-  allow(Fog::Image::OpenStack::V1).to receive(:new).and_return(glance)
+  glance = double(Fog::Image::OpenStack::V2)
+  allow(Fog::Image::OpenStack::V2).to receive(:new).and_return(glance)
 
-  volume = double(Fog::Volume::OpenStack::V1)
+  volume = double(Fog::Volume::OpenStack::V2)
   allow(volume).to receive(:volumes).and_return(volumes)
-  allow(Fog::Volume::OpenStack::V1).to receive(:new).and_return(volume)
+  allow(Fog::Volume::OpenStack::V2).to receive(:new).and_return(volume)
 
   openstack = double(Fog::Compute)
 
@@ -105,23 +106,28 @@ def mock_cloud(options = nil)
   Bosh::OpenStackCloud::Cloud.new(options || mock_cloud_options['properties'])
 end
 
-def mock_glance(options = nil)
-  images = double('images')
+def mock_glance_v1(options = nil)
+  cloud = mock_cloud(options)
 
-  openstack = double(Fog::Compute)
-  allow(Fog::Compute).to receive(:new).and_return(openstack)
-
-  volume = double(Fog::Volume::OpenStack::V1)
-  allow(Fog::Volume::OpenStack::V1).to receive(:new).and_return(volume)
-
-  glance = double(Fog::Image::OpenStack::V1)
-  allow(glance).to receive(:images).and_return(images)
-
-  allow(Fog::Image::OpenStack::V1).to receive(:new).and_return(glance)
+  glance = double(Fog::Image::OpenStack::V1, images: double('images'))
+  allow(cloud.instance_variable_get('@openstack')).to receive(:image).and_return(glance)
+  allow(glance).to receive(:class).and_return(Fog::Image::OpenStack::V1::Mock)
 
   yield glance if block_given?
 
-  Bosh::OpenStackCloud::Cloud.new(options || mock_cloud_options['properties'])
+  cloud
+end
+
+def mock_glance_v2(options = nil)
+  cloud = mock_cloud(options)
+
+  glance = double(Fog::Image::OpenStack::V2, images: double('images'))
+  allow(cloud.instance_variable_get('@openstack')).to receive(:image).and_return(glance)
+  allow(glance).to receive(:class).and_return(Fog::Image::OpenStack::V2::Mock)
+
+  yield glance if block_given?
+
+  cloud
 end
 
 def dynamic_network_spec
@@ -211,6 +217,8 @@ RSpec.configure do |config|
 end
 
 class LifecycleHelper
+  extend WebMock::API
+
   def self.get_config(key, default=:none)
     env_file = ENV['LIFECYCLE_ENV_FILE']
     env_name = ENV['LIFECYCLE_ENV_NAME']
@@ -244,6 +252,49 @@ class LifecycleHelper
           @configs
         end
     config
+  end
+
+  # Some services (e.g. Volume) retrieve the supported version as part of the initial token request,
+  # while others (e.g. Image) retrieve the supported version from <HOST>:<SERVICE_PORT>/
+  def self.override_token_v2_service_catalog(auth_url:, tenant:, username:, api_key:)
+    # make request to retrieve actual service catalog,
+    # the block modifies versions in response,
+    # then stub any subsequent requests to return modified response
+    token_response_uri = URI.parse(auth_url)
+    token_response_uri.port = 5000
+    token_response_uri.path = '/v2.0/tokens'
+
+    http = Net::HTTP.new(token_response_uri.host, token_response_uri.port)
+    http.use_ssl = true
+    token_request = Net::HTTP::Post.new(token_response_uri.request_uri, {'Content-Type' => 'application/json'})
+    token_request.body = {
+      'auth' => {
+        'tenantName' => tenant,
+        'passwordCredentials' => {
+          'username' => username,
+          'password' => api_key,
+        },
+      }
+    }.to_json
+
+    token_response = http.request(token_request)
+    filtered_token_resp = JSON.parse(token_response.body)
+    filtered_token_resp['access']['serviceCatalog'] = yield filtered_token_resp['access']['serviceCatalog']
+
+    stub_request(:post, token_response_uri).to_return(body: filtered_token_resp.to_json, status: 200)
+  end
+
+  def self.override_root_service_versions(auth_url:, port:)
+    supported_versions_uri = URI.parse(auth_url)
+    supported_versions_uri.port = port
+    supported_versions_uri.path = ''
+
+    supported_versions_resp = Net::HTTP.get(supported_versions_uri)
+    supported_versions = JSON.parse(supported_versions_resp)
+    supported_versions['versions'] =  yield supported_versions['versions']
+
+    stub_request(:get, supported_versions_uri)
+      .to_return(body: supported_versions.to_json, status: 200)
   end
 end
 
