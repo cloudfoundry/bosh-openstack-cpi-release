@@ -43,7 +43,7 @@ properties:
     description: Set public visibility for stemcells
     default: false
   openstack.connection_options:
-    description: Hash containing optional connection parameters to the OpenStack API (optional)
+    description: Hash containing additional connection parameters (optional)
     examples:
     - description: Provide all required custom CA certificates
       value:
@@ -53,6 +53,8 @@ properties:
           -----END CERTIFICATE-----
     - description: Disable SSL verification for DevStack
       value: {ssl_verify_peer: false}
+    - description: Any other excon [connection option](https://github.com/excon/excon#options), e.g. setting the read timeout
+      value: {read_timeout: 360}
   openstack.default_key_name:
     description: Default OpenStack keypair to use when spinning up new VMs (required)
     example: bosh
