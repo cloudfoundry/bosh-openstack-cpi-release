@@ -136,7 +136,7 @@ module Bosh::OpenStackCloud
         # set of 'loop breaker' states but that doesn't seem very helpful
         # at the moment
         if state == :error || state == :failed || state == :killed
-          cloud_error("#{desc} state is #{state}, expected #{target_state.join(", ")}")
+          cloud_error("#{desc} state is #{state}, expected #{target_state.join(", ")}#{openstack_fault_message(resource)}")
         end
 
         break if target_state.include?(state)
@@ -152,6 +152,15 @@ module Bosh::OpenStackCloud
     end
 
     private
+
+    def openstack_fault_message(resource)
+      openstack_message = ''
+      if (fault = resource.fault)
+        openstack_message = '\n' + fault['message'] if fault['message']
+        openstack_message += fault['details'] if fault['details']
+      end
+      openstack_message
+    end
 
     def determine_message(body)
       hash_with_msg_property = proc { |k, v| (v.is_a? Hash) && v['message'] }
