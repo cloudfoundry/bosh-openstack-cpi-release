@@ -155,7 +155,7 @@ module Bosh::OpenStackCloud
 
     def openstack_fault_message(resource)
       openstack_message = ''
-      if (fault = resource.fault)
+      if resource.respond_to?(:fault) && (fault = resource.fault)
         openstack_message = '\n' + fault['message'] if fault['message']
         openstack_message += fault['details'] if fault['details']
       end

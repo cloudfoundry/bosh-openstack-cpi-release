@@ -52,6 +52,14 @@ describe Bosh::OpenStackCloud::Helpers do
         end
       end
 
+      context 'when no additional fault supported by resource' do
+        it 'raises Bosh::Clouds::CloudError' do
+          expect {
+            cloud.wait_resource(resource, :stop, :status, false)
+          }.to raise_error Bosh::Clouds::CloudError, /state is error/
+        end
+      end
+
       context 'when additional fault is provided by OpenStack' do
         let(:resource) { double('resource', id: 'foobar', reload: cloud, fault: {'message' => 'fault message ', 'details' => 'fault details'}) }
 
@@ -75,6 +83,14 @@ describe Bosh::OpenStackCloud::Helpers do
         end
       end
 
+      context 'when no additional fault supported by resource' do
+        it 'raises Bosh::Clouds::CloudError' do
+          expect {
+            cloud.wait_resource(resource, :stop, :status, false)
+          }.to raise_error Bosh::Clouds::CloudError, /state is failed/
+        end
+      end
+
       context 'when additional fault is provided by OpenStack' do
         let(:resource) { double('resource', id: 'foobar', reload: cloud, fault: {'message' => 'fault message ', 'details' => 'fault details'}) }
 
@@ -91,6 +107,14 @@ describe Bosh::OpenStackCloud::Helpers do
       context 'when no additional fault is provided by OpenStack' do
         before { allow(resource).to receive(:fault).and_return(nil) }
 
+        it 'raises Bosh::Clouds::CloudError' do
+          expect {
+            cloud.wait_resource(resource, :stop, :status, false)
+          }.to raise_error Bosh::Clouds::CloudError, /state is killed/
+        end
+      end
+
+      context 'when no additional fault supported by resource' do
         it 'raises Bosh::Clouds::CloudError' do
           expect {
             cloud.wait_resource(resource, :stop, :status, false)
