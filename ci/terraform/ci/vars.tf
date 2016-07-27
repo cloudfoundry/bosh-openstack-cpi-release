@@ -68,12 +68,24 @@ output "net id:   lifecycle_openstack_net_id" {
   value = "${openstack_networking_network_v2.lifecycle_net.id}"
 }
 
+output "manual ip:   lifecycle_openstack_net_manual_ip" {
+  value = "${cidrhost(openstack_networking_subnet_v2.lifecycle_subnet.cidr, 3)}"
+}
+
 output "net id:   lifecycle_net_id_no_dhcp_1" {
   value = "${openstack_networking_network_v2.lifecycle_net_no_dhcp_1.id}"
 }
 
+output "manual ip:   lifecycle_net_manual_ip_no_dhcp_1" {
+  value = "${cidrhost(openstack_networking_subnet_v2.lifecycle_subnet_no_dhcp_1.cidr, 3)}"
+}
+
 output "net id:   lifecycle_net_id_no_dhcp_2" {
   value = "${openstack_networking_network_v2.lifecycle_net_no_dhcp_2.id}"
+}
+
+output "manual ip:   lifecycle_net_manual_ip_no_dhcp_2" {
+  value = "${cidrhost(openstack_networking_subnet_v2.lifecycle_subnet_no_dhcp_2.cidr, 3)}"
 }
 
 output "net id:   bats_dynamic_ubuntu_primary_net_id" {
