@@ -66,7 +66,7 @@ describe Bosh::OpenStackCloud::Helpers do
         it 'raises Bosh::Clouds::CloudError' do
           expect {
             cloud.wait_resource(resource, :stop, :status, false)
-          }.to raise_error Bosh::Clouds::CloudError, /state is error, expected stop\\nfault message fault details/
+          }.to raise_error Bosh::Clouds::CloudError, /state is error, expected stop\nfault message fault details/
         end
       end
     end
@@ -97,7 +97,7 @@ describe Bosh::OpenStackCloud::Helpers do
         it 'raises Bosh::Clouds::CloudError' do
           expect {
             cloud.wait_resource(resource, :stop, :status, false)
-          }.to raise_error Bosh::Clouds::CloudError, /state is failed, expected stop\\nfault message fault details/
+          }.to raise_error Bosh::Clouds::CloudError, /state is failed, expected stop\nfault message fault details/
         end
       end
     end
@@ -128,7 +128,7 @@ describe Bosh::OpenStackCloud::Helpers do
         it 'raises Bosh::Clouds::CloudError' do
           expect {
             cloud.wait_resource(resource, :stop, :status, false)
-          }.to raise_error Bosh::Clouds::CloudError, /state is killed, expected stop\\nfault message fault details/
+          }.to raise_error Bosh::Clouds::CloudError, /state is killed, expected stop\nfault message fault details/
         end
       end
     end
