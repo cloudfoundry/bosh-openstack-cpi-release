@@ -146,6 +146,7 @@ jobs:
         secret_access_key: ${v3_e2e_blobstore_secret_key}
         bucket_name: ${v3_e2e_blobstore_bucket}
         host: ${v3_e2e_blobstore_host}
+        region: ${v3_e2e_blobstore_region}
 
       director:
         address: 127.0.0.1
