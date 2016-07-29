@@ -39,7 +39,6 @@ params:
   v3_e2e_private_key_data:        replace-me
   v3_e2e_blobstore_bucket:        replace-me
   v3_e2e_blobstore_host:          replace-me
-  v3_e2e_blobstore_region:        replace-me
   v3_e2e_blobstore_access_key:    replace-me
   v3_e2e_blobstore_secret_key:    replace-me
   time_server_1:                  replace-me
