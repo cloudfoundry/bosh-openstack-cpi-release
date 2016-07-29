@@ -61,7 +61,6 @@ jobs:
           v3_e2e_private_key_data:     {{v3_e2e_private_key_data}}
           v3_e2e_blobstore_bucket:     {{v3_e2e_blobstore_bucket}}
           v3_e2e_blobstore_host:       {{v3_e2e_blobstore_host}}
-          v3_e2e_blobstore_region:     {{v3_e2e_blobstore_region}}
           v3_e2e_blobstore_access_key: {{v3_e2e_blobstore_access_key}}
           v3_e2e_blobstore_secret_key: {{v3_e2e_blobstore_secret_key}}
           time_server_1:               {{time_server_1}}
@@ -173,7 +172,6 @@ jobs:
           v3_e2e_private_key_data:     {{v3_e2e_private_key_data}}
           v3_e2e_blobstore_bucket:     {{v3_e2e_blobstore_bucket}}
           v3_e2e_blobstore_host:       {{v3_e2e_blobstore_host}}
-          v3_e2e_blobstore_region:     {{v3_e2e_blobstore_region}}
           v3_e2e_blobstore_access_key: {{v3_e2e_blobstore_access_key}}
           v3_e2e_blobstore_secret_key: {{v3_e2e_blobstore_secret_key}}
           time_server_1:               {{time_server_1}}
