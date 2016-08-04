@@ -275,6 +275,7 @@ module Bosh::OpenStackCloud
                                                    :delete_on_termination => "1",
                                                    :device_name => "/dev/vda"
                                                  }]
+          server_params.delete(:image_ref)
         end
 
         @logger.debug("Using boot parms: `#{server_params.inspect}'")
