@@ -217,7 +217,6 @@ describe Bosh::OpenStackCloud::Cloud do
 
   context 'when booting from volume' do
     let(:boot_from_volume) { true }
-
     let(:network_spec) do
       {
         'default' => {
@@ -230,10 +229,17 @@ describe Bosh::OpenStackCloud::Cloud do
       }
     end
 
-    it 'exercises the vm lifecycle' do
-      expect {
-        vm_lifecycle(@stemcell_id, network_spec, [])
-      }.to_not raise_error
+    def test_boot_volume
+      @vm_id = create_vm(@stemcell_id, network_spec, [])
+      volumes = volumes(@vm_id)
+      expect(volumes.size).to eq(1)
+      expect(volumes.first.attachments.first['device']).to eq('/dev/vda')
+    end
+
+    after(:each) { clean_up_vm(@vm_id, network_spec) if @vm_id }
+
+    it 'creates a vm with boot_volume on /dev/vda' do
+      test_boot_volume
     end
 
     context 'and flavor has root disk size 0' do
@@ -250,10 +256,8 @@ describe Bosh::OpenStackCloud::Cloud do
           }
         end
 
-        it 'exercises the vm lifecycle' do
-          expect {
-            vm_lifecycle(@stemcell_id, network_spec, [], {}, resource_pool)
-          }.to_not raise_error
+        it 'creates a vm with boot_volume on /dev/vda' do
+          test_boot_volume
         end
       end
 
@@ -381,6 +385,10 @@ describe Bosh::OpenStackCloud::Cloud do
     end
   end
 
+  def volumes(vm_id)
+    cpi.compute.volumes.select {|volume| volume.attachments.detect {|attachment| attachment['serverId'] == vm_id}}
+  end
+
   def vm_lifecycle(stemcell_id, network_spec, disk_locality, cloud_properties = {}, resource_pool = {})
     vm_id = create_vm(stemcell_id, network_spec, disk_locality, resource_pool)
     disk_id = create_disk(vm_id, cloud_properties)
@@ -427,12 +435,6 @@ describe Bosh::OpenStackCloud::Cloud do
 
       @logger.info("Checking VM existence vm_id=#{vm_id}")
       expect(cpi).to_not have_vm(vm_id)
-
-      if network_spec['default']['type'] == 'manual'
-        # Wait for manual IP to be released by the infrastructure
-        # We have seen Piston take a couple minutes to release an IP address
-        sleep 120
-      end
     else
       @logger.info('No VM to delete')
     end
