@@ -42,6 +42,7 @@ describe Bosh::OpenStackCloud::Cloud, "create_vm" do
     }
 
     if boot_from_volume
+      params.delete(:image_ref)
       params[:block_device_mapping_v2] = [{
         :uuid => "sc-id",
         :source_type => "image",
