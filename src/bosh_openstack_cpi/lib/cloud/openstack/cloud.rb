@@ -115,7 +115,7 @@ module Bosh::OpenStackCloud
 
             is_public = !@stemcell_public_visibility.nil? && @stemcell_public_visibility.to_s != 'false'
             if is_glance_v1
-              image_params[:is_public] = is_public.to_s
+              image_params[:is_public] = is_public
             else
               image_params[:visibility] = is_public ? 'public' : 'private'
             end

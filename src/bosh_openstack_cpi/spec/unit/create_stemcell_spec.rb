@@ -27,7 +27,7 @@ describe Bosh::OpenStackCloud::Cloud do
           disk_format: 'qcow2',
           container_format: 'bare',
           location: "#{@tmp_dir}/root.img",
-          is_public: 'false',
+          is_public: false,
           properties: {
             version: 'x.y.z'
           }
@@ -55,7 +55,7 @@ describe Bosh::OpenStackCloud::Cloud do
           disk_format: 'qcow2',
           container_format: 'bare',
           location: "#{@tmp_dir}/root.img",
-          is_public: 'false',
+          is_public: false,
           properties: {
             version: 'x.y.z',
             os_type: 'linux',
@@ -106,7 +106,7 @@ describe Bosh::OpenStackCloud::Cloud do
           disk_format: 'qcow2',
           container_format: 'bare',
           location: "#{@tmp_dir}/root.img",
-          is_public: 'false',
+          is_public: false,
           properties: {
             version: 'x.y.z',
             os_type: 'linux',
@@ -170,7 +170,7 @@ describe Bosh::OpenStackCloud::Cloud do
             disk_format: 'qcow2',
             container_format: 'bare',
             location: "#{@tmp_dir}/root.img",
-            is_public: 'true',
+            is_public: true,
             properties: {
               version: 'x.y.z'
             }
@@ -192,7 +192,6 @@ describe Bosh::OpenStackCloud::Cloud do
           expect(sc_id).to eq 'i-bar'
         end
       end
-
     end
 
     context 'when an environment supports image v2' do
