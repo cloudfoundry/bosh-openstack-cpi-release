@@ -22,6 +22,7 @@ require "bosh/cpi/registry_client"
 require "cloud"
 require "cloud/openstack/helpers"
 require "cloud/openstack/cloud"
+require "cloud/openstack/cpi_lambda"
 require "cloud/openstack/openstack"
 require "cloud/openstack/tag_manager"
 
