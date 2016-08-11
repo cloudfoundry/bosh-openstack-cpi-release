@@ -254,48 +254,6 @@ class LifecycleHelper
     config
   end
 
-  # Some services (e.g. Volume) retrieve the supported version as part of the initial token request,
-  # while others (e.g. Image) retrieve the supported version from <HOST>:<SERVICE_PORT>/
-  def self.override_token_v2_service_catalog(auth_url:, tenant:, username:, api_key:)
-    # make request to retrieve actual service catalog,
-    # the block modifies versions in response,
-    # then stub any subsequent requests to return modified response
-    token_response_uri = URI.parse(auth_url)
-    token_response_uri.port = 5000
-    token_response_uri.path = '/v2.0/tokens'
-
-    http = Net::HTTP.new(token_response_uri.host, token_response_uri.port)
-    http.use_ssl = true
-    token_request = Net::HTTP::Post.new(token_response_uri.request_uri, {'Content-Type' => 'application/json'})
-    token_request.body = {
-      'auth' => {
-        'tenantName' => tenant,
-        'passwordCredentials' => {
-          'username' => username,
-          'password' => api_key,
-        },
-      }
-    }.to_json
-
-    token_response = http.request(token_request)
-    filtered_token_resp = JSON.parse(token_response.body)
-    filtered_token_resp['access']['serviceCatalog'] = yield filtered_token_resp['access']['serviceCatalog']
-
-    stub_request(:post, token_response_uri).to_return(body: filtered_token_resp.to_json, status: 200)
-  end
-
-  def self.override_root_service_versions(auth_url:, port:)
-    supported_versions_uri = URI.parse(auth_url)
-    supported_versions_uri.port = port
-    supported_versions_uri.path = ''
-
-    supported_versions_resp = Net::HTTP.get(supported_versions_uri)
-    supported_versions = JSON.parse(supported_versions_resp)
-    supported_versions['versions'] =  yield supported_versions['versions']
-
-    stub_request(:get, supported_versions_uri)
-      .to_return(body: supported_versions.to_json, status: 200)
-  end
 end
 
 def write_ssl_ca_file(ca_cert, logger)
@@ -328,3 +286,10 @@ def additional_connection_options(logger)
   additional_connection_options
 end
 
+def str_to_bool(string)
+  if string == 'true'
+    true
+  else
+    false
+  end
+end
