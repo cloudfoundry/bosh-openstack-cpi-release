@@ -3,6 +3,7 @@ $LOAD_PATH.unshift File.expand_path('../../lib', __FILE__)
 require 'tmpdir'
 require 'zlib'
 require 'archive/tar/minitar'
+require 'webmock'
 include Archive::Tar
 
 require 'cloud/openstack'
@@ -80,12 +81,12 @@ def mock_cloud(options = nil)
   key_pairs = double('key_pairs')
   security_groups = [double('default_sec_group', id: 'default_sec_group_id', name: 'default')]
 
-  glance = double(Fog::Image::OpenStack::V1)
-  allow(Fog::Image::OpenStack::V1).to receive(:new).and_return(glance)
+  glance = double(Fog::Image::OpenStack::V2)
+  allow(Fog::Image::OpenStack::V2).to receive(:new).and_return(glance)
 
-  volume = double(Fog::Volume::OpenStack::V1)
+  volume = double(Fog::Volume::OpenStack::V2)
   allow(volume).to receive(:volumes).and_return(volumes)
-  allow(Fog::Volume::OpenStack::V1).to receive(:new).and_return(volume)
+  allow(Fog::Volume::OpenStack::V2).to receive(:new).and_return(volume)
 
   openstack = double(Fog::Compute)
 
@@ -105,23 +106,28 @@ def mock_cloud(options = nil)
   Bosh::OpenStackCloud::Cloud.new(options || mock_cloud_options['properties'])
 end
 
-def mock_glance(options = nil)
-  images = double('images')
+def mock_glance_v1(options = nil)
+  cloud = mock_cloud(options)
 
-  openstack = double(Fog::Compute)
-  allow(Fog::Compute).to receive(:new).and_return(openstack)
-
-  volume = double(Fog::Volume::OpenStack::V1)
-  allow(Fog::Volume::OpenStack::V1).to receive(:new).and_return(volume)
-
-  glance = double(Fog::Image::OpenStack::V1)
-  allow(glance).to receive(:images).and_return(images)
-
-  allow(Fog::Image::OpenStack::V1).to receive(:new).and_return(glance)
+  glance = double(Fog::Image::OpenStack::V1, images: double('images'))
+  allow(cloud.instance_variable_get('@openstack')).to receive(:image).and_return(glance)
+  allow(glance).to receive(:class).and_return(Fog::Image::OpenStack::V1::Mock)
 
   yield glance if block_given?
 
-  Bosh::OpenStackCloud::Cloud.new(options || mock_cloud_options['properties'])
+  cloud
+end
+
+def mock_glance_v2(options = nil)
+  cloud = mock_cloud(options)
+
+  glance = double(Fog::Image::OpenStack::V2, images: double('images'))
+  allow(cloud.instance_variable_get('@openstack')).to receive(:image).and_return(glance)
+  allow(glance).to receive(:class).and_return(Fog::Image::OpenStack::V2::Mock)
+
+  yield glance if block_given?
+
+  cloud
 end
 
 def dynamic_network_spec
@@ -211,6 +217,8 @@ RSpec.configure do |config|
 end
 
 class LifecycleHelper
+  extend WebMock::API
+
   def self.get_config(key, default=:none)
     env_file = ENV['LIFECYCLE_ENV_FILE']
     env_name = ENV['LIFECYCLE_ENV_NAME']
@@ -245,6 +253,7 @@ class LifecycleHelper
         end
     config
   end
+
 end
 
 def write_ssl_ca_file(ca_cert, logger)
@@ -277,3 +286,10 @@ def additional_connection_options(logger)
   additional_connection_options
 end
 
+def str_to_bool(string)
+  if string == 'true'
+    true
+  else
+    false
+  end
+end

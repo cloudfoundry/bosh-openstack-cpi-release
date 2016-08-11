@@ -62,8 +62,8 @@ describe Bosh::OpenStackCloud::Openstack do
 
 
   [ {clazz: Fog::Compute, name: 'Compute', method_name: :compute},
-    {clazz: Fog::Image::OpenStack::V1, name: 'Image', method_name: :image},
-    {clazz: Fog::Volume::OpenStack::V1, name: 'Volume', method_name: :volume},
+    {clazz: Fog::Image::OpenStack::V2, name: 'Image', method_name: :image},
+    {clazz: Fog::Volume::OpenStack::V2, name: 'Volume', method_name: :volume},
     {clazz: Fog::Network, name: 'Network', method_name: :network}
   ].each do | fog |
     describe "#{fog[:name]}" do
