@@ -22,7 +22,7 @@ class IntegrationConfig
               :instance_type_with_no_root_disk,
               :region
 
-  def initialize(identity_version=:v2)
+  def initialize(identity_version=:v3)
     if identity_version == :v3
       @auth_url                      = LifecycleHelper.get_config(:auth_url_v3)
       @domain                        = LifecycleHelper.get_config(:domain)

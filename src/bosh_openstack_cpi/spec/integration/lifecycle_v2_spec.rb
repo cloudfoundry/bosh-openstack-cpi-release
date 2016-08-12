@@ -2,7 +2,7 @@ require_relative './spec_helper'
 
 describe Bosh::OpenStackCloud::Cloud do
   before do
-    @config = IntegrationConfig.new(:v3)
+    @config = IntegrationConfig.new(:v2)
   end
 
   after(:each) { File.delete(@ca_cert_path) if @ca_cert_path }
@@ -21,7 +21,7 @@ describe Bosh::OpenStackCloud::Cloud do
   before { allow(Bosh::Clouds::Config).to receive(:logger).and_return(logger) }
   let(:logger) { Logger.new(STDERR) }
 
-  describe 'Basic Keystone V3 support' do
+  describe 'Basic Keystone V2 support' do
     context 'with missing VM id' do
       it 'should return false' do
         logger.info("Checking VM existence")
