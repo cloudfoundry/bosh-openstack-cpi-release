@@ -34,7 +34,6 @@ PUT /v2/<tenant_id>/servers/<resource_id>.json body: {"server":{"name":"<name>"}
 ### All calls for API endpoint 'identity (keystone)'
 ```
 POST /v2.0/tokens body: {"auth":{"passwordCredentials":{"username":"<username>","password":"<password>"},"tenantName":"<tenantName>"}}
-POST /v2.0/tokens body: {"auth":{"token":{"id":"5357f4c6a39a4f9eadd1340f7937685d"},"tenantName":"<tenantName>"}}
 ```
 ### All calls for API endpoint 'identityv3 (keystonev3)'
 ```
