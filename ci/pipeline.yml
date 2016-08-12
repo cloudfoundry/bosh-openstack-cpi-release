@@ -83,21 +83,23 @@ jobs:
         timeout: *timeouts-long
         file: bosh-cpi-src-in/ci/tasks/cleanup.yml
         params:
-          BOSH_OPENSTACK_AUTH_URL:    {{openstack_auth_url_v2}}
-          BOSH_OPENSTACK_USERNAME:    {{lifecycle_openstack_username}}
-          BOSH_OPENSTACK_API_KEY:     {{lifecycle_openstack_api_key}}
-          BOSH_OPENSTACK_PROJECT:     {{lifecycle_openstack_tenant}}
-          BOSH_OPENSTACK_CA_CERT:     {{bosh_openstack_ca_cert}}
+           BOSH_OPENSTACK_AUTH_URL:    {{openstack_auth_url_v3}}
+           BOSH_OPENSTACK_USERNAME:    {{lifecycle_openstack_username}}
+           BOSH_OPENSTACK_API_KEY:     {{lifecycle_openstack_api_key}}
+           BOSH_OPENSTACK_PROJECT:     {{lifecycle_openstack_project}}
+           BOSH_OPENSTACK_DOMAIN_NAME: {{lifecycle_openstack_domain}}
+           BOSH_OPENSTACK_CA_CERT:     {{bosh_openstack_ca_cert}}
 
       - task: cleanup-bats
         tags: *tags
         timeout: *timeouts-long
         file: bosh-cpi-src-in/ci/tasks/cleanup.yml
         params:
-          BOSH_OPENSTACK_AUTH_URL:    {{openstack_auth_url_v2}}
+          BOSH_OPENSTACK_AUTH_URL:    {{openstack_auth_url_v3}}
           BOSH_OPENSTACK_USERNAME:    {{openstack_username}}
           BOSH_OPENSTACK_API_KEY:     {{openstack_api_key}}
-          BOSH_OPENSTACK_PROJECT:     {{openstack_tenant}}
+          BOSH_OPENSTACK_PROJECT:     {{openstack_project}}
+          BOSH_OPENSTACK_DOMAIN_NAME: {{openstack_domain}}
           BOSH_OPENSTACK_CA_CERT:     {{bosh_openstack_ca_cert}}
 
   - name: lifecycle
@@ -115,7 +117,6 @@ jobs:
         file: bosh-cpi-src-in/ci/tasks/run-lifecycle.yml
         params:
           BOSH_OPENSTACK_DOMAIN:                   {{lifecycle_openstack_domain}}
-          BOSH_OPENSTACK_TENANT:                   {{lifecycle_openstack_tenant}}
           BOSH_OPENSTACK_PROJECT:                  {{lifecycle_openstack_project}}
           BOSH_OPENSTACK_MANUAL_IP:                {{lifecycle_manual_ip}}
           BOSH_OPENSTACK_NO_DHCP_MANUAL_IP_1:      {{lifecycle_no_dhcp_manual_ip_1}}
@@ -131,7 +132,7 @@ jobs:
           BOSH_OPENSTACK_API_KEY_V3:               {{lifecycle_openstack_api_key_v3}}
           BOSH_OPENSTACK_DEFAULT_KEY_NAME:         {{lifecycle_openstack_default_key_name}}
           BOSH_CLI_SILENCE_SLOW_LOAD_WARNING:      true
-          BOSH_OPENSTACK_VOLUME_TYPE:              "SSD"
+          #BOSH_OPENSTACK_VOLUME_TYPE:             "SSD"
           BOSH_OPENSTACK_CONNECT_TIMEOUT:          "600"
           BOSH_OPENSTACK_READ_TIMEOUT:             "120"
           BOSH_OPENSTACK_WRITE_TIMEOUT:            "120"
@@ -193,10 +194,11 @@ jobs:
           openstack_net_id:              {{bats_manual_ubuntu_primary_net_id}}
           openstack_security_group:      {{openstack_security_group}}
           openstack_default_key_name:    {{openstack_default_key_name}}
-          openstack_auth_url:            {{openstack_auth_url_v2}}
+          openstack_auth_url:            {{openstack_auth_url_v3}}
           openstack_username:            {{openstack_username}}
           openstack_api_key:             {{openstack_api_key}}
-          openstack_tenant:              {{openstack_tenant}}
+          openstack_project:             {{openstack_project}}
+          openstack_domain:              {{openstack_domain}}
           openstack_floating_ip:         {{bats_manual_ubuntu_director_public_ip}}
           openstack_manual_ip:           {{bats_manual_ubuntu_director_private_ip}}
           openstack_net_cidr:            {{bats_manual_ubuntu_primary_net_cidr}}
@@ -270,10 +272,11 @@ jobs:
           openstack_net_id:              {{bats_dynamic_ubuntu_primary_net_id}}
           openstack_security_group:      {{openstack_security_group}}
           openstack_default_key_name:    {{openstack_default_key_name}}
-          openstack_auth_url:            {{openstack_auth_url_v2}}
+          openstack_auth_url:            {{openstack_auth_url_v3}}
           openstack_username:            {{openstack_username}}
           openstack_api_key:             {{openstack_api_key}}
-          openstack_tenant:              {{openstack_tenant}}
+          openstack_project:             {{openstack_project}}
+          openstack_domain:              {{openstack_domain}}
           openstack_floating_ip:         {{bats_dynamic_ubuntu_director_public_ip}}
           time_server_1:                 {{time_server_1}}
           time_server_2:                 {{time_server_2}}
@@ -332,10 +335,11 @@ jobs:
           openstack_net_id:              {{bats_manual_centos_primary_net_id}}
           openstack_security_group:      {{openstack_security_group}}
           openstack_default_key_name:    {{openstack_default_key_name}}
-          openstack_auth_url:            {{openstack_auth_url_v2}}
+          openstack_auth_url:            {{openstack_auth_url_v3}}
           openstack_username:            {{openstack_username}}
           openstack_api_key:             {{openstack_api_key}}
-          openstack_tenant:              {{openstack_tenant}}
+          openstack_project:             {{openstack_project}}
+          openstack_domain:              {{openstack_domain}}
           openstack_floating_ip:         {{bats_manual_centos_director_public_ip}}
           openstack_manual_ip:           {{bats_manual_centos_director_private_ip}}
           openstack_net_cidr:            {{bats_manual_centos_primary_net_cidr}}
@@ -410,10 +414,11 @@ jobs:
           openstack_net_id:              {{bats_dynamic_centos_primary_net_id}}
           openstack_security_group:      {{openstack_security_group}}
           openstack_default_key_name:    {{openstack_default_key_name}}
-          openstack_auth_url:            {{openstack_auth_url_v2}}
+          openstack_auth_url:            {{openstack_auth_url_v3}}
           openstack_username:            {{openstack_username}}
           openstack_api_key:             {{openstack_api_key}}
-          openstack_tenant:              {{openstack_tenant}}
+          openstack_project:             {{openstack_project}}
+          openstack_domain:              {{openstack_domain}}
           openstack_floating_ip:         {{bats_dynamic_centos_director_public_ip}}
           time_server_1:                 {{time_server_1}}
           time_server_2:                 {{time_server_2}}

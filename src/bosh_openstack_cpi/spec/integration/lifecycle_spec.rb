@@ -452,13 +452,4 @@ describe Bosh::OpenStackCloud::Cloud do
     exceptions.each { |e| @config.logger.info("Failed with: #{e.inspect}\n#{e.backtrace.join("\n")}\n") }
     raise exceptions.first if exceptions.any?
   end
-
-  def str_to_bool(string)
-    if string == 'true'
-      true
-    else
-      false
-    end
-  end
-
 end
