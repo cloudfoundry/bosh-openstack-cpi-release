@@ -17,6 +17,7 @@ params:
   BOSH_OPENSTACK_USERNAME_V3:              replace-me
   BOSH_OPENSTACK_API_KEY_V3:               replace-me
   BOSH_OPENSTACK_PROJECT:                  replace-me
+  BOSH_OPENSTACK_TENANT:                   replace-me
   BOSH_OPENSTACK_MANUAL_IP:                replace-me
   BOSH_OPENSTACK_NO_DHCP_MANUAL_IP_1:      replace-me
   BOSH_OPENSTACK_NO_DHCP_MANUAL_IP_2:      replace-me

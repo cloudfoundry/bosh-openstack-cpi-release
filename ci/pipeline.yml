@@ -118,6 +118,7 @@ jobs:
         params:
           BOSH_OPENSTACK_DOMAIN:                   {{lifecycle_openstack_domain}}
           BOSH_OPENSTACK_PROJECT:                  {{lifecycle_openstack_project}}
+          BOSH_OPENSTACK_TENANT:                   {{lifecycle_openstack_tenant}}
           BOSH_OPENSTACK_MANUAL_IP:                {{lifecycle_manual_ip}}
           BOSH_OPENSTACK_NO_DHCP_MANUAL_IP_1:      {{lifecycle_no_dhcp_manual_ip_1}}
           BOSH_OPENSTACK_NO_DHCP_MANUAL_IP_2:      {{lifecycle_no_dhcp_manual_ip_2}}
