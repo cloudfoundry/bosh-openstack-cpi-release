@@ -1,6 +1,6 @@
 ---
 groups:
-  - name: e2e
+  - name: {{pipeline_name}}
     jobs:
       - cleanup
       - e2e-centos
