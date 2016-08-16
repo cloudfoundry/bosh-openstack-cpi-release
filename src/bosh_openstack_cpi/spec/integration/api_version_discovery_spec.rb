@@ -142,7 +142,7 @@ describe Bosh::OpenStackCloud::Cloud do
               },
               scope: {
                   project: {
-                      name: @config.tenant,
+                      name: @config.project,
                       domain: {
                           name: @config.domain
                       }

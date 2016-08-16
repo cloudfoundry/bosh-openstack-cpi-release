@@ -84,8 +84,8 @@ jobs:
         file: bosh-cpi-src-in/ci/tasks/cleanup.yml
         params:
            BOSH_OPENSTACK_AUTH_URL:    {{openstack_auth_url_v3}}
-           BOSH_OPENSTACK_USERNAME:    {{lifecycle_openstack_username}}
-           BOSH_OPENSTACK_API_KEY:     {{lifecycle_openstack_api_key}}
+           BOSH_OPENSTACK_USERNAME:    {{lifecycle_openstack_username_v3}}
+           BOSH_OPENSTACK_API_KEY:     {{lifecycle_openstack_api_key_v3}}
            BOSH_OPENSTACK_PROJECT:     {{lifecycle_openstack_project}}
            BOSH_OPENSTACK_DOMAIN_NAME: {{lifecycle_openstack_domain}}
            BOSH_OPENSTACK_CA_CERT:     {{bosh_openstack_ca_cert}}
@@ -126,9 +126,9 @@ jobs:
           BOSH_OPENSTACK_NET_ID_NO_DHCP_1:         {{lifecycle_net_id_no_dhcp_1}}
           BOSH_OPENSTACK_NET_ID_NO_DHCP_2:         {{lifecycle_net_id_no_dhcp_2}}
           BOSH_OPENSTACK_AUTH_URL_V2:              {{openstack_auth_url_v2}}
+          BOSH_OPENSTACK_USERNAME_V2:              {{lifecycle_openstack_username_v2}}
+          BOSH_OPENSTACK_API_KEY_V2:               {{lifecycle_openstack_api_key_v2}}
           BOSH_OPENSTACK_AUTH_URL_V3:              {{openstack_auth_url_v3}}
-          BOSH_OPENSTACK_USERNAME:                 {{lifecycle_openstack_username}}
-          BOSH_OPENSTACK_API_KEY:                  {{lifecycle_openstack_api_key}}
           BOSH_OPENSTACK_USERNAME_V3:              {{lifecycle_openstack_username_v3}}
           BOSH_OPENSTACK_API_KEY_V3:               {{lifecycle_openstack_api_key_v3}}
           BOSH_OPENSTACK_DEFAULT_KEY_NAME:         {{lifecycle_openstack_default_key_name}}

@@ -5,6 +5,7 @@ class IntegrationConfig
               :username,
               :api_key,
               :tenant,
+              :project,
               :domain,
               :stemcell_path,
               :net_id,
@@ -26,14 +27,17 @@ class IntegrationConfig
     if identity_version == :v3
       @auth_url                      = LifecycleHelper.get_config(:auth_url_v3)
       @domain                        = LifecycleHelper.get_config(:domain)
+      @username                      = LifecycleHelper.get_config(:username_v3)
+      @api_key                       = LifecycleHelper.get_config(:api_key_v3)
+      @project                       = LifecycleHelper.get_config(:project)
     else
       @auth_url                      = LifecycleHelper.get_config(:auth_url_v2)
+      @username                      = LifecycleHelper.get_config(:username_v2, LifecycleHelper.get_config(:username))
+      @api_key                       = LifecycleHelper.get_config(:api_key_v2, LifecycleHelper.get_config(:api_key))
+      @tenant                        = LifecycleHelper.get_config(:tenant, LifecycleHelper.get_config(:project))
     end
 
-    @tenant                          = LifecycleHelper.get_config(:tenant)
     @logger                          = Logger.new(STDERR)
-    @username                        = LifecycleHelper.get_config(:username)
-    @api_key                         = LifecycleHelper.get_config(:api_key)
     @stemcell_path                   = LifecycleHelper.get_config(:stemcell_path)
     @net_id                          = LifecycleHelper.get_config(:net_id)
     @net_id_no_dhcp_1                = LifecycleHelper.get_config(:net_id_no_dhcp_1)
@@ -78,7 +82,7 @@ class IntegrationConfig
 
     if @domain
       openstack_properties['openstack']['domain']  = @domain
-      openstack_properties['openstack']['project'] = @tenant
+      openstack_properties['openstack']['project'] = @project
     else
       openstack_properties['openstack']['tenant'] = @tenant
     end

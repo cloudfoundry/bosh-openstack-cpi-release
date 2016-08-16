@@ -1,12 +1,11 @@
 ---
-# Keystone V2 tests
-auth_url_v2: <replace-me>
-region: <replace-me>
-username: <replace-me>
-api_key: <replace-me> # The password
-tenant: <replace-me>
+auth_url_v3: <replace-me>
+username_v3: <replace-me>
+api_key_v3: <replace-me> # The password
+domain: <replace-me>
+project: <replace-me>
 stemcell_path: <replace-me> # Local file system path to extracted stemcell directory
-default_key_name: 'bosh-lifecycle'
+default_key_name: <replace-me>
 net_id: <replace-me> # Network UUID
 net_id_no_dhcp_1: <replace-me> # Network UUID
 net_id_no_dhcp_2: <replace-me> # Network UUID
@@ -14,14 +13,13 @@ manual_ip: <replace-me> # An ip from net_id network
 no_dhcp_manual_ip_1: <replace-me> # An ip from net_id_no_dhcp_1 network
 no_dhcp_manual_ip_2: <replace-me> # An ip from net_id_no_dhcp_2 network
 flavor_with_no_root_disk: <replace-me> # A flavor with no root disk
-# Keystone V3 tests
-auth_url_v3: <replace-me>
-username_v3: <replace-me>
-api_key_v3: <replace-me> # The password
-domain: <replace-me>
-project: <replace-me>
 
 # Optional configuration:
+#auth_url_v2: <replace-me> # Triggers additional execution of Keystone V2 authentication tests
+#username_v2: <replace-me> # Only used with `auth_url_v2`, falls back to `username_v3`
+#api_key_v2: <replace-me> # The v2 password, only used with `auth_url_v2`, falls back to `api_key_v3`
+#tenant: <replace-me> # Only used with `auth_url_v2`, falls back to `project`
+#region: <replace-me>
 #insecure: true
 #ca_cert: <replace-me>
 #disable_snapshots: true
