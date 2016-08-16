@@ -32,8 +32,8 @@ class IntegrationConfig
       @project                       = LifecycleHelper.get_config(:project)
     else
       @auth_url                      = LifecycleHelper.get_config(:auth_url_v2)
-      @username                      = LifecycleHelper.get_config(:username_v2, LifecycleHelper.get_config(:username))
-      @api_key                       = LifecycleHelper.get_config(:api_key_v2, LifecycleHelper.get_config(:api_key))
+      @username                      = LifecycleHelper.get_config(:username_v2, LifecycleHelper.get_config(:username_v3))
+      @api_key                       = LifecycleHelper.get_config(:api_key_v2, LifecycleHelper.get_config(:api_key_v3))
       @tenant                        = LifecycleHelper.get_config(:tenant, LifecycleHelper.get_config(:project))
     end
 
