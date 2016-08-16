@@ -278,7 +278,7 @@ end
 def additional_connection_options(logger)
   additional_connection_options = {}
   ca_cert = LifecycleHelper.get_config(:ca_cert, nil)
-  if ca_cert
+  if ca_cert && !ca_cert.empty?
     additional_connection_options['ssl_ca_file'] = write_ssl_ca_file(ca_cert, logger)
   elsif LifecycleHelper.get_config(:insecure, false)
     additional_connection_options['ssl_verify_peer'] = false
