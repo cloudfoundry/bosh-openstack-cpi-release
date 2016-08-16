@@ -1,6 +1,6 @@
 ---
 groups:
-  - name: bosh-openstack-cpi-release
+  - name: {{pipeline_name}}
     jobs:
       - build-candidate
       - lifecycle
