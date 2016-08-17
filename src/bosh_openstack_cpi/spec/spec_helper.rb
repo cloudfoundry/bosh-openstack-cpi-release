@@ -224,15 +224,14 @@ class LifecycleHelper
     env_name = ENV['LIFECYCLE_ENV_NAME']
     env_key = "BOSH_OPENSTACK_#{key.to_s.upcase}"
 
-    if env_file
+    value = if env_file
       config = load_config_from_file(env_file, env_name)
-
-      value = config[key.to_s]
-      present = config.has_key?(key.to_s)
+      config[key.to_s]
     else
-      value = ENV[env_key]
-      present = ENV.has_key?(env_key)
+      ENV[env_key]
     end
+
+    present = value && !value.empty?
 
     if !present && default == :none
       raise("Missing #{key}/#{env_key}; use LIFECYCLE_ENV_FILE=file.yml and LIFECYCLE_ENV_NAME=xxx or set in ENV")
