@@ -15,7 +15,7 @@ Bosh::Clouds::Config.configure(cloud_config)
 
 cpi_log = StringIO.new
 
-cpi_lambda = Bosh::OpenStackCloud::CpiLambda.create(cpi_config, ssl_ca_file, cpi_log)
+cpi_lambda = Bosh::OpenStackCloud::CpiLambda.create(cpi_config, cpi_log, ssl_ca_file)
 cli = Bosh::Cpi::Cli.new(cpi_lambda, cpi_log, STDOUT)
 
 cli.run(ARGF.read)
