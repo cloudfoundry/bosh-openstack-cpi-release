@@ -38,10 +38,12 @@ custom:
     suse-liberty: ['suse-liberty']
   timeouts:
     long: &timeouts-long 2h
+  build_logs_to_retain: &build_logs_to_retain 500
 
 jobs:
   - name: build-candidate
     serial: true
+    build_logs_to_retain: *build_logs_to_retain
     plan:
       - aggregate:
         - {trigger: true,  get: bosh-cpi-src-in, tags: *tags, timeout: *timeouts-long}
@@ -71,6 +73,7 @@ jobs:
       - cleanup-lock-bats-centos-manual
       - cleanup-lock-bats-ubuntu-dynamic
       - cleanup-lock-bats-centos-dynamic
+    build_logs_to_retain: *build_logs_to_retain
 
     plan:
       - aggregate:
@@ -105,6 +108,7 @@ jobs:
   - name: lifecycle
     serial: true
     serial_groups: [cleanup-lock-lifecycle]
+    build_logs_to_retain: *build_logs_to_retain
     plan:
       - aggregate:
         - {trigger: true,  passed: [cleanup], get: bosh-cpi-dev-artifacts, tags: *tags, timeout: *timeouts-long} # used for job chaining only not for tasks
@@ -147,6 +151,7 @@ jobs:
 
   - name: publish-api-calls
     serial: true
+    build_logs_to_retain: *build_logs_to_retain
     plan:
       - aggregate:
         - {trigger: true, passed: [lifecycle], get: lifecycle-log, tags: *tags, timeout: *timeouts-long}
@@ -167,6 +172,7 @@ jobs:
   - name: bats-ubuntu-manual
     serial: true
     serial_groups: [cleanup-lock-bats-ubuntu-manual]
+    build_logs_to_retain: *build_logs_to_retain
     plan:
       - aggregate:
         - {trigger: true,  passed: [cleanup], get: bosh-cpi-dev-artifacts, tags: *tags, timeout: *timeouts-long}
@@ -246,6 +252,7 @@ jobs:
   - name: bats-ubuntu-dynamic
     serial: true
     serial_groups: [cleanup-lock-bats-ubuntu-dynamic]
+    build_logs_to_retain: *build_logs_to_retain
     plan:
       - aggregate:
         - {trigger: true,  passed: [cleanup], get: bosh-cpi-dev-artifacts, tags: *tags, timeout: *timeouts-long}
@@ -309,6 +316,7 @@ jobs:
   - name: bats-centos-manual
     serial: true
     serial_groups: [cleanup-lock-bats-centos-manual]
+    build_logs_to_retain: *build_logs_to_retain
     plan:
       - aggregate:
         - {trigger: true,  passed: [cleanup], get: bosh-cpi-dev-artifacts, tags: *tags, timeout: *timeouts-long}
@@ -388,6 +396,7 @@ jobs:
   - name: bats-centos-dynamic
     serial: true
     serial_groups: [cleanup-lock-bats-centos-dynamic]
+    build_logs_to_retain: *build_logs_to_retain
     plan:
       - aggregate:
         - {trigger: true,  passed: [cleanup], get: bosh-cpi-dev-artifacts, tags: *tags, timeout: *timeouts-long}
@@ -450,6 +459,7 @@ jobs:
 
   - name: promote-candidate
     serial: true
+    build_logs_to_retain: *build_logs_to_retain
     plan:
       - aggregate:
         - {trigger: false, passed: [lifecycle, bats-ubuntu-manual, bats-centos-manual, bats-ubuntu-dynamic, bats-centos-dynamic], get: bosh-cpi-dev-artifacts, tags: *tags, timeout: *timeouts-long}

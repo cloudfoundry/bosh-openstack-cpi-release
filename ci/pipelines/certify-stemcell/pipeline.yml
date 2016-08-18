@@ -18,11 +18,13 @@ custom:
     suse-liberty: ['suse-liberty']
   timeouts:
     long: &timeouts-long 2h
+  build_logs_to_retain: &build_logs_to_retain 500
 
 jobs:
   - name: e2e-centos
     serial: true
     serial_groups: [e2e-centos]
+    build_logs_to_retain: *build_logs_to_retain
     plan:
       - aggregate:
         - {trigger: false, get: bosh-cpi-src-in,  passed: [cleanup], tags: *tags, timeout: *timeouts-long}
@@ -90,6 +92,7 @@ jobs:
   - name: e2e-ubuntu
     serial: true
     serial_groups: [e2e-ubuntu]
+    build_logs_to_retain: *build_logs_to_retain
     plan:
       - aggregate:
         - {trigger: false, get: bosh-cpi-src-in,  passed: [cleanup], tags: *tags, timeout: *timeouts-long}
@@ -132,6 +135,7 @@ jobs:
   - name: e2e-centos-config-drive
     serial: true
     serial_groups: [e2e-centos-config-drive]
+    build_logs_to_retain: *build_logs_to_retain
     plan:
       - aggregate:
         - {trigger: false, get: bosh-cpi-src-in,  passed: [cleanup], tags: *tags, timeout: *timeouts-long}
@@ -210,6 +214,7 @@ jobs:
   - name: e2e-ubuntu-config-drive
     serial: true
     serial_groups: [e2e-ubuntu-config-drive]
+    build_logs_to_retain: *build_logs_to_retain
     plan:
       - aggregate:
         - {trigger: false, get: bosh-cpi-src-in,  passed: [cleanup], tags: *tags, timeout: *timeouts-long}
@@ -261,6 +266,7 @@ jobs:
   - name: test-upgrade-centos
     serial: true
     serial_groups: [test-upgrade-centos]
+    build_logs_to_retain: *build_logs_to_retain
     plan:
       - aggregate:
         - {trigger: false, get: bosh-cpi-src-in,  passed: [cleanup], tags: *tags, timeout: *timeouts-long}
@@ -360,6 +366,7 @@ jobs:
   - name: test-upgrade-ubuntu
     serial: true
     serial_groups: [test-upgrade-ubuntu]
+    build_logs_to_retain: *build_logs_to_retain
     plan:
       - aggregate:
         - {trigger: false, get: bosh-cpi-src-in,  passed: [cleanup], tags: *tags, timeout: *timeouts-long}
@@ -413,6 +420,7 @@ jobs:
   - name: cleanup
     serial: true
     serial_groups: [e2e-centos, e2e-ubuntu, e2e-ubuntu-config-drive, e2e-centos-config-drive, test-upgrade-centos, test-upgrade-ubuntu] #can't run while anything else is running
+    build_logs_to_retain: *build_logs_to_retain
     plan:
       - aggregate:
         - {trigger: false, get: bosh-cpi-src-in,   tags: *tags, timeout: *timeouts-long}
