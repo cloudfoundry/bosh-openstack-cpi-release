@@ -128,18 +128,13 @@ module Bosh::OpenStackCloud
           end
         rescue Excon::Errors::SocketError => e
           cloud_error(socket_error_msg + "#{e.message}")
-        rescue Bosh::Common::RetryCountExceeded, Excon::Errors::ClientError, Excon::Errors::ServerError => e
+        rescue Bosh::Common::RetryCountExceeded, Excon::Errors::ClientError, Excon::Errors::ServerError, Fog::Errors::NotFound => e
           cloud_error("Unable to connect to the OpenStack Network Service API: #{e.message}. Check task debug log for details.")
         end
       end
 
       @network
     end
-
-    def metadata
-
-    end
-
 
     private
 
