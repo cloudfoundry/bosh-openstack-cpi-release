@@ -34,7 +34,9 @@ groups:
 
 custom:
   tags:
-    default: &tags [{{concourse_tag}}]
+    default: &tags []
+    suse-liberty: ['suse-liberty']
+    suse-mitaka: ['suse-mitaka']
   timeouts:
     long: &timeouts-long 2h
   build_logs_to_retain: &build_logs_to_retain 500
