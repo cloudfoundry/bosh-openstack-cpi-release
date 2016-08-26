@@ -60,10 +60,21 @@ describe Bosh::OpenStackCloud::Openstack do
     end
   end
 
+  context 'when the service is not available' do
+    describe 'Network' do
+      it 'raises a CloudError exception if cannot connect to the service API' do
+        allow(Fog::Network).to receive(:new).and_raise(Fog::Errors::NotFound, 'Not found message')
+        expect {
+          Bosh::OpenStackCloud::Openstack.new(openstack_options).network
+        }.to raise_error(Bosh::Clouds::CloudError,
+                         'Unable to connect to the OpenStack Network Service API: Not found message. Check task debug log for details.')
+      end
+    end
+  end
 
   [ {clazz: Fog::Compute, name: 'Compute', method_name: :compute},
-    {clazz: Fog::Image::OpenStack::V1, name: 'Image', method_name: :image},
-    {clazz: Fog::Volume::OpenStack::V1, name: 'Volume', method_name: :volume},
+    {clazz: Fog::Image::OpenStack::V2, name: 'Image', method_name: :image},
+    {clazz: Fog::Volume::OpenStack::V2, name: 'Volume', method_name: :volume},
     {clazz: Fog::Network, name: 'Network', method_name: :network}
   ].each do | fog |
     describe "#{fog[:name]}" do

@@ -6,8 +6,7 @@ inputs:
 run:
   path: bosh-cpi-src-in/ci/tasks/cleanup.sh
 params:
-  BOSH_OPENSTACK_IDENTITY_API_VERSION: 2.0
-  BOSH_OPENSTACK_DOMAIN_NAME:          Default
+  BOSH_OPENSTACK_DOMAIN_NAME:          replace-me
   BOSH_OPENSTACK_AUTH_URL:             replace-me
   BOSH_OPENSTACK_USERNAME:             replace-me
   BOSH_OPENSTACK_API_KEY:              replace-me

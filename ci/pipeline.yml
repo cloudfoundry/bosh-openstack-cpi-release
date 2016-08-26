@@ -1,6 +1,6 @@
 ---
 groups:
-  - name: bosh-openstack-cpi-release
+  - name: {{pipeline_name}}
     jobs:
       - build-candidate
       - lifecycle
@@ -36,12 +36,15 @@ custom:
   tags:
     default: &tags []
     suse-liberty: ['suse-liberty']
+    suse-mitaka: ['suse-mitaka']
   timeouts:
     long: &timeouts-long 2h
+  build_logs_to_retain: &build_logs_to_retain 500
 
 jobs:
   - name: build-candidate
     serial: true
+    build_logs_to_retain: *build_logs_to_retain
     plan:
       - aggregate:
         - {trigger: true,  get: bosh-cpi-src-in, tags: *tags, timeout: *timeouts-long}
@@ -71,6 +74,7 @@ jobs:
       - cleanup-lock-bats-centos-manual
       - cleanup-lock-bats-ubuntu-dynamic
       - cleanup-lock-bats-centos-dynamic
+    build_logs_to_retain: *build_logs_to_retain
 
     plan:
       - aggregate:
@@ -83,26 +87,29 @@ jobs:
         timeout: *timeouts-long
         file: bosh-cpi-src-in/ci/tasks/cleanup.yml
         params:
-          BOSH_OPENSTACK_AUTH_URL:    {{openstack_auth_url_v2}}
-          BOSH_OPENSTACK_USERNAME:    {{lifecycle_openstack_username}}
-          BOSH_OPENSTACK_API_KEY:     {{lifecycle_openstack_api_key}}
-          BOSH_OPENSTACK_PROJECT:     {{lifecycle_openstack_tenant}}
-          BOSH_OPENSTACK_CA_CERT:     {{bosh_openstack_ca_cert}}
+           BOSH_OPENSTACK_AUTH_URL:    {{openstack_auth_url_v3}}
+           BOSH_OPENSTACK_USERNAME:    {{lifecycle_openstack_username_v3}}
+           BOSH_OPENSTACK_API_KEY:     {{lifecycle_openstack_api_key_v3}}
+           BOSH_OPENSTACK_PROJECT:     {{lifecycle_openstack_project}}
+           BOSH_OPENSTACK_DOMAIN_NAME: {{lifecycle_openstack_domain}}
+           BOSH_OPENSTACK_CA_CERT:     {{bosh_openstack_ca_cert}}
 
       - task: cleanup-bats
         tags: *tags
         timeout: *timeouts-long
         file: bosh-cpi-src-in/ci/tasks/cleanup.yml
         params:
-          BOSH_OPENSTACK_AUTH_URL:    {{openstack_auth_url_v2}}
+          BOSH_OPENSTACK_AUTH_URL:    {{openstack_auth_url_v3}}
           BOSH_OPENSTACK_USERNAME:    {{openstack_username}}
           BOSH_OPENSTACK_API_KEY:     {{openstack_api_key}}
-          BOSH_OPENSTACK_PROJECT:     {{openstack_tenant}}
+          BOSH_OPENSTACK_PROJECT:     {{openstack_project}}
+          BOSH_OPENSTACK_DOMAIN_NAME: {{openstack_domain}}
           BOSH_OPENSTACK_CA_CERT:     {{bosh_openstack_ca_cert}}
 
   - name: lifecycle
     serial: true
     serial_groups: [cleanup-lock-lifecycle]
+    build_logs_to_retain: *build_logs_to_retain
     plan:
       - aggregate:
         - {trigger: true,  passed: [cleanup], get: bosh-cpi-dev-artifacts, tags: *tags, timeout: *timeouts-long} # used for job chaining only not for tasks
@@ -115,8 +122,8 @@ jobs:
         file: bosh-cpi-src-in/ci/tasks/run-lifecycle.yml
         params:
           BOSH_OPENSTACK_DOMAIN:                   {{lifecycle_openstack_domain}}
-          BOSH_OPENSTACK_TENANT:                   {{lifecycle_openstack_tenant}}
           BOSH_OPENSTACK_PROJECT:                  {{lifecycle_openstack_project}}
+          BOSH_OPENSTACK_TENANT:                   {{lifecycle_openstack_tenant}}
           BOSH_OPENSTACK_MANUAL_IP:                {{lifecycle_manual_ip}}
           BOSH_OPENSTACK_NO_DHCP_MANUAL_IP_1:      {{lifecycle_no_dhcp_manual_ip_1}}
           BOSH_OPENSTACK_NO_DHCP_MANUAL_IP_2:      {{lifecycle_no_dhcp_manual_ip_2}}
@@ -124,14 +131,14 @@ jobs:
           BOSH_OPENSTACK_NET_ID_NO_DHCP_1:         {{lifecycle_net_id_no_dhcp_1}}
           BOSH_OPENSTACK_NET_ID_NO_DHCP_2:         {{lifecycle_net_id_no_dhcp_2}}
           BOSH_OPENSTACK_AUTH_URL_V2:              {{openstack_auth_url_v2}}
+          BOSH_OPENSTACK_USERNAME_V2:              {{lifecycle_openstack_username_v2}}
+          BOSH_OPENSTACK_API_KEY_V2:               {{lifecycle_openstack_api_key_v2}}
           BOSH_OPENSTACK_AUTH_URL_V3:              {{openstack_auth_url_v3}}
-          BOSH_OPENSTACK_USERNAME:                 {{lifecycle_openstack_username}}
-          BOSH_OPENSTACK_API_KEY:                  {{lifecycle_openstack_api_key}}
           BOSH_OPENSTACK_USERNAME_V3:              {{lifecycle_openstack_username_v3}}
           BOSH_OPENSTACK_API_KEY_V3:               {{lifecycle_openstack_api_key_v3}}
           BOSH_OPENSTACK_DEFAULT_KEY_NAME:         {{lifecycle_openstack_default_key_name}}
           BOSH_CLI_SILENCE_SLOW_LOAD_WARNING:      true
-          BOSH_OPENSTACK_VOLUME_TYPE:              "SSD"
+          BOSH_OPENSTACK_VOLUME_TYPE:              {{lifecycle_openstack_volume_type}}
           BOSH_OPENSTACK_CONNECT_TIMEOUT:          "600"
           BOSH_OPENSTACK_READ_TIMEOUT:             "120"
           BOSH_OPENSTACK_WRITE_TIMEOUT:            "120"
@@ -145,6 +152,7 @@ jobs:
 
   - name: publish-api-calls
     serial: true
+    build_logs_to_retain: *build_logs_to_retain
     plan:
       - aggregate:
         - {trigger: true, passed: [lifecycle], get: lifecycle-log, tags: *tags, timeout: *timeouts-long}
@@ -165,6 +173,7 @@ jobs:
   - name: bats-ubuntu-manual
     serial: true
     serial_groups: [cleanup-lock-bats-ubuntu-manual]
+    build_logs_to_retain: *build_logs_to_retain
     plan:
       - aggregate:
         - {trigger: true,  passed: [cleanup], get: bosh-cpi-dev-artifacts, tags: *tags, timeout: *timeouts-long}
@@ -193,10 +202,11 @@ jobs:
           openstack_net_id:              {{bats_manual_ubuntu_primary_net_id}}
           openstack_security_group:      {{openstack_security_group}}
           openstack_default_key_name:    {{openstack_default_key_name}}
-          openstack_auth_url:            {{openstack_auth_url_v2}}
+          openstack_auth_url:            {{openstack_auth_url_v3}}
           openstack_username:            {{openstack_username}}
           openstack_api_key:             {{openstack_api_key}}
-          openstack_tenant:              {{openstack_tenant}}
+          openstack_project:             {{openstack_project}}
+          openstack_domain:              {{openstack_domain}}
           openstack_floating_ip:         {{bats_manual_ubuntu_director_public_ip}}
           openstack_manual_ip:           {{bats_manual_ubuntu_director_private_ip}}
           openstack_net_cidr:            {{bats_manual_ubuntu_primary_net_cidr}}
@@ -243,6 +253,7 @@ jobs:
   - name: bats-ubuntu-dynamic
     serial: true
     serial_groups: [cleanup-lock-bats-ubuntu-dynamic]
+    build_logs_to_retain: *build_logs_to_retain
     plan:
       - aggregate:
         - {trigger: true,  passed: [cleanup], get: bosh-cpi-dev-artifacts, tags: *tags, timeout: *timeouts-long}
@@ -270,10 +281,11 @@ jobs:
           openstack_net_id:              {{bats_dynamic_ubuntu_primary_net_id}}
           openstack_security_group:      {{openstack_security_group}}
           openstack_default_key_name:    {{openstack_default_key_name}}
-          openstack_auth_url:            {{openstack_auth_url_v2}}
+          openstack_auth_url:            {{openstack_auth_url_v3}}
           openstack_username:            {{openstack_username}}
           openstack_api_key:             {{openstack_api_key}}
-          openstack_tenant:              {{openstack_tenant}}
+          openstack_project:             {{openstack_project}}
+          openstack_domain:              {{openstack_domain}}
           openstack_floating_ip:         {{bats_dynamic_ubuntu_director_public_ip}}
           time_server_1:                 {{time_server_1}}
           time_server_2:                 {{time_server_2}}
@@ -305,6 +317,7 @@ jobs:
   - name: bats-centos-manual
     serial: true
     serial_groups: [cleanup-lock-bats-centos-manual]
+    build_logs_to_retain: *build_logs_to_retain
     plan:
       - aggregate:
         - {trigger: true,  passed: [cleanup], get: bosh-cpi-dev-artifacts, tags: *tags, timeout: *timeouts-long}
@@ -332,10 +345,11 @@ jobs:
           openstack_net_id:              {{bats_manual_centos_primary_net_id}}
           openstack_security_group:      {{openstack_security_group}}
           openstack_default_key_name:    {{openstack_default_key_name}}
-          openstack_auth_url:            {{openstack_auth_url_v2}}
+          openstack_auth_url:            {{openstack_auth_url_v3}}
           openstack_username:            {{openstack_username}}
           openstack_api_key:             {{openstack_api_key}}
-          openstack_tenant:              {{openstack_tenant}}
+          openstack_project:             {{openstack_project}}
+          openstack_domain:              {{openstack_domain}}
           openstack_floating_ip:         {{bats_manual_centos_director_public_ip}}
           openstack_manual_ip:           {{bats_manual_centos_director_private_ip}}
           openstack_net_cidr:            {{bats_manual_centos_primary_net_cidr}}
@@ -383,6 +397,7 @@ jobs:
   - name: bats-centos-dynamic
     serial: true
     serial_groups: [cleanup-lock-bats-centos-dynamic]
+    build_logs_to_retain: *build_logs_to_retain
     plan:
       - aggregate:
         - {trigger: true,  passed: [cleanup], get: bosh-cpi-dev-artifacts, tags: *tags, timeout: *timeouts-long}
@@ -410,10 +425,11 @@ jobs:
           openstack_net_id:              {{bats_dynamic_centos_primary_net_id}}
           openstack_security_group:      {{openstack_security_group}}
           openstack_default_key_name:    {{openstack_default_key_name}}
-          openstack_auth_url:            {{openstack_auth_url_v2}}
+          openstack_auth_url:            {{openstack_auth_url_v3}}
           openstack_username:            {{openstack_username}}
           openstack_api_key:             {{openstack_api_key}}
-          openstack_tenant:              {{openstack_tenant}}
+          openstack_project:             {{openstack_project}}
+          openstack_domain:              {{openstack_domain}}
           openstack_floating_ip:         {{bats_dynamic_centos_director_public_ip}}
           time_server_1:                 {{time_server_1}}
           time_server_2:                 {{time_server_2}}
@@ -444,6 +460,7 @@ jobs:
 
   - name: promote-candidate
     serial: true
+    build_logs_to_retain: *build_logs_to_retain
     plan:
       - aggregate:
         - {trigger: false, passed: [lifecycle, bats-ubuntu-manual, bats-centos-manual, bats-ubuntu-dynamic, bats-centos-dynamic], get: bosh-cpi-dev-artifacts, tags: *tags, timeout: *timeouts-long}

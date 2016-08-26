@@ -19,7 +19,8 @@ source bosh-cpi-src-in/ci/tasks/utils.sh
 : {openstack_auth_url:?}
 : {openstack_username:?}
 : {openstack_api_key:?}
-: {openstack_tenant:?}
+: {openstack_project:?}
+: {openstack_domain:?}
 : {openstack_floating_ip:?}
 : {openstack_manual_ip:?}
 : {openstack_net_cidr:?}
@@ -171,7 +172,8 @@ jobs:
         auth_url: ${openstack_auth_url}
         username: ${openstack_username}
         api_key: ${openstack_api_key}
-        tenant: ${openstack_tenant}
+        project: ${openstack_project}
+        domain: ${openstack_domain}
         region: #leave this blank
         endpoint_type: publicURL
         default_key_name: ${openstack_default_key_name}

@@ -192,10 +192,10 @@ describe Bosh::OpenStackCloud::Cloud do
 
     it 'converts keys to symbols' do
       properties = {
-        "name" => "name",
+        "version" => "123",
       }
 
-      expect(subject.normalize_image_properties(properties)).to have_key(:name)
+      expect(subject.normalize_image_properties(properties)).to have_key(:version)
     end
 
     it 'maps hypervisor key to hypervisor_type' do

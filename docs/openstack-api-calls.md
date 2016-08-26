@@ -42,9 +42,13 @@ POST /v3/auth/tokens body: {"auth":{"identity":{"methods":["password"],"password
 ### All calls for API endpoint 'image (glance)'
 ```
 DELETE /v1/images/<resource_id>
+DELETE /v2/images/<resource_id>
 GET /
 GET /v1/images/detail
+GET /v2/images
 POST /v1/images
+POST /v2/images body: {"name":"<name>","disk_format":"qcow2","container_format":"bare","visibility":"private","version":"3262.8","os_type":"linux","os_distro":"ubuntu","architecture":"x86_64","auto_disk_config":"true","hypervisor_type":"kvm"}
+PUT /v2/images/<resource_id>/file
 ```
 ### All calls for API endpoint 'network (neutron)'
 ```
@@ -57,10 +61,10 @@ POST /v2.0/ports body: {"port":{"network_id":"<resource_id>","fixed_ips":[{"ip_a
 ```
 ### All calls for API endpoint 'orchestration (heat)'
 ### All calls for API endpoint 'volume (cinder)'
-```
-GET /v1/<tenant_id>/volumes/<resource_id>
-POST /v1/<tenant_id>/volumes body: {"volume":{"display_name":"volume-<resource_id>","display_description":"<display_description>","size":"<size>","availability_zone":"<availability_zone>"}}
-POST /v1/<tenant_id>/volumes body: {"volume":{"display_name":"volume-<resource_id>","display_description":"<display_description>","size":"<size>","volume_type":"SSD","availability_zone":"<availability_zone>"}}
-POST /v1/<tenant_id>/volumes body: {"volume":{"display_name":"volume-<resource_id>","display_description":"<display_description>","size":"<size>"}}
-```
 ### All calls for API endpoint 'volumev2 (cinderv2)'
+```
+GET /v2/<tenant_id>/volumes/<resource_id>
+POST /v2/<tenant_id>/volumes body: {"volume":{"name":"<name>","description":"","size":"<size>","availability_zone":"<availability_zone>"}}
+POST /v2/<tenant_id>/volumes body: {"volume":{"name":"<name>","description":"","size":"<size>","volume_type":"SSD","availability_zone":"<availability_zone>"}}
+POST /v2/<tenant_id>/volumes body: {"volume":{"name":"<name>","description":"","size":"<size>"}}
+```
