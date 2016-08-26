@@ -18,8 +18,8 @@ module Bosh::OpenStackCloud
         end
 
         # allow openstack config to be overwritten dynamically by context
-        if context && context['cpi_properties']
-          cloud_properties['openstack'] = context['cpi_properties']
+        if context && context['openstack']
+          cloud_properties['openstack'] = context['openstack']
 
           # write ca cert to disk if given in context
           connection_options = cloud_properties['openstack']['connection_options']

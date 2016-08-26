@@ -44,10 +44,10 @@ describe Bosh::OpenStackCloud::CpiLambda do
       end
     end
 
-    context 'if cpi_properties are provided in the context' do
+    context 'if openstack properties are provided in the context' do
       it 'overwrites the openstack properties' do
         context = {
-            'cpi_properties' => {
+            'openstack' => {
                 'newkey' => 'newvalue',
                 'newkey2' => 'newvalue2',
             }
@@ -62,7 +62,7 @@ describe Bosh::OpenStackCloud::CpiLambda do
         ca_file = Tempfile.new('ca_cert')
 
         context = {
-            'cpi_properties' => {
+            'openstack' => {
                 'newkey' => 'newvalue',
                 'connection_options' => {'ca_cert' => 'xyz'}
             }
