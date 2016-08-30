@@ -20,6 +20,15 @@ custom:
   timeouts:
     long: &timeouts-long 2h
   build_logs_to_retain: &build_logs_to_retain 500
+  mail:
+    without_mail: &send-failure-email
+      on_failure: ~
+    with_mail:
+      on_failure:
+        put: send-an-email
+        params:
+          subject: {{email_subject}}
+          body: {{email_body}}
 
 jobs:
   - name: e2e-centos
@@ -68,6 +77,7 @@ jobs:
           v3_e2e_blobstore_secret_key: {{v3_e2e_blobstore_secret_key}}
           time_server_1:               {{time_server_1}}
           time_server_2:               {{time_server_2}}
+        <<: *send-failure-email
 
       - task: deploy-dummy-release
         tags: *tags
@@ -81,6 +91,7 @@ jobs:
           v3_e2e_security_group:   {{v3_e2e_security_group}}
           network_id:              {{v3_e2e_net_id}}
           stemcell_name:           "bosh-openstack-kvm-centos-7-go_agent"
+        <<: *send-failure-email
 
       - task: teardown-director
         tags: *tags
@@ -89,6 +100,7 @@ jobs:
         params:
           bosh_admin_password: {{bosh_admin_password}}
           bosh_director_ip:    {{v3_e2e_centos_director_floating_ip}}
+        <<: *send-failure-email
 
   - name: e2e-ubuntu
     serial: true
@@ -111,6 +123,7 @@ jobs:
           <<:                    *centos-deploy-director-params
           director_floating_ip:  {{v3_e2e_ubuntu_director_floating_ip}}
           director_manual_ip:    {{v3_e2e_ubuntu_director_manual_ip}}
+        <<: *send-failure-email
 
       - task: deploy-dummy-release
         tags: *tags
@@ -124,6 +137,7 @@ jobs:
           v3_e2e_security_group:   {{v3_e2e_security_group}}
           network_id:              {{v3_e2e_net_id}}
           stemcell_name:           "bosh-openstack-kvm-ubuntu-trusty-go_agent"
+        <<: *send-failure-email
 
       - task: teardown-director
         tags: *tags
@@ -132,6 +146,7 @@ jobs:
         params:
           bosh_admin_password: {{bosh_admin_password}}
           bosh_director_ip:    {{v3_e2e_ubuntu_director_floating_ip}}
+        <<: *send-failure-email
 
   - name: e2e-centos-config-drive
     serial: true
@@ -181,6 +196,7 @@ jobs:
           v3_e2e_blobstore_secret_key: {{v3_e2e_blobstore_secret_key}}
           time_server_1:               {{time_server_1}}
           time_server_2:               {{time_server_2}}
+        <<: *send-failure-email
 
       - task: deploy-dummy-release
         tags: *tags
@@ -203,6 +219,7 @@ jobs:
           network_no_dhcp_2_gateway: {{v3_e2e_net_no_dhcp_2_gateway}}
           network_no_dhcp_2_ip:      {{v3_e2e_net_no_dhcp_2_ip_centos}}
           stemcell_name:             "bosh-openstack-kvm-centos-7-go_agent"
+        <<: *send-failure-email
 
       - task: teardown-director
         tags: *tags
@@ -211,6 +228,7 @@ jobs:
         params:
           bosh_admin_password: {{bosh_admin_password}}
           bosh_director_ip:    {{v3_e2e_centos_config_drive_floating_ip}}
+        <<: *send-failure-email
 
   - name: e2e-ubuntu-config-drive
     serial: true
@@ -233,6 +251,7 @@ jobs:
           <<: *e2e-centos-config-drive-director-params
           director_floating_ip: {{v3_e2e_ubuntu_config_drive_floating_ip}}
           director_manual_ip:   {{v3_e2e_ubuntu_config_drive_manual_ip}}
+        <<: *send-failure-email
 
       - task: deploy-dummy-release
         tags: *tags
@@ -255,6 +274,7 @@ jobs:
           network_no_dhcp_2_gateway: {{v3_e2e_net_no_dhcp_2_gateway}}
           network_no_dhcp_2_ip:      {{v3_e2e_net_no_dhcp_2_ip_ubuntu}}
           stemcell_name:             "bosh-openstack-kvm-ubuntu-trusty-go_agent"
+        <<: *send-failure-email
 
       - task: teardown-director
         tags: *tags
@@ -263,6 +283,7 @@ jobs:
         params:
           bosh_admin_password: {{bosh_admin_password}}
           bosh_director_ip:    {{v3_e2e_ubuntu_config_drive_floating_ip}}
+        <<: *send-failure-email
 
   - name: test-upgrade-centos
     serial: true
@@ -314,6 +335,7 @@ jobs:
           old_bosh_stemcell_name:            bosh-openstack-kvm-centos-7-go_agent
           old_bosh_stemcell_version:         3192
           old_bosh_stemcell_sha1:            a1a9715bb821a3b860d480295edad0b9b087fd3b
+        <<: *send-failure-email
 
       - task: deploy-dummy-release-with-old-cpi
         tags: *tags
@@ -328,6 +350,7 @@ jobs:
           network_id:                  {{v3_e2e_net_id}}
           stemcell_name:               "bosh-openstack-kvm-centos-7-go_agent"
           delete_deployment_when_done: "false"
+        <<: *send-failure-email
 
       - task: test-upgrade
         tags: *tags
@@ -358,11 +381,13 @@ jobs:
           v3_e2e_private_key_data:         {{v3_e2e_private_key_data}}
           time_server_1:                   {{time_server_1}}
           time_server_2:                   {{time_server_2}}
+        <<: *send-failure-email
 
       - task: teardown-director
         tags: *tags
         timeout: *timeouts-long
         file: bosh-cpi-src-in/ci/pipelines/certify-stemcell/tasks/teardown.yml
+        <<: *send-failure-email
 
   - name: test-upgrade-ubuntu
     serial: true
@@ -389,6 +414,7 @@ jobs:
           old_bosh_stemcell_name:          bosh-openstack-kvm-ubuntu-trusty-go_agent
           old_bosh_stemcell_version:       3192
           old_bosh_stemcell_sha1:          a65173c58f36b108b4fe701f09588d3a7e9ed75f
+        <<: *send-failure-email
 
       - task: deploy-dummy-release-with-old-cpi
         tags: *tags
@@ -403,6 +429,7 @@ jobs:
           network_id:                  {{v3_e2e_net_id}}
           stemcell_name:               "bosh-openstack-kvm-ubuntu-trusty-go_agent"
           delete_deployment_when_done: "false"
+        <<: *send-failure-email
 
       - task: test-upgrade
         tags: *tags
@@ -412,11 +439,13 @@ jobs:
           <<:                              *centos-test-upgrade-params
           v3_upgrade_director_floating_ip: {{v3_ubuntu_upgrade_director_floating_ip}}
           v3_upgrade_director_manual_ip:   {{v3_ubuntu_upgrade_director_manual_ip}}
+        <<: *send-failure-email
 
       - task: teardown-director
         tags: *tags
         timeout: *timeouts-long
         file: bosh-cpi-src-in/ci/pipelines/certify-stemcell/tasks/teardown.yml
+        <<: *send-failure-email
 
   - name: cleanup
     serial: true
@@ -443,6 +472,7 @@ jobs:
           BOSH_OPENSTACK_API_KEY:              {{v3_e2e_api_key}}
           BOSH_OPENSTACK_PROJECT:              {{v3_e2e_project}}
           BOSH_OPENSTACK_CA_CERT:              {{bosh_openstack_ca_cert}}
+        <<: *send-failure-email
 
   - name: certify-ubuntu
     plan:
@@ -489,6 +519,13 @@ jobs:
         timeout: *timeouts-long
         params:
           file: certification-receipt/*-receipt.json
+
+resource_types:
+  - name: email
+    type: docker-image
+    source:
+      repository: friegger/email-resource
+      tag: noauth
 
 resources:
   - name: bosh-cpi-dev-artifacts
@@ -559,3 +596,12 @@ resources:
       bucket: {{s3_openstack_cpi_receipts_bucket_name}}
       regexp: .*-(\d+)-receipt\.json
       region_name: us-east-1
+
+  - name: send-an-email
+    type: email
+    source:
+      smtp:
+        host: {{email_host}}
+        port: {{email_port}}
+      from: {{email_from}}
+      to: [ {{email_to}} ]

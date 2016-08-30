@@ -40,7 +40,15 @@ custom:
   timeouts:
     long: &timeouts-long 2h
   build_logs_to_retain: &build_logs_to_retain 500
-
+  mail:
+    without_mail: &send-failure-email
+      on_failure: ~
+    with_mail:
+      on_failure:
+        put: send-an-email
+        params:
+          subject: {{email_subject}}
+          body: {{email_body}}
 jobs:
   - name: build-candidate
     serial: true
@@ -93,6 +101,7 @@ jobs:
            BOSH_OPENSTACK_PROJECT:     {{lifecycle_openstack_project}}
            BOSH_OPENSTACK_DOMAIN_NAME: {{lifecycle_openstack_domain}}
            BOSH_OPENSTACK_CA_CERT:     {{bosh_openstack_ca_cert}}
+        <<: *send-failure-email
 
       - task: cleanup-bats
         tags: *tags
@@ -105,6 +114,7 @@ jobs:
           BOSH_OPENSTACK_PROJECT:     {{openstack_project}}
           BOSH_OPENSTACK_DOMAIN_NAME: {{openstack_domain}}
           BOSH_OPENSTACK_CA_CERT:     {{bosh_openstack_ca_cert}}
+        <<: *send-failure-email
 
   - name: lifecycle
     serial: true
@@ -144,6 +154,7 @@ jobs:
           BOSH_OPENSTACK_WRITE_TIMEOUT:            "120"
           BOSH_OPENSTACK_CA_CERT:                  {{bosh_openstack_ca_cert}}
           BOSH_OPENSTACK_FLAVOR_WITH_NO_ROOT_DISK: {{openstack_flavor_with_no_root_disk}}
+        <<: *send-failure-email
 
       - put: lifecycle-log
         tags: *tags
@@ -213,6 +224,7 @@ jobs:
           openstack_net_gateway:         {{bats_manual_ubuntu_primary_net_gateway}}
           time_server_1:                 {{time_server_1}}
           time_server_2:                 {{time_server_2}}
+        <<: *send-failure-email
 
       - task: test
         tags: *tags
@@ -241,6 +253,7 @@ jobs:
           secondary_network_range:                  {{bats_manual_ubuntu_secondary_net_static_range}}
           secondary_network_manual_ip:              {{bats_manual_ubuntu_secondary_net_manual_ip}}
           secondary_network_dhcp_pool:              {{bats_manual_ubuntu_secondary_net_dhcp_pool}}
+        <<: *send-failure-email
 
       - task: teardown-director
         tags: *tags
@@ -249,6 +262,7 @@ jobs:
         params:
           bosh_admin_password:                     {{bosh_admin_password}}
           bosh_director_ip:                        {{bats_manual_ubuntu_director_public_ip}}
+        <<: *send-failure-email
 
   - name: bats-ubuntu-dynamic
     serial: true
@@ -290,6 +304,7 @@ jobs:
           time_server_1:                 {{time_server_1}}
           time_server_2:                 {{time_server_2}}
           private_key_data:              {{bosh_private_key}}
+        <<: *send-failure-email
 
       - task: test
         tags: *tags
@@ -305,6 +320,7 @@ jobs:
           openstack_security_group:                 {{openstack_security_group}}
           primary_network_id:                       {{bats_dynamic_ubuntu_primary_net_id}}
           private_key_data:                         {{bosh_private_key}}
+        <<: *send-failure-email
 
       - task: teardown-director
         tags: *tags
@@ -313,6 +329,7 @@ jobs:
         params:
           bosh_admin_password:                     {{bosh_admin_password}}
           bosh_director_ip:                        {{bats_dynamic_ubuntu_director_public_ip}}
+        <<: *send-failure-email
 
   - name: bats-centos-manual
     serial: true
@@ -357,6 +374,7 @@ jobs:
           time_server_1:                 {{time_server_1}}
           time_server_2:                 {{time_server_2}}
           private_key_data:              {{bosh_private_key}}
+        <<: *send-failure-email
 
       - task: test
         tags: *tags
@@ -385,6 +403,7 @@ jobs:
           secondary_network_range:                  {{bats_manual_centos_secondary_net_static_range}}
           secondary_network_manual_ip:              {{bats_manual_centos_secondary_net_manual_ip}}
           secondary_network_dhcp_pool:              {{bats_manual_centos_secondary_net_dhcp_pool}}
+        <<: *send-failure-email
 
       - task: teardown-director
         tags: *tags
@@ -393,6 +412,7 @@ jobs:
         params:
           bosh_admin_password:                     {{bosh_admin_password}}
           bosh_director_ip:                        {{bats_manual_centos_director_public_ip}}
+        <<: *send-failure-email
 
   - name: bats-centos-dynamic
     serial: true
@@ -434,6 +454,7 @@ jobs:
           time_server_1:                 {{time_server_1}}
           time_server_2:                 {{time_server_2}}
           private_key_data:              {{bosh_private_key}}
+        <<: *send-failure-email
 
       - task: test
         tags: *tags
@@ -449,6 +470,7 @@ jobs:
           openstack_security_group:                 {{openstack_security_group}}
           primary_network_id:                       {{bats_dynamic_centos_primary_net_id}}
           private_key_data:                         {{bosh_private_key}}
+        <<: *send-failure-email
 
       - task: teardown-director
         tags: *tags
@@ -457,6 +479,7 @@ jobs:
         params:
           bosh_admin_password:                     {{bosh_admin_password}}
           bosh_director_ip:                        {{bats_dynamic_centos_director_public_ip}}
+        <<: *send-failure-email
 
   - name: promote-candidate
     serial: true
@@ -483,6 +506,13 @@ jobs:
         tags: *tags
         timeout: *timeouts-long
         params: {repository: promote/repo, rebase: true, tag: promote/integer_version, tag_prefix: "v"}
+
+resource_types:
+  - name: email
+    type: docker-image
+    source:
+      repository: friegger/email-resource
+      tag: noauth
 
 resources:
   - name: bosh-cpi-dev-artifacts
@@ -575,3 +605,12 @@ resources:
     type: time
     source:
       interval: {{pipeline-time-trigger-interval}}
+
+  - name: send-an-email
+    type: email
+    source:
+      smtp:
+        host: {{email_host}}
+        port: {{email_port}}
+      from: {{email_from}}
+      to: [ {{email_to}} ]
