@@ -457,8 +457,8 @@ jobs:
         - {trigger: true,  get: bosh-init,         tags: *tags, timeout: *timeouts-long}
         - {trigger: true,  get: bosh-cpi-release,  tags: *tags, timeout: *timeouts-long, resource: bosh-cpi-dev-artifacts}
         - {trigger: true,  get: bosh-release,      tags: *tags, timeout: *timeouts-long}
-        - {trigger: true,  get: stemcell,          tags: *tags, timeout: *timeouts-long, resource: centos-stemcell}
-        - {trigger: true,  get: stemcell,          tags: *tags, timeout: *timeouts-long, resource: ubuntu-stemcell}
+        - {trigger: true,  get: centos-stemcell,   tags: *tags, timeout: *timeouts-long}
+        - {trigger: true,  get: ubuntu-stemcell,   tags: *tags, timeout: *timeouts-long}
 
       - task: cleanup-e2e
         tags: *tags
