@@ -599,7 +599,6 @@ resources:
     type: bosh-io-stemcell
     source:
       name: bosh-openstack-kvm-ubuntu-trusty-go_agent
-      version: 3147
 
   - name: pipeline-time-trigger
     type: time
