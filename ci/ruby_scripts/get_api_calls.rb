@@ -55,7 +55,7 @@ def scrub_random_values!(requests)
     # life cycle test uses this fake ids which doesn't match any uuid reqex
     request[:path].gsub!('non-existing-disk', '<resource_id>')
     request[:path].gsub!('non-existing-vm-id', '<resource_id>')
-    keys_to_scrub = ['user_data', 'display_description', 'device', 'password', 'fixed_ip', 'availability_zone', 'key_name', 'username', 'tenantName', 'name', 'token', 'ip_address', 'device_id']
+    keys_to_scrub = ['user_data', 'display_description', 'device', 'password', 'fixed_ip', 'availability_zone', 'key_name', 'username', 'tenantName', 'name', 'token', 'ip_address', 'device_id', 'version']
     if request[:query]
       keys_to_scrub.each do |key|
         scrub_random_query_value!(request[:query], key)
