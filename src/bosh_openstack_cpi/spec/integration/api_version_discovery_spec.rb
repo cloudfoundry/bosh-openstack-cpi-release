@@ -195,7 +195,7 @@ describe Bosh::OpenStackCloud::Cloud do
   end
 
   def create_http_connection(token_response_uri)
-    ssl_options = {use_ssl: true}
+    ssl_options = {use_ssl: token_response_uri.scheme == 'https'}
     if @additional_connection_options['ssl_ca_file']
       ssl_options[:ca_file] = @additional_connection_options['ssl_ca_file']
     elsif @additional_connection_options['ssl_verify_peer']
