@@ -42,3 +42,4 @@ params:
   time_server_2:                       ""
   s3_compiled_bosh_release_access_key: ""
   s3_compiled_bosh_release_secret_key: ""
+  distro:                              ""

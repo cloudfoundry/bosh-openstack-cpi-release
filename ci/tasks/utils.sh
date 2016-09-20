@@ -19,10 +19,11 @@ optional_value() {
 }
 
 prepare_bosh_release() {
+    use_compiled_release=true
     if [ ! -z ${s3_compiled_bosh_release_access_key} ] && [ ! -z ${s3_compiled_bosh_release_secret_key} ];then
         configure_s3cmd
 
-        local s3_path_to_bosh_release=$(find_bosh_compiled_release ${old_bosh_release_version} ${old_bosh_stemcell_version})
+        local s3_path_to_bosh_release=$(find_bosh_compiled_release ${distro} ${old_bosh_release_version} ${old_bosh_stemcell_version})
 
         if [ ! -z ${s3_path_to_bosh_release} ];then
             s3cmd get ${s3_path_to_bosh_release} ${deployment_dir}/bosh-release.tgz
@@ -34,7 +35,7 @@ prepare_bosh_release() {
        use_compiled_release=false
     fi
 
-    if [ ${use_compiled_release} = false ];then
+    if [ "${use_compiled_release}" = "false" ];then
        echo "Using BOSH release from sources"
        if [ -z ${old_bosh_release_version} ];then
         cp ./bosh-release/release.tgz ${deployment_dir}/bosh-release.tgz
@@ -47,10 +48,11 @@ prepare_bosh_release() {
 }
 
 find_bosh_compiled_release(){
-    local bosh_release_version=${1:-`cat ./bosh-release/version`}
-    local stemcell_version=${2:-`cat ./stemcell/version`}
+    local distro=$1
+    local bosh_release_version=${2:-`cat ./bosh-release/version`}
+    local stemcell_version=${3:-`cat ./stemcell/version`}
 
-    local s3_path_to_bosh_release=`s3cmd ls s3://bosh-compiled-release-tarballs | sort -r | grep -oE "s3:\/\/.+$bosh_release_version.+ubuntu.+$stemcell_version.+\.tgz" | head -1`
+    local s3_path_to_bosh_release=`s3cmd ls s3://bosh-compiled-release-tarballs | sort -r | grep -oE "s3:\/\/.+$bosh_release_version.+$distro.+$stemcell_version.+\.tgz" | head -1`
     echo ${s3_path_to_bosh_release}
 }
 

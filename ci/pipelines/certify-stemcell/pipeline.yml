@@ -79,6 +79,7 @@ jobs:
           time_server_2:                        {{time_server_2}}
           s3_compiled_bosh_release_access_key:  {{s3_compiled_bosh_release_access_key}}
           s3_compiled_bosh_release_secret_key:  {{s3_compiled_bosh_release_secret_key}}
+          distro:                               "centos"
         <<: *send-failure-email
 
       - task: deploy-dummy-release
@@ -125,6 +126,7 @@ jobs:
           <<:                    *centos-deploy-director-params
           director_floating_ip:  {{v3_e2e_ubuntu_director_floating_ip}}
           director_manual_ip:    {{v3_e2e_ubuntu_director_manual_ip}}
+          distro:                "ubuntu"
         <<: *send-failure-email
 
       - task: deploy-dummy-release
@@ -200,6 +202,7 @@ jobs:
           time_server_2:                        {{time_server_2}}
           s3_compiled_bosh_release_access_key:  {{s3_compiled_bosh_release_access_key}}
           s3_compiled_bosh_release_secret_key:  {{s3_compiled_bosh_release_secret_key}}
+          distro:                               "centos"
         <<: *send-failure-email
 
       - task: deploy-dummy-release
@@ -255,6 +258,7 @@ jobs:
           <<: *e2e-centos-config-drive-director-params
           director_floating_ip: {{v3_e2e_ubuntu_config_drive_floating_ip}}
           director_manual_ip:   {{v3_e2e_ubuntu_config_drive_manual_ip}}
+          distro:               "ubuntu"
         <<: *send-failure-email
 
       - task: deploy-dummy-release
@@ -341,6 +345,7 @@ jobs:
           old_bosh_stemcell_sha1:               8a4f597368d330f8699c17b62993c43de5de2ba4
           s3_compiled_bosh_release_access_key:  {{s3_compiled_bosh_release_access_key}}
           s3_compiled_bosh_release_secret_key:  {{s3_compiled_bosh_release_secret_key}}
+          distro:                               "centos"
         <<: *send-failure-email
 
       - task: deploy-dummy-release-with-old-cpi
@@ -389,6 +394,7 @@ jobs:
           time_server_2:                        {{time_server_2}}
           s3_compiled_bosh_release_access_key:  {{s3_compiled_bosh_release_access_key}}
           s3_compiled_bosh_release_secret_key:  {{s3_compiled_bosh_release_secret_key}}
+          distro:                               "centos"
         <<: *send-failure-email
 
       - task: teardown-director
@@ -421,6 +427,7 @@ jobs:
           v3_upgrade_director_manual_ip:   {{v3_ubuntu_upgrade_director_manual_ip}}
           old_bosh_stemcell_name:          bosh-openstack-kvm-ubuntu-trusty-go_agent
           old_bosh_stemcell_sha1:          6e103aab1c4aa22e48743eb3a5d8c51410fd172f
+          distro:                          "ubuntu"
         <<: *send-failure-email
 
       - task: deploy-dummy-release-with-old-cpi
@@ -446,6 +453,7 @@ jobs:
           <<:                              *centos-test-upgrade-params
           v3_upgrade_director_floating_ip: {{v3_ubuntu_upgrade_director_floating_ip}}
           v3_upgrade_director_manual_ip:   {{v3_ubuntu_upgrade_director_manual_ip}}
+          distro:                          "ubuntu"
         <<: *send-failure-email
 
       - task: teardown-director

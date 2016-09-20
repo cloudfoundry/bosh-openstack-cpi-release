@@ -27,6 +27,7 @@ source bosh-cpi-src-in/ci/tasks/utils.sh
 optional_value bosh_openstack_ca_cert
 optional_value s3_compiled_bosh_release_access_key
 optional_value s3_compiled_bosh_release_secret_key
+optional_value distro
 
 source /etc/profile.d/chruby-with-ruby-2.1.2.sh
 

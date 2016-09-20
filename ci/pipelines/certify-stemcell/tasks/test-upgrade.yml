@@ -43,3 +43,4 @@ params:
   time_server_2:                       replace-me
   s3_compiled_bosh_release_access_key: replace-me
   s3_compiled_bosh_release_secret_key: replace-me
+  distro:                              replace-me

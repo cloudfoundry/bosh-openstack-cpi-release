@@ -226,6 +226,7 @@ jobs:
           time_server_2:                        {{time_server_2}}
           s3_compiled_bosh_release_access_key:  {{s3_compiled_bosh_release_access_key}}
           s3_compiled_bosh_release_secret_key:  {{s3_compiled_bosh_release_secret_key}}
+          distro:                               "ubuntu"
         <<: *send-failure-email
 
       - task: test
@@ -308,6 +309,7 @@ jobs:
           private_key_data:                     {{bosh_private_key}}
           s3_compiled_bosh_release_access_key:  {{s3_compiled_bosh_release_access_key}}
           s3_compiled_bosh_release_secret_key:  {{s3_compiled_bosh_release_secret_key}}
+          distro:                               "ubuntu"
         <<: *send-failure-email
 
       - task: test
@@ -380,6 +382,7 @@ jobs:
           private_key_data:                     {{bosh_private_key}}
           s3_compiled_bosh_release_access_key:  {{s3_compiled_bosh_release_access_key}}
           s3_compiled_bosh_release_secret_key:  {{s3_compiled_bosh_release_secret_key}}
+          distro:                               "centos"
         <<: *send-failure-email
 
       - task: test
@@ -462,6 +465,7 @@ jobs:
           private_key_data:                     {{bosh_private_key}}
           s3_compiled_bosh_release_access_key:  {{s3_compiled_bosh_release_access_key}}
           s3_compiled_bosh_release_secret_key:  {{s3_compiled_bosh_release_secret_key}}
+          distro:                               "centos"
         <<: *send-failure-email
 
       - task: test
