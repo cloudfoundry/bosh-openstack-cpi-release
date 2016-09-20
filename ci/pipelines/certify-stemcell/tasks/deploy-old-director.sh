@@ -34,7 +34,9 @@ ensure_not_replace_value old_bosh_stemcell_version
 ensure_not_replace_value old_bosh_stemcell_sha1
 ensure_not_replace_value time_server_1
 ensure_not_replace_value time_server_2
-optional_value           bosh_openstack_ca_cert
+optional_value bosh_openstack_ca_cert
+optional_value s3_compiled_bosh_release_access_key
+optional_value s3_compiled_bosh_release_secret_key
 
 source /etc/profile.d/chruby-with-ruby-2.1.2.sh
 
@@ -47,6 +49,7 @@ bosh_vcap_password_hash=$(ruby -e 'require "securerandom";puts ENV["bosh_admin_p
 
 echo "setting up artifacts used in $manifest_filename"
 mkdir -p ${deployment_dir}
+prepare_bosh_release
 
 echo "${v3_e2e_private_key_data}" > ${private_key}
 chmod go-r ${private_key}
@@ -60,8 +63,7 @@ name: bosh
 
 releases:
   - name: bosh
-    url: https://bosh.io/d/github.com/cloudfoundry/bosh?v=${old_bosh_release_version}
-    sha1: ${old_bosh_release_sha1}
+    url: file://bosh-release.tgz
   - name: bosh-openstack-cpi
     url: http://bosh.io/d/github.com/cloudfoundry-incubator/bosh-openstack-cpi-release?v=${old_openstack_cpi_release_version}
     sha1: ${old_openstack_cpi_release_sha1}

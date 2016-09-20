@@ -34,6 +34,8 @@ ensure_not_replace_value time_server_2
 optional_value v3_e2e_use_dhcp
 optional_value bosh_openstack_ca_cert
 optional_value v3_e2e_config_drive
+optional_value s3_compiled_bosh_release_access_key
+optional_value s3_compiled_bosh_release_secret_key
 
 source /etc/profile.d/chruby-with-ruby-2.1.2.sh
 
@@ -46,8 +48,8 @@ bosh_vcap_password_hash=$(ruby -e 'require "securerandom";puts ENV["bosh_admin_p
 
 echo "setting up artifacts used in $manifest_filename"
 cp ./bosh-cpi-release/*.tgz ${deployment_dir}/bosh-openstack-cpi.tgz
-cp ./bosh-release/release.tgz ${deployment_dir}/bosh-release.tgz
 cp ./stemcell/stemcell.tgz ${deployment_dir}/stemcell.tgz
+prepare_bosh_release
 
 echo "${v3_e2e_private_key_data}" > ${private_key}
 chmod go-r ${private_key}
