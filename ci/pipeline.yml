@@ -224,8 +224,6 @@ jobs:
           openstack_net_gateway:                {{bats_manual_ubuntu_primary_net_gateway}}
           time_server_1:                        {{time_server_1}}
           time_server_2:                        {{time_server_2}}
-          s3_compiled_bosh_release_access_key:  {{s3_compiled_bosh_release_access_key}}
-          s3_compiled_bosh_release_secret_key:  {{s3_compiled_bosh_release_secret_key}}
           distro:                               "ubuntu"
         <<: *send-failure-email
 
@@ -307,8 +305,6 @@ jobs:
           time_server_1:                        {{time_server_1}}
           time_server_2:                        {{time_server_2}}
           private_key_data:                     {{bosh_private_key}}
-          s3_compiled_bosh_release_access_key:  {{s3_compiled_bosh_release_access_key}}
-          s3_compiled_bosh_release_secret_key:  {{s3_compiled_bosh_release_secret_key}}
           distro:                               "ubuntu"
         <<: *send-failure-email
 
@@ -380,8 +376,6 @@ jobs:
           time_server_1:                        {{time_server_1}}
           time_server_2:                        {{time_server_2}}
           private_key_data:                     {{bosh_private_key}}
-          s3_compiled_bosh_release_access_key:  {{s3_compiled_bosh_release_access_key}}
-          s3_compiled_bosh_release_secret_key:  {{s3_compiled_bosh_release_secret_key}}
           distro:                               "centos"
         <<: *send-failure-email
 
@@ -463,8 +457,6 @@ jobs:
           time_server_1:                        {{time_server_1}}
           time_server_2:                        {{time_server_2}}
           private_key_data:                     {{bosh_private_key}}
-          s3_compiled_bosh_release_access_key:  {{s3_compiled_bosh_release_access_key}}
-          s3_compiled_bosh_release_secret_key:  {{s3_compiled_bosh_release_secret_key}}
           distro:                               "centos"
         <<: *send-failure-email
 
