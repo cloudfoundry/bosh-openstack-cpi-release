@@ -26,8 +26,8 @@ prepare_bosh_release() {
         local s3_path_to_bosh_release=$(find_bosh_compiled_release ${distro} ${old_bosh_release_version} ${old_bosh_stemcell_version})
 
         if [ ! -z ${s3_path_to_bosh_release} ];then
-            s3cmd get ${s3_path_to_bosh_release} ${deployment_dir}/bosh-release.tgz
             echo "Using compiled BOSH release: $s3_path_to_bosh_release"
+            s3cmd get --force ${s3_path_to_bosh_release} ${deployment_dir}/bosh-release.tgz
         else
             use_compiled_release=false
         fi
@@ -52,7 +52,7 @@ find_bosh_compiled_release(){
     local bosh_release_version=${2:-`cat ./bosh-release/version`}
     local stemcell_version=${3:-`cat ./stemcell/version`}
 
-    local s3_path_to_bosh_release=`s3cmd ls s3://bosh-compiled-release-tarballs | sort -r | grep -oE "s3:\/\/.+$bosh_release_version.+$distro.+$stemcell_version.+\.tgz" | head -1`
+    local s3_path_to_bosh_release=`s3cmd ls s3://bosh-compiled-release-tarballs | sort -r | grep -oE "s3:\/\/.+$bosh_release_version.+$distro.+$stemcell_version.*\.tgz" | head -1`
     echo ${s3_path_to_bosh_release}
 }
 
