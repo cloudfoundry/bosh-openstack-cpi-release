@@ -77,8 +77,6 @@ jobs:
           v3_e2e_blobstore_secret_key:          {{v3_e2e_blobstore_secret_key}}
           time_server_1:                        {{time_server_1}}
           time_server_2:                        {{time_server_2}}
-          s3_compiled_bosh_release_access_key:  {{s3_compiled_bosh_release_access_key}}
-          s3_compiled_bosh_release_secret_key:  {{s3_compiled_bosh_release_secret_key}}
           distro:                               "centos"
         <<: *send-failure-email
 
@@ -200,8 +198,6 @@ jobs:
           v3_e2e_blobstore_secret_key:          {{v3_e2e_blobstore_secret_key}}
           time_server_1:                        {{time_server_1}}
           time_server_2:                        {{time_server_2}}
-          s3_compiled_bosh_release_access_key:  {{s3_compiled_bosh_release_access_key}}
-          s3_compiled_bosh_release_secret_key:  {{s3_compiled_bosh_release_secret_key}}
           distro:                               "centos"
         <<: *send-failure-email
 
@@ -343,8 +339,6 @@ jobs:
           old_bosh_stemcell_name:               bosh-openstack-kvm-centos-7-go_agent
           old_bosh_stemcell_version:            3215
           old_bosh_stemcell_sha1:               8a4f597368d330f8699c17b62993c43de5de2ba4
-          s3_compiled_bosh_release_access_key:  {{s3_compiled_bosh_release_access_key}}
-          s3_compiled_bosh_release_secret_key:  {{s3_compiled_bosh_release_secret_key}}
           distro:                               "centos"
         <<: *send-failure-email
 
@@ -392,8 +386,6 @@ jobs:
           v3_e2e_private_key_data:              {{v3_e2e_private_key_data}}
           time_server_1:                        {{time_server_1}}
           time_server_2:                        {{time_server_2}}
-          s3_compiled_bosh_release_access_key:  {{s3_compiled_bosh_release_access_key}}
-          s3_compiled_bosh_release_secret_key:  {{s3_compiled_bosh_release_secret_key}}
           distro:                               "centos"
         <<: *send-failure-email
 

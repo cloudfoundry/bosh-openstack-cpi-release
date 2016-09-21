@@ -34,8 +34,6 @@ ensure_not_replace_value time_server_2
 optional_value v3_e2e_use_dhcp
 optional_value bosh_openstack_ca_cert
 optional_value v3_e2e_config_drive
-optional_value s3_compiled_bosh_release_access_key
-optional_value s3_compiled_bosh_release_secret_key
 optional_value distro
 
 source /etc/profile.d/chruby-with-ruby-2.1.2.sh
