@@ -148,6 +148,8 @@ jobs:
         name: micro
         db: *db
         cpi_job: openstack_cpi
+        debug:
+          keep_unreachable_vms: ${DEBUG_BATS}
         user_management:
           provider: local
           local:

@@ -40,6 +40,7 @@ custom:
   timeouts:
     long: &timeouts-long 2h
   build_logs_to_retain: &build_logs_to_retain 500
+  debug_bats: &debug_bats false
   mail:
     without_mail: &send-failure-email
       on_failure: ~
@@ -225,6 +226,7 @@ jobs:
           time_server_1:                        {{time_server_1}}
           time_server_2:                        {{time_server_2}}
           distro:                               "ubuntu"
+          DEBUG_BATS:                           *debug_bats
         <<: *send-failure-email
 
       - task: test
@@ -254,6 +256,7 @@ jobs:
           secondary_network_range:                  {{bats_manual_ubuntu_secondary_net_static_range}}
           secondary_network_manual_ip:              {{bats_manual_ubuntu_secondary_net_manual_ip}}
           secondary_network_dhcp_pool:              {{bats_manual_ubuntu_secondary_net_dhcp_pool}}
+          DEBUG_BATS:                               *debug_bats
         <<: *send-failure-email
 
       - task: teardown-director
@@ -306,6 +309,7 @@ jobs:
           time_server_2:                        {{time_server_2}}
           private_key_data:                     {{bosh_private_key}}
           distro:                               "ubuntu"
+          DEBUG_BATS:                           *debug_bats
         <<: *send-failure-email
 
       - task: test
@@ -322,6 +326,7 @@ jobs:
           openstack_security_group:                 {{openstack_security_group}}
           primary_network_id:                       {{bats_dynamic_ubuntu_primary_net_id}}
           private_key_data:                         {{bosh_private_key}}
+          DEBUG_BATS:                               *debug_bats
         <<: *send-failure-email
 
       - task: teardown-director
@@ -377,6 +382,7 @@ jobs:
           time_server_2:                        {{time_server_2}}
           private_key_data:                     {{bosh_private_key}}
           distro:                               "centos"
+          DEBUG_BATS:                           *debug_bats
         <<: *send-failure-email
 
       - task: test
@@ -406,6 +412,7 @@ jobs:
           secondary_network_range:                  {{bats_manual_centos_secondary_net_static_range}}
           secondary_network_manual_ip:              {{bats_manual_centos_secondary_net_manual_ip}}
           secondary_network_dhcp_pool:              {{bats_manual_centos_secondary_net_dhcp_pool}}
+          DEBUG_BATS:                               *debug_bats
         <<: *send-failure-email
 
       - task: teardown-director
@@ -458,6 +465,7 @@ jobs:
           time_server_2:                        {{time_server_2}}
           private_key_data:                     {{bosh_private_key}}
           distro:                               "centos"
+          DEBUG_BATS:                           *debug_bats
         <<: *send-failure-email
 
       - task: test
@@ -474,6 +482,7 @@ jobs:
           openstack_security_group:                 {{openstack_security_group}}
           primary_network_id:                       {{bats_dynamic_centos_primary_net_id}}
           private_key_data:                         {{bosh_private_key}}
+          DEBUG_BATS:                               *debug_bats
         <<: *send-failure-email
 
       - task: teardown-director

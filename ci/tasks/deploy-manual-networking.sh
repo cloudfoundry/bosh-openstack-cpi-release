@@ -27,6 +27,7 @@ source bosh-cpi-src-in/ci/tasks/utils.sh
 : {openstack_net_gateway:?}
 : {time_server_1:?}
 : {time_server_2:?}
+: {DEBUG_BATS:?}
 optional_value bosh_openstack_ca_cert
 optional_value distro
 
@@ -155,6 +156,8 @@ jobs:
         name: micro
         db: *db
         cpi_job: openstack_cpi
+        debug:
+          keep_unreachable_vms: ${DEBUG_BATS}
         user_management:
           provider: local
           local:

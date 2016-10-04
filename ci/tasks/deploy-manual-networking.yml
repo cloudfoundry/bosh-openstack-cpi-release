@@ -41,3 +41,4 @@ params:
   time_server_1:                       ""
   time_server_2:                       ""
   distro:                              ""
+  DEBUG_BATS:                          ""
