@@ -1,0 +1,13 @@
+---
+platform: linux
+image_resource:
+  type: docker-image
+  source:
+    repository: boshcpi/openstack-cpi-release
+inputs:
+  - name: bosh-cpi-src-in
+run:
+  path: bosh-cpi-src-in/ci/tasks/print_task_errors.sh
+params:
+  bosh_admin_password:     ''
+  bosh_director_public_ip: ''
