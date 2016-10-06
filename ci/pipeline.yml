@@ -258,14 +258,14 @@ jobs:
           secondary_network_dhcp_pool:              {{bats_manual_ubuntu_secondary_net_dhcp_pool}}
           DEBUG_BATS:                               *debug_bats
         <<: *send-failure-email
-
-      - task: print-task-errors
-        tags: *tags
-        timeout: *timeouts-long
-        file: bosh-cpi-src-in/ci/tasks/print_task_errors.yml
-        params:
-          bosh_admin_password:     {{bosh_admin_password}}
-          bosh_director_public_ip: {{bats_dynamic_centos_director_public_ip}}
+        ensure:
+          task: print-task-errors
+          tags: *tags
+          timeout: *timeouts-long
+          file: bosh-cpi-src-in/ci/tasks/print_task_errors.yml
+          params:
+            bosh_admin_password:     {{bosh_admin_password}}
+            bosh_director_public_ip: {{bats_manual_ubuntu_director_public_ip}}
 
       - task: teardown-director
         tags: *tags
@@ -336,14 +336,14 @@ jobs:
           private_key_data:                         {{bosh_private_key}}
           DEBUG_BATS:                               *debug_bats
         <<: *send-failure-email
-
-      - task: print-task-errors
-        tags: *tags
-        timeout: *timeouts-long
-        file: bosh-cpi-src-in/ci/tasks/print_task_errors.yml
-        params:
-          bosh_admin_password:     {{bosh_admin_password}}
-          bosh_director_public_ip: {{bats_dynamic_centos_director_public_ip}}
+        ensure:
+          task: print-task-errors
+          tags: *tags
+          timeout: *timeouts-long
+          file: bosh-cpi-src-in/ci/tasks/print_task_errors.yml
+          params:
+            bosh_admin_password:     {{bosh_admin_password}}
+            bosh_director_public_ip: {{bats_dynamic_ubuntu_director_public_ip}}
 
       - task: teardown-director
         tags: *tags
@@ -430,14 +430,14 @@ jobs:
           secondary_network_dhcp_pool:              {{bats_manual_centos_secondary_net_dhcp_pool}}
           DEBUG_BATS:                               *debug_bats
         <<: *send-failure-email
-
-      - task: print-task-errors
-        tags: *tags
-        timeout: *timeouts-long
-        file: bosh-cpi-src-in/ci/tasks/print_task_errors.yml
-        params:
-          bosh_admin_password:     {{bosh_admin_password}}
-          bosh_director_public_ip: {{bats_dynamic_centos_director_public_ip}}
+        ensure:
+          task: print-task-errors
+          tags: *tags
+          timeout: *timeouts-long
+          file: bosh-cpi-src-in/ci/tasks/print_task_errors.yml
+          params:
+            bosh_admin_password:     {{bosh_admin_password}}
+            bosh_director_public_ip: {{bats_manual_centos_director_public_ip}}
 
       - task: teardown-director
         tags: *tags
@@ -508,14 +508,14 @@ jobs:
           private_key_data:                         {{bosh_private_key}}
           DEBUG_BATS:                               *debug_bats
         <<: *send-failure-email
-
-      - task: print-task-errors
-        tags: *tags
-        timeout: *timeouts-long
-        file: bosh-cpi-src-in/ci/tasks/print_task_errors.yml
-        params:
-          bosh_admin_password:     {{bosh_admin_password}}
-          bosh_director_public_ip: {{bats_dynamic_centos_director_public_ip}}
+        ensure:
+          task: print-task-errors
+          tags: *tags
+          timeout: *timeouts-long
+          file: bosh-cpi-src-in/ci/tasks/print_task_errors.yml
+          params:
+            bosh_admin_password:     {{bosh_admin_password}}
+            bosh_director_public_ip: {{bats_dynamic_centos_director_public_ip}}
 
       - task: teardown-director
         tags: *tags
