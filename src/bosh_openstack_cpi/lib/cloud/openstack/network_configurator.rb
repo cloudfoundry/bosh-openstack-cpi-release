@@ -109,18 +109,11 @@ module Bosh::OpenStackCloud
     end
 
     ##
-    # Returns the security groups for this network configuration, or
-    # the default security groups if the configuration does not contain
-    # security groups
+    # Returns the sorted security groups for this network configuration
     #
-    # @param [Array] default Default security groups
     # @return [Array] security groups
-    def security_groups(default = nil)
-      if @security_groups.empty? && default
-        default
-      else
+    def security_groups
         @security_groups.sort
-      end
     end
 
     ##

@@ -113,26 +113,6 @@ describe Bosh::OpenStackCloud::NetworkConfigurator do
       end
     end
 
-    context 'when no security_groups are defined' do
-      it 'should return the default groups' do
-        spec = {}
-        spec['network_a'] = {'type' => 'dynamic'}
-
-        nc = Bosh::OpenStackCloud::NetworkConfigurator.new(spec)
-        expect(nc.security_groups(%w[foo])).to eq(%w[foo])
-      end
-
-      context 'when no default security_group is set' do
-        it 'should return an empty list' do
-          spec = {}
-          spec['network_a'] = {'type' => 'dynamic'}
-
-          nc = Bosh::OpenStackCloud::NetworkConfigurator.new(spec)
-          expect(nc.security_groups).to eq([])
-        end
-      end
-    end
-
     context 'when security_groups is not an array' do
       it 'should raise an ArgumentError' do
         spec = {}

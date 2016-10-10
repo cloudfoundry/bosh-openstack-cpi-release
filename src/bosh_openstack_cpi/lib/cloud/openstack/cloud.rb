@@ -219,12 +219,17 @@ module Bosh::OpenStackCloud
 
         network_configurator = NetworkConfigurator.new(network_spec)
 
-        security_groups_to_be_used = retrieve_and_validate_security_groups(network_configurator, resource_pool)
-        @logger.debug("Using security groups: `#{security_groups_to_be_used.map { |sg| sg.name }.join(', ')}'")
+        picked_security_groups = SecurityGroups.validate_and_retrieve(
+            @openstack,
+            @default_security_groups,
+            network_configurator.security_groups,
+            ResourcePool.security_groups(resource_pool)
+        )
+        @logger.debug("Using security groups: `#{picked_security_groups.map { |sg| sg.name }.join(', ')}'")
 
         if network_configurator.manual_port_creation? @config_drive
           @logger.debug('Manual port creation because of multiple manual networks')
-          network_configurator.prepare_ports_for_manual_networks(@openstack, security_groups_to_be_used.map { |sg| sg.id })
+          network_configurator.prepare_ports_for_manual_networks(@openstack, picked_security_groups.map { |sg| sg.id })
         end
 
         nics = network_configurator.nics
@@ -270,7 +275,7 @@ module Bosh::OpenStackCloud
           :image_ref => image.id,
           :flavor_ref => flavor.id,
           :key_name => keyname,
-          :security_groups => security_groups_to_be_used.map { |sg| sg.name },
+          :security_groups => picked_security_groups.map { |sg| sg.name },
           :os_scheduler_hints => resource_pool['scheduler_hints'],
           :nics => nics,
           :config_drive => @use_config_drive,
@@ -1034,36 +1039,6 @@ module Bosh::OpenStackCloud
       rescue Bosh::Clouds::CloudError => delete_server_error
         @logger.warn("Failed to destroy server: #{delete_server_error.inspect}\n#{delete_server_error.backtrace.join('\n')}")
       end
-    end
-
-    def retrieve_and_validate_security_groups(network_configurator, resource_pool)
-      resource_pool_spec_security_groups = resource_pool_spec_security_groups(resource_pool)
-
-      if network_configurator.security_groups.size > 0 && resource_pool_spec_security_groups.size > 0
-        cloud_error('Cannot define security groups in both network and resource pool.')
-      end
-
-      openstack_security_groups = with_openstack { @openstack.compute.security_groups }
-      network_security_groups = network_configurator.security_groups(@default_security_groups)
-      security_groups_to_be_used = resource_pool_spec_security_groups.size > 0 ? resource_pool_spec_security_groups : network_security_groups
-
-      security_groups_to_be_used.map do |configured_sg|
-        openstack_security_group = openstack_security_groups.find {|openstack_sg| openstack_sg.name == configured_sg}
-        cloud_error("Security group `#{configured_sg}' not found") unless openstack_security_group
-        openstack_security_group
-      end
-
-    end
-
-    def resource_pool_spec_security_groups(resource_pool_spec)
-      if resource_pool_spec && resource_pool_spec.has_key?("security_groups")
-        unless resource_pool_spec["security_groups"].is_a?(Array)
-          raise ArgumentError, "security groups must be an Array"
-        end
-        return resource_pool_spec["security_groups"]
-      end
-
-      []
     end
 
     def validate_key_exists(keyname)
