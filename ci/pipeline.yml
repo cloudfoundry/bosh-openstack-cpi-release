@@ -40,7 +40,7 @@ custom:
   timeouts:
     long: &timeouts-long 2h
   build_logs_to_retain: &build_logs_to_retain 500
-  debug_bats: &debug_bats false
+  debug_bats: &debug_bats true
   mail:
     without_mail: &send-failure-email
       on_failure: ~
