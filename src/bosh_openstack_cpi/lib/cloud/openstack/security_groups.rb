@@ -11,12 +11,22 @@ module Bosh::OpenStackCloud
           resource_pool_spec_security_groups
       )
 
-      openstack_security_groups = with_openstack { openstack.compute.security_groups }
+      openstack_security_groups = with_openstack {
+          retrieve_security_groups(openstack)
+      }
 
       map_to_security_groups_in_openstack(picked_security_groups, openstack_security_groups)
     end
 
     private
+
+    def self.retrieve_security_groups(openstack)
+      if openstack.use_nova_networking?
+        openstack.compute.security_groups
+      else
+        openstack.network.security_groups
+      end
+    end
 
     def self.validate(network_spec_security_groups, resource_pool_spec_security_groups)
       if network_spec_security_groups.size > 0 && resource_pool_spec_security_groups.size > 0

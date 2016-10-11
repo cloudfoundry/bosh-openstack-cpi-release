@@ -60,6 +60,31 @@ describe Bosh::OpenStackCloud::Openstack do
     end
   end
 
+  describe :use_nova_networking? do
+    context 'when the manifest contains `use_nova_networking=true`' do
+      let(:openstack_options_with_nova) { openstack_options_v3['use_nova_networking'] = true; openstack_options_v3 }
+      let(:openstack_options) { openstack_options_with_nova }
+      it 'returns true' do
+        expect(subject.use_nova_networking?).to eq(true)
+      end
+    end
+
+    context 'when the manifest contains `use_nova_networking=false`' do
+      let(:openstack_options_with_nova) { openstack_options_v3['use_nova_networking'] = false; openstack_options_v3 }
+      let(:openstack_options) { openstack_options_with_nova }
+      it 'returns false' do
+        expect(subject.use_nova_networking?).to eq(false)
+      end
+    end
+
+    context 'when the manifest does not contain `use_nova_networking`' do
+      let(:openstack_options) { openstack_options_v3 }
+      it 'returns false' do
+        expect(subject.use_nova_networking?).to eq(false)
+      end
+    end
+  end
+
   context 'when the service is not available' do
     describe 'Network' do
       it 'raises a CloudError exception if cannot connect to the service API' do
@@ -67,16 +92,16 @@ describe Bosh::OpenStackCloud::Openstack do
         expect {
           Bosh::OpenStackCloud::Openstack.new(openstack_options).network
         }.to raise_error(Bosh::Clouds::CloudError,
-                         'Unable to connect to the OpenStack Network Service API: Not found message. Check task debug log for details.')
+            'Unable to connect to the OpenStack Network Service API: Not found message. Check task debug log for details.')
       end
     end
   end
 
-  [ {clazz: Fog::Compute, name: 'Compute', method_name: :compute},
-    {clazz: Fog::Image::OpenStack::V2, name: 'Image', method_name: :image},
-    {clazz: Fog::Volume::OpenStack::V2, name: 'Volume', method_name: :volume},
-    {clazz: Fog::Network, name: 'Network', method_name: :network}
-  ].each do | fog |
+  [{clazz: Fog::Compute, name: 'Compute', method_name: :compute},
+      {clazz: Fog::Image::OpenStack::V2, name: 'Image', method_name: :image},
+      {clazz: Fog::Volume::OpenStack::V2, name: 'Volume', method_name: :volume},
+      {clazz: Fog::Network, name: 'Network', method_name: :network}
+  ].each do |fog|
     describe "#{fog[:name]}" do
 
       context 'when the service returns Unauthorized' do
@@ -85,7 +110,7 @@ describe Bosh::OpenStackCloud::Openstack do
           expect {
             Bosh::OpenStackCloud::Openstack.new(openstack_options).send(fog[:method_name])
           }.to raise_error(Bosh::Clouds::CloudError,
-                           "Unable to connect to the OpenStack #{fog[:name]} Service API: Unauthorized. Check task debug log for details.")
+              "Unable to connect to the OpenStack #{fog[:name]} Service API: Unauthorized. Check task debug log for details.")
         end
       end
 

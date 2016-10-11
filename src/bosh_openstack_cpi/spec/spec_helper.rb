@@ -88,20 +88,24 @@ def mock_cloud(options = nil)
   allow(volume).to receive(:volumes).and_return(volumes)
   allow(Fog::Volume::OpenStack::V2).to receive(:new).and_return(volume)
 
-  openstack = double(Fog::Compute)
+  network = double(Fog::Network::OpenStack)
+  allow(network).to receive(:security_groups).and_return(security_groups)
+  allow(Fog::Network::OpenStack).to receive(:new).and_return(network)
 
-  allow(openstack).to receive(:servers).and_return(servers)
-  allow(openstack).to receive(:images).and_return(images)
-  allow(openstack).to receive(:flavors).and_return(flavors)
-  allow(openstack).to receive(:volumes).and_return(volumes)
-  allow(openstack).to receive(:addresses).and_return(addresses)
-  allow(openstack).to receive(:snapshots).and_return(snapshots)
-  allow(openstack).to receive(:key_pairs).and_return(key_pairs)
-  allow(openstack).to receive(:security_groups).and_return(security_groups)
+  compute = double(Fog::Compute)
 
-  allow(Fog::Compute).to receive(:new).and_return(openstack)
+  allow(compute).to receive(:servers).and_return(servers)
+  allow(compute).to receive(:images).and_return(images)
+  allow(compute).to receive(:flavors).and_return(flavors)
+  allow(compute).to receive(:volumes).and_return(volumes)
+  allow(compute).to receive(:addresses).and_return(addresses)
+  allow(compute).to receive(:snapshots).and_return(snapshots)
+  allow(compute).to receive(:key_pairs).and_return(key_pairs)
+  allow(compute).to receive(:security_groups).and_return(security_groups)
 
-  yield openstack if block_given?
+  allow(Fog::Compute).to receive(:new).and_return(compute)
+
+  yield(compute, network) if block_given?
 
   Bosh::OpenStackCloud::Cloud.new(options || mock_cloud_options['properties'])
 end
