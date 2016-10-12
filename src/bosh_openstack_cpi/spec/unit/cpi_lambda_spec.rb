@@ -45,7 +45,7 @@ describe Bosh::OpenStackCloud::CpiLambda do
     end
 
     context 'if openstack properties are provided in the context' do
-      it 'overwrites the openstack properties' do
+      it 'merges the openstack properties' do
         context = {
             'openstack' => {
                 'newkey' => 'newvalue',
@@ -53,7 +53,10 @@ describe Bosh::OpenStackCloud::CpiLambda do
             }
         }
 
-        expect(Bosh::Clouds::Openstack).to receive(:new).with({'openstack' => { 'newkey' => 'newvalue', 'newkey2' => 'newvalue2' },
+        expect(Bosh::Clouds::Openstack).to receive(:new).with({'openstack' => { 'key1' => 'value1',
+                                                                                'key2' => 'value2',
+                                                                                'newkey' => 'newvalue',
+                                                                                'newkey2' => 'newvalue2'},
                                                                'cpi_log' => cpi_log})
         subject.call(context)
       end
@@ -69,6 +72,8 @@ describe Bosh::OpenStackCloud::CpiLambda do
         }
 
         expect(Bosh::Clouds::Openstack).to receive(:new).with({'openstack' => { 'newkey' => 'newvalue',
+                                                                                'key1' => 'value1',
+                                                                                'key2' => 'value2',
                                                                                 'connection_options' => {'ssl_ca_file' => ca_file.path}},
                                                                'cpi_log' => cpi_log})
 
