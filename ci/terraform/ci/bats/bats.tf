@@ -8,7 +8,7 @@ provider "openstack" {
 }
 
 module "base" {
-  source = "./modules/base"
+  source = "../modules/base"
   region_name = "${var.region_name}"
   tenant_name = "${var.tenant_name}"
   availability_zone = "${var.availability_zone}"
@@ -21,16 +21,9 @@ module "base" {
 }
 
 module "bats" {
-  source = "./modules/bats"
+  source = "../modules/bats"
   region_name = "${var.region_name}"
   ext_net_name = "${var.ext_net_name}"
-  dns_nameservers = "${var.dns_nameservers}"
-  default_router_id = "${module.base.default_router_id}"
-}
-
-module "lifecycle" {
-  source = "./modules/lifecycle"
-  region_name = "${var.region_name}"
   dns_nameservers = "${var.dns_nameservers}"
   default_router_id = "${module.base.default_router_id}"
 }
@@ -153,28 +146,4 @@ output "floating ip:   bats_manual_centos_director_public_ip" {
 
 output "floating ip:   bats_manual_centos_floating_ip" {
   value = "${module.bats.bats_manual_centos_floating_ip}"
-}
-
-output "net id:   lifecycle_openstack_net_id" {
-  value = "${module.lifecycle.lifecycle_openstack_net_id}"
-}
-
-output "manual ip:   lifecycle_manual_ip" {
-  value = "${module.lifecycle.lifecycle_manual_ip}"
-}
-
-output "net id:   lifecycle_net_id_no_dhcp_1" {
-  value = "${module.lifecycle.lifecycle_net_id_no_dhcp_1}"
-}
-
-output "manual ip:   lifecycle_no_dhcp_manual_ip_1" {
-  value = "${module.lifecycle.lifecycle_no_dhcp_manual_ip_1}"
-}
-
-output "net id:   lifecycle_net_id_no_dhcp_2" {
-  value = "${module.lifecycle.lifecycle_net_id_no_dhcp_2}"
-}
-
-output "manual ip:   lifecycle_no_dhcp_manual_ip_2" {
-  value = "${module.lifecycle.lifecycle_no_dhcp_manual_ip_2}"
 }

@@ -5,6 +5,8 @@ set -e
 source /etc/profile.d/chruby.sh
 chruby 2.1.2
 
+export BOSH_INIT_LOG_LEVEL=DEBUG
+
 working_dir=$PWD
 deployment_dir=$PWD/upgrade-deployment
 

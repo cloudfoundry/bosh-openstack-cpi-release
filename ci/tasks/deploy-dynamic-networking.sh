@@ -25,6 +25,7 @@ source bosh-cpi-src-in/ci/tasks/utils.sh
 : {time_server_1:?}
 : {time_server_2:?}
 optional_value bosh_openstack_ca_cert
+optional_value distro
 
 source /etc/profile.d/chruby-with-ruby-2.1.2.sh
 
@@ -39,8 +40,8 @@ bosh_vcap_password_hash=$(ruby -e 'require "securerandom";puts ENV["bosh_admin_p
 
 echo "setting up artifacts used in $manifest_filename"
 cp ./bosh-cpi-dev-artifacts/${cpi_release_name}-${semver}.tgz ${deployment_dir}/${cpi_release_name}.tgz
-cp ./bosh-release/release.tgz ${deployment_dir}/bosh-release.tgz
 cp ./stemcell/stemcell.tgz ${deployment_dir}/stemcell.tgz
+prepare_bosh_release
 
 echo "Calculating MD5 of original stemcell:"
 echo $(md5sum stemcell/stemcell.tgz)
@@ -147,6 +148,8 @@ jobs:
         name: micro
         db: *db
         cpi_job: openstack_cpi
+        debug:
+          keep_unreachable_vms: ${DEBUG_BATS}
         user_management:
           provider: local
           local:

@@ -6,10 +6,8 @@ image_resource:
     repository: boshcpi/openstack-cpi-release
 inputs:
   - name: bosh-cpi-src-in
-  - name: lifecycle-log
-outputs:
-  - name: publish
 run:
-  path: bosh-cpi-src-in/ci/tasks/publish-api-calls.sh
+  path: bosh-cpi-src-in/ci/tasks/print_task_errors.sh
 params:
-  publish_api_calls_enabled:  replace-me
+  bosh_admin_password:     ''
+  bosh_director_public_ip: ''

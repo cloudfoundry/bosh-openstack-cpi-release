@@ -21,6 +21,8 @@ RUN pip install pytz
 
 RUN pip install python-openstackclient==2.6.0
 
+RUN pip install awscli
+
 # chruby
 RUN mkdir /tmp/chruby && \
     cd /tmp && \

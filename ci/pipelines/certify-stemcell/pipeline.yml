@@ -16,9 +16,19 @@ custom:
   tags:
     default: &tags []
     suse-liberty: ['suse-liberty']
+    suse-mitaka: ['suse-mitaka']
   timeouts:
     long: &timeouts-long 2h
   build_logs_to_retain: &build_logs_to_retain 500
+  mail:
+    without_mail: &send-failure-email
+      on_failure: ~
+    with_mail:
+      on_failure:
+        put: send-an-email
+        params:
+          subject: {{email_subject}}
+          body: {{email_body}}
 
 jobs:
   - name: e2e-centos
@@ -39,34 +49,36 @@ jobs:
         timeout: *timeouts-long
         file: bosh-cpi-src-in/ci/pipelines/certify-stemcell/tasks/deploy-director.yml
         params: &centos-deploy-director-params
-          v3_e2e_flavor:               "m1.medium"
-          v3_e2e_connection_timeout:   "600"
-          v3_e2e_read_timeout:         "180"
-          v3_e2e_state_timeout:        "900"
-          v3_e2e_write_timeout:        "180"
-          bosh_admin_password:         {{bosh_admin_password}}
-          bosh_openstack_ca_cert:      {{bosh_openstack_ca_cert}}
-          dns:                         {{dns}}
-          v3_e2e_bosh_registry_port:   {{v3_e2e_bosh_registry_port}}
-          v3_e2e_api_key:              {{v3_e2e_api_key}}
-          v3_e2e_auth_url:             {{openstack_auth_url_v3}}
-          v3_e2e_default_key_name:     {{v3_e2e_default_key_name}}
-          director_floating_ip:        {{v3_e2e_centos_director_floating_ip}}
-          director_manual_ip:          {{v3_e2e_centos_director_manual_ip}}
-          v3_e2e_net_cidr:             {{v3_e2e_net_cidr}}
-          v3_e2e_net_gateway:          {{v3_e2e_net_gateway}}
-          v3_e2e_net_id:               {{v3_e2e_net_id}}
-          v3_e2e_security_group:       {{v3_e2e_security_group}}
-          v3_e2e_project:              {{v3_e2e_project}}
-          v3_e2e_domain:               {{v3_e2e_domain}}
-          v3_e2e_username:             {{v3_e2e_username}}
-          v3_e2e_private_key_data:     {{v3_e2e_private_key_data}}
-          v3_e2e_blobstore_bucket:     {{v3_e2e_blobstore_bucket}}
-          v3_e2e_blobstore_host:       {{v3_e2e_blobstore_host}}
-          v3_e2e_blobstore_access_key: {{v3_e2e_blobstore_access_key}}
-          v3_e2e_blobstore_secret_key: {{v3_e2e_blobstore_secret_key}}
-          time_server_1:               {{time_server_1}}
-          time_server_2:               {{time_server_2}}
+          v3_e2e_flavor:                        "m1.medium"
+          v3_e2e_connection_timeout:            "600"
+          v3_e2e_read_timeout:                  "180"
+          v3_e2e_state_timeout:                 "900"
+          v3_e2e_write_timeout:                 "180"
+          bosh_admin_password:                  {{bosh_admin_password}}
+          bosh_openstack_ca_cert:               {{bosh_openstack_ca_cert}}
+          dns:                                  {{dns}}
+          v3_e2e_bosh_registry_port:            {{v3_e2e_bosh_registry_port}}
+          v3_e2e_api_key:                       {{v3_e2e_api_key}}
+          v3_e2e_auth_url:                      {{openstack_auth_url_v3}}
+          v3_e2e_default_key_name:              {{v3_e2e_default_key_name}}
+          director_floating_ip:                 {{v3_e2e_centos_director_floating_ip}}
+          director_manual_ip:                   {{v3_e2e_centos_director_manual_ip}}
+          v3_e2e_net_cidr:                      {{v3_e2e_net_cidr}}
+          v3_e2e_net_gateway:                   {{v3_e2e_net_gateway}}
+          v3_e2e_net_id:                        {{v3_e2e_net_id}}
+          v3_e2e_security_group:                {{v3_e2e_security_group}}
+          v3_e2e_project:                       {{v3_e2e_project}}
+          v3_e2e_domain:                        {{v3_e2e_domain}}
+          v3_e2e_username:                      {{v3_e2e_username}}
+          v3_e2e_private_key_data:              {{v3_e2e_private_key_data}}
+          v3_e2e_blobstore_bucket:              {{v3_e2e_blobstore_bucket}}
+          v3_e2e_blobstore_host:                {{v3_e2e_blobstore_host}}
+          v3_e2e_blobstore_access_key:          {{v3_e2e_blobstore_access_key}}
+          v3_e2e_blobstore_secret_key:          {{v3_e2e_blobstore_secret_key}}
+          time_server_1:                        {{time_server_1}}
+          time_server_2:                        {{time_server_2}}
+          distro:                               "centos"
+        <<: *send-failure-email
 
       - task: deploy-dummy-release
         tags: *tags
@@ -80,6 +92,7 @@ jobs:
           v3_e2e_security_group:   {{v3_e2e_security_group}}
           network_id:              {{v3_e2e_net_id}}
           stemcell_name:           "bosh-openstack-kvm-centos-7-go_agent"
+        <<: *send-failure-email
 
       - task: teardown-director
         tags: *tags
@@ -88,6 +101,7 @@ jobs:
         params:
           bosh_admin_password: {{bosh_admin_password}}
           bosh_director_ip:    {{v3_e2e_centos_director_floating_ip}}
+        <<: *send-failure-email
 
   - name: e2e-ubuntu
     serial: true
@@ -110,6 +124,8 @@ jobs:
           <<:                    *centos-deploy-director-params
           director_floating_ip:  {{v3_e2e_ubuntu_director_floating_ip}}
           director_manual_ip:    {{v3_e2e_ubuntu_director_manual_ip}}
+          distro:                "ubuntu"
+        <<: *send-failure-email
 
       - task: deploy-dummy-release
         tags: *tags
@@ -123,6 +139,7 @@ jobs:
           v3_e2e_security_group:   {{v3_e2e_security_group}}
           network_id:              {{v3_e2e_net_id}}
           stemcell_name:           "bosh-openstack-kvm-ubuntu-trusty-go_agent"
+        <<: *send-failure-email
 
       - task: teardown-director
         tags: *tags
@@ -131,6 +148,7 @@ jobs:
         params:
           bosh_admin_password: {{bosh_admin_password}}
           bosh_director_ip:    {{v3_e2e_ubuntu_director_floating_ip}}
+        <<: *send-failure-email
 
   - name: e2e-centos-config-drive
     serial: true
@@ -150,36 +168,38 @@ jobs:
         timeout: *timeouts-long
         file: bosh-cpi-src-in/ci/pipelines/certify-stemcell/tasks/deploy-director.yml
         params: &e2e-centos-config-drive-director-params
-          v3_e2e_flavor:               "m1.medium"
-          v3_e2e_connection_timeout:   "600"
-          v3_e2e_read_timeout:         "180"
-          v3_e2e_state_timeout:        "900"
-          v3_e2e_write_timeout:        "180"
-          v3_e2e_config_drive:         "disk"
-          v3_e2e_use_dhcp:             false
-          bosh_admin_password:         {{bosh_admin_password}}
-          bosh_openstack_ca_cert:      {{bosh_openstack_ca_cert}}
-          dns:                         {{dns}}
-          v3_e2e_bosh_registry_port:   {{v3_e2e_bosh_registry_port}}
-          v3_e2e_api_key:              {{v3_e2e_api_key}}
-          v3_e2e_auth_url:             {{openstack_auth_url_v3}}
-          v3_e2e_default_key_name:     {{v3_e2e_default_key_name}}
-          director_floating_ip:        {{v3_e2e_centos_config_drive_floating_ip}}
-          director_manual_ip:          {{v3_e2e_centos_config_drive_manual_ip}}
-          v3_e2e_net_cidr:             {{v3_e2e_net_cidr}}
-          v3_e2e_net_gateway:          {{v3_e2e_net_gateway}}
-          v3_e2e_net_id:               {{v3_e2e_net_id}}
-          v3_e2e_security_group:       {{v3_e2e_security_group}}
-          v3_e2e_project:              {{v3_e2e_project}}
-          v3_e2e_domain:               {{v3_e2e_domain}}
-          v3_e2e_username:             {{v3_e2e_username}}
-          v3_e2e_private_key_data:     {{v3_e2e_private_key_data}}
-          v3_e2e_blobstore_bucket:     {{v3_e2e_blobstore_bucket}}
-          v3_e2e_blobstore_host:       {{v3_e2e_blobstore_host}}
-          v3_e2e_blobstore_access_key: {{v3_e2e_blobstore_access_key}}
-          v3_e2e_blobstore_secret_key: {{v3_e2e_blobstore_secret_key}}
-          time_server_1:               {{time_server_1}}
-          time_server_2:               {{time_server_2}}
+          v3_e2e_flavor:                        "m1.medium"
+          v3_e2e_connection_timeout:            "600"
+          v3_e2e_read_timeout:                  "180"
+          v3_e2e_state_timeout:                 "900"
+          v3_e2e_write_timeout:                 "180"
+          v3_e2e_config_drive:                  "disk"
+          v3_e2e_use_dhcp:                      false
+          bosh_admin_password:                  {{bosh_admin_password}}
+          bosh_openstack_ca_cert:               {{bosh_openstack_ca_cert}}
+          dns:                                  {{dns}}
+          v3_e2e_bosh_registry_port:            {{v3_e2e_bosh_registry_port}}
+          v3_e2e_api_key:                       {{v3_e2e_api_key}}
+          v3_e2e_auth_url:                      {{openstack_auth_url_v3}}
+          v3_e2e_default_key_name:              {{v3_e2e_default_key_name}}
+          director_floating_ip:                 {{v3_e2e_centos_config_drive_floating_ip}}
+          director_manual_ip:                   {{v3_e2e_centos_config_drive_manual_ip}}
+          v3_e2e_net_cidr:                      {{v3_e2e_net_cidr}}
+          v3_e2e_net_gateway:                   {{v3_e2e_net_gateway}}
+          v3_e2e_net_id:                        {{v3_e2e_net_id}}
+          v3_e2e_security_group:                {{v3_e2e_security_group}}
+          v3_e2e_project:                       {{v3_e2e_project}}
+          v3_e2e_domain:                        {{v3_e2e_domain}}
+          v3_e2e_username:                      {{v3_e2e_username}}
+          v3_e2e_private_key_data:              {{v3_e2e_private_key_data}}
+          v3_e2e_blobstore_bucket:              {{v3_e2e_blobstore_bucket}}
+          v3_e2e_blobstore_host:                {{v3_e2e_blobstore_host}}
+          v3_e2e_blobstore_access_key:          {{v3_e2e_blobstore_access_key}}
+          v3_e2e_blobstore_secret_key:          {{v3_e2e_blobstore_secret_key}}
+          time_server_1:                        {{time_server_1}}
+          time_server_2:                        {{time_server_2}}
+          distro:                               "centos"
+        <<: *send-failure-email
 
       - task: deploy-dummy-release
         tags: *tags
@@ -202,6 +222,7 @@ jobs:
           network_no_dhcp_2_gateway: {{v3_e2e_net_no_dhcp_2_gateway}}
           network_no_dhcp_2_ip:      {{v3_e2e_net_no_dhcp_2_ip_centos}}
           stemcell_name:             "bosh-openstack-kvm-centos-7-go_agent"
+        <<: *send-failure-email
 
       - task: teardown-director
         tags: *tags
@@ -210,6 +231,7 @@ jobs:
         params:
           bosh_admin_password: {{bosh_admin_password}}
           bosh_director_ip:    {{v3_e2e_centos_config_drive_floating_ip}}
+        <<: *send-failure-email
 
   - name: e2e-ubuntu-config-drive
     serial: true
@@ -232,6 +254,8 @@ jobs:
           <<: *e2e-centos-config-drive-director-params
           director_floating_ip: {{v3_e2e_ubuntu_config_drive_floating_ip}}
           director_manual_ip:   {{v3_e2e_ubuntu_config_drive_manual_ip}}
+          distro:               "ubuntu"
+        <<: *send-failure-email
 
       - task: deploy-dummy-release
         tags: *tags
@@ -254,6 +278,7 @@ jobs:
           network_no_dhcp_2_gateway: {{v3_e2e_net_no_dhcp_2_gateway}}
           network_no_dhcp_2_ip:      {{v3_e2e_net_no_dhcp_2_ip_ubuntu}}
           stemcell_name:             "bosh-openstack-kvm-ubuntu-trusty-go_agent"
+        <<: *send-failure-email
 
       - task: teardown-director
         tags: *tags
@@ -262,6 +287,7 @@ jobs:
         params:
           bosh_admin_password: {{bosh_admin_password}}
           bosh_director_ip:    {{v3_e2e_ubuntu_config_drive_floating_ip}}
+        <<: *send-failure-email
 
   - name: test-upgrade-centos
     serial: true
@@ -282,37 +308,39 @@ jobs:
         timeout: *timeouts-long
         file: bosh-cpi-src-in/ci/pipelines/certify-stemcell/tasks/deploy-old-director.yml
         params: &centos-deploy-old-director-params
-          dns:                               {{dns}}
-          v3_e2e_flavor:                     "m1.medium"
-          v3_e2e_connection_timeout:         "600"
-          v3_e2e_read_timeout:               "180"
-          v3_e2e_state_timeout:              "900"
-          v3_e2e_write_timeout:              "180"
-          bosh_admin_password:               {{bosh_admin_password}}
-          bosh_openstack_ca_cert:            {{bosh_openstack_ca_cert}}
-          v3_e2e_bosh_registry_port:         {{v3_e2e_bosh_registry_port}}
-          v3_e2e_api_key:                    {{v3_e2e_api_key}}
-          v3_e2e_auth_url:                   {{openstack_auth_url_v3}}
-          v3_e2e_default_key_name:           {{v3_e2e_default_key_name}}
-          v3_upgrade_director_floating_ip:   {{v3_centos_upgrade_director_floating_ip}}
-          v3_upgrade_director_manual_ip:     {{v3_centos_upgrade_director_manual_ip}}
-          v3_e2e_net_cidr:                   {{v3_e2e_net_cidr}}
-          v3_e2e_net_gateway:                {{v3_e2e_net_gateway}}
-          v3_e2e_net_id:                     {{v3_e2e_net_id}}
-          v3_e2e_security_group:             {{v3_e2e_security_group}}
-          v3_e2e_project:                    {{v3_e2e_project}}
-          v3_e2e_domain:                     {{v3_e2e_domain}}
-          v3_e2e_username:                   {{v3_e2e_username}}
-          v3_e2e_private_key_data:           {{v3_e2e_private_key_data}}
-          time_server_1:                     {{time_server_1}}
-          time_server_2:                     {{time_server_2}}
-          old_bosh_release_version:          253
-          old_bosh_release_sha1:             940956a23b642af3bb24b3cac37c4da746d6f9a9
-          old_openstack_cpi_release_version: 18
-          old_openstack_cpi_release_sha1:    98c45b2dbd90eceb15c4a3843821eb995b7d08c3
-          old_bosh_stemcell_name:            bosh-openstack-kvm-centos-7-go_agent
-          old_bosh_stemcell_version:         3192
-          old_bosh_stemcell_sha1:            a1a9715bb821a3b860d480295edad0b9b087fd3b
+          dns:                                  {{dns}}
+          v3_e2e_flavor:                        "m1.medium"
+          v3_e2e_connection_timeout:            "600"
+          v3_e2e_read_timeout:                  "180"
+          v3_e2e_state_timeout:                 "900"
+          v3_e2e_write_timeout:                 "180"
+          bosh_admin_password:                  {{bosh_admin_password}}
+          bosh_openstack_ca_cert:               {{bosh_openstack_ca_cert}}
+          v3_e2e_bosh_registry_port:            {{v3_e2e_bosh_registry_port}}
+          v3_e2e_api_key:                       {{v3_e2e_api_key}}
+          v3_e2e_auth_url:                      {{openstack_auth_url_v3}}
+          v3_e2e_default_key_name:              {{v3_e2e_default_key_name}}
+          v3_upgrade_director_floating_ip:      {{v3_centos_upgrade_director_floating_ip}}
+          v3_upgrade_director_manual_ip:        {{v3_centos_upgrade_director_manual_ip}}
+          v3_e2e_net_cidr:                      {{v3_e2e_net_cidr}}
+          v3_e2e_net_gateway:                   {{v3_e2e_net_gateway}}
+          v3_e2e_net_id:                        {{v3_e2e_net_id}}
+          v3_e2e_security_group:                {{v3_e2e_security_group}}
+          v3_e2e_project:                       {{v3_e2e_project}}
+          v3_e2e_domain:                        {{v3_e2e_domain}}
+          v3_e2e_username:                      {{v3_e2e_username}}
+          v3_e2e_private_key_data:              {{v3_e2e_private_key_data}}
+          time_server_1:                        {{time_server_1}}
+          time_server_2:                        {{time_server_2}}
+          old_bosh_release_version:             255.5
+          old_bosh_release_sha1:                ffc41db255450cb72b74190c8b9c2a1fe9846ad7
+          old_openstack_cpi_release_version:    18
+          old_openstack_cpi_release_sha1:       98c45b2dbd90eceb15c4a3843821eb995b7d08c3
+          old_bosh_stemcell_name:               bosh-openstack-kvm-centos-7-go_agent
+          old_bosh_stemcell_version:            3215
+          old_bosh_stemcell_sha1:               8a4f597368d330f8699c17b62993c43de5de2ba4
+          distro:                               "centos"
+        <<: *send-failure-email
 
       - task: deploy-dummy-release-with-old-cpi
         tags: *tags
@@ -327,41 +355,45 @@ jobs:
           network_id:                  {{v3_e2e_net_id}}
           stemcell_name:               "bosh-openstack-kvm-centos-7-go_agent"
           delete_deployment_when_done: "false"
+        <<: *send-failure-email
 
       - task: test-upgrade
         tags: *tags
         timeout: *timeouts-long
         file: bosh-cpi-src-in/ci/pipelines/certify-stemcell/tasks/test-upgrade.yml
         params: &centos-test-upgrade-params
-          dns:                             {{dns}}
-          v3_e2e_flavor:                   "m1.medium"
-          v3_e2e_connection_timeout:       "600"
-          v3_e2e_read_timeout:             "180"
-          v3_e2e_state_timeout:            "900"
-          v3_e2e_write_timeout:            "180"
-          bosh_admin_password:             {{bosh_admin_password}}
-          bosh_openstack_ca_cert:          {{bosh_openstack_ca_cert}}
-          v3_e2e_bosh_registry_port:       {{v3_e2e_bosh_registry_port}}
-          v3_e2e_api_key:                  {{v3_e2e_api_key}}
-          v3_e2e_auth_url:                 {{openstack_auth_url_v3}}
-          v3_e2e_default_key_name:         {{v3_e2e_default_key_name}}
-          v3_upgrade_director_floating_ip: {{v3_centos_upgrade_director_floating_ip}}
-          v3_upgrade_director_manual_ip:   {{v3_centos_upgrade_director_manual_ip}}
-          v3_e2e_net_cidr:                 {{v3_e2e_net_cidr}}
-          v3_e2e_net_gateway:              {{v3_e2e_net_gateway}}
-          v3_e2e_net_id:                   {{v3_e2e_net_id}}
-          v3_e2e_security_group:           {{v3_e2e_security_group}}
-          v3_e2e_project:                  {{v3_e2e_project}}
-          v3_e2e_domain:                   {{v3_e2e_domain}}
-          v3_e2e_username:                 {{v3_e2e_username}}
-          v3_e2e_private_key_data:         {{v3_e2e_private_key_data}}
-          time_server_1:                   {{time_server_1}}
-          time_server_2:                   {{time_server_2}}
+          dns:                                  {{dns}}
+          v3_e2e_flavor:                        "m1.medium"
+          v3_e2e_connection_timeout:            "600"
+          v3_e2e_read_timeout:                  "180"
+          v3_e2e_state_timeout:                 "900"
+          v3_e2e_write_timeout:                 "180"
+          bosh_admin_password:                  {{bosh_admin_password}}
+          bosh_openstack_ca_cert:               {{bosh_openstack_ca_cert}}
+          v3_e2e_bosh_registry_port:            {{v3_e2e_bosh_registry_port}}
+          v3_e2e_api_key:                       {{v3_e2e_api_key}}
+          v3_e2e_auth_url:                      {{openstack_auth_url_v3}}
+          v3_e2e_default_key_name:              {{v3_e2e_default_key_name}}
+          v3_upgrade_director_floating_ip:      {{v3_centos_upgrade_director_floating_ip}}
+          v3_upgrade_director_manual_ip:        {{v3_centos_upgrade_director_manual_ip}}
+          v3_e2e_net_cidr:                      {{v3_e2e_net_cidr}}
+          v3_e2e_net_gateway:                   {{v3_e2e_net_gateway}}
+          v3_e2e_net_id:                        {{v3_e2e_net_id}}
+          v3_e2e_security_group:                {{v3_e2e_security_group}}
+          v3_e2e_project:                       {{v3_e2e_project}}
+          v3_e2e_domain:                        {{v3_e2e_domain}}
+          v3_e2e_username:                      {{v3_e2e_username}}
+          v3_e2e_private_key_data:              {{v3_e2e_private_key_data}}
+          time_server_1:                        {{time_server_1}}
+          time_server_2:                        {{time_server_2}}
+          distro:                               "centos"
+        <<: *send-failure-email
 
       - task: teardown-director
         tags: *tags
         timeout: *timeouts-long
         file: bosh-cpi-src-in/ci/pipelines/certify-stemcell/tasks/teardown.yml
+        <<: *send-failure-email
 
   - name: test-upgrade-ubuntu
     serial: true
@@ -386,8 +418,9 @@ jobs:
           v3_upgrade_director_floating_ip: {{v3_ubuntu_upgrade_director_floating_ip}}
           v3_upgrade_director_manual_ip:   {{v3_ubuntu_upgrade_director_manual_ip}}
           old_bosh_stemcell_name:          bosh-openstack-kvm-ubuntu-trusty-go_agent
-          old_bosh_stemcell_version:       3192
-          old_bosh_stemcell_sha1:          a65173c58f36b108b4fe701f09588d3a7e9ed75f
+          old_bosh_stemcell_sha1:          6e103aab1c4aa22e48743eb3a5d8c51410fd172f
+          distro:                          "ubuntu"
+        <<: *send-failure-email
 
       - task: deploy-dummy-release-with-old-cpi
         tags: *tags
@@ -402,6 +435,7 @@ jobs:
           network_id:                  {{v3_e2e_net_id}}
           stemcell_name:               "bosh-openstack-kvm-ubuntu-trusty-go_agent"
           delete_deployment_when_done: "false"
+        <<: *send-failure-email
 
       - task: test-upgrade
         tags: *tags
@@ -411,11 +445,14 @@ jobs:
           <<:                              *centos-test-upgrade-params
           v3_upgrade_director_floating_ip: {{v3_ubuntu_upgrade_director_floating_ip}}
           v3_upgrade_director_manual_ip:   {{v3_ubuntu_upgrade_director_manual_ip}}
+          distro:                          "ubuntu"
+        <<: *send-failure-email
 
       - task: teardown-director
         tags: *tags
         timeout: *timeouts-long
         file: bosh-cpi-src-in/ci/pipelines/certify-stemcell/tasks/teardown.yml
+        <<: *send-failure-email
 
   - name: cleanup
     serial: true
@@ -427,8 +464,8 @@ jobs:
         - {trigger: true,  get: bosh-init,         tags: *tags, timeout: *timeouts-long}
         - {trigger: true,  get: bosh-cpi-release,  tags: *tags, timeout: *timeouts-long, resource: bosh-cpi-dev-artifacts}
         - {trigger: true,  get: bosh-release,      tags: *tags, timeout: *timeouts-long}
-        - {trigger: true,  get: stemcell,          tags: *tags, timeout: *timeouts-long, resource: centos-stemcell}
-        - {trigger: true,  get: stemcell,          tags: *tags, timeout: *timeouts-long, resource: ubuntu-stemcell}
+        - {trigger: true,  get: centos-stemcell,   tags: *tags, timeout: *timeouts-long}
+        - {trigger: true,  get: ubuntu-stemcell,   tags: *tags, timeout: *timeouts-long}
 
       - task: cleanup-e2e
         tags: *tags
@@ -442,6 +479,7 @@ jobs:
           BOSH_OPENSTACK_API_KEY:              {{v3_e2e_api_key}}
           BOSH_OPENSTACK_PROJECT:              {{v3_e2e_project}}
           BOSH_OPENSTACK_CA_CERT:              {{bosh_openstack_ca_cert}}
+        <<: *send-failure-email
 
   - name: certify-ubuntu
     plan:
@@ -488,6 +526,13 @@ jobs:
         timeout: *timeouts-long
         params:
           file: certification-receipt/*-receipt.json
+
+resource_types:
+  - name: email
+    type: docker-image
+    source:
+      repository: friegger/email-resource
+      tag: noauth
 
 resources:
   - name: bosh-cpi-dev-artifacts
@@ -558,3 +603,12 @@ resources:
       bucket: {{s3_openstack_cpi_receipts_bucket_name}}
       regexp: .*-(\d+)-receipt\.json
       region_name: us-east-1
+
+  - name: send-an-email
+    type: email
+    source:
+      smtp:
+        host: {{email_host}}
+        port: {{email_port}}
+      from: {{email_from}}
+      to: [ {{email_to}} ]

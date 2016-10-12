@@ -1,6 +1,9 @@
 ---
 platform: linux
-image: docker:///boshcpi/openstack-cpi-release
+image_resource:
+  type: docker-image
+  source:
+    repository: boshcpi/openstack-cpi-release
 inputs:
   - name: bosh-cpi-src-in
   - name: bosh-cpi-release
@@ -12,34 +15,35 @@ outputs:
 run:
   path: bosh-cpi-src-in/ci/pipelines/certify-stemcell/tasks/deploy-director.sh
 params:
-  BOSH_INIT_LOG_LEVEL:            warn
-  bosh_admin_password:            replace-me
-  dns:                            replace-me
-  v3_e2e_config_drive:            replace-me
-  v3_e2e_use_dhcp:                replace-me
-  v3_e2e_flavor:                  replace-me
-  v3_e2e_connection_timeout:      replace-me
-  v3_e2e_read_timeout:            replace-me
-  v3_e2e_state_timeout:           replace-me
-  v3_e2e_write_timeout:           replace-me
-  bosh_openstack_ca_cert:         replace-me
-  v3_e2e_bosh_registry_port:      replace-me
-  v3_e2e_api_key:                 replace-me
-  v3_e2e_auth_url:                replace-me
-  v3_e2e_default_key_name:        replace-me
-  director_floating_ip:           replace-me
-  director_manual_ip:             replace-me
-  v3_e2e_net_cidr:                replace-me
-  v3_e2e_net_gateway:             replace-me
-  v3_e2e_net_id:                  replace-me
-  v3_e2e_security_group:          replace-me
-  v3_e2e_project:                 replace-me
-  v3_e2e_domain:                  replace-me
-  v3_e2e_username:                replace-me
-  v3_e2e_private_key_data:        replace-me
-  v3_e2e_blobstore_bucket:        replace-me
-  v3_e2e_blobstore_host:          replace-me
-  v3_e2e_blobstore_access_key:    replace-me
-  v3_e2e_blobstore_secret_key:    replace-me
-  time_server_1:                  replace-me
-  time_server_2:                  replace-me
+  BOSH_INIT_LOG_LEVEL:                 warn
+  bosh_admin_password:                 replace-me
+  dns:                                 replace-me
+  v3_e2e_config_drive:                 replace-me
+  v3_e2e_use_dhcp:                     replace-me
+  v3_e2e_flavor:                       replace-me
+  v3_e2e_connection_timeout:           replace-me
+  v3_e2e_read_timeout:                 replace-me
+  v3_e2e_state_timeout:                replace-me
+  v3_e2e_write_timeout:                replace-me
+  bosh_openstack_ca_cert:              replace-me
+  v3_e2e_bosh_registry_port:           replace-me
+  v3_e2e_api_key:                      replace-me
+  v3_e2e_auth_url:                     replace-me
+  v3_e2e_default_key_name:             replace-me
+  director_floating_ip:                replace-me
+  director_manual_ip:                  replace-me
+  v3_e2e_net_cidr:                     replace-me
+  v3_e2e_net_gateway:                  replace-me
+  v3_e2e_net_id:                       replace-me
+  v3_e2e_security_group:               replace-me
+  v3_e2e_project:                      replace-me
+  v3_e2e_domain:                       replace-me
+  v3_e2e_username:                     replace-me
+  v3_e2e_private_key_data:             replace-me
+  v3_e2e_blobstore_bucket:             replace-me
+  v3_e2e_blobstore_host:               replace-me
+  v3_e2e_blobstore_access_key:         replace-me
+  v3_e2e_blobstore_secret_key:         replace-me
+  time_server_1:                       replace-me
+  time_server_2:                       replace-me
+  distro:                              replace-me

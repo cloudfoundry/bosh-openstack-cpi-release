@@ -1,6 +1,9 @@
 ---
 platform: linux
-image: docker:///boshcpi/openstack-cpi-release
+image_resource:
+  type: docker-image
+  source:
+    repository: boshcpi/openstack-cpi-release
 inputs:
   - name: bosh-cpi-src-in
   - name: bosh-init
@@ -13,24 +16,26 @@ outputs:
 run:
   path: bosh-cpi-src-in/ci/tasks/deploy-dynamic-networking.sh
 params:
-  bosh_admin_password:           ""
-  dns:                           ""
-  openstack_flavor:              ""
-  openstack_connection_timeout:  ""
-  openstack_read_timeout:        ""
-  openstack_write_timeout:       ""
-  openstack_state_timeout:       ""
-  private_key_data:              ""
-  bosh_registry_port:            ""
-  bosh_openstack_ca_cert:        replace-me
-  openstack_net_id:              ""
-  openstack_security_group:      ""
-  openstack_default_key_name:    ""
-  openstack_auth_url:            ""
-  openstack_username:            ""
-  openstack_api_key:             ""
-  openstack_project:             ""
-  openstack_domain:              ""
-  openstack_floating_ip:         ""
-  time_server_1:                 ""
-  time_server_2:                 ""
+  bosh_admin_password:                 ""
+  dns:                                 ""
+  openstack_flavor:                    ""
+  openstack_connection_timeout:        ""
+  openstack_read_timeout:              ""
+  openstack_write_timeout:             ""
+  openstack_state_timeout:             ""
+  private_key_data:                    ""
+  bosh_registry_port:                  ""
+  bosh_openstack_ca_cert:              replace-me
+  openstack_net_id:                    ""
+  openstack_security_group:            ""
+  openstack_default_key_name:          ""
+  openstack_auth_url:                  ""
+  openstack_username:                  ""
+  openstack_api_key:                   ""
+  openstack_project:                   ""
+  openstack_domain:                    ""
+  openstack_floating_ip:               ""
+  time_server_1:                       ""
+  time_server_2:                       ""
+  distro:                              ""
+  DEBUG_BATS:                          ""

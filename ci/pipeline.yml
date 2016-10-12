@@ -40,7 +40,16 @@ custom:
   timeouts:
     long: &timeouts-long 2h
   build_logs_to_retain: &build_logs_to_retain 500
-
+  debug_bats: &debug_bats true
+  mail:
+    without_mail: &send-failure-email
+      on_failure: ~
+    with_mail:
+      on_failure:
+        put: send-an-email
+        params:
+          subject: {{email_subject}}
+          body: {{email_body}}
 jobs:
   - name: build-candidate
     serial: true
@@ -93,6 +102,7 @@ jobs:
            BOSH_OPENSTACK_PROJECT:     {{lifecycle_openstack_project}}
            BOSH_OPENSTACK_DOMAIN_NAME: {{lifecycle_openstack_domain}}
            BOSH_OPENSTACK_CA_CERT:     {{bosh_openstack_ca_cert}}
+        <<: *send-failure-email
 
       - task: cleanup-bats
         tags: *tags
@@ -105,6 +115,7 @@ jobs:
           BOSH_OPENSTACK_PROJECT:     {{openstack_project}}
           BOSH_OPENSTACK_DOMAIN_NAME: {{openstack_domain}}
           BOSH_OPENSTACK_CA_CERT:     {{bosh_openstack_ca_cert}}
+        <<: *send-failure-email
 
   - name: lifecycle
     serial: true
@@ -144,6 +155,7 @@ jobs:
           BOSH_OPENSTACK_WRITE_TIMEOUT:            "120"
           BOSH_OPENSTACK_CA_CERT:                  {{bosh_openstack_ca_cert}}
           BOSH_OPENSTACK_FLAVOR_WITH_NO_ROOT_DISK: {{openstack_flavor_with_no_root_disk}}
+        <<: *send-failure-email
 
       - put: lifecycle-log
         tags: *tags
@@ -189,30 +201,33 @@ jobs:
         timeout: *timeouts-long
         file: bosh-cpi-src-in/ci/tasks/deploy-manual-networking.yml
         params:
-          bosh_admin_password:           {{bosh_admin_password}}
-          openstack_flavor:              "m1.small"
-          openstack_connection_timeout:  "600"
-          openstack_read_timeout:        "180"
-          openstack_write_timeout:       "180"
-          openstack_state_timeout:       "900"
-          private_key_data:              {{bosh_private_key}}
-          bosh_registry_port:            {{bosh_director_registry_port}}
-          bosh_openstack_ca_cert:        {{bosh_openstack_ca_cert}}
-          dns:                           {{dns}}
-          openstack_net_id:              {{bats_manual_ubuntu_primary_net_id}}
-          openstack_security_group:      {{openstack_security_group}}
-          openstack_default_key_name:    {{openstack_default_key_name}}
-          openstack_auth_url:            {{openstack_auth_url_v3}}
-          openstack_username:            {{openstack_username}}
-          openstack_api_key:             {{openstack_api_key}}
-          openstack_project:             {{openstack_project}}
-          openstack_domain:              {{openstack_domain}}
-          openstack_floating_ip:         {{bats_manual_ubuntu_director_public_ip}}
-          openstack_manual_ip:           {{bats_manual_ubuntu_director_private_ip}}
-          openstack_net_cidr:            {{bats_manual_ubuntu_primary_net_cidr}}
-          openstack_net_gateway:         {{bats_manual_ubuntu_primary_net_gateway}}
-          time_server_1:                 {{time_server_1}}
-          time_server_2:                 {{time_server_2}}
+          bosh_admin_password:                  {{bosh_admin_password}}
+          openstack_flavor:                     "m1.small"
+          openstack_connection_timeout:         "600"
+          openstack_read_timeout:               "180"
+          openstack_write_timeout:              "180"
+          openstack_state_timeout:              "900"
+          private_key_data:                     {{bosh_private_key}}
+          bosh_registry_port:                   {{bosh_director_registry_port}}
+          bosh_openstack_ca_cert:               {{bosh_openstack_ca_cert}}
+          dns:                                  {{dns}}
+          openstack_net_id:                     {{bats_manual_ubuntu_primary_net_id}}
+          openstack_security_group:             {{openstack_security_group}}
+          openstack_default_key_name:           {{openstack_default_key_name}}
+          openstack_auth_url:                   {{openstack_auth_url_v3}}
+          openstack_username:                   {{openstack_username}}
+          openstack_api_key:                    {{openstack_api_key}}
+          openstack_project:                    {{openstack_project}}
+          openstack_domain:                     {{openstack_domain}}
+          openstack_floating_ip:                {{bats_manual_ubuntu_director_public_ip}}
+          openstack_manual_ip:                  {{bats_manual_ubuntu_director_private_ip}}
+          openstack_net_cidr:                   {{bats_manual_ubuntu_primary_net_cidr}}
+          openstack_net_gateway:                {{bats_manual_ubuntu_primary_net_gateway}}
+          time_server_1:                        {{time_server_1}}
+          time_server_2:                        {{time_server_2}}
+          distro:                               "ubuntu"
+          DEBUG_BATS:                           *debug_bats
+        <<: *send-failure-email
 
       - task: test
         tags: *tags
@@ -241,6 +256,16 @@ jobs:
           secondary_network_range:                  {{bats_manual_ubuntu_secondary_net_static_range}}
           secondary_network_manual_ip:              {{bats_manual_ubuntu_secondary_net_manual_ip}}
           secondary_network_dhcp_pool:              {{bats_manual_ubuntu_secondary_net_dhcp_pool}}
+          DEBUG_BATS:                               *debug_bats
+        <<: *send-failure-email
+        ensure:
+          task: print-task-errors
+          tags: *tags
+          timeout: *timeouts-long
+          file: bosh-cpi-src-in/ci/tasks/print_task_errors.yml
+          params:
+            bosh_admin_password:     {{bosh_admin_password}}
+            bosh_director_public_ip: {{bats_manual_ubuntu_director_public_ip}}
 
       - task: teardown-director
         tags: *tags
@@ -249,6 +274,7 @@ jobs:
         params:
           bosh_admin_password:                     {{bosh_admin_password}}
           bosh_director_ip:                        {{bats_manual_ubuntu_director_public_ip}}
+        <<: *send-failure-email
 
   - name: bats-ubuntu-dynamic
     serial: true
@@ -269,27 +295,30 @@ jobs:
         timeout: *timeouts-long
         file: bosh-cpi-src-in/ci/tasks/deploy-dynamic-networking.yml
         params:
-          bosh_admin_password:           {{bosh_admin_password}}
-          openstack_flavor:              "m1.small"
-          openstack_connection_timeout:  "600"
-          openstack_read_timeout:        "180"
-          openstack_write_timeout:       "180"
-          openstack_state_timeout:       "900"
-          bosh_registry_port:            {{bosh_director_registry_port}}
-          bosh_openstack_ca_cert:        {{bosh_openstack_ca_cert}}
-          dns:                           {{dns}}
-          openstack_net_id:              {{bats_dynamic_ubuntu_primary_net_id}}
-          openstack_security_group:      {{openstack_security_group}}
-          openstack_default_key_name:    {{openstack_default_key_name}}
-          openstack_auth_url:            {{openstack_auth_url_v3}}
-          openstack_username:            {{openstack_username}}
-          openstack_api_key:             {{openstack_api_key}}
-          openstack_project:             {{openstack_project}}
-          openstack_domain:              {{openstack_domain}}
-          openstack_floating_ip:         {{bats_dynamic_ubuntu_director_public_ip}}
-          time_server_1:                 {{time_server_1}}
-          time_server_2:                 {{time_server_2}}
-          private_key_data:              {{bosh_private_key}}
+          bosh_admin_password:                  {{bosh_admin_password}}
+          openstack_flavor:                     "m1.small"
+          openstack_connection_timeout:         "600"
+          openstack_read_timeout:               "180"
+          openstack_write_timeout:              "180"
+          openstack_state_timeout:              "900"
+          bosh_registry_port:                   {{bosh_director_registry_port}}
+          bosh_openstack_ca_cert:               {{bosh_openstack_ca_cert}}
+          dns:                                  {{dns}}
+          openstack_net_id:                     {{bats_dynamic_ubuntu_primary_net_id}}
+          openstack_security_group:             {{openstack_security_group}}
+          openstack_default_key_name:           {{openstack_default_key_name}}
+          openstack_auth_url:                   {{openstack_auth_url_v3}}
+          openstack_username:                   {{openstack_username}}
+          openstack_api_key:                    {{openstack_api_key}}
+          openstack_project:                    {{openstack_project}}
+          openstack_domain:                     {{openstack_domain}}
+          openstack_floating_ip:                {{bats_dynamic_ubuntu_director_public_ip}}
+          time_server_1:                        {{time_server_1}}
+          time_server_2:                        {{time_server_2}}
+          private_key_data:                     {{bosh_private_key}}
+          distro:                               "ubuntu"
+          DEBUG_BATS:                           *debug_bats
+        <<: *send-failure-email
 
       - task: test
         tags: *tags
@@ -305,6 +334,16 @@ jobs:
           openstack_security_group:                 {{openstack_security_group}}
           primary_network_id:                       {{bats_dynamic_ubuntu_primary_net_id}}
           private_key_data:                         {{bosh_private_key}}
+          DEBUG_BATS:                               *debug_bats
+        <<: *send-failure-email
+        ensure:
+          task: print-task-errors
+          tags: *tags
+          timeout: *timeouts-long
+          file: bosh-cpi-src-in/ci/tasks/print_task_errors.yml
+          params:
+            bosh_admin_password:     {{bosh_admin_password}}
+            bosh_director_public_ip: {{bats_dynamic_ubuntu_director_public_ip}}
 
       - task: teardown-director
         tags: *tags
@@ -313,6 +352,7 @@ jobs:
         params:
           bosh_admin_password:                     {{bosh_admin_password}}
           bosh_director_ip:                        {{bats_dynamic_ubuntu_director_public_ip}}
+        <<: *send-failure-email
 
   - name: bats-centos-manual
     serial: true
@@ -333,30 +373,33 @@ jobs:
         timeout: *timeouts-long
         file: bosh-cpi-src-in/ci/tasks/deploy-manual-networking.yml
         params:
-          bosh_admin_password:           {{bosh_admin_password}}
-          openstack_flavor:              "m1.small"
-          openstack_connection_timeout:  "600"
-          openstack_read_timeout:        "180"
-          openstack_write_timeout:       "180"
-          openstack_state_timeout:       "900"
-          bosh_registry_port:            {{bosh_director_registry_port}}
-          bosh_openstack_ca_cert:        {{bosh_openstack_ca_cert}}
-          dns:                           {{dns}}
-          openstack_net_id:              {{bats_manual_centos_primary_net_id}}
-          openstack_security_group:      {{openstack_security_group}}
-          openstack_default_key_name:    {{openstack_default_key_name}}
-          openstack_auth_url:            {{openstack_auth_url_v3}}
-          openstack_username:            {{openstack_username}}
-          openstack_api_key:             {{openstack_api_key}}
-          openstack_project:             {{openstack_project}}
-          openstack_domain:              {{openstack_domain}}
-          openstack_floating_ip:         {{bats_manual_centos_director_public_ip}}
-          openstack_manual_ip:           {{bats_manual_centos_director_private_ip}}
-          openstack_net_cidr:            {{bats_manual_centos_primary_net_cidr}}
-          openstack_net_gateway:         {{bats_manual_centos_primary_net_gateway}}
-          time_server_1:                 {{time_server_1}}
-          time_server_2:                 {{time_server_2}}
-          private_key_data:              {{bosh_private_key}}
+          bosh_admin_password:                  {{bosh_admin_password}}
+          openstack_flavor:                     "m1.small"
+          openstack_connection_timeout:         "600"
+          openstack_read_timeout:               "180"
+          openstack_write_timeout:              "180"
+          openstack_state_timeout:              "900"
+          bosh_registry_port:                   {{bosh_director_registry_port}}
+          bosh_openstack_ca_cert:               {{bosh_openstack_ca_cert}}
+          dns:                                  {{dns}}
+          openstack_net_id:                     {{bats_manual_centos_primary_net_id}}
+          openstack_security_group:             {{openstack_security_group}}
+          openstack_default_key_name:           {{openstack_default_key_name}}
+          openstack_auth_url:                   {{openstack_auth_url_v3}}
+          openstack_username:                   {{openstack_username}}
+          openstack_api_key:                    {{openstack_api_key}}
+          openstack_project:                    {{openstack_project}}
+          openstack_domain:                     {{openstack_domain}}
+          openstack_floating_ip:                {{bats_manual_centos_director_public_ip}}
+          openstack_manual_ip:                  {{bats_manual_centos_director_private_ip}}
+          openstack_net_cidr:                   {{bats_manual_centos_primary_net_cidr}}
+          openstack_net_gateway:                {{bats_manual_centos_primary_net_gateway}}
+          time_server_1:                        {{time_server_1}}
+          time_server_2:                        {{time_server_2}}
+          private_key_data:                     {{bosh_private_key}}
+          distro:                               "centos"
+          DEBUG_BATS:                           *debug_bats
+        <<: *send-failure-email
 
       - task: test
         tags: *tags
@@ -385,6 +428,16 @@ jobs:
           secondary_network_range:                  {{bats_manual_centos_secondary_net_static_range}}
           secondary_network_manual_ip:              {{bats_manual_centos_secondary_net_manual_ip}}
           secondary_network_dhcp_pool:              {{bats_manual_centos_secondary_net_dhcp_pool}}
+          DEBUG_BATS:                               *debug_bats
+        <<: *send-failure-email
+        ensure:
+          task: print-task-errors
+          tags: *tags
+          timeout: *timeouts-long
+          file: bosh-cpi-src-in/ci/tasks/print_task_errors.yml
+          params:
+            bosh_admin_password:     {{bosh_admin_password}}
+            bosh_director_public_ip: {{bats_manual_centos_director_public_ip}}
 
       - task: teardown-director
         tags: *tags
@@ -393,6 +446,7 @@ jobs:
         params:
           bosh_admin_password:                     {{bosh_admin_password}}
           bosh_director_ip:                        {{bats_manual_centos_director_public_ip}}
+        <<: *send-failure-email
 
   - name: bats-centos-dynamic
     serial: true
@@ -413,27 +467,30 @@ jobs:
         timeout: *timeouts-long
         file: bosh-cpi-src-in/ci/tasks/deploy-dynamic-networking.yml
         params:
-          bosh_admin_password:           {{bosh_admin_password}}
-          openstack_flavor:              "m1.small"
-          openstack_connection_timeout:  "600"
-          openstack_read_timeout:        "180"
-          openstack_write_timeout:       "180"
-          openstack_state_timeout:       "900"
-          bosh_registry_port:            {{bosh_director_registry_port}}
-          bosh_openstack_ca_cert:        {{bosh_openstack_ca_cert}}
-          dns:                           {{dns}}
-          openstack_net_id:              {{bats_dynamic_centos_primary_net_id}}
-          openstack_security_group:      {{openstack_security_group}}
-          openstack_default_key_name:    {{openstack_default_key_name}}
-          openstack_auth_url:            {{openstack_auth_url_v3}}
-          openstack_username:            {{openstack_username}}
-          openstack_api_key:             {{openstack_api_key}}
-          openstack_project:             {{openstack_project}}
-          openstack_domain:              {{openstack_domain}}
-          openstack_floating_ip:         {{bats_dynamic_centos_director_public_ip}}
-          time_server_1:                 {{time_server_1}}
-          time_server_2:                 {{time_server_2}}
-          private_key_data:              {{bosh_private_key}}
+          bosh_admin_password:                  {{bosh_admin_password}}
+          openstack_flavor:                     "m1.small"
+          openstack_connection_timeout:         "600"
+          openstack_read_timeout:               "180"
+          openstack_write_timeout:              "180"
+          openstack_state_timeout:              "900"
+          bosh_registry_port:                   {{bosh_director_registry_port}}
+          bosh_openstack_ca_cert:               {{bosh_openstack_ca_cert}}
+          dns:                                  {{dns}}
+          openstack_net_id:                     {{bats_dynamic_centos_primary_net_id}}
+          openstack_security_group:             {{openstack_security_group}}
+          openstack_default_key_name:           {{openstack_default_key_name}}
+          openstack_auth_url:                   {{openstack_auth_url_v3}}
+          openstack_username:                   {{openstack_username}}
+          openstack_api_key:                    {{openstack_api_key}}
+          openstack_project:                    {{openstack_project}}
+          openstack_domain:                     {{openstack_domain}}
+          openstack_floating_ip:                {{bats_dynamic_centos_director_public_ip}}
+          time_server_1:                        {{time_server_1}}
+          time_server_2:                        {{time_server_2}}
+          private_key_data:                     {{bosh_private_key}}
+          distro:                               "centos"
+          DEBUG_BATS:                           *debug_bats
+        <<: *send-failure-email
 
       - task: test
         tags: *tags
@@ -449,6 +506,16 @@ jobs:
           openstack_security_group:                 {{openstack_security_group}}
           primary_network_id:                       {{bats_dynamic_centos_primary_net_id}}
           private_key_data:                         {{bosh_private_key}}
+          DEBUG_BATS:                               *debug_bats
+        <<: *send-failure-email
+        ensure:
+          task: print-task-errors
+          tags: *tags
+          timeout: *timeouts-long
+          file: bosh-cpi-src-in/ci/tasks/print_task_errors.yml
+          params:
+            bosh_admin_password:     {{bosh_admin_password}}
+            bosh_director_public_ip: {{bats_dynamic_centos_director_public_ip}}
 
       - task: teardown-director
         tags: *tags
@@ -457,6 +524,7 @@ jobs:
         params:
           bosh_admin_password:                     {{bosh_admin_password}}
           bosh_director_ip:                        {{bats_dynamic_centos_director_public_ip}}
+        <<: *send-failure-email
 
   - name: promote-candidate
     serial: true
@@ -483,6 +551,13 @@ jobs:
         tags: *tags
         timeout: *timeouts-long
         params: {repository: promote/repo, rebase: true, tag: promote/integer_version, tag_prefix: "v"}
+
+resource_types:
+  - name: email
+    type: docker-image
+    source:
+      repository: friegger/email-resource
+      tag: noauth
 
 resources:
   - name: bosh-cpi-dev-artifacts
@@ -569,9 +644,17 @@ resources:
     type: bosh-io-stemcell
     source:
       name: bosh-openstack-kvm-ubuntu-trusty-go_agent
-      version: 3147
 
   - name: pipeline-time-trigger
     type: time
     source:
       interval: {{pipeline-time-trigger-interval}}
+
+  - name: send-an-email
+    type: email
+    source:
+      smtp:
+        host: {{email_host}}
+        port: {{email_port}}
+      from: {{email_from}}
+      to: [ {{email_to}} ]

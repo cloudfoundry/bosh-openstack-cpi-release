@@ -1,4 +1,7 @@
 ### All calls for API endpoint 'image (glance)'
+```
+POST /v2/images body: {"name":"<name>","disk_format":"qcow2","container_format":"bare","visibility":"private","version":"<version>","os_type":"linux","os_distro":"ubuntu","architecture":"x86_64","auto_disk_config":"true","hypervisor_type":"kvm"}
+```
 ### All calls for API endpoint 'network (neutron)'
 ```
 GET /v2.0/ports?device_id=<device_id>&name=<name>
