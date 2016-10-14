@@ -178,3 +178,115 @@ output "net id:   lifecycle_net_id_no_dhcp_2" {
 output "manual ip:   lifecycle_no_dhcp_manual_ip_2" {
   value = "${module.lifecycle.lifecycle_no_dhcp_manual_ip_2}"
 }
+
+output "manual ip:   bats_manual_centos_director_private_ip" {
+  value = "${module.bats.bats_manual_centos_director_private_ip}"
+}
+
+output "cidr:   bats_manual_centos_primary_net_cidr" {
+  value = "${module.bats.bats_manual_centos_primary_net_cidr}"
+}
+
+output "dhcp_pool:   bats_manual_centos_primary_net_dhcp_pool" {
+  value = "${module.bats.bats_manual_centos_primary_net_dhcp_pool}"
+}
+
+output "gateway:   bats_manual_centos_primary_net_gateway" {
+  value = "${module.bats.bats_manual_centos_primary_net_gateway}"
+}
+
+output "manual ip:   bats_manual_centos_primary_net_manual_ip" {
+  value = "${module.bats.bats_manual_centos_primary_net_manual_ip}"
+}
+
+output "manual ip:   bats_manual_centos_primary_net_second_manual_ip" {
+  value = "${module.bats.bats_manual_centos_primary_net_second_manual_ip}"
+}
+
+output "static range:   bats_manual_centos_primary_net_static_range" {
+  value = "${module.bats.bats_manual_centos_primary_net_static_range}"
+}
+
+output "cidr:   bats_manual_centos_secondary_net_cidr" {
+  value = "${module.bats.bats_manual_centos_secondary_net_cidr}"
+}
+
+output "dhcp_pool:   bats_manual_centos_secondary_net_dhcp_pool" {
+  value = "${module.bats.bats_manual_centos_secondary_net_dhcp_pool}"
+}
+
+output "gateway:   bats_manual_centos_secondary_net_gateway" {
+  value = "${module.bats.bats_manual_centos_secondary_net_gateway}"
+}
+
+output "manual ip:   bats_manual_centos_secondary_net_manual_ip" {
+  value = "${module.bats.bats_manual_centos_secondary_net_manual_ip}"
+}
+
+output "static range:   bats_manual_centos_secondary_net_static_range" {
+  value = "${module.bats.bats_manual_centos_secondary_net_static_range}"
+}
+
+output "manual ip:   bats_manual_ubuntu_director_private_ip" {
+  value = "${module.bats.bats_manual_ubuntu_director_private_ip}"
+}
+
+output "cidr:   bats_manual_ubuntu_primary_net_cidr" {
+  value = "${module.bats.bats_manual_ubuntu_primary_net_cidr}"
+}
+
+output "dhcp_pool:   bats_manual_ubuntu_primary_net_dhcp_pool" {
+  value = "${module.bats.bats_manual_ubuntu_primary_net_dhcp_pool}"
+}
+
+output "gateway:   bats_manual_ubuntu_primary_net_gateway" {
+  value = "${module.bats.bats_manual_ubuntu_primary_net_gateway}"
+}
+
+output "manual ip:   bats_manual_ubuntu_primary_net_manual_ip" {
+  value = "${module.bats.bats_manual_ubuntu_primary_net_manual_ip}"
+}
+
+output "manual ip:   bats_manual_ubuntu_primary_net_second_manual_ip" {
+  value = "${module.bats.bats_manual_ubuntu_primary_net_second_manual_ip}"
+}
+
+output "static range:   bats_manual_ubuntu_primary_net_static_range" {
+  value = "${module.bats.bats_manual_ubuntu_primary_net_static_range}"
+}
+
+output "cidr:   bats_manual_ubuntu_secondary_net_cidr" {
+  value = "${module.bats.bats_manual_ubuntu_secondary_net_cidr}"
+}
+
+output "dhcp_pool:   bats_manual_ubuntu_secondary_net_dhcp_pool" {
+  value = "${module.bats.bats_manual_ubuntu_secondary_net_dhcp_pool}"
+}
+
+output "gateway:   bats_manual_ubuntu_secondary_net_gateway" {
+  value = "${module.bats.bats_manual_ubuntu_secondary_net_gateway}"
+}
+
+output "manual ip:   bats_manual_ubuntu_secondary_net_manual_ip" {
+  value = "${module.bats.bats_manual_ubuntu_secondary_net_manual_ip}"
+}
+
+output "static range:   bats_manual_ubuntu_secondary_net_static_range" {
+  value = "${module.bats.bats_manual_ubuntu_secondary_net_static_range}"
+}
+
+output "dns:   dns" {
+  value = "${var.dns_nameservers}"
+}
+
+output "api key:   openstack_api_key" {
+  value = "${var.password}"
+}
+
+output "tenant:   openstack_tenant" {
+  value = "${var.tenant_name}"
+}
+
+output "username:   openstack_username" {
+  value = "${var.user_name}"
+}
