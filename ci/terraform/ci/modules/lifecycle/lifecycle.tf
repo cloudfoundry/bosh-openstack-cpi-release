@@ -1,5 +1,6 @@
 variable "dns_nameservers" {
   type = "list"
+  default = []
   description = "DNS server IPs"
 }
 
