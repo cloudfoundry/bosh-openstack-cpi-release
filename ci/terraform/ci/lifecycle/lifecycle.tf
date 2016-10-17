@@ -114,3 +114,19 @@ output "net id:   lifecycle_net_id_no_dhcp_2" {
 output "manual ip:   lifecycle_no_dhcp_manual_ip_2" {
   value = "${module.lifecycle.lifecycle_no_dhcp_manual_ip_2}"
 }
+
+output "domain:   lifecycle_openstack_domain" {
+  value = "${var.domain_name}"
+}
+
+output "project:   lifecycle_openstack_project" {
+  value = "${var.tenant_name}"
+}
+
+output "tenant:   lifecycle_openstack_tenant" {
+  value = "${var.tenant_name}"
+}
+
+output "key name:   lifecycle_openstack_default_key_name" {
+  value = "${var.openstack_default_key_name_prefix}-${var.tenant_name}"
+}
