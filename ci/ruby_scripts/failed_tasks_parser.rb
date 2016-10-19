@@ -1,5 +1,5 @@
 def errors_to_bosh_tasks_cmds(cli_output)
-  rows_with_error = -> (row) { row[2] == 'error' }
+  rows_with_error = -> (row) { row[2] != 'done' }
   to_task_number = -> (row) { row[1] }
   to_stripped_columns = -> (row) { row.split('|').map(&:strip) }
   to_bosh_command = -> (task) { "bosh task #{task} --debug" }
