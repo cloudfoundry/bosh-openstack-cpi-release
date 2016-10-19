@@ -1,5 +1,3 @@
-# Copyright (c) 2009-2013 VMware, Inc.
-
 module Bosh::OpenStackCloud
   ##
   # Represents OpenStack manual network: where user sets VM's IP
@@ -26,7 +24,7 @@ module Bosh::OpenStackCloud
     # Configures OpenStack manual network. Right now it's a no-op,
     # as manual networks are completely managed by OpenStack
     #
-    # @param [Fog::Compute::OpenStack] openstack Fog OpenStack Compute client
+    # @param [Bosh::OpenStackCloud::Openstack] openstack
     # @param [Fog::Compute::OpenStack::Server] server OpenStack server to
     #   configure
     def configure(openstack, server)

@@ -352,55 +352,14 @@ describe Bosh::OpenStackCloud::NetworkConfigurator do
         }
       end
 
-      context 'when floating IP associated to the server' do
-        it 'disassociate allocated floating IP' do
-          server = double('server', :id => 'i-test')
-          address = double('address', :id => 'a-test', :ip => '10.0.0.1',
-                           :instance_id => 'i-test')
-
-          expect(manual_network).to receive(:configure)
-          expect(dynamic_network).to receive(:configure)
-          expect(vip_network).to_not receive(:configure)
-          cloud = mock_cloud do |openstack|
-            expect(openstack).to receive(:addresses).and_return([address])
-          end
-          expect(address).to receive(:server=).with(nil)
-
-          network_configurator = Bosh::OpenStackCloud::NetworkConfigurator.new(network_spec)
-          network_configurator.configure(cloud.compute, server)
-        end
-      end
-
-      context 'when no floating IP associated to the server but to others' do
-        it 'should not disassociate any floating IP' do
-          other_server = double('server', :id => 'i-test2')
-          address = double('address', :id => 'a-test', :ip => '10.0.0.1',
-                           :instance_id => 'i-test')
-
-          expect(manual_network).to receive(:configure)
-          expect(dynamic_network).to receive(:configure)
-          expect(vip_network).to_not receive(:configure)
-
-          cloud = mock_cloud do |openstack|
-            expect(openstack).to receive(:addresses).and_return([address])
-          end
-          expect(address).to_not receive(:server=).with(nil)
-
-          network_configurator = Bosh::OpenStackCloud::NetworkConfigurator.new(network_spec)
-          network_configurator.configure(cloud.compute, other_server)
-        end
-      end
       context 'when no floating IP is associated' do
         it 'should not configure the vip_network' do
           expect(manual_network).to receive(:configure)
           expect(dynamic_network).to receive(:configure)
           expect(vip_network).to_not receive(:configure)
-          cloud = mock_cloud do |openstack|
-            expect(openstack).to receive(:addresses).and_return([])
-          end
 
           network_configurator = Bosh::OpenStackCloud::NetworkConfigurator.new(network_spec)
-          network_configurator.configure(cloud.compute, nil)
+          network_configurator.configure(nil, nil)
         end
       end
     end

@@ -26,6 +26,23 @@ module FogImagesPatch
 end
 Fog::Image::OpenStack::V2::Images.prepend FogImagesPatch
 
+# TODO: Monkey Patch Fog, provide PR
+module Fog
+  module Compute
+    class OpenStack
+      class Real
+        def get_server_port_interfaces(server_id)
+          request(
+              :expects  => 200,
+              :method   => 'GET',
+              :path     => "/servers/#{server_id}/os-interface"
+          )
+        end
+      end
+    end
+  end
+end
+
 module Bosh::OpenStackCloud
   class Openstack
     include Helpers

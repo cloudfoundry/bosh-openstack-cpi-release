@@ -81,30 +81,17 @@ module Bosh::OpenStackCloud
     ##
     # Applies network configuration to the vm
     #
-    # @param [Fog::Compute::OpenStack] compute Fog OpenStack Compute client
+    # @param [Bosh::OpenStackCloud::Openstack] openstack
     # @param [Fog::Compute::OpenStack::Server] server OpenStack server to
     #   configure
-    def configure(compute, server)
+    def configure(openstack, server)
       @networks.each do |network_info|
         network = network_info["network"]
-        network.configure(compute, server)
+        network.configure(openstack, server)
       end
 
       if @vip_network
-        @vip_network.configure(compute, server)
-      else
-        # If there is no vip network we should disassociate any floating IP
-        # currently held by server (as it might have had floating IP before)
-        with_openstack do
-          addresses = compute.addresses
-          addresses.each do |address|
-            if address.instance_id == server.id
-              @logger.info("Disassociating floating IP `#{address.ip}' " \
-                           "from server `#{server.id}'")
-              address.server = nil
-            end
-          end
-        end
+        @vip_network.configure(openstack, server)
       end
     end
 

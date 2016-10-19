@@ -1,6 +1,3 @@
-# Copyright (c) 2009-2013 VMware, Inc.
-# Copyright (c) 2012 Piston Cloud Computing, Inc.
-
 module Bosh::OpenStackCloud
   ##
   # Represents OpenStack dynamic network: where IaaS sets VM's IP
@@ -19,7 +16,7 @@ module Bosh::OpenStackCloud
     # Configures OpenStack dynamic network. Right now it's a no-op,
     # as dynamic networks are completely managed by OpenStack
     #
-    # @param [Fog::Compute::OpenStack] openstack Fog OpenStack Compute client
+    # @param [Bosh::OpenStackCloud::Openstack] openstack
     # @param [Fog::Compute::OpenStack::Server] server OpenStack server to
     #   configure
     def configure(openstack, server)
