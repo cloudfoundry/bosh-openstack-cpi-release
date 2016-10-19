@@ -7,11 +7,12 @@ describe 'Failed tasks parser' do
     File.read('spec/assets/bosh_tasks_output.txt')
   }
 
-  it 'returns a bosh task command for each error' do
+  it 'returns a bosh task command for tasks that are not \'done\'' do
     expect(errors_to_bosh_tasks_cmds(content)).to eq([
       'bosh task 23 --debug',
       'bosh task 34 --debug',
-      'bosh task 37 --debug'
+      'bosh task 37 --debug',
+      'bosh task 47 --debug'
     ])
   end
 
