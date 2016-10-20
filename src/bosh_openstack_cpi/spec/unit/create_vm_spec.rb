@@ -315,7 +315,6 @@ describe Bosh::OpenStackCloud::Cloud, "create_vm" do
           allow(compute.images).to receive(:find).and_return(image)
           allow(compute.flavors).to receive(:find).and_return(flavor)
           allow(compute.key_pairs).to receive(:find).and_return(key_pair)
-          allow(compute.addresses).to receive(:each).and_yield(address)
         end
         allow(cloud).to receive(:generate_unique_name).and_return(unique_name)
         allow(cloud).to receive(:wait_resource).with(server, :active, :state)
@@ -596,6 +595,8 @@ describe Bosh::OpenStackCloud::Cloud, "create_vm" do
             allow(compute.flavors).to receive(:find).and_return(flavor)
             allow(compute.key_pairs).to receive(:find).and_return(key_pair)
             allow(network).to receive(:networks).and_return(networks)
+            security_groups = [double('default_sec_group', id: 'default_sec_group_id', name: 'default')]
+            allow(compute).to receive(:security_groups).and_return(security_groups)
           end
 
           allow(cloud).to receive(:generate_unique_name).and_return(unique_name)
@@ -739,7 +740,6 @@ describe Bosh::OpenStackCloud::Cloud, "create_vm" do
         allow(compute.images).to receive(:find).and_return(image)
         allow(compute.flavors).to receive(:find).and_return(flavor)
         allow(compute.key_pairs).to receive(:find).and_return(key_pair)
-        allow(compute.addresses).to receive(:each)
       end
     end
 

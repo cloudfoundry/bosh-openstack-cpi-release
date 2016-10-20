@@ -76,7 +76,6 @@ def mock_cloud(options = nil)
   images = double('images')
   flavors = double('flavors')
   volumes = double('volumes')
-  addresses = double('addresses')
   snapshots = double('snapshots')
   key_pairs = double('key_pairs')
   security_groups = [double('default_sec_group', id: 'default_sec_group_id', name: 'default')]
@@ -98,10 +97,8 @@ def mock_cloud(options = nil)
   allow(compute).to receive(:images).and_return(images)
   allow(compute).to receive(:flavors).and_return(flavors)
   allow(compute).to receive(:volumes).and_return(volumes)
-  allow(compute).to receive(:addresses).and_return(addresses)
   allow(compute).to receive(:snapshots).and_return(snapshots)
   allow(compute).to receive(:key_pairs).and_return(key_pairs)
-  allow(compute).to receive(:security_groups).and_return(security_groups)
 
   allow(Fog::Compute).to receive(:new).and_return(compute)
 
