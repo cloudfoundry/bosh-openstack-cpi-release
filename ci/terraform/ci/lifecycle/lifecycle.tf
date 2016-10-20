@@ -8,7 +8,7 @@ provider "openstack" {
 }
 
 module "base" {
-  source = "../modules/base"
+  source = "github.com/cloudfoundry-incubator/bosh-openstack-cpi-release//ci/terraform/ci/modules/base"
   region_name = "${var.region_name}"
   tenant_name = "${var.tenant_name}"
   availability_zone = "${var.availability_zone}"
@@ -21,7 +21,7 @@ module "base" {
 }
 
 module "lifecycle" {
-  source = "../modules/lifecycle"
+  source = "github.com/cloudfoundry-incubator/bosh-openstack-cpi-release//ci/terraform/ci/modules/lifecycle"
   region_name = "${var.region_name}"
   dns_nameservers = "${var.dns_nameservers}"
   default_router_id = "${module.base.default_router_id}"
@@ -91,42 +91,42 @@ variable "openstack_default_key_public_key" {
   description = "This is the actual public key which is uploaded"
 }
 
-output "net id:   lifecycle_openstack_net_id" {
+output "lifecycle_openstack_net_id" {
   value = "${module.lifecycle.lifecycle_openstack_net_id}"
 }
 
-output "manual ip:   lifecycle_manual_ip" {
+output "lifecycle_manual_ip" {
   value = "${module.lifecycle.lifecycle_manual_ip}"
 }
 
-output "net id:   lifecycle_net_id_no_dhcp_1" {
+output "lifecycle_net_id_no_dhcp_1" {
   value = "${module.lifecycle.lifecycle_net_id_no_dhcp_1}"
 }
 
-output "manual ip:   lifecycle_no_dhcp_manual_ip_1" {
+output "lifecycle_no_dhcp_manual_ip_1" {
   value = "${module.lifecycle.lifecycle_no_dhcp_manual_ip_1}"
 }
 
-output "net id:   lifecycle_net_id_no_dhcp_2" {
+output "lifecycle_net_id_no_dhcp_2" {
   value = "${module.lifecycle.lifecycle_net_id_no_dhcp_2}"
 }
 
-output "manual ip:   lifecycle_no_dhcp_manual_ip_2" {
+output "lifecycle_no_dhcp_manual_ip_2" {
   value = "${module.lifecycle.lifecycle_no_dhcp_manual_ip_2}"
 }
 
-output "domain:   lifecycle_openstack_domain" {
+output "lifecycle_openstack_domain" {
   value = "${var.domain_name}"
 }
 
-output "project:   lifecycle_openstack_project" {
+output "lifecycle_openstack_project" {
   value = "${var.tenant_name}"
 }
 
-output "tenant:   lifecycle_openstack_tenant" {
+output "lifecycle_openstack_tenant" {
   value = "${var.tenant_name}"
 }
 
-output "key name:   lifecycle_openstack_default_key_name" {
+output "lifecycle_openstack_default_key_name" {
   value = "${var.openstack_default_key_name_prefix}-${var.tenant_name}"
 }

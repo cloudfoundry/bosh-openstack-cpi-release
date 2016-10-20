@@ -8,7 +8,7 @@ provider "openstack" {
 }
 
 module "base" {
-  source = "../modules/base"
+  source = "github.com/cloudfoundry-incubator/bosh-openstack-cpi-release//ci/terraform/ci/modules/base"
   region_name = "${var.region_name}"
   tenant_name = "${var.tenant_name}"
   availability_zone = "${var.availability_zone}"
@@ -21,7 +21,7 @@ module "base" {
 }
 
 module "bats" {
-  source = "../modules/bats"
+  source = "github.com/cloudfoundry-incubator/bosh-openstack-cpi-release//ci/terraform/ci/modules/bats"
   region_name = "${var.region_name}"
   ext_net_name = "${var.ext_net_name}"
   dns_nameservers = "${var.dns_nameservers}"
@@ -92,170 +92,170 @@ variable "openstack_default_key_public_key" {
   description = "This is the actual public key which is uploaded"
 }
 
-output "net id:   bats_dynamic_ubuntu_primary_net_id" {
+output "bats_dynamic_ubuntu_primary_net_id" {
   value = "${module.bats.bats_dynamic_ubuntu_primary_net_id}"
 }
 
-output "net id:   bats_dynamic_centos_primary_net_id" {
+output "bats_dynamic_centos_primary_net_id" {
   value = "${module.bats.bats_dynamic_centos_primary_net_id}"
 }
 
-output "net id:   bats_manual_ubuntu_primary_net_id" {
+output "bats_manual_ubuntu_primary_net_id" {
   value = "${module.bats.bats_manual_ubuntu_primary_net_id}"
 }
 
-output "net id:   bats_manual_ubuntu_secondary_net_id" {
+output "bats_manual_ubuntu_secondary_net_id" {
   value = "${module.bats.bats_manual_ubuntu_secondary_net_id}"
 }
 
-output "net id:   bats_manual_centos_primary_net_id" {
+output "bats_manual_centos_primary_net_id" {
   value = "${module.bats.bats_manual_centos_primary_net_id}"
 }
 
-output "net id:   bats_manual_centos_secondary_net_id" {
+output "bats_manual_centos_secondary_net_id" {
   value = "${module.bats.bats_manual_centos_secondary_net_id}"
 }
 
-output "floating ip:   bats_dynamic_ubuntu_floating_ip" {
+output "bats_dynamic_ubuntu_floating_ip" {
   value = "${module.bats.bats_dynamic_ubuntu_floating_ip}"
 }
 
-output "floating ip:   bats_dynamic_ubuntu_director_public_ip" {
+output "bats_dynamic_ubuntu_director_public_ip" {
   value = "${module.bats.bats_dynamic_ubuntu_director_public_ip}"
 }
 
-output "floating ip:   bats_dynamic_centos_director_public_ip" {
+output "bats_dynamic_centos_director_public_ip" {
   value = "${module.bats.bats_dynamic_centos_director_public_ip}"
 }
 
-output "floating ip:   bats_dynamic_centos_floating_ip" {
+output "bats_dynamic_centos_floating_ip" {
   value = "${module.bats.bats_dynamic_centos_floating_ip}"
 }
 
-output "floating ip:   bats_manual_ubuntu_director_public_ip" {
+output "bats_manual_ubuntu_director_public_ip" {
   value = "${module.bats.bats_manual_ubuntu_director_public_ip}"
 }
 
-output "floating ip:   bats_manual_ubuntu_floating_ip" {
+output "bats_manual_ubuntu_floating_ip" {
   value = "${module.bats.bats_manual_ubuntu_floating_ip}"
 }
 
-output "floating ip:   bats_manual_centos_director_public_ip" {
+output "bats_manual_centos_director_public_ip" {
   value = "${module.bats.bats_manual_centos_director_public_ip}"
 }
 
-output "floating ip:   bats_manual_centos_floating_ip" {
+output "bats_manual_centos_floating_ip" {
   value = "${module.bats.bats_manual_centos_floating_ip}"
 }
 
-output "manual ip:   bats_manual_centos_director_private_ip" {
+output "bats_manual_centos_director_private_ip" {
   value = "${module.bats.bats_manual_centos_director_private_ip}"
 }
 
-output "cidr:   bats_manual_centos_primary_net_cidr" {
+output "bats_manual_centos_primary_net_cidr" {
   value = "${module.bats.bats_manual_centos_primary_net_cidr}"
 }
 
-output "dhcp_pool:   bats_manual_centos_primary_net_dhcp_pool" {
+output "bats_manual_centos_primary_net_dhcp_pool" {
   value = "${module.bats.bats_manual_centos_primary_net_dhcp_pool}"
 }
 
-output "gateway:   bats_manual_centos_primary_net_gateway" {
+output "bats_manual_centos_primary_net_gateway" {
   value = "${module.bats.bats_manual_centos_primary_net_gateway}"
 }
 
-output "manual ip:   bats_manual_centos_primary_net_manual_ip" {
+output "bats_manual_centos_primary_net_manual_ip" {
   value = "${module.bats.bats_manual_centos_primary_net_manual_ip}"
 }
 
-output "manual ip:   bats_manual_centos_primary_net_second_manual_ip" {
+output "bats_manual_centos_primary_net_second_manual_ip" {
   value = "${module.bats.bats_manual_centos_primary_net_second_manual_ip}"
 }
 
-output "static range:   bats_manual_centos_primary_net_static_range" {
+output "bats_manual_centos_primary_net_static_range" {
   value = "${module.bats.bats_manual_centos_primary_net_static_range}"
 }
 
-output "cidr:   bats_manual_centos_secondary_net_cidr" {
+output "bats_manual_centos_secondary_net_cidr" {
   value = "${module.bats.bats_manual_centos_secondary_net_cidr}"
 }
 
-output "dhcp_pool:   bats_manual_centos_secondary_net_dhcp_pool" {
+output "bats_manual_centos_secondary_net_dhcp_pool" {
   value = "${module.bats.bats_manual_centos_secondary_net_dhcp_pool}"
 }
 
-output "gateway:   bats_manual_centos_secondary_net_gateway" {
+output "bats_manual_centos_secondary_net_gateway" {
   value = "${module.bats.bats_manual_centos_secondary_net_gateway}"
 }
 
-output "manual ip:   bats_manual_centos_secondary_net_manual_ip" {
+output "bats_manual_centos_secondary_net_manual_ip" {
   value = "${module.bats.bats_manual_centos_secondary_net_manual_ip}"
 }
 
-output "static range:   bats_manual_centos_secondary_net_static_range" {
+output "bats_manual_centos_secondary_net_static_range" {
   value = "${module.bats.bats_manual_centos_secondary_net_static_range}"
 }
 
-output "manual ip:   bats_manual_ubuntu_director_private_ip" {
+output "bats_manual_ubuntu_director_private_ip" {
   value = "${module.bats.bats_manual_ubuntu_director_private_ip}"
 }
 
-output "cidr:   bats_manual_ubuntu_primary_net_cidr" {
+output "bats_manual_ubuntu_primary_net_cidr" {
   value = "${module.bats.bats_manual_ubuntu_primary_net_cidr}"
 }
 
-output "dhcp_pool:   bats_manual_ubuntu_primary_net_dhcp_pool" {
+output "bats_manual_ubuntu_primary_net_dhcp_pool" {
   value = "${module.bats.bats_manual_ubuntu_primary_net_dhcp_pool}"
 }
 
-output "gateway:   bats_manual_ubuntu_primary_net_gateway" {
+output "bats_manual_ubuntu_primary_net_gateway" {
   value = "${module.bats.bats_manual_ubuntu_primary_net_gateway}"
 }
 
-output "manual ip:   bats_manual_ubuntu_primary_net_manual_ip" {
+output "bats_manual_ubuntu_primary_net_manual_ip" {
   value = "${module.bats.bats_manual_ubuntu_primary_net_manual_ip}"
 }
 
-output "manual ip:   bats_manual_ubuntu_primary_net_second_manual_ip" {
+output "bats_manual_ubuntu_primary_net_second_manual_ip" {
   value = "${module.bats.bats_manual_ubuntu_primary_net_second_manual_ip}"
 }
 
-output "static range:   bats_manual_ubuntu_primary_net_static_range" {
+output "bats_manual_ubuntu_primary_net_static_range" {
   value = "${module.bats.bats_manual_ubuntu_primary_net_static_range}"
 }
 
-output "cidr:   bats_manual_ubuntu_secondary_net_cidr" {
+output "bats_manual_ubuntu_secondary_net_cidr" {
   value = "${module.bats.bats_manual_ubuntu_secondary_net_cidr}"
 }
 
-output "dhcp_pool:   bats_manual_ubuntu_secondary_net_dhcp_pool" {
+output "bats_manual_ubuntu_secondary_net_dhcp_pool" {
   value = "${module.bats.bats_manual_ubuntu_secondary_net_dhcp_pool}"
 }
 
-output "gateway:   bats_manual_ubuntu_secondary_net_gateway" {
+output "bats_manual_ubuntu_secondary_net_gateway" {
   value = "${module.bats.bats_manual_ubuntu_secondary_net_gateway}"
 }
 
-output "manual ip:   bats_manual_ubuntu_secondary_net_manual_ip" {
+output "bats_manual_ubuntu_secondary_net_manual_ip" {
   value = "${module.bats.bats_manual_ubuntu_secondary_net_manual_ip}"
 }
 
-output "static range:   bats_manual_ubuntu_secondary_net_static_range" {
+output "bats_manual_ubuntu_secondary_net_static_range" {
   value = "${module.bats.bats_manual_ubuntu_secondary_net_static_range}"
 }
 
-output "dns:   dns" {
+output "dns" {
   value = "${var.dns_nameservers}"
 }
 
-output "api key:   openstack_api_key" {
+output "openstack_api_key" {
   value = "${var.password}"
 }
 
-output "tenant:   openstack_tenant" {
+output "openstack_tenant" {
   value = "${var.tenant_name}"
 }
 
-output "username:   openstack_username" {
+output "openstack_username" {
   value = "${var.user_name}"
 }
