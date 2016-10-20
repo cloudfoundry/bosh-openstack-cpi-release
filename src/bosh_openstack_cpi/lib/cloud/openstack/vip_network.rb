@@ -19,10 +19,10 @@ module Bosh::OpenStackCloud
     ##
     # Configures OpenStack vip network
     #
-    # @param [Fog::Compute::OpenStack] openstack Fog OpenStack Compute client
+    # @param [Fog::Compute::OpenStack] compute Fog OpenStack Compute client
     # @param [Fog::Compute::OpenStack::Server] server OpenStack server to
     #   configure
-    def configure(openstack, server)
+    def configure(compute, server)
       if @ip.nil?
         cloud_error("No IP provided for vip network `#{@name}'")
       end
@@ -30,7 +30,7 @@ module Bosh::OpenStackCloud
       # Check if the OpenStack floating IP is allocated. If true, disassociate
       # it from any server before associating it to the new server
       with_openstack do
-        address = openstack.addresses.find { |a| a.ip == @ip }
+        address = compute.addresses.find { |a| a.ip == @ip }
         if address
           unless address.instance_id.nil?
             @logger.info("Disassociating floating IP `#{@ip}' " \

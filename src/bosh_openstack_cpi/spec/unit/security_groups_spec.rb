@@ -3,7 +3,9 @@ require 'spec_helper'
 describe Bosh::OpenStackCloud::SecurityGroups do
   let(:security_groups) { [] }
   let(:compute) { double('compute', security_groups: security_groups) }
-  let(:openstack) { double('openstack', compute: compute) }
+  let(:network) { double('network', security_groups: security_groups) }
+  let(:use_nova_networking?) { false }
+  let(:openstack) { double('openstack', compute: compute, network: network, use_nova_networking?: use_nova_networking?) }
 
 
   describe '.retrieve_and_validate_security_groups' do
@@ -84,6 +86,50 @@ describe Bosh::OpenStackCloud::SecurityGroups do
               []
           )
         }.to raise_error Bosh::Clouds::CloudError, "Security group `default-security-group' not found"
+      end
+    end
+
+    context 'when openstack is configured with `use_nova_networking`' do
+      let(:use_nova_networking?) { true }
+
+      let(:security_groups) {
+        [
+            double('default-security-group', name: 'default-security-group')
+        ]
+      }
+
+      it 'uses nova to retrieve the security groups' do
+        Bosh::OpenStackCloud::SecurityGroups.validate_and_retrieve(
+            openstack,
+            ['default-security-group'],
+            [],
+            []
+        )
+
+        expect(compute).to have_received(:security_groups)
+        expect(network).to_not have_received(:security_groups)
+      end
+    end
+
+    context 'when openstack is configured without `use_nova_networking` (default)' do
+      let(:use_nova_networking?) { false }
+
+      let(:security_groups) {
+        [
+            double('default-security-group', name: 'default-security-group')
+        ]
+      }
+
+      it 'uses neutron to retrieve the security groups' do
+        Bosh::OpenStackCloud::SecurityGroups.validate_and_retrieve(
+            openstack,
+            ['default-security-group'],
+            [],
+            []
+        )
+
+        expect(network).to have_received(:security_groups)
+        expect(compute).to_not have_received(:security_groups)
       end
     end
   end
