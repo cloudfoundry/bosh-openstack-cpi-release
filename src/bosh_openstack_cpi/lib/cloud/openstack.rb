@@ -26,6 +26,8 @@ require "cloud/openstack/openstack"
 require "cloud/openstack/tag_manager"
 
 require "cloud/openstack/network_configurator"
+require "cloud/openstack/resource_pool"
+require "cloud/openstack/security_groups"
 require "cloud/openstack/network"
 require "cloud/openstack/dynamic_network"
 require "cloud/openstack/manual_network"
