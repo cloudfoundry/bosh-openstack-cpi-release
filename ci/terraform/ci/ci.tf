@@ -33,6 +33,7 @@ module "lifecycle" {
   region_name = "${var.region_name}"
   dns_nameservers = "${var.dns_nameservers}"
   default_router_id = "${module.base.default_router_id}"
+  ext_net_name = "${var.ext_net_name}"
 }
 
 variable "auth_url" {
@@ -273,6 +274,10 @@ output "manual ip:   bats_manual_ubuntu_secondary_net_manual_ip" {
 
 output "static range:   bats_manual_ubuntu_secondary_net_static_range" {
   value = "${module.bats.bats_manual_ubuntu_secondary_net_static_range}"
+}
+
+output "lifecycle floating ip:   lifecycle_floating_ip" {
+  value = "${module.lifecycle.lifecycle_floating_ip}"
 }
 
 output "dns:   dns" {

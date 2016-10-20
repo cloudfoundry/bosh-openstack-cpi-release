@@ -25,6 +25,7 @@ module "lifecycle" {
   region_name = "${var.region_name}"
   dns_nameservers = "${var.dns_nameservers}"
   default_router_id = "${module.base.default_router_id}"
+  ext_net_name = "${var.ext_net_name}"
 }
 
 variable "auth_url" {
@@ -129,4 +130,8 @@ output "tenant:   lifecycle_openstack_tenant" {
 
 output "key name:   lifecycle_openstack_default_key_name" {
   value = "${var.openstack_default_key_name_prefix}-${var.tenant_name}"
+}
+
+output "lifecycle floating ip:   lifecycle_floating_ip" {
+  value = "${module.lifecycle.lifecycle_floating_ip}"
 }
