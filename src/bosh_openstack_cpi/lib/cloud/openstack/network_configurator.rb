@@ -50,7 +50,7 @@ module Bosh::OpenStackCloud
       case network_type
         when "dynamic"
           cloud_error("Only one dynamic network per instance should be defined") if @dynamic_network
-          net_id = extract_net_id(network_spec)
+          net_id = NetworkConfigurator.extract_net_id(network_spec)
           cloud_error("Dynamic network with id #{net_id} is already defined") if @net_ids.include?(net_id)
           network = DynamicNetwork.new(name, network_spec)
           @security_groups += extract_security_groups(network_spec)
@@ -58,7 +58,7 @@ module Bosh::OpenStackCloud
           @net_ids << net_id
           @dynamic_network = network
         when "manual"
-          net_id = extract_net_id(network_spec)
+          net_id = NetworkConfigurator.extract_net_id(network_spec)
           cloud_error("Manual network must have net_id") if net_id.nil?
           cloud_error("Manual network with id #{net_id} is already defined") if @net_ids.include?(net_id)
           network = ManualNetwork.new(name, network_spec)
@@ -78,33 +78,32 @@ module Bosh::OpenStackCloud
       @security_groups.uniq!
     end
 
+    def self.get_gateway_network_id(network_spec)
+      private_network_specs = network_spec.values.select { |spec| spec['type'] != 'vip' }
+      spec = if private_network_specs.size == 1
+        private_network_specs.first
+      else
+        private_network_specs.select do |spec|
+          spec['defaults'] && spec['defaults'].include?('gateway')
+        end.first
+      end
+      extract_net_id(spec)
+    end
+
     ##
     # Applies network configuration to the vm
     #
-    # @param [Fog::Compute::OpenStack] compute Fog OpenStack Compute client
+    # @param [Bosh::OpenStackCloud::Openstack] openstack
     # @param [Fog::Compute::OpenStack::Server] server OpenStack server to
     #   configure
-    def configure(compute, server)
+    def configure(openstack, server)
       @networks.each do |network_info|
-        network = network_info["network"]
-        network.configure(compute, server)
+        network = network_info['network']
+        network.configure(openstack, server)
       end
 
       if @vip_network
-        @vip_network.configure(compute, server)
-      else
-        # If there is no vip network we should disassociate any floating IP
-        # currently held by server (as it might have had floating IP before)
-        with_openstack do
-          addresses = compute.addresses
-          addresses.each do |address|
-            if address.instance_id == server.id
-              @logger.info("Disassociating floating IP `#{address.ip}' " \
-                           "from server `#{server.id}'")
-              address.server = nil
-            end
-          end
-        end
+        @vip_network.configure(openstack, server, NetworkConfigurator.get_gateway_network_id(@network_spec))
       end
     end
 
@@ -251,7 +250,7 @@ module Bosh::OpenStackCloud
     #
     # @param [Hash] network_spec Network specification
     # @return [Hash] network ID
-    def extract_net_id(network_spec)
+    def self.extract_net_id(network_spec)
       if network_spec && network_spec["cloud_properties"]
         cloud_properties = network_spec["cloud_properties"]
         if cloud_properties && cloud_properties.has_key?("net_id")
@@ -260,6 +259,5 @@ module Bosh::OpenStackCloud
       end
       nil
     end
-
   end
 end

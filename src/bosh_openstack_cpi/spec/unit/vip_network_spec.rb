@@ -1,68 +1,38 @@
-require "spec_helper"
+require 'spec_helper'
 
 describe Bosh::OpenStackCloud::VipNetwork do
-  describe "configure" do
-    let(:cloud) do
-      mock_cloud do |openstack|
-        expect(openstack).to receive(:addresses).and_return([address])
-      end
+  describe 'configure' do
+
+    subject do
+      described_class.new('network_b', network_spec)
     end
 
-    let(:server) { double("server", :id => "i-test") }
-    let(:vip_network) { described_class.new("network_b", vip_network_spec) }
+    let(:network_spec) { vip_network_spec }
 
-    context "no floating IP provided for vip network" do
-      let(:vip_network) do
-        spec = vip_network_spec
-        spec['ip'] = nil
-        described_class.new("network_b", spec)
+    context 'no floating IP provided for vip network' do
+      before(:each) do
+        network_spec['ip'] = nil
       end
 
-      it "fails" do
+      it 'fails' do
         expect {
-          vip_network.configure(nil, nil)
+          subject.configure(nil, nil, nil)
         }.to raise_error Bosh::Clouds::CloudError, /No IP provided for vip network/
       end
     end
 
-    context "ip already associated with an instance" do
-      let(:address) do
-        double("address", :id => "network_b", :ip => "10.0.0.1", :instance_id => "i-test")
-      end
+    context 'floating IP is provided' do
 
-      it "adds floating ip to the server for vip network" do
-        expect(address).to receive(:server=).with(nil)
-        expect(address).to receive(:server=).with(server)
+      it 'calls FloatingIp.reassiciate' do
+        openstack = double('openstack')
+        server = double('server')
+        allow(Bosh::OpenStackCloud::FloatingIp).to receive(:reassociate)
 
-        vip_network.configure(cloud.compute, server)
-      end
-    end
+        subject.configure(openstack, server, 'network_id')
 
-    context "ip not already associated with an instance" do
-      let(:address) do
-        double("address", :id => "network_b", :ip => "10.0.0.1", :instance_id => nil)
-      end
-
-      it "adds free floating ip to the server for vip network" do
-        expect(address).to_not receive(:server=).with(nil)
-        expect(address).to receive(:server=).with(server)
-
-        vip_network.configure(cloud.compute, server)
+        expect(Bosh::OpenStackCloud::FloatingIp).to have_received(:reassociate).with(openstack, '10.0.0.1', server, 'network_id')
       end
     end
 
-    context "no floating IP allocated for vip network" do
-      let(:address) do
-        double("address", :id => "network_b", :ip => "10.0.0.2")
-      end
-
-      it "fails" do
-        expect(address).to_not receive(:server=)
-
-        expect {
-          vip_network.configure(cloud.compute, nil)
-        }.to raise_error Bosh::Clouds::CloudError, /Floating IP .* not allocated/
-      end
-    end
   end
 end

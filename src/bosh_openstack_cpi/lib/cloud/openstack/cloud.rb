@@ -328,7 +328,7 @@ module Bosh::OpenStackCloud
           wait_resource(server, :active, :state)
 
           @logger.info("Configuring network for server `#{server.id}'...")
-          network_configurator.configure(@openstack.compute, server)
+          network_configurator.configure(@openstack, server)
         rescue => e
           @logger.warn("Failed to create server: #{e.message}")
           destroy_server(server)

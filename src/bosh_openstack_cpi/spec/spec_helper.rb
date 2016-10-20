@@ -144,10 +144,11 @@ def dynamic_network_spec
   }
 end
 
-def manual_network_spec(net_id: 'net', ip: '0.0.0.0')
+def manual_network_spec(net_id: 'net', ip: '0.0.0.0', defaults: nil)
   {
     'type' => 'manual',
     'ip' => ip,
+    'defaults' => defaults,
     'cloud_properties' => {
       'security_groups' => %w[default],
       'net_id' => net_id

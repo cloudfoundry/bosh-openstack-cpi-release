@@ -287,7 +287,7 @@ describe Bosh::OpenStackCloud::Cloud do
     it 'cleans up vm' do
       expect {
         create_vm(@stemcell_id, network_spec_that_fails, [])
-      }.to raise_error Bosh::Clouds::VMCreationFailed, /Floating IP 255.255.255.255 not allocated/
+      }.to raise_error Bosh::Clouds::VMCreationFailed, /Floating IP '255.255.255.255' not allocated/
 
       expect(no_active_vm_with_ip?(@config.manual_ip)).to be
     end
