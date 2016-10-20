@@ -8,9 +8,7 @@ DELETE /v2/<tenant_id>/servers/<resource_id>/os-volume_attachments/<resource_id>
 GET /v2/<tenant_id>//servers/<resource_id>/os-volume_attachments
 GET /v2/<tenant_id>/flavors/detail.json
 GET /v2/<tenant_id>/images/detail.json
-GET /v2/<tenant_id>/os-floating-ips.json
 GET /v2/<tenant_id>/os-keypairs.json
-GET /v2/<tenant_id>/os-security-groups.json
 GET /v2/<tenant_id>/os-snapshots/<resource_id>
 GET /v2/<tenant_id>/os-volumes/<resource_id>
 GET /v2/<tenant_id>/os-volumes/detail
@@ -54,9 +52,11 @@ PUT /v2/images/<resource_id>/file
 ```
 DELETE /v2.0/ports/<resource_id>
 GET /
+GET /v2.0/floatingips?floating_ip_address=255.255.255.255
 GET /v2.0/networks/<resource_id>
 GET /v2.0/ports/<resource_id>
 GET /v2.0/ports?device_id=<device_id>
+GET /v2.0/security-groups
 POST /v2.0/ports body: {"port":{"network_id":"<resource_id>","fixed_ips":[{"ip_address":"<ip_address>"}],"security_groups":["<resource_id>"]}}
 ```
 ### All calls for API endpoint 'orchestration (heat)'
