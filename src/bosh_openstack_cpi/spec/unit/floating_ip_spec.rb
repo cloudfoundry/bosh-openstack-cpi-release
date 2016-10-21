@@ -6,21 +6,15 @@ describe Bosh::OpenStackCloud::FloatingIp do
   before(:each) {
     allow(Bosh::Clouds::Config).to receive(:logger).and_return(logger)
   }
-  let(:network) { double('network', get_server: nil, list_floating_ips: nil, associate_floating_ip: nil, disassociate_floating_ip: nil, get_port: nil) }
-  let(:compute) { double('compute', addresses: nil, get_server_port_interfaces: nil) }
+  let(:network) { double('network', get_server: nil, list_floating_ips: nil, associate_floating_ip: nil, disassociate_floating_ip: nil, get_port: nil, ports: nil) }
+  let(:compute) { double('compute', addresses: nil) }
   let(:openstack) { double('openstack', use_nova_networking?: use_nova_networking, network: network, compute: compute) }
 
   context 'when `use_nova_networking=false`' do
     let(:use_nova_networking) { false }
 
-    let(:ports) {
-        {
-            floating_ip_port_id: 'old-server-port-id',
-            interface_attachment_port_id: 'port-id',
+    let(:floating_ip_port_id) { 'old-server-port-id' }
 
-        }
-    }
-    
     let(:floating_ips_response) {
       Struct.new(:body).new({
           'floatingips' => floating_ips
@@ -35,7 +29,7 @@ describe Bosh::OpenStackCloud::FloatingIp do
               'floating_ip_address' => '1.2.3.4',
               'tenant_id' => 'some-tenant-id',
               'status' => 'some-status',
-              'port_id' => ports[:floating_ip_port_id],
+              'port_id' => floating_ip_port_id,
               'id' => 'floating-ip-id'
           }
       ]
@@ -53,7 +47,7 @@ describe Bosh::OpenStackCloud::FloatingIp do
         'device_id' => port_device_id
     } }
     before(:each) {
-      allow(network).to receive(:get_port).with(ports[:floating_ip_port_id]).and_return(get_port_response)
+      allow(network).to receive(:get_port).with(floating_ip_port_id).and_return(get_port_response)
     }
 
     let(:old_server) { {} }
@@ -66,26 +60,11 @@ describe Bosh::OpenStackCloud::FloatingIp do
       allow(network).to receive(:get_server).and_return(get_server_response)
     }
 
-    let(:get_server_port_interfaces_response) {
-      Struct.new(:body).new({
-          'interfaceAttachments' => interface_attachments
-      })
-    }
-    let(:interface_attachments) {
-      [{
-          'port_state' => 'ACTIVE',
-          'fixed_ips' => [{
-              'subnet_id' => 'some-subnet-id',
-              'ip_address' => 'some-fixed-ip-address'
-          }],
-          'port_id' => ports[:interface_attachment_port_id],
-          'net_id' => 'network-id',
-          'mac_addr' => 'some-mac-address'
-      }]
-    }
+    let(:port_collection) { double('Fog::Network::OpenStack::Ports', all: [port_model]) }
+    let(:port_model) { double('Fog::Network::OpenStack::Port', id: 'port-id') }
 
     before(:each) {
-      allow(compute).to receive(:get_server_port_interfaces).and_return(get_server_port_interfaces_response)
+      allow(network).to receive(:ports).and_return(port_collection)
     }
 
     describe '.reassociate' do
@@ -115,27 +94,37 @@ describe Bosh::OpenStackCloud::FloatingIp do
 
           expect(network).to have_received(:disassociate_floating_ip).with('floating-ip-id')
           expect(logger).to have_received(:info).with("Disassociating floating IP '1.2.3.4' from server 'old-server (old-server-id)'")
-          expect(compute).to have_received(:get_server_port_interfaces).with('server-id')
+          expect(port_collection).to have_received(:all).with(:device_id => 'server-id', :network_id => 'network-id')
           expect(logger).to have_received(:info).with("Associating floating IP '1.2.3.4' with server 'server-name (server-id)'")
           expect(network).to have_received(:associate_floating_ip).with('floating-ip-id', 'port-id')
         end
       end
 
       context 'when the floating ip is not associated with a port' do
-        let(:ports) {
-          {
-              floating_ip_port_id: nil,
-              interface_attachment_port_id: 'port-id'
-          }
-        }
+        let(:floating_ip_port_id) { nil }
 
         it 'assigns the given floating ip to the given server' do
           Bosh::OpenStackCloud::FloatingIp.reassociate(openstack, '1.2.3.4', server, 'network-id')
 
           expect(network).to have_received(:list_floating_ips).with('floating_ip_address' => '1.2.3.4')
-          expect(compute).to have_received(:get_server_port_interfaces).with('server-id')
+          expect(port_collection).to have_received(:all).with(:device_id => 'server-id', :network_id => 'network-id')
 
           expect(network).to have_received(:associate_floating_ip).with('floating-ip-id', 'port-id')
+        end
+
+        context 'when multiple ports are connected to the external network' do
+          before(:each) do
+            allow(port_collection).to receive(:all).and_return([double('other_port', id: 'other-port-id'), port_model])
+          end
+
+          it 'assigns the given floating ip to the first port' do
+            Bosh::OpenStackCloud::FloatingIp.reassociate(openstack, '1.2.3.4', server, 'network-id')
+
+            expect(network).to have_received(:list_floating_ips).with('floating_ip_address' => '1.2.3.4')
+            expect(port_collection).to have_received(:all).with(:device_id => 'server-id', :network_id => 'network-id')
+
+            expect(network).to have_received(:associate_floating_ip).with('floating-ip-id', 'other-port-id')
+          end
         end
       end
 
@@ -161,6 +150,9 @@ describe Bosh::OpenStackCloud::FloatingIp do
       end
 
       context 'server has no port in the given network' do
+        before(:each) do
+          allow(port_collection).to receive(:all).and_return([])
+        end
         it 'raises a cloud error' do
           expect {
             Bosh::OpenStackCloud::FloatingIp.reassociate(openstack, '1.2.3.4', server, 'network-id-not-matching-the-port')

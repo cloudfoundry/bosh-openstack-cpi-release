@@ -28,15 +28,11 @@ module Bosh::OpenStackCloud
     end
 
     def self.get_port_id(openstack, server_id, network_id)
-      interfaces = openstack.compute.get_server_port_interfaces(server_id).body['interfaceAttachments']
-
-      interface = interfaces.find { |interface| interface['net_id'] == network_id }
-
-      unless interface
+      port = openstack.network.ports.all(:device_id => server_id, :network_id => network_id).first
+      unless port
         cloud_error("Server has no port in network '#{network_id}'")
       end
-
-      interface['port_id']
+      port.id
     end
 
     def self.get_floating_ip(openstack, ip)
