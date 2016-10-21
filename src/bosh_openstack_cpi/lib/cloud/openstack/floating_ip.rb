@@ -28,7 +28,7 @@ module Bosh::OpenStackCloud
     end
 
     def self.get_port_id(openstack, server_id, network_id)
-      interfaces = openstack.network.get_server_port_interfaces(server_id).body['interfaceAttachments']
+      interfaces = openstack.compute.get_server_port_interfaces(server_id).body['interfaceAttachments']
 
       interface = interfaces.find { |interface| interface['net_id'] == network_id }
 
