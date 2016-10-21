@@ -20,21 +20,6 @@ module Bosh::OpenStackCloud
       end
     end
 
-    def self.disassociate_server(openstack, server)
-      floating_ips = openstack.network.list_floating_ips.body['floatingips']
-      interfaces = openstack.network.get_server_port_interfaces(server.id).body['interfaceAttachments']
-      ips_to_disassociate = floating_ips.select do |ip|
-        interfaces.any? do |iface|
-          ip['port_id'] == iface['port_id']
-        end
-      end
-
-      ips_to_disassociate.each do |floating_ip|
-        disassociate(openstack, floating_ip, server.name, server.id)
-      end
-
-    end
-
     private
 
     def self.disassociate(openstack, floating_ip, server_name, server_id)
