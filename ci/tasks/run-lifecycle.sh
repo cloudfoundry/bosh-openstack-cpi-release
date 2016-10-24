@@ -8,7 +8,6 @@ set -o pipefail
 : ${BOSH_OPENSTACK_USERNAME_V3:?}
 : ${BOSH_OPENSTACK_API_KEY_V3:?}
 : ${BOSH_OPENSTACK_PROJECT:?}
-: ${BOSH_OPENSTACK_DEFAULT_KEY_NAME:?}
 : ${BOSH_CLI_SILENCE_SLOW_LOAD_WARNING:?}
 : ${BOSH_OPENSTACK_CONNECT_TIMEOUT:?}
 : ${BOSH_OPENSTACK_READ_TIMEOUT:?}
@@ -31,6 +30,7 @@ export BOSH_OPENSTACK_NO_DHCP_MANUAL_IP_2=$(cat ${metadata} | jq --raw-output ".
 export BOSH_OPENSTACK_NET_ID=$(cat ${metadata} | jq --raw-output ".lifecycle_openstack_net_id")
 export BOSH_OPENSTACK_NET_ID_NO_DHCP_1=$(cat ${metadata} | jq --raw-output ".lifecycle_net_id_no_dhcp_1")
 export BOSH_OPENSTACK_NET_ID_NO_DHCP_2=$(cat ${metadata} | jq --raw-output ".lifecycle_net_id_no_dhcp_2")
+export BOSH_OPENSTACK_DEFAULT_KEY_NAME=$(cat ${metadata} | jq --raw-output ".lifecycle_key_name")
 
 mkdir "${PWD}/openstack-lifecycle-stemcell/stemcell"
 tar -C "${PWD}/openstack-lifecycle-stemcell/stemcell" -xzf "${PWD}/openstack-lifecycle-stemcell/stemcell.tgz"

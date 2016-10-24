@@ -139,12 +139,8 @@ jobs:
             password: {{lifecycle_openstack_api_key_v3}}
             domain_name: {{lifecycle_openstack_domain}}
             tenant_name: {{lifecycle_openstack_tenant}}
-            ext_net_name: {{tf_external_network_name}}
             ext_net_id: {{tf_external_network_id}}
-            ext_net_cidr: {{tf_external_network_cidr}}
             region_name: {{tf_region_name}}
-            concourse_external_network_cidr: {{tf_concourse_external_network_cidr}}
-            availability_zone: {{tf_availability_zone}}
             openstack_default_key_public_key: {{tf_openstack_default_key_public_key}}
             dns_nameservers: {{tf_dns_nameservers}}
 
@@ -162,7 +158,6 @@ jobs:
           BOSH_OPENSTACK_AUTH_URL_V3:              {{openstack_auth_url_v3}}
           BOSH_OPENSTACK_USERNAME_V3:              {{lifecycle_openstack_username_v3}}
           BOSH_OPENSTACK_API_KEY_V3:               {{lifecycle_openstack_api_key_v3}}
-          BOSH_OPENSTACK_DEFAULT_KEY_NAME:         {{lifecycle_openstack_default_key_name}}
           BOSH_CLI_SILENCE_SLOW_LOAD_WARNING:      true
           BOSH_OPENSTACK_VOLUME_TYPE:              {{lifecycle_openstack_volume_type}}
           BOSH_OPENSTACK_CONNECT_TIMEOUT:          "600"
