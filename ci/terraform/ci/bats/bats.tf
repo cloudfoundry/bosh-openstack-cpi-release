@@ -74,8 +74,7 @@ variable "ext_net_cidr" {
 }
 
 variable "dns_nameservers" {
-  type = "list"
-  default = []
+  default = ""
   description = "DNS server IPs"
 }
 

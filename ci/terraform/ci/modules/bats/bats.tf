@@ -5,8 +5,6 @@ variable "region_name" {
 }
 
 variable "dns_nameservers" {
-  type = "list"
-  default = []
   description = "DNS server IPs"
 }
 
@@ -32,7 +30,7 @@ resource "openstack_networking_subnet_v2" "bats_dynamic_ubuntu_primary_subnet" {
   }
   gateway_ip       = "10.0.2.1"
   enable_dhcp      = "true"
-  dns_nameservers = "${var.dns_nameservers}"
+  dns_nameservers = ["${compact(split(",",var.dns_nameservers))}"]
 }
 
 resource "openstack_networking_network_v2" "bats_dynamic_centos_primary_net" {
@@ -53,7 +51,7 @@ resource "openstack_networking_subnet_v2" "bats_dynamic_centos_primary_subnet" {
   }
   gateway_ip       = "10.0.3.1"
   enable_dhcp      = "true"
-  dns_nameservers = "${var.dns_nameservers}"
+  dns_nameservers = ["${compact(split(",",var.dns_nameservers))}"]
 }
 
 resource "openstack_networking_network_v2" "bats_manual_ubuntu_primary_net" {
@@ -74,7 +72,7 @@ resource "openstack_networking_subnet_v2" "bats_manual_ubuntu_primary_subnet" {
   }
   gateway_ip       = "10.0.4.1"
   enable_dhcp      = "true"
-  dns_nameservers = "${var.dns_nameservers}"
+  dns_nameservers = ["${compact(split(",",var.dns_nameservers))}"]
 }
 
 resource "openstack_networking_network_v2" "bats_manual_ubuntu_secondary_net" {
@@ -95,7 +93,7 @@ resource "openstack_networking_subnet_v2" "bats_manual_ubuntu_secondary_subnet" 
   }
   gateway_ip       = "10.0.5.1"
   enable_dhcp      = "true"
-  dns_nameservers = "${var.dns_nameservers}"
+  dns_nameservers = ["${compact(split(",",var.dns_nameservers))}"]
 }
 
 resource "openstack_networking_network_v2" "bats_manual_centos_primary_net" {
@@ -116,7 +114,7 @@ resource "openstack_networking_subnet_v2" "bats_manual_centos_primary_subnet" {
   }
   gateway_ip       = "10.0.6.1"
   enable_dhcp      = "true"
-  dns_nameservers = "${var.dns_nameservers}"
+  dns_nameservers = ["${compact(split(",",var.dns_nameservers))}"]
 }
 
 resource "openstack_networking_network_v2" "bats_manual_centos_secondary_net" {
@@ -137,7 +135,7 @@ resource "openstack_networking_subnet_v2" "bats_manual_centos_secondary_subnet" 
   }
   gateway_ip       = "10.0.7.1"
   enable_dhcp      = "true"
-  dns_nameservers = "${var.dns_nameservers}"
+  dns_nameservers = ["${compact(split(",",var.dns_nameservers))}"]
 }
 
 resource "openstack_networking_router_interface_v2" "bats_dynamic_ubuntu_primary_port" {
