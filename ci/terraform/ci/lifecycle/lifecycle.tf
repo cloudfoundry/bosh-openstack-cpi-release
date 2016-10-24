@@ -11,13 +11,12 @@ module "base" {
   source = "github.com/cloudfoundry-incubator/bosh-openstack-cpi-release//ci/terraform/ci/modules/base"
   region_name = "${var.region_name}"
   tenant_name = "${var.tenant_name}"
-  availability_zone = "${var.availability_zone}"
-  ext_net_name = "${var.ext_net_name}"
   ext_net_id = "${var.ext_net_id}"
-  ext_net_cidr = "${var.ext_net_cidr}"
-  concourse_external_network_cidr = "${var.concourse_external_network_cidr}"
-  openstack_default_key_name_prefix = "${var.openstack_default_key_name_prefix}"
+  ext_net_cidr = ""
+  concourse_external_network_cidr = ""
   openstack_default_key_public_key = "${var.openstack_default_key_public_key}"
+  prefix = "lifecycle"
+  add_security_group = "0"
 }
 
 module "lifecycle" {
@@ -56,34 +55,13 @@ variable "region_name" {
   description = "OpenStack region name"
 }
 
-variable "availability_zone" {
-  description = "OpenStack availability zone name"
-}
-
-variable "ext_net_name" {
-  description = "OpenStack external network name to register floating IP"
-}
-
 variable "ext_net_id" {
   description = "OpenStack external network id to create router interface port"
-}
-
-variable "ext_net_cidr" {
-  description = "OpenStack external network cidr to define ingress security group rules"
 }
 
 variable "dns_nameservers" {
   default = ""
   description = "DNS server IPs"
-}
-
-variable "concourse_external_network_cidr" {
-  description = "Network cidr where concourse is running in. Use value of ext_net_cidr, if it runs within OpenStack"
-}
-
-variable "openstack_default_key_name_prefix" {
-  default = "external-cpi"
-  description = "This prefix will be used as the base name of the generated key pair"
 }
 
 variable "openstack_default_key_public_key" {
@@ -126,6 +104,6 @@ output "lifecycle_openstack_tenant" {
   value = "${var.tenant_name}"
 }
 
-output "lifecycle_openstack_default_key_name" {
-  value = "${var.openstack_default_key_name_prefix}-${var.tenant_name}"
+output "lifecycle_key_name" {
+  value = "${module.base.key_name}"
 }
