@@ -58,7 +58,7 @@ class IntegrationConfig
   end
 
 
-  def create_cpi(boot_from_value = false, config_drive = nil, human_readable_vm_names = false)
+  def create_cpi(boot_from_value = false, config_drive = nil, human_readable_vm_names = false, use_nova_networking = false)
     openstack_properties = {'openstack' => {
         'auth_url' => @auth_url,
         'username' => @username,
@@ -72,6 +72,7 @@ class IntegrationConfig
         'config_drive' => config_drive,
         'ignore_server_availability_zone' => str_to_bool(@ignore_server_az),
         'human_readable_vm_names' => human_readable_vm_names,
+        'use_nova_networking' => use_nova_networking,
         'connection_options' => connection_options(additional_connection_options(@logger))
     },
             'registry' => {

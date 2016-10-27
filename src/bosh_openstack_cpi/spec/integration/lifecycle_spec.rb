@@ -22,9 +22,10 @@ describe Bosh::OpenStackCloud::Cloud do
   let(:boot_from_volume) { false }
   let(:config_drive) { nil }
   let(:human_readable_vm_names) { false }
+  let(:use_nova_networking) { false }
 
   subject(:cpi) do
-    @config.create_cpi(boot_from_volume, config_drive, human_readable_vm_names)
+    @config.create_cpi(boot_from_volume, config_drive, human_readable_vm_names, use_nova_networking)
   end
 
   before { allow(Bosh::Cpi::RegistryClient).to receive(:new).and_return(double('registry').as_null_object) }
@@ -329,6 +330,30 @@ describe Bosh::OpenStackCloud::Cloud do
       }.to_not raise_error
 
       clean_up_vm(vm_id, network_spec)
+    end
+  end
+
+  describe 'use_nova_networking=true' do
+    let(:network_spec) do
+      {
+          'default' => {
+              'type' => 'dynamic',
+              'cloud_properties' => {
+                  'net_id' => @config.net_id
+              }
+          }
+      }
+    end
+
+    let(:use_nova_networking) { true }
+    after { clean_up_vm(@vm_id_for_nova_compatibility, network_spec) if @vm_id_for_nova_compatibility }
+
+    it 'create vm does not use neutron for security groups' do
+      stub_request(:any, /.*\/v2\.0\/security-groups/)
+
+      @vm_id_for_nova_compatibility = create_vm(@stemcell_id, network_spec, [])
+
+      expect(WebMock).to_not have_requested(:any, /.*\/v2\.0\/security-groups/)
     end
   end
 
