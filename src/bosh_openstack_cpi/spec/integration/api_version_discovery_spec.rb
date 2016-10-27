@@ -181,7 +181,7 @@ describe Bosh::OpenStackCloud::Cloud do
     auth_url.match(/\/v3(?=\/|$)/)
   end
 
-  def stub_root_service_vmersions(service_url)
+  def stub_root_service_versions(service_url)
     supported_versions_uri = URI.parse(service_url)
     supported_versions_uri.path = ''
 
