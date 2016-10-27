@@ -10,6 +10,7 @@ GET /v2/<tenant_id>/flavors/detail.json
 GET /v2/<tenant_id>/images/detail.json
 GET /v2/<tenant_id>/os-floating-ips.json
 GET /v2/<tenant_id>/os-keypairs.json
+GET /v2/<tenant_id>/os-security-groups.json
 GET /v2/<tenant_id>/os-snapshots/<resource_id>
 GET /v2/<tenant_id>/os-volumes/<resource_id>
 GET /v2/<tenant_id>/os-volumes/detail
