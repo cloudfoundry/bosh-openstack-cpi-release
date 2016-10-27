@@ -8,6 +8,10 @@ variable "region_name" {
 
 variable "default_router_id" {}
 
+variable "ext_net_id" {
+  description = "OpenStack external network id to register floating IP"
+}
+
 output "lifecycle_openstack_net_id" {
   value = "${openstack_networking_network_v2.lifecycle_net.id}"
 }
@@ -30,6 +34,10 @@ output "lifecycle_net_id_no_dhcp_2" {
 
 output "lifecycle_no_dhcp_manual_ip_2" {
   value = "${cidrhost(openstack_networking_subnet_v2.lifecycle_subnet_no_dhcp_2.cidr, 3)}"
+}
+
+output "lifecycle_floating_ip" {
+  value = "${openstack_compute_floatingip_v2.lifecycle_floating_ip.address}"
 }
 
 resource "openstack_networking_network_v2" "lifecycle_net" {
@@ -93,4 +101,9 @@ resource "openstack_networking_router_interface_v2" "lifecycle_port" {
   region    = "${var.region_name}"
   router_id = "${var.default_router_id}"
   subnet_id = "${openstack_networking_subnet_v2.lifecycle_subnet.id}"
+}
+
+resource "openstack_compute_floatingip_v2" "lifecycle_floating_ip" {
+  region = "${var.region_name}"
+  pool   = "${var.ext_net_id}"
 }

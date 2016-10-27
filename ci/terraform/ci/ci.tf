@@ -32,6 +32,7 @@ module "lifecycle" {
   region_name = "${var.region_name}"
   dns_nameservers = "${var.dns_nameservers}"
   default_router_id = "${module.base.default_router_id}"
+  ext_net_id = "${var.ext_net_id}"
 }
 
 variable "auth_url" {
@@ -266,6 +267,10 @@ output "bats_manual_ubuntu_secondary_net_static_range" {
 
 output "dns" {
   value = "${var.dns_nameservers}"
+}
+
+output "lifecycle_floating_ip" {
+  value = "${module.lifecycle.lifecycle_floating_ip}"
 }
 
 output "openstack_api_key" {

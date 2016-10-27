@@ -31,6 +31,7 @@ export BOSH_OPENSTACK_NET_ID=$(cat ${metadata} | jq --raw-output ".lifecycle_ope
 export BOSH_OPENSTACK_NET_ID_NO_DHCP_1=$(cat ${metadata} | jq --raw-output ".lifecycle_net_id_no_dhcp_1")
 export BOSH_OPENSTACK_NET_ID_NO_DHCP_2=$(cat ${metadata} | jq --raw-output ".lifecycle_net_id_no_dhcp_2")
 export BOSH_OPENSTACK_DEFAULT_KEY_NAME=$(cat ${metadata} | jq --raw-output ".lifecycle_key_name")
+export BOSH_OPENSTACK_FLOATING_IP=$(cat ${metadata} | jq --raw-output ".lifecycle_floating_ip")
 
 mkdir "${PWD}/openstack-lifecycle-stemcell/stemcell"
 tar -C "${PWD}/openstack-lifecycle-stemcell/stemcell" -xzf "${PWD}/openstack-lifecycle-stemcell/stemcell.tgz"
