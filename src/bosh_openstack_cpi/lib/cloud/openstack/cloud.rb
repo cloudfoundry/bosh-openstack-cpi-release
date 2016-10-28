@@ -598,8 +598,13 @@ module Bosh::OpenStackCloud
 
         description = ['deployment', 'job', 'index'].collect { |key| metadata[key] }
         description << devices.first.split('/').last unless devices.empty?
+        name = "snapshot-#{generate_unique_name}"
         snapshot_params = {
-          :name => "snapshot-#{generate_unique_name}",
+          # cinder v1 requires display_ prefix
+          :display_name => name,
+          :display_description => description.join('/'),
+          # cinder v2 does not require prefix
+          :name => name,
           :description => description.join('/'),
           :volume_id => volume.id,
           :force => true

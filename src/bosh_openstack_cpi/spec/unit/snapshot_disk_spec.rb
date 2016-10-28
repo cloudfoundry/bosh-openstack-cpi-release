@@ -10,6 +10,8 @@ describe Bosh::OpenStackCloud::Cloud do
     attachment = { "device" => "/dev/vdc" }
     snapshot = double("snapshot", :id => "snap-foobar")
     snapshot_params = {
+      :display_name => "snapshot-#{unique_name}",
+      :display_description => 'deployment/job/0/vdc',
       :name => "snapshot-#{unique_name}",
       :description => 'deployment/job/0/vdc',
       :volume_id => "v-foobar",
@@ -46,6 +48,8 @@ describe Bosh::OpenStackCloud::Cloud do
     volume = double("volume", :id => "v-foobar")
     snapshot = double("snapshot", :id => "snap-foobar")
     snapshot_params = {
+      :display_name => "snapshot-#{unique_name}",
+      :display_description => 'deployment/job/0',
       :name => "snapshot-#{unique_name}",
       :description => 'deployment/job/0',
       :volume_id => "v-foobar",
@@ -82,6 +86,8 @@ describe Bosh::OpenStackCloud::Cloud do
     volume = double("volume", :id => "v-foobar")
     snapshot = double("snapshot", :id => "snap-foobar")
     snapshot_params = {
+      :display_name => "snapshot-#{unique_name}",
+      :display_description => 'deployment/job/0',
       :name => "snapshot-#{unique_name}",
       :description => 'deployment/job/0',
       :volume_id => "v-foobar",

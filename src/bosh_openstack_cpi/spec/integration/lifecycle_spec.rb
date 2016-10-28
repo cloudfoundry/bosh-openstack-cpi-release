@@ -190,7 +190,7 @@ describe Bosh::OpenStackCloud::Cloud do
       @vm_id = create_vm(@stemcell_id, network_spec, [])
       volumes = volumes(@vm_id)
       expect(volumes.size).to eq(1)
-      expect(volumes.first.attachments.first['device']).to eq('/dev/vda')
+      expect(volumes.first['device']).to eq('/dev/vda')
     end
 
     after(:each) { clean_up_vm(@vm_id, network_spec) if @vm_id }
@@ -367,7 +367,7 @@ describe Bosh::OpenStackCloud::Cloud do
   end
 
   def volumes(vm_id)
-    cpi.volume.volumes.select {|volume| volume.attachments.detect {|attachment| attachment['serverId'] == vm_id}}
+    cpi.compute.servers.get(vm_id).volume_attachments
   end
 
   def vm_lifecycle(stemcell_id, network_spec, disk_locality, cloud_properties = {}, resource_pool = {})
