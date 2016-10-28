@@ -12,7 +12,8 @@ describe Bosh::OpenStackCloud::Cloud do
     snapshot_params = {
       :name => "snapshot-#{unique_name}",
       :description => 'deployment/job/0/vdc',
-      :volume_id => "v-foobar"
+      :volume_id => "v-foobar",
+      :force => true
     }
     metadata = {
       :agent_id => 'agent',
@@ -33,7 +34,7 @@ describe Bosh::OpenStackCloud::Cloud do
     
     expect(volume).to receive(:attachments).and_return([attachment])
     
-    expect(snapshot).to receive(:save).with(true)
+    expect(snapshot).to receive(:save)
 
     expect(cloud).to receive(:wait_resource).with(snapshot, :available)
 
@@ -47,7 +48,8 @@ describe Bosh::OpenStackCloud::Cloud do
     snapshot_params = {
       :name => "snapshot-#{unique_name}",
       :description => 'deployment/job/0',
-      :volume_id => "v-foobar"
+      :volume_id => "v-foobar",
+      :force => true
     }
     metadata = {
       :agent_id => 'agent',
@@ -68,7 +70,7 @@ describe Bosh::OpenStackCloud::Cloud do
     
     expect(volume).to receive(:attachments).and_return([{}])
     
-    expect(snapshot).to receive(:save).with(true)
+    expect(snapshot).to receive(:save)
 
     expect(cloud).to receive(:wait_resource).with(snapshot, :available)
 
@@ -82,7 +84,8 @@ describe Bosh::OpenStackCloud::Cloud do
     snapshot_params = {
       :name => "snapshot-#{unique_name}",
       :description => 'deployment/job/0',
-      :volume_id => "v-foobar"
+      :volume_id => "v-foobar",
+      :force => true
     }
     metadata = {
       'agent_id' => 'agent',
@@ -103,7 +106,7 @@ describe Bosh::OpenStackCloud::Cloud do
 
     expect(volume).to receive(:attachments).and_return([{}])
 
-    expect(snapshot).to receive(:save).with(true)
+    expect(snapshot).to receive(:save)
 
     expect(cloud).to receive(:wait_resource).with(snapshot, :available)
 

@@ -22,7 +22,7 @@ describe Bosh::OpenStackCloud::Cloud do
     end
 
     expect(server).to receive(:volume_attachments).and_return(volume_attachments)
-    expect(volume).to receive(:detach).with(server.id, "a1").and_return(true)
+    expect(server).to receive(:detach_volume).with(volume.id).and_return(true)
     expect(cloud).to receive(:wait_resource).with(volume, :available)
 
     old_settings = {

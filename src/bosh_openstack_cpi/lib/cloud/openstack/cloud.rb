@@ -601,12 +601,15 @@ module Bosh::OpenStackCloud
         snapshot_params = {
           :name => "snapshot-#{generate_unique_name}",
           :description => description.join('/'),
-          :volume_id => volume.id
+          :volume_id => volume.id,
+          :force => true
         }
 
         @logger.info("Creating new snapshot for volume `#{disk_id}'...")
         snapshot = @openstack.volume.snapshots.new(snapshot_params)
-        with_openstack { snapshot.save(true) }
+        with_openstack {
+          snapshot.save
+        }
 
         @logger.info("Creating new snapshot `#{snapshot.id}' for volume `#{disk_id}'...")
         wait_resource(snapshot, :available)
@@ -841,7 +844,7 @@ module Bosh::OpenStackCloud
         cloud_error('Server has too many disks attached') if device_name.nil?
 
         @logger.info("Attaching volume `#{volume.id}' to server `#{server.id}', device name is `#{device_name}'")
-        with_openstack { volume.attach(server.id, device_name) }
+        with_openstack { server.attach_volume(volume.id, device_name) }
         wait_resource(volume, :'in-use')
       else
         device_name = device['device']
@@ -898,7 +901,7 @@ module Bosh::OpenStackCloud
       volume_attachments = with_openstack { server.volume_attachments }
       attachment = volume_attachments.find { |a| a['volumeId'] == volume.id }
       if attachment
-        with_openstack { volume.detach(server.id, attachment['id']) }
+        with_openstack { server.detach_volume(volume.id) }
         wait_resource(volume, :available)
       else
         @logger.info("Disk `#{volume.id}' is not attached to server `#{server.id}'. Skipping.")
