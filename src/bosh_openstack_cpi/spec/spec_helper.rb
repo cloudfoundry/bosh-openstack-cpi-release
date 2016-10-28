@@ -82,6 +82,7 @@ def mock_cloud(options = nil)
 
   glance = double(Fog::Image::OpenStack::V2)
   allow(Fog::Image::OpenStack::V2).to receive(:new).and_return(glance)
+  allow(glance).to receive(:images).and_return(images)
 
   volume = double(Fog::Volume::OpenStack::V2)
   allow(volume).to receive(:volumes).and_return(volumes)
@@ -94,7 +95,6 @@ def mock_cloud(options = nil)
   compute = double(Fog::Compute)
 
   allow(compute).to receive(:servers).and_return(servers)
-  allow(compute).to receive(:images).and_return(images)
   allow(compute).to receive(:flavors).and_return(flavors)
   allow(compute).to receive(:volumes).and_return(volumes)
   allow(compute).to receive(:snapshots).and_return(snapshots)
@@ -102,7 +102,7 @@ def mock_cloud(options = nil)
 
   allow(Fog::Compute).to receive(:new).and_return(compute)
 
-  yield(compute, network) if block_given?
+  yield(compute, network, glance) if block_given?
 
   Bosh::OpenStackCloud::Cloud.new(options || mock_cloud_options['properties'])
 end

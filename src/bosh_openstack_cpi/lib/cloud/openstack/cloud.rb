@@ -239,7 +239,7 @@ module Bosh::OpenStackCloud
         begin
           Bosh::Common.retryable(@connect_retry_options) do |tries, error|
             @logger.error("Unable to connect to OpenStack API to find image: `#{stemcell_id} due to: #{error.inspect}") unless error.nil?
-            image = with_openstack { @openstack.compute.images.find { |i| i.id == stemcell_id } }
+            image = with_openstack { @openstack.image.images.find_by_id(stemcell_id) }
             cloud_error("Image `#{stemcell_id}' not found") if image.nil?
             @logger.debug("Using image: `#{stemcell_id}'")
           end
