@@ -8,8 +8,8 @@ describe Bosh::OpenStackCloud::Cloud do
   it "deletes an OpenStack volume" do
     volume = double("volume", :id => "v-foobar")
 
-    cloud = mock_cloud do |openstack|
-      expect(openstack.volumes).to receive(:get).
+    cloud = mock_cloud do |fog|
+      expect(fog.volume.volumes).to receive(:get).
         with("v-foobar").and_return(volume)
     end
 
@@ -23,8 +23,8 @@ describe Bosh::OpenStackCloud::Cloud do
   it "doesn't delete an OpenStack volume unless it's state is `available'" do
     volume = double("volume", :id => "v-foobar")
 
-    cloud = mock_cloud do |openstack|
-      expect(openstack.volumes).to receive(:get).with("v-foobar").and_return(volume)
+    cloud = mock_cloud do |fog|
+      expect(fog.volume.volumes).to receive(:get).with("v-foobar").and_return(volume)
     end
 
     expect(volume).to receive(:status).and_return(:busy)

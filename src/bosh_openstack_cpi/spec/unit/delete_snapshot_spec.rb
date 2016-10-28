@@ -7,8 +7,8 @@ describe Bosh::OpenStackCloud::Cloud do
   it "deletes an OpenStack snapshot" do
     snapshot = double("snapshot", :id => "snap-foobar")
 
-    cloud = mock_cloud do |openstack|
-      expect(openstack.snapshots).to receive(:get).with("snap-foobar").and_return(snapshot)
+    cloud = mock_cloud do |fog|
+      expect(fog.volume.snapshots).to receive(:get).with("snap-foobar").and_return(snapshot)
     end
 
     expect(snapshot).to receive(:status).and_return(:available)
@@ -21,8 +21,8 @@ describe Bosh::OpenStackCloud::Cloud do
   it "doesn't delete an OpenStack snapshot unless its state is `available'" do
     snapshot = double("snapshot", :id => "snap-foobar")
 
-    cloud = mock_cloud do |openstack|
-      expect(openstack.snapshots).to receive(:get).with("snap-foobar").and_return(snapshot)
+    cloud = mock_cloud do |fog|
+      expect(fog.volume.snapshots).to receive(:get).with("snap-foobar").and_return(snapshot)
     end
 
     expect(snapshot).to receive(:status).and_return(:busy)

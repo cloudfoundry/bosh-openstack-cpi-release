@@ -24,9 +24,9 @@ describe Bosh::OpenStackCloud::Cloud do
       :index => '0'
     }
 
-    cloud = mock_cloud do |openstack|
-      expect(openstack.volumes).to receive(:get).with("v-foobar").and_return(volume)
-      expect(openstack.snapshots).to receive(:new).with(snapshot_params).and_return(snapshot)
+    cloud = mock_cloud do |fog|
+      expect(fog.volume.volumes).to receive(:get).with("v-foobar").and_return(volume)
+      expect(fog.volume.snapshots).to receive(:new).with(snapshot_params).and_return(snapshot)
     end
 
     expect(cloud).to receive(:generate_unique_name).and_return(unique_name)
@@ -59,9 +59,9 @@ describe Bosh::OpenStackCloud::Cloud do
       :index => '0'
     }
 
-    cloud = mock_cloud do |openstack|
-      expect(openstack.volumes).to receive(:get).with("v-foobar").and_return(volume)
-      expect(openstack.snapshots).to receive(:new).with(snapshot_params).and_return(snapshot)
+    cloud = mock_cloud do |fog|
+      expect(fog.volume.volumes).to receive(:get).with("v-foobar").and_return(volume)
+      expect(fog.volume.snapshots).to receive(:new).with(snapshot_params).and_return(snapshot)
     end
 
     expect(cloud).to receive(:generate_unique_name).and_return(unique_name)
@@ -94,9 +94,9 @@ describe Bosh::OpenStackCloud::Cloud do
       'index' => '0'
     }
 
-    cloud = mock_cloud do |openstack|
-      expect(openstack.volumes).to receive(:get).with("v-foobar").and_return(volume)
-      expect(openstack.snapshots).to receive(:new).with(snapshot_params).and_return(snapshot)
+    cloud = mock_cloud do |fog|
+      expect(fog.volume.volumes).to receive(:get).with("v-foobar").and_return(volume)
+      expect(fog.volume.snapshots).to receive(:new).with(snapshot_params).and_return(snapshot)
     end
 
     expect(cloud).to receive(:generate_unique_name).and_return(unique_name)
@@ -111,8 +111,8 @@ describe Bosh::OpenStackCloud::Cloud do
   end
 
   it "should raise an Exception if OpenStack volume is not found" do
-    cloud = mock_cloud do |openstack|
-      expect(openstack.volumes).to receive(:get).with("v-foobar").and_return(nil)
+    cloud = mock_cloud do |fog|
+      expect(fog.volume.volumes).to receive(:get).with("v-foobar").and_return(nil)
     end
 
     expect {

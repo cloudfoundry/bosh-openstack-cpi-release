@@ -367,7 +367,7 @@ describe Bosh::OpenStackCloud::Cloud do
   end
 
   def volumes(vm_id)
-    cpi.compute.volumes.select {|volume| volume.attachments.detect {|attachment| attachment['serverId'] == vm_id}}
+    cpi.volume.volumes.select {|volume| volume.attachments.detect {|attachment| attachment['serverId'] == vm_id}}
   end
 
   def vm_lifecycle(stemcell_id, network_spec, disk_locality, cloud_properties = {}, resource_pool = {})

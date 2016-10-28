@@ -500,7 +500,7 @@ module Bosh::OpenStackCloud
     def has_disk?(disk_id)
       with_thread_name("has_disk?(#{disk_id})") do
         @logger.info("Check the presence of disk with id `#{disk_id}'...")
-        volume = with_openstack { @openstack.compute.volumes.get(disk_id) }
+        volume = with_openstack { @openstack.volume.volumes.get(disk_id) }
 
         !volume.nil?
       end
@@ -515,7 +515,7 @@ module Bosh::OpenStackCloud
     def delete_disk(disk_id)
       with_thread_name("delete_disk(#{disk_id})") do
         @logger.info("Deleting volume `#{disk_id}'...")
-        volume = with_openstack { @openstack.compute.volumes.get(disk_id) }
+        volume = with_openstack { @openstack.volume.volumes.get(disk_id) }
         if volume
           state = volume.status
           if state.to_sym != :available
@@ -541,7 +541,7 @@ module Bosh::OpenStackCloud
         server = with_openstack { @openstack.compute.servers.get(server_id) }
         cloud_error("Server `#{server_id}' not found") unless server
 
-        volume = with_openstack { @openstack.compute.volumes.get(disk_id) }
+        volume = with_openstack { @openstack.volume.volumes.get(disk_id) }
         cloud_error("Volume `#{disk_id}' not found") unless volume
 
         device_name = attach_volume(server, volume)
@@ -565,7 +565,7 @@ module Bosh::OpenStackCloud
         server = with_openstack { @openstack.compute.servers.get(server_id) }
         cloud_error("Server `#{server_id}' not found") unless server
 
-        volume = with_openstack { @openstack.compute.volumes.get(disk_id) }
+        volume = with_openstack { @openstack.volume.volumes.get(disk_id) }
         if volume.nil?
           @logger.info("Disk `#{disk_id}' not found while trying to detach it from vm `#{server_id}'...")
         else
@@ -590,7 +590,7 @@ module Bosh::OpenStackCloud
     def snapshot_disk(disk_id, metadata)
       with_thread_name("snapshot_disk(#{disk_id})") do
         metadata = Hash[metadata.map{|key,value| [key.to_s, value] }]
-        volume = with_openstack { @openstack.compute.volumes.get(disk_id) }
+        volume = with_openstack { @openstack.volume.volumes.get(disk_id) }
         cloud_error("Volume `#{disk_id}' not found") unless volume
 
         devices = []
@@ -605,7 +605,7 @@ module Bosh::OpenStackCloud
         }
 
         @logger.info("Creating new snapshot for volume `#{disk_id}'...")
-        snapshot = @openstack.compute.snapshots.new(snapshot_params)
+        snapshot = @openstack.volume.snapshots.new(snapshot_params)
         with_openstack { snapshot.save(true) }
 
         @logger.info("Creating new snapshot `#{snapshot.id}' for volume `#{disk_id}'...")
@@ -624,7 +624,7 @@ module Bosh::OpenStackCloud
     def delete_snapshot(snapshot_id)
       with_thread_name("delete_snapshot(#{snapshot_id})") do
         @logger.info("Deleting snapshot `#{snapshot_id}'...")
-        snapshot = with_openstack { @openstack.compute.snapshots.get(snapshot_id) }
+        snapshot = with_openstack { @openstack.volume.snapshots.get(snapshot_id) }
         if snapshot
           state = snapshot.status
           if state.to_sym != :available

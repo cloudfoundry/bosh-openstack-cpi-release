@@ -80,12 +80,13 @@ def mock_cloud(options = nil)
   key_pairs = double('key_pairs')
   security_groups = [double('default_sec_group', id: 'default_sec_group_id', name: 'default')]
 
-  glance = double(Fog::Image::OpenStack::V2)
-  allow(Fog::Image::OpenStack::V2).to receive(:new).and_return(glance)
-  allow(glance).to receive(:images).and_return(images)
+  image = double(Fog::Image::OpenStack::V2)
+  allow(Fog::Image::OpenStack::V2).to receive(:new).and_return(image)
+  allow(image).to receive(:images).and_return(images)
 
   volume = double(Fog::Volume::OpenStack::V2)
   allow(volume).to receive(:volumes).and_return(volumes)
+  allow(volume).to receive(:snapshots).and_return(snapshots)
   allow(Fog::Volume::OpenStack::V2).to receive(:new).and_return(volume)
 
   network = double(Fog::Network::OpenStack)
@@ -96,13 +97,15 @@ def mock_cloud(options = nil)
 
   allow(compute).to receive(:servers).and_return(servers)
   allow(compute).to receive(:flavors).and_return(flavors)
-  allow(compute).to receive(:volumes).and_return(volumes)
-  allow(compute).to receive(:snapshots).and_return(snapshots)
   allow(compute).to receive(:key_pairs).and_return(key_pairs)
 
   allow(Fog::Compute).to receive(:new).and_return(compute)
 
-  yield(compute, network, glance) if block_given?
+  fog = Struct
+      .new(:compute, :network, :image, :volume)
+      .new(compute, network, image, volume)
+
+  yield(fog) if block_given?
 
   Bosh::OpenStackCloud::Cloud.new(options || mock_cloud_options['properties'])
 end
@@ -110,11 +113,11 @@ end
 def mock_glance_v1(options = nil)
   cloud = mock_cloud(options)
 
-  glance = double(Fog::Image::OpenStack::V1, images: double('images'))
-  allow(cloud.instance_variable_get('@openstack')).to receive(:image).and_return(glance)
-  allow(glance).to receive(:class).and_return(Fog::Image::OpenStack::V1::Mock)
+  image = double(Fog::Image::OpenStack::V1, images: double('images'))
+  allow(cloud.instance_variable_get('@openstack')).to receive(:image).and_return(image)
+  allow(image).to receive(:class).and_return(Fog::Image::OpenStack::V1)
 
-  yield glance if block_given?
+  yield image if block_given?
 
   cloud
 end
@@ -122,11 +125,11 @@ end
 def mock_glance_v2(options = nil)
   cloud = mock_cloud(options)
 
-  glance = double(Fog::Image::OpenStack::V2, images: double('images'))
-  allow(cloud.instance_variable_get('@openstack')).to receive(:image).and_return(glance)
-  allow(glance).to receive(:class).and_return(Fog::Image::OpenStack::V2::Mock)
+  image = double(Fog::Image::OpenStack::V2, images: double('images'))
+  allow(cloud.instance_variable_get('@openstack')).to receive(:image).and_return(image)
+  allow(image).to receive(:class).and_return(Fog::Image::OpenStack::V2)
 
-  yield glance if block_given?
+  yield image if block_given?
 
   cloud
 end

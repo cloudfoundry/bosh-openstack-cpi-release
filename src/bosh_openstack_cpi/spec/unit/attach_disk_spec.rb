@@ -8,10 +8,10 @@ describe Bosh::OpenStackCloud::Cloud do
   let(:volume) { double('volume', :id => 'v-foobar') }
   let(:flavor) { double('flavor', :id => 'f-test', :ephemeral => 10, :swap => '') }
   let(:cloud) do
-    mock_cloud(cloud_options['properties']) do |openstack|
-      expect(openstack.servers).to receive(:get).with('i-test').and_return(server)
-      expect(openstack.volumes).to receive(:get).with('v-foobar').and_return(volume)
-      expect(openstack.flavors).to receive(:find).and_return(flavor)
+    mock_cloud(cloud_options['properties']) do |fog|
+      expect(fog.compute.servers).to receive(:get).with('i-test').and_return(server)
+      expect(fog.volume.volumes).to receive(:get).with('v-foobar').and_return(volume)
+      expect(fog.compute.flavors).to receive(:find).and_return(flavor)
     end
   end
   let(:cloud_options) { mock_cloud_options }
@@ -87,9 +87,9 @@ describe Bosh::OpenStackCloud::Cloud do
     volume_attachments = [{'volumeId' => 'v-foobar', 'device' => '/dev/sdc'}]
     attachment = double('attachment', :device => '/dev/sdd')
 
-    cloud = mock_cloud do |openstack|
-      expect(openstack.servers).to receive(:get).with('i-test').and_return(server)
-      expect(openstack.volumes).to receive(:get).with('v-foobar').and_return(volume)
+    cloud = mock_cloud do |fog|
+      expect(fog.compute.servers).to receive(:get).with('i-test').and_return(server)
+      expect(fog.volume.volumes).to receive(:get).with('v-foobar').and_return(volume)
     end
 
     expect(server).to receive(:volume_attachments).and_return(volume_attachments)

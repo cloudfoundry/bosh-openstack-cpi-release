@@ -6,14 +6,16 @@ describe Bosh::OpenStackCloud::AvailabilityZoneProvider do
   let(:volumes) { double('volumes') }
   let(:openstack) { instance_double(Bosh::OpenStackCloud::Openstack) }
   let(:compute) { double(Fog::Compute) }
+  let(:volume) { double(Fog::Volume) }
   let(:az_provider) { Bosh::OpenStackCloud::AvailabilityZoneProvider.new(openstack, ignore_server_az) }
 
   before do
     allow(openstack).to receive(:compute).and_return(compute)
+    allow(openstack).to receive(:volume).and_return(volume)
     allow(foo_volume).to receive(:availability_zone).and_return('west_az')
     allow(volumes).to receive(:get).with('foo_id').and_return(foo_volume)
     allow(volumes).to receive(:get).with('bar_id').and_return(bar_volume)
-    allow(compute).to receive(:volumes).and_return(volumes)
+    allow(volume).to receive(:volumes).and_return(volumes)
   end
 
   describe 'when the server availability zone of the server must be the same as the disk' do

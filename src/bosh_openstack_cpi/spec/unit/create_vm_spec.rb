@@ -93,10 +93,10 @@ describe Bosh::OpenStackCloud::Cloud, "create_vm" do
   end
 
   it "creates an OpenStack server and polls until it's ready" do
-    cloud = mock_cloud do |compute, _, glance|
-      expect(compute.servers).to receive(:create).with(openstack_params).and_return(server)
-      allow(glance.images).to receive(:find_by_id).and_return(image)
-      stub_compute(compute)
+    cloud = mock_cloud do |fog|
+      expect(fog.compute.servers).to receive(:create).with(openstack_params).and_return(server)
+      allow(fog.image.images).to receive(:find_by_id).and_return(image)
+      stub_compute(fog.compute)
     end
 
     expect(cloud).to receive(:generate_unique_name).and_return(unique_name)
@@ -119,11 +119,11 @@ describe Bosh::OpenStackCloud::Cloud, "create_vm" do
       network_spec = dynamic_network_spec
       network_spec["dns"] = [nameserver]
 
-      cloud = mock_cloud do |compute, _, glance|
-        expect(compute.servers).to receive(:create).with(openstack_params("network_a" => network_spec)).and_return(server)
-        expect(glance.images).to receive(:find_by_id).and_return(image)
-        expect(compute.flavors).to receive(:find).and_return(flavor)
-        expect(compute.key_pairs).to receive(:find).and_return(key_pair)
+      cloud = mock_cloud do |fog|
+        expect(fog.compute.servers).to receive(:create).with(openstack_params("network_a" => network_spec)).and_return(server)
+        expect(fog.image.images).to receive(:find_by_id).and_return(image)
+        expect(fog.compute.flavors).to receive(:find).and_return(flavor)
+        expect(fog.compute.key_pairs).to receive(:find).and_return(key_pair)
       end
 
       expect(cloud).to receive(:generate_unique_name).and_return(unique_name)
@@ -181,12 +181,12 @@ describe Bosh::OpenStackCloud::Cloud, "create_vm" do
       let(:configured_security_groups) { %w[net-group-1 net-group-2] }
 
       it "creates an OpenStack server" do
-        cloud = mock_cloud do |compute, network, glance|
-          expect(compute.servers).to receive(:create).with(openstack_params("network_a" => network_with_security_group_spec)).and_return(server)
-          expect(network).to receive(:security_groups).and_return(openstack_security_groups)
-          expect(glance.images).to receive(:find_by_id).and_return(image)
-          expect(compute.flavors).to receive(:find).and_return(flavor)
-          expect(compute.key_pairs).to receive(:find).and_return(key_pair)
+        cloud = mock_cloud do |fog|
+          expect(fog.compute.servers).to receive(:create).with(openstack_params("network_a" => network_with_security_group_spec)).and_return(server)
+          expect(fog.network).to receive(:security_groups).and_return(openstack_security_groups)
+          expect(fog.image.images).to receive(:find_by_id).and_return(image)
+          expect(fog.compute.flavors).to receive(:find).and_return(flavor)
+          expect(fog.compute.key_pairs).to receive(:find).and_return(key_pair)
         end
 
         expect(cloud).to receive(:generate_unique_name).and_return(unique_name)
@@ -217,12 +217,12 @@ describe Bosh::OpenStackCloud::Cloud, "create_vm" do
       end
 
       it "creates an OpenStack server" do
-        cloud = mock_cloud do |compute, network, glance|
-          expect(compute.servers).to receive(:create).with(openstack_params("network_a" => dynamic_network_without_security_group_spec)).and_return(server)
-          expect(network).to receive(:security_groups).and_return(openstack_security_groups)
-          expect(glance.images).to receive(:find_by_id).and_return(image)
-          expect(compute.flavors).to receive(:find).and_return(flavor)
-          expect(compute.key_pairs).to receive(:find).and_return(key_pair)
+        cloud = mock_cloud do |fog|
+          expect(fog.compute.servers).to receive(:create).with(openstack_params("network_a" => dynamic_network_without_security_group_spec)).and_return(server)
+          expect(fog.network).to receive(:security_groups).and_return(openstack_security_groups)
+          expect(fog.image.images).to receive(:find_by_id).and_return(image)
+          expect(fog.compute.flavors).to receive(:find).and_return(flavor)
+          expect(fog.compute.key_pairs).to receive(:find).and_return(key_pair)
         end
 
         expect(cloud).to receive(:generate_unique_name).and_return(unique_name)
@@ -250,11 +250,11 @@ describe Bosh::OpenStackCloud::Cloud, "create_vm" do
       network_spec["cloud_properties"] ||= {}
       network_spec["cloud_properties"]["net_id"] = nics[0]["net_id"]
 
-      cloud = mock_cloud do |compute, _, glance|
-        expect(compute.servers).to receive(:create).with(openstack_params("network_a" => network_spec)).and_return(server)
-        expect(glance.images).to receive(:find_by_id).and_return(image)
-        expect(compute.flavors).to receive(:find).and_return(flavor)
-        expect(compute.key_pairs).to receive(:find).and_return(key_pair)
+      cloud = mock_cloud do |fog|
+        expect(fog.compute.servers).to receive(:create).with(openstack_params("network_a" => network_spec)).and_return(server)
+        expect(fog.image.images).to receive(:find_by_id).and_return(image)
+        expect(fog.compute.flavors).to receive(:find).and_return(flavor)
+        expect(fog.compute.key_pairs).to receive(:find).and_return(key_pair)
       end
 
       expect(cloud).to receive(:generate_unique_name).and_return(unique_name)
@@ -290,11 +290,11 @@ describe Bosh::OpenStackCloud::Cloud, "create_vm" do
       end
 
       it 'creates an OpenStack server' do
-        cloud = mock_cloud do |compute, _, glance|
-          expect(compute.servers).to receive(:create).with(openstack_params('network_a' => network_spec)).and_return(server)
-          expect(glance.images).to receive(:find_by_id).and_return(image)
-          expect(compute.flavors).to receive(:find).and_return(flavor)
-          expect(compute.key_pairs).to receive(:find).and_return(key_pair)
+        cloud = mock_cloud do |fog|
+          expect(fog.compute.servers).to receive(:create).with(openstack_params('network_a' => network_spec)).and_return(server)
+          expect(fog.image.images).to receive(:find_by_id).and_return(image)
+          expect(fog.compute.flavors).to receive(:find).and_return(flavor)
+          expect(fog.compute.key_pairs).to receive(:find).and_return(key_pair)
         end
 
         expect(cloud).to receive(:generate_unique_name).and_return(unique_name)
@@ -310,11 +310,11 @@ describe Bosh::OpenStackCloud::Cloud, "create_vm" do
       end
 
       it 'should not use Fog::Network' do
-        cloud = mock_cloud do |compute, _, glance|
-          allow(compute.servers).to receive(:create).and_return(server)
-          allow(glance.images).to receive(:find_by_id).and_return(image)
-          allow(compute.flavors).to receive(:find).and_return(flavor)
-          allow(compute.key_pairs).to receive(:find).and_return(key_pair)
+        cloud = mock_cloud do |fog|
+          allow(fog.compute.servers).to receive(:create).and_return(server)
+          allow(fog.image.images).to receive(:find_by_id).and_return(image)
+          allow(fog.compute.flavors).to receive(:find).and_return(flavor)
+          allow(fog.compute.key_pairs).to receive(:find).and_return(key_pair)
         end
         allow(cloud).to receive(:generate_unique_name).and_return(unique_name)
         allow(cloud).to receive(:wait_resource).with(server, :active, :state)
@@ -346,11 +346,11 @@ describe Bosh::OpenStackCloud::Cloud, "create_vm" do
       let(:configured_security_groups) { %w[default default] }
 
       let(:cloud) do
-        mock_cloud(cloud_options["properties"]) do |compute, _, glance|
-          allow(compute.servers).to receive(:create).and_return(server)
-          allow(glance.images).to receive(:find_by_id).and_return(image)
-          allow(compute.flavors).to receive(:find).and_return(flavor)
-          allow(compute.key_pairs).to receive(:find).and_return(key_pair)
+        mock_cloud(cloud_options["properties"]) do |fog|
+          allow(fog.compute.servers).to receive(:create).and_return(server)
+          allow(fog.image.images).to receive(:find_by_id).and_return(image)
+          allow(fog.compute.flavors).to receive(:find).and_return(flavor)
+          allow(fog.compute.key_pairs).to receive(:find).and_return(key_pair)
         end
       end
 
@@ -393,11 +393,11 @@ describe Bosh::OpenStackCloud::Cloud, "create_vm" do
     end
 
     it "creates an OpenStack server with scheduler hints" do
-      cloud = mock_cloud do |compute, _, glance|
-        expect(compute.servers).to receive(:create).with(openstack_params(combined_network_spec)).and_return(server)
-        expect(glance.images).to receive(:find_by_id).and_return(image)
-        expect(compute.flavors).to receive(:find).and_return(flavor)
-        expect(compute.key_pairs).to receive(:find).and_return(key_pair)
+      cloud = mock_cloud do |fog|
+        expect(fog.compute.servers).to receive(:create).with(openstack_params(combined_network_spec)).and_return(server)
+        expect(fog.image.images).to receive(:find_by_id).and_return(image)
+        expect(fog.compute.flavors).to receive(:find).and_return(flavor)
+        expect(fog.compute.key_pairs).to receive(:find).and_return(key_pair)
       end
 
       expect(cloud).to receive(:generate_unique_name).and_return(openstack_params[:name].gsub(/^vm-/,''))
@@ -419,11 +419,11 @@ describe Bosh::OpenStackCloud::Cloud, "create_vm" do
       cloud_options = mock_cloud_options
       cloud_options['properties']['openstack']['boot_from_volume'] = true
 
-      cloud = mock_cloud(cloud_options['properties']) do |compute, _, glance|
-        expect(compute.servers).to receive(:create).with(openstack_params({"network_a" => network_spec}, true)).and_return(server)
-        expect(glance.images).to receive(:find_by_id).and_return(image)
-        expect(compute.flavors).to receive(:find).and_return(flavor)
-        expect(compute.key_pairs).to receive(:find).and_return(key_pair)
+      cloud = mock_cloud(cloud_options['properties']) do |fog|
+        expect(fog.compute.servers).to receive(:create).with(openstack_params({"network_a" => network_spec}, true)).and_return(server)
+        expect(fog.image.images).to receive(:find_by_id).and_return(image)
+        expect(fog.compute.flavors).to receive(:find).and_return(flavor)
+        expect(fog.compute.key_pairs).to receive(:find).and_return(key_pair)
       end
 
       expect(cloud).to receive(:generate_unique_name).and_return(unique_name)
@@ -451,11 +451,11 @@ describe Bosh::OpenStackCloud::Cloud, "create_vm" do
         "type" => "foo"
       }
 
-      cloud = mock_cloud(cloud_options['properties']) do |compute, _, glance|
-        expect(compute.servers).to receive(:create).with(openstack_params({"network_a" => network_spec}, true)).and_return(server)
-        expect(glance.images).to receive(:find_by_id).and_return(image)
-        expect(compute.flavors).to receive(:find).and_return(flavor)
-        expect(compute.key_pairs).to receive(:find).and_return(key_pair)
+      cloud = mock_cloud(cloud_options['properties']) do |fog|
+        expect(fog.compute.servers).to receive(:create).with(openstack_params({"network_a" => network_spec}, true)).and_return(server)
+        expect(fog.image.images).to receive(:find_by_id).and_return(image)
+        expect(fog.compute.flavors).to receive(:find).and_return(flavor)
+        expect(fog.compute.key_pairs).to receive(:find).and_return(key_pair)
       end
 
       expect(cloud).to receive(:generate_unique_name).and_return(unique_name)
@@ -479,11 +479,11 @@ describe Bosh::OpenStackCloud::Cloud, "create_vm" do
       cloud_options["properties"]["openstack"]["config_drive"] = 'cdrom'
       network_spec = dynamic_network_spec
 
-      cloud = mock_cloud(cloud_options['properties']) do |compute, _, glance|
-        expect(compute.servers).to receive(:create).with(openstack_params.merge(config_drive: true)).and_return(server)
-        expect(glance.images).to receive(:find_by_id).and_return(image)
-        expect(compute.flavors).to receive(:find).and_return(flavor)
-        expect(compute.key_pairs).to receive(:find).and_return(key_pair)
+      cloud = mock_cloud(cloud_options['properties']) do |fog|
+        expect(fog.compute.servers).to receive(:create).with(openstack_params.merge(config_drive: true)).and_return(server)
+        expect(fog.image.images).to receive(:find_by_id).and_return(image)
+        expect(fog.compute.flavors).to receive(:find).and_return(flavor)
+        expect(fog.compute.key_pairs).to receive(:find).and_return(key_pair)
       end
 
       allow(cloud).to receive(:generate_unique_name).and_return(unique_name)
@@ -504,11 +504,11 @@ describe Bosh::OpenStackCloud::Cloud, "create_vm" do
 
   context "when cannot create an OpenStack server" do
     let(:cloud) do
-      mock_cloud do |compute, _, glance|
-        allow(compute.servers).to receive(:create).and_return(server)
-        allow(glance.images).to receive(:find_by_id).and_return(image)
-        allow(compute.flavors).to receive(:find).and_return(flavor)
-        allow(compute.key_pairs).to receive(:find).and_return(key_pair)
+      mock_cloud do |fog|
+        allow(fog.compute.servers).to receive(:create).and_return(server)
+        allow(fog.image.images).to receive(:find_by_id).and_return(image)
+        allow(fog.compute.flavors).to receive(:find).and_return(flavor)
+        allow(fog.compute.key_pairs).to receive(:find).and_return(key_pair)
       end
     end
 
@@ -536,12 +536,12 @@ describe Bosh::OpenStackCloud::Cloud, "create_vm" do
       let(:not_found_error) { Excon::Errors::NotFound.new('not found: 814bc266-c6de-4fd0-a713-502da09edbe9') }
 
       let(:cloud) {
-        cloud = mock_cloud do |compute, network, glance|
-          allow(compute.servers).to receive(:create).and_raise(not_found_error)
-          allow(glance.images).to receive(:find_by_id).and_return(image)
-          allow(compute.flavors).to receive(:find).and_return(flavor)
-          allow(compute.key_pairs).to receive(:find).and_return(key_pair)
-          allow(network).to receive(:networks).and_return(networks)
+        cloud = mock_cloud do |fog|
+          allow(fog.compute.servers).to receive(:create).and_raise(not_found_error)
+          allow(fog.image.images).to receive(:find_by_id).and_return(image)
+          allow(fog.compute.flavors).to receive(:find).and_return(flavor)
+          allow(fog.compute.key_pairs).to receive(:find).and_return(key_pair)
+          allow(fog.network).to receive(:networks).and_return(networks)
         end
 
         allow(cloud).to receive(:generate_unique_name).and_return(unique_name)
@@ -589,14 +589,14 @@ describe Bosh::OpenStackCloud::Cloud, "create_vm" do
         }
 
         let(:cloud) {
-          cloud = mock_cloud(cloud_options) do |compute, network, glance|
-            allow(compute.servers).to receive(:create).and_raise(not_found_error)
-            allow(glance.images).to receive(:find_by_id).and_return(image)
-            allow(compute.flavors).to receive(:find).and_return(flavor)
-            allow(compute.key_pairs).to receive(:find).and_return(key_pair)
-            allow(network).to receive(:networks).and_return(networks)
+          cloud = mock_cloud(cloud_options) do |fog|
+            allow(fog.compute.servers).to receive(:create).and_raise(not_found_error)
+            allow(fog.image.images).to receive(:find_by_id).and_return(image)
+            allow(fog.compute.flavors).to receive(:find).and_return(flavor)
+            allow(fog.compute.key_pairs).to receive(:find).and_return(key_pair)
+            allow(fog.network).to receive(:networks).and_return(networks)
             security_groups = [double('default_sec_group', id: 'default_sec_group_id', name: 'default')]
-            allow(compute).to receive(:security_groups).and_return(security_groups)
+            allow(fog.compute).to receive(:security_groups).and_return(security_groups)
           end
 
           allow(cloud).to receive(:generate_unique_name).and_return(unique_name)
@@ -626,12 +626,12 @@ describe Bosh::OpenStackCloud::Cloud, "create_vm" do
       let(:bad_request_error) { Excon::Errors::BadRequest.new('Message does not matter here') }
 
       let(:cloud) {
-        cloud = mock_cloud do |compute, network, glance|
-          allow(compute.servers).to receive(:create).and_raise(bad_request_error)
-          allow(glance.images).to receive(:find_by_id).and_return(image)
-          allow(compute.flavors).to receive(:find).and_return(flavor)
-          allow(compute.key_pairs).to receive(:find).and_return(key_pair)
-          allow(network).to receive(:networks).and_return(networks)
+        cloud = mock_cloud do |fog|
+          allow(fog.compute.servers).to receive(:create).and_raise(bad_request_error)
+          allow(fog.image.images).to receive(:find_by_id).and_return(image)
+          allow(fog.compute.flavors).to receive(:find).and_return(flavor)
+          allow(fog.compute.key_pairs).to receive(:find).and_return(key_pair)
+          allow(fog.network).to receive(:networks).and_return(networks)
         end
 
         allow(cloud).to receive(:generate_unique_name).and_return(unique_name)
@@ -710,10 +710,10 @@ describe Bosh::OpenStackCloud::Cloud, "create_vm" do
 
   context "when fail to connect to find image on OpenStack server" do
     let(:cloud) do
-      mock_cloud do |compute|
-        allow(compute.servers).to receive(:create).and_return(server)
-        allow(compute.flavors).to receive(:find).and_return(flavor)
-        allow(compute.key_pairs).to receive(:find).and_return(key_pair)
+      mock_cloud do |fog|
+        allow(fog.compute.servers).to receive(:create).and_return(server)
+        allow(fog.compute.flavors).to receive(:find).and_return(flavor)
+        allow(fog.compute.key_pairs).to receive(:find).and_return(key_pair)
       end
     end
     let(:error) do
@@ -735,11 +735,11 @@ describe Bosh::OpenStackCloud::Cloud, "create_vm" do
 
   context "when fail to register an OpenStack server after the server is created" do
     let(:cloud) do
-      mock_cloud do |compute, _, glance|
-        allow(compute.servers).to receive(:create).and_return(server)
-        allow(glance.images).to receive(:find_by_id).and_return(image)
-        allow(compute.flavors).to receive(:find).and_return(flavor)
-        allow(compute.key_pairs).to receive(:find).and_return(key_pair)
+      mock_cloud do |fog|
+        allow(fog.compute.servers).to receive(:create).and_return(server)
+        allow(fog.image.images).to receive(:find_by_id).and_return(image)
+        allow(fog.compute.flavors).to receive(:find).and_return(flavor)
+        allow(fog.compute.key_pairs).to receive(:find).and_return(key_pair)
       end
     end
 
@@ -807,8 +807,8 @@ describe Bosh::OpenStackCloud::Cloud, "create_vm" do
     let(:openstack_security_groups) { [ double('foo-sec-group', id: 'foo-sec-group-id', name: 'foo') ] }
 
     it 'raises an error' do
-      cloud = mock_cloud do |_, network|
-        expect(network).to receive(:security_groups).and_return(openstack_security_groups)
+      cloud = mock_cloud do |fog|
+        expect(fog.network).to receive(:security_groups).and_return(openstack_security_groups)
       end
 
       expect {
@@ -820,9 +820,9 @@ describe Bosh::OpenStackCloud::Cloud, "create_vm" do
 
   it "raises an error when flavor doesn't have enough ephemeral disk capacity" do
     flavor = double("flavor", :id => "f-test", :name => "m1.tiny", :ram => 1024, :ephemeral => 1)
-    cloud = mock_cloud do |compute, _, glance|
-      expect(glance.images).to receive(:find_by_id).and_return(image)
-      expect(compute.flavors).to receive(:find).and_return(flavor)
+    cloud = mock_cloud do |fog|
+      expect(fog.image.images).to receive(:find_by_id).and_return(image)
+      expect(fog.compute.flavors).to receive(:find).and_return(flavor)
     end
 
     expect {
@@ -853,22 +853,22 @@ describe Bosh::OpenStackCloud::Cloud, "create_vm" do
       cloud_options['properties']['openstack']['boot_from_volume'] = true
       cloud_options['properties']['openstack']['ignore_server_availability_zone'] = true
 
-      cloud = mock_cloud(cloud_options["properties"]) do |compute|
-        allow(compute.volumes).to receive(:get).and_return(volume("foo"), volume("foo"))
+      cloud = mock_cloud(cloud_options["properties"]) do |fog|
+        allow(fog.volume.volumes).to receive(:get).and_return(volume("foo"), volume("foo"))
       end
       expect(cloud.select_availability_zone(%w[cid1 cid2], "foobar-1a")).to eq("foobar-1a")
     end
 
     it "should select the zone from a list of disks" do
-      cloud = mock_cloud do |compute|
-        allow(compute.volumes).to receive(:get).and_return(volume("foo"), volume("foo"))
+      cloud = mock_cloud do |fog|
+        allow(fog.volume.volumes).to receive(:get).and_return(volume("foo"), volume("foo"))
       end
       expect(cloud.select_availability_zone(%w[cid1 cid2], nil)).to eq("foo")
     end
 
     it "should select the zone from a list of disks and a default" do
-      cloud = mock_cloud do |compute|
-        allow(compute.volumes).to receive(:get).and_return(volume("foo"), volume("foo"))
+      cloud = mock_cloud do |fog|
+        allow(fog.volume.volumes).to receive(:get).and_return(volume("foo"), volume("foo"))
       end
       expect(cloud.select_availability_zone(%w[cid1 cid2], "foo")).to eq("foo")
     end
@@ -876,8 +876,8 @@ describe Bosh::OpenStackCloud::Cloud, "create_vm" do
 
   describe 'failing to select an AZ' do
     it 'should raise an error when the disks are from different zones' do
-      cloud = mock_cloud do |compute|
-        expect(compute.volumes).to receive(:get).and_return(volume("foo"), volume("bar"))
+      cloud = mock_cloud do |fog|
+        expect(fog.volume.volumes).to receive(:get).and_return(volume("foo"), volume("bar"))
       end
       expect {
         cloud.select_availability_zone(%w[cid1 cid2], "bar")
@@ -885,8 +885,8 @@ describe Bosh::OpenStackCloud::Cloud, "create_vm" do
     end
 
     it "should raise an error when the disk zones are the same and the resource pool AZ is nil" do
-      cloud = mock_cloud do |compute|
-        expect(compute.volumes).to receive(:get).and_return(volume("foo"), volume("bar"))
+      cloud = mock_cloud do |fog|
+        expect(fog.volume.volumes).to receive(:get).and_return(volume("foo"), volume("bar"))
       end
       expect {
         cloud.select_availability_zone(%w[cid1 cid2], nil)
@@ -894,8 +894,8 @@ describe Bosh::OpenStackCloud::Cloud, "create_vm" do
     end
 
     it "should raise an error when the zones differ" do
-      cloud = mock_cloud do |compute|
-        expect(compute.volumes).to receive(:get).and_return(volume("foo"), volume("foo"))
+      cloud = mock_cloud do |fog|
+        expect(fog.volume.volumes).to receive(:get).and_return(volume("foo"), volume("foo"))
       end
       expect {
         cloud.select_availability_zone(%w[cid1 cid2], "baz")
@@ -912,10 +912,10 @@ describe Bosh::OpenStackCloud::Cloud, "create_vm" do
       expected_network_spec["use_dhcp"] = false
       expected_openstack_params = openstack_params({ "network_a" => expected_network_spec })
 
-      cloud = mock_cloud(cloud_options) do |compute, _, glance|
-        expect(compute.servers).to receive(:create).with(expected_openstack_params).and_return(server)
-        allow(glance.images).to receive(:find_by_id).and_return(image)
-        stub_compute(compute)
+      cloud = mock_cloud(cloud_options) do |fog|
+        expect(fog.compute.servers).to receive(:create).with(expected_openstack_params).and_return(server)
+        allow(fog.image.images).to receive(:find_by_id).and_return(image)
+        stub_compute(fog.compute)
       end
 
       expect(cloud).to receive(:generate_unique_name).and_return(unique_name)
@@ -949,10 +949,10 @@ describe Bosh::OpenStackCloud::Cloud, "create_vm" do
 
     context 'when key_name is only defined in resource pool' do
       it 'takes the key_name from resource pool' do
-        cloud = mock_cloud do |compute, _, glance|
-          expect(compute.servers).to receive(:create).with(openstack_params).and_return(server)
-          allow(glance.images).to receive(:find_by_id).and_return(image)
-          stub_compute(compute)
+        cloud = mock_cloud do |fog|
+          expect(fog.compute.servers).to receive(:create).with(openstack_params).and_return(server)
+          allow(fog.image.images).to receive(:find_by_id).and_return(image)
+          stub_compute(fog.compute)
         end
 
         stub_cloud(cloud)
@@ -971,10 +971,10 @@ describe Bosh::OpenStackCloud::Cloud, "create_vm" do
         expected_openstack_params = openstack_params
         expected_openstack_params[:key_name] = 'default_key_name'
 
-        cloud = mock_cloud(cloud_options_with_default_key_name) do |compute, _, glance|
-          expect(compute.servers).to receive(:create).with(expected_openstack_params).and_return(server)
-          allow(glance.images).to receive(:find_by_id).and_return(image)
-          stub_compute(compute)
+        cloud = mock_cloud(cloud_options_with_default_key_name) do |fog|
+          expect(fog.compute.servers).to receive(:create).with(expected_openstack_params).and_return(server)
+          allow(fog.image.images).to receive(:find_by_id).and_return(image)
+          stub_compute(fog.compute)
         end
 
         stub_cloud(cloud)
@@ -992,10 +992,10 @@ describe Bosh::OpenStackCloud::Cloud, "create_vm" do
         cloud_options_with_default_key_name = mock_cloud_options['properties']
         cloud_options_with_default_key_name['openstack']['default_key_name'] = 'default_key_name'
 
-        cloud = mock_cloud(cloud_options_with_default_key_name) do |compute, _, glance|
-          expect(compute.servers).to receive(:create).with(openstack_params).and_return(server)
-          allow(glance.images).to receive(:find_by_id).and_return(image)
-          stub_compute(compute)
+        cloud = mock_cloud(cloud_options_with_default_key_name) do |fog|
+          expect(fog.compute.servers).to receive(:create).with(openstack_params).and_return(server)
+          allow(fog.image.images).to receive(:find_by_id).and_return(image)
+          stub_compute(fog.compute)
         end
 
         stub_cloud(cloud)
@@ -1010,10 +1010,10 @@ describe Bosh::OpenStackCloud::Cloud, "create_vm" do
 
     context 'when no key_name is defined' do
       it 'raises cloud error' do
-        cloud = mock_cloud do |compute, _, glance|
-          stub_compute(compute)
-          allow(glance.images).to receive(:find_by_id).and_return(image)
-          allow(compute).to receive(:key_pairs).and_return([key_pair])
+        cloud = mock_cloud do |fog|
+          stub_compute(fog.compute)
+          allow(fog.image.images).to receive(:find_by_id).and_return(image)
+          allow(fog.compute).to receive(:key_pairs).and_return([key_pair])
         end
         stub_cloud(cloud)
 
@@ -1034,10 +1034,10 @@ describe Bosh::OpenStackCloud::Cloud, "create_vm" do
     end
 
     let(:cloud) do
-      mock_cloud(options) do |compute, _, glance|
-        allow(glance.images).to receive(:find_by_id).and_return(image)
-        allow(compute.servers).to receive(:create).and_return(server)
-        stub_compute(compute)
+      mock_cloud(options) do |fog|
+        allow(fog.image.images).to receive(:find_by_id).and_return(image)
+        allow(fog.compute.servers).to receive(:create).and_return(server)
+        stub_compute(fog.compute)
       end
     end
 

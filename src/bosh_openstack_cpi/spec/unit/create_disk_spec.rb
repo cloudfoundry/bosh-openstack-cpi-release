@@ -13,8 +13,8 @@ describe Bosh::OpenStackCloud::Cloud do
       }
       volume = double("volume", :id => "v-foobar")
   
-      cloud = mock_cloud do |openstack|
-        allow(openstack.volumes).to receive(:create).
+      cloud = mock_cloud do |fog|
+        allow(fog.volume.volumes).to receive(:create).
           with(disk_params).and_return(volume)
       end
   
@@ -37,8 +37,8 @@ describe Bosh::OpenStackCloud::Cloud do
     }
     volume = double("volume", :id => "v-foobar")
 
-    cloud = mock_cloud do |openstack|
-      allow(openstack.volumes).to receive(:create).
+    cloud = mock_cloud do |fog|
+      allow(fog.volume.volumes).to receive(:create).
         with(disk_params).and_return(volume)
     end
 
@@ -60,8 +60,8 @@ describe Bosh::OpenStackCloud::Cloud do
     }
     volume = double("volume", :id => "v-foobar")
 
-    cloud = mock_cloud do |openstack|
-      expect(openstack.volumes).to receive(:create).
+    cloud = mock_cloud do |fog|
+      expect(fog.volume.volumes).to receive(:create).
         with(disk_params).and_return(volume)
     end
 
@@ -82,8 +82,8 @@ describe Bosh::OpenStackCloud::Cloud do
     }
     volume = double("volume", :id => "v-foobar")
 
-    cloud = mock_cloud do |openstack|
-      expect(openstack.volumes).to receive(:create).
+    cloud = mock_cloud do |fog|
+      expect(fog.volume.volumes).to receive(:create).
         with(disk_params).and_return(volume)
     end
 
@@ -113,10 +113,10 @@ describe Bosh::OpenStackCloud::Cloud do
                     :availability_zone => "foobar-land")
     volume = double("volume", :id => "v-foobar")
 
-    cloud = mock_cloud do |openstack|
-      expect(openstack.servers).to receive(:get).
+    cloud = mock_cloud do |fog|
+      expect(fog.compute.servers).to receive(:get).
         with("i-test").and_return(server)
-      expect(openstack.volumes).to receive(:create).
+      expect(fog.volume.volumes).to receive(:create).
         with(disk_params).and_return(volume)
     end
 
@@ -142,8 +142,8 @@ describe Bosh::OpenStackCloud::Cloud do
     cloud_options = mock_cloud_options
     cloud_options['properties']['openstack']['ignore_server_availability_zone'] = true
 
-    cloud = mock_cloud(cloud_options['properties']) do |openstack|
-      expect(openstack.volumes).to receive(:create).
+    cloud = mock_cloud(cloud_options['properties']) do |fog|
+      expect(fog.volume.volumes).to receive(:create).
           with(disk_params).and_return(volume)
     end
 
