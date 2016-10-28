@@ -1,8 +1,6 @@
 ### All calls for API endpoint 'cloudformation (heat-cfn)'
 ### All calls for API endpoint 'compute (nova)'
 ```
-DELETE /v2/<tenant_id>/os-snapshots/<resource_id>
-DELETE /v2/<tenant_id>/os-volumes/<resource_id>
 DELETE /v2/<tenant_id>/servers/<resource_id>
 DELETE /v2/<tenant_id>/servers/<resource_id>/os-volume_attachments/<resource_id>
 GET /v2/<tenant_id>//servers/<resource_id>/os-volume_attachments
@@ -10,13 +8,9 @@ GET /v2/<tenant_id>/flavors/detail.json
 GET /v2/<tenant_id>/os-floating-ips.json
 GET /v2/<tenant_id>/os-keypairs.json
 GET /v2/<tenant_id>/os-security-groups.json
-GET /v2/<tenant_id>/os-snapshots/<resource_id>
-GET /v2/<tenant_id>/os-volumes/<resource_id>
-GET /v2/<tenant_id>/os-volumes/detail
 GET /v2/<tenant_id>/servers/<resource_id>.json
 GET /v2/<tenant_id>/servers/<resource_id>/metadata/registry_key
 GET /v2/<tenant_id>/servers/detail.json
-POST /v2/<tenant_id>/os-snapshots body: {"snapshot":{"volume_id":"<resource_id>","display_name":"snapshot-<resource_id>","display_description":"<display_description>","force":true}}
 POST /v2/<tenant_id>/servers.json body: {"server":{"flavorRef":"<flavorRef_id>","name":"<name>","imageRef":"<resource_id>","availability_zone":"<availability_zone>","user_data":"<user_data>","key_name":"<key_name>","security_groups":[{"name":"<name>"}],"networks":[{"uuid":"<resource_id>","fixed_ip":"<fixed_ip>"}]}}
 POST /v2/<tenant_id>/servers.json body: {"server":{"flavorRef":"<flavorRef_id>","name":"<name>","imageRef":"<resource_id>","availability_zone":"<availability_zone>","user_data":"<user_data>","key_name":"<key_name>","security_groups":[{"name":"<name>"}],"networks":[{"uuid":"<resource_id>"}]}}
 POST /v2/<tenant_id>/servers.json body: {"server":{"flavorRef":"<flavorRef_id>","name":"<name>","imageRef":"<resource_id>","user_data":"<user_data>","key_name":"<key_name>","config_drive":true,"security_groups":[{"name":"<name>"}],"networks":[{"uuid":"<resource_id>","port":"<resource_id>"},{"uuid":"<resource_id>","port":"<resource_id>"}]}}
@@ -67,7 +61,11 @@ PUT /v2.0/floatingips/<resource_id> body: {"floatingip":{"port_id":"<resource_id
 ### All calls for API endpoint 'volume (cinder)'
 ### All calls for API endpoint 'volumev2 (cinderv2)'
 ```
+DELETE /v2/<tenant_id>/snapshots/<resource_id>
+DELETE /v2/<tenant_id>/volumes/<resource_id>
+GET /v2/<tenant_id>/snapshots/<resource_id>
 GET /v2/<tenant_id>/volumes/<resource_id>
+POST /v2/<tenant_id>/snapshots body: {"snapshot":{"volume_id":"<resource_id>","name":"<name>","description":"deployment/openstack_cpi_spec/0","force":true}}
 POST /v2/<tenant_id>/volumes body: {"volume":{"name":"<name>","description":"","size":"<size>","availability_zone":"<availability_zone>"}}
 POST /v2/<tenant_id>/volumes body: {"volume":{"name":"<name>","description":"","size":"<size>","volume_type":"SSD","availability_zone":"<availability_zone>"}}
 POST /v2/<tenant_id>/volumes body: {"volume":{"name":"<name>","description":"","size":"<size>"}}
