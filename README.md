@@ -3,7 +3,7 @@
 * Documentation: [bosh.io/docs](https://bosh.io/docs)
 * Slack: `#openstack` on cloudfoundry.slack.com ([get your invite here](https://slack.cloudfoundry.org/))
 * Mailing list: [cf-bosh](https://lists.cloudfoundry.org/pipermail/cf-bosh)
-* CI: <https://bosh-cpi.ci.cf-app.com/pipelines/bosh-openstack-cpi>
+* CI: <https://bosh-cpi.ci.cf-app.com/teams/main/pipelines/bosh-openstack-cpi>
 * Roadmap: [Pivotal Tracker](https://www.pivotaltracker.com/n/projects/1456570)
 
 This is a BOSH release for the OpenStack CPI.
