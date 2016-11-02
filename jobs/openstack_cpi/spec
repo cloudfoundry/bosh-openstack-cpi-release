@@ -76,6 +76,9 @@ properties:
   openstack.human_readable_vm_names:
     description: When creating a VM, use the job name as VM name if true. Otherwise use a generated UUID as name. If this parameter is set to true, the registry.endpoint parameter has to be set.
     default: false
+  openstack.use_nova_networking:
+    description: 'Use Nova networking APIs instead of Neutron APIs. Note: Nova networking APIs are deprecated with the Newton release, hence this switch will likely not work in future releases.'
+    default: false
 
   registry.host:
     description: Address of the Registry to connect to (required)
