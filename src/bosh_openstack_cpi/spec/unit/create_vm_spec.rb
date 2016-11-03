@@ -354,10 +354,11 @@ describe Bosh::OpenStackCloud::Cloud, "create_vm" do
         end
       end
 
-      context 'with config_drive set' do
+      context 'with config_drive set and \'use_dhcp=false\'' do
         let(:cloud_options) do
           cloud_options = mock_cloud_options
           cloud_options['properties']['openstack']['config_drive'] = 'cdrom'
+          cloud_options['properties']['openstack']['use_dhcp'] = false
           cloud_options
         end
 
@@ -374,13 +375,15 @@ describe Bosh::OpenStackCloud::Cloud, "create_vm" do
       context 'with config_drive NOT set' do
         let(:cloud_options) { mock_cloud_options }
 
-        it 'calls NetworkConfigurator#prepare' do
+        it 'does not call NetworkConfigurator#prepare' do
           expect_any_instance_of(Bosh::OpenStackCloud::NetworkConfigurator).to_not receive(:prepare_ports_for_manual_networks).with(anything, ['default_sec_group_id'])
 
-          cloud.create_vm("agent-id", "sc-id",
+          expect {
+            cloud.create_vm("agent-id", "sc-id",
                           resource_pool_spec,
                           several_manual_networks,
                           nil, { "test_env" => "value" })
+          }.to raise_error(Bosh::Clouds::VMCreationFailed)
         end
       end
 

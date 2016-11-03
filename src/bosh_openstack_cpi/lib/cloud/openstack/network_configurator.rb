@@ -38,6 +38,20 @@ module Bosh::OpenStackCloud
       cloud_error("At least one dynamic or manual network should be defined") if @networks.empty?
     end
 
+    def check_preconditions(use_nova_networking, config_drive, use_dhcp)
+      return unless multiple_manual_networks?
+
+      if use_nova_networking
+        error_message = "Multiple manual networks can only be used with 'openstack.use_nova_networking=false'. Multiple networks require Neutron."
+        raise Bosh::Clouds::VMCreationFailed.new(false), error_message
+      end
+
+      if use_dhcp || !config_drive
+        error_message = "Multiple manual networks can only be used with 'openstack.use_dhcp=false' and 'openstack.config_drive=cdrom|disk'"
+        raise Bosh::Clouds::VMCreationFailed.new(false), error_message
+      end
+    end
+
     ##
     # Setup network configuration for one network spec.
     #
