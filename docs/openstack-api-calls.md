@@ -47,14 +47,13 @@ PUT /v2/images/<resource_id>/file
 ```
 DELETE /v2.0/ports/<resource_id>
 GET /
-GET /v2.0/floatingips?floating_ip_address=169.53.252.167
-GET /v2.0/floatingips?floating_ip_address=255.255.255.255
+GET /v2.0/floatingips?floating_ip_address=<floating_ip_address>
 GET /v2.0/networks/<resource_id>
 GET /v2.0/ports/<resource_id>
 GET /v2.0/ports?device_id=<device_id>
-GET /v2.0/ports?device_id=<device_id>&network_id=72546574-f321-4431-b7c3-8b59fc33a03e
+GET /v2.0/ports?device_id=<device_id>&network_id=<network_id>
 GET /v2.0/security-groups
-POST /v2.0/ports body: {"port":{"network_id":"<resource_id>","fixed_ips":[{"ip_address":"<ip_address>"}],"security_groups":["<resource_id>"]}}
+POST /v2.0/ports body: {"port":{"network_id":"<network_id>","fixed_ips":[{"ip_address":"<ip_address>"}],"security_groups":["<resource_id>"]}}
 PUT /v2.0/floatingips/<resource_id> body: {"floatingip":{"port_id":"<resource_id>"}}
 ```
 ### All calls for API endpoint 'orchestration (heat)'
@@ -65,8 +64,8 @@ DELETE /v2/<tenant_id>/snapshots/<resource_id>
 DELETE /v2/<tenant_id>/volumes/<resource_id>
 GET /v2/<tenant_id>/snapshots/<resource_id>
 GET /v2/<tenant_id>/volumes/<resource_id>
-POST /v2/<tenant_id>/snapshots body: {"snapshot":{"volume_id":"<resource_id>","name":"<name>","description":"deployment/openstack_cpi_spec/0","force":true}}
-POST /v2/<tenant_id>/volumes body: {"volume":{"name":"<name>","description":"","size":"<size>","availability_zone":"<availability_zone>"}}
-POST /v2/<tenant_id>/volumes body: {"volume":{"name":"<name>","description":"","size":"<size>","volume_type":"SSD","availability_zone":"<availability_zone>"}}
-POST /v2/<tenant_id>/volumes body: {"volume":{"name":"<name>","description":"","size":"<size>"}}
+POST /v2/<tenant_id>/snapshots body: {"snapshot":{"volume_id":"<resource_id>","name":"<name>","description":"<description>","force":true}}
+POST /v2/<tenant_id>/volumes body: {"volume":{"name":"<name>","description":"<description>","size":"<size>","availability_zone":"<availability_zone>"}}
+POST /v2/<tenant_id>/volumes body: {"volume":{"name":"<name>","description":"<description>","size":"<size>","volume_type":"SSD","availability_zone":"<availability_zone>"}}
+POST /v2/<tenant_id>/volumes body: {"volume":{"name":"<name>","description":"<description>","size":"<size>"}}
 ```
