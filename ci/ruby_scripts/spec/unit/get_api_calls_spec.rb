@@ -77,7 +77,23 @@ describe 'Get API calls script' do
       expect(requests.map &to_body_value('volume_size')).to all (eq('<volume_size>'))
     end
 
-    ['user_data', 'display_description', 'device', 'password', 'fixed_ip', 'availability_zone', 'key_name', 'username', 'tenantName', 'name', 'token', 'ip_address', 'device_id'].each do |key|
+    it 'scrubs \'description\' values from body' do
+      requests = requests_with_body '{"description":"deployment/some_deployment_spec/0"}'
+
+      scrub_random_values!(requests)
+
+      expect(requests.map &to_body_value('description')).to all (eq('<description>'))
+    end
+
+    it 'scrubs ip values from request' do
+      requests = requests_with_query 'floating_ip_address=10.0.0.1'
+
+      scrub_random_values!(requests)
+
+      expect(requests.map { |request| request[:query] }).to all (eq('floating_ip_address=<floating_ip_address>'))
+    end
+
+    ['user_data', 'display_description', 'device', 'password', 'fixed_ip', 'availability_zone', 'key_name', 'username', 'tenantName', 'name', 'token', 'ip_address', 'device_id', 'floating_ip_address', 'network_id', 'description'].each do |key|
       it "scrubs '#{key}' values from body" do
         requests = requests_with_body "{\"#{key}\":\"aribitrary_value\"}"
 
