@@ -12,15 +12,5 @@ module Bosh::OpenStackCloud
       super
     end
 
-    ##
-    # Configures OpenStack dynamic network. Right now it's a no-op,
-    # as dynamic networks are completely managed by OpenStack
-    #
-    # @param [Bosh::OpenStackCloud::Openstack] openstack
-    # @param [Fog::Compute::OpenStack::Server] server OpenStack server to
-    #   configure
-    def configure(openstack, server)
-    end
-
   end
 end

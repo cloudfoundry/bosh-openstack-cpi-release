@@ -60,7 +60,7 @@ class IntegrationConfig
   end
 
 
-  def create_cpi(boot_from_value = false, config_drive = nil, human_readable_vm_names = false, use_nova_networking = false)
+  def create_cpi(boot_from_value = false, config_drive = nil, human_readable_vm_names = false, use_nova_networking = false, use_dhcp=true)
     openstack_properties = {'openstack' => {
         'auth_url' => @auth_url,
         'username' => @username,
@@ -72,6 +72,7 @@ class IntegrationConfig
         'wait_resource_poll_interval' => 5,
         'boot_from_volume' => boot_from_value,
         'config_drive' => config_drive,
+        'use_dhcp'=> use_dhcp,
         'ignore_server_availability_zone' => str_to_bool(@ignore_server_az),
         'human_readable_vm_names' => human_readable_vm_names,
         'use_nova_networking' => use_nova_networking,

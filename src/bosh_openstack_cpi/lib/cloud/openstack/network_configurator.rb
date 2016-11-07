@@ -52,6 +52,20 @@ module Bosh::OpenStackCloud
       end
     end
 
+    def prepare(openstack, security_group_ids)
+      @networks.each do |network_info|
+        network = network_info['network']
+        network.prepare(openstack, security_group_ids)
+      end
+    end
+
+    def cleanup(openstack)
+      @networks.each do |network_info|
+        network = network_info['network']
+        network.cleanup(openstack)
+      end
+    end
+
     ##
     # Setup network configuration for one network spec.
     #
@@ -130,39 +144,6 @@ module Bosh::OpenStackCloud
     end
 
     ##
-    # Returns the private IP addresses for this network configuration
-    #
-    # @return [Array<String>] private ip addresses
-    def private_ips
-      @networks.inject([]) do |memo, network_info|
-        network = network_info["network"]
-        memo << network.private_ip if network.is_a?(ManualNetwork)
-        memo
-      end
-    end
-
-    ##
-    # Creates network ports via Neutron
-    #
-    def prepare_ports_for_manual_networks(openstack, security_group_ids)
-      @networks.each do |network_info|
-        if network(network_info).is_a?(ManualNetwork)
-          ip_address = network(network_info).private_ip
-          net_id = network_info['net_id']
-          @logger.debug("Creating port for IP #{ip_address} in network #{net_id}")
-          port = create_port_for_manual_network(openstack, net_id, ip_address, security_group_ids)
-          @logger.debug("Port with ID #{port.id} and MAC address #{port.mac_address} created")
-          add_port_to_network_spec(network_info, port)
-        end
-      end
-    end
-
-    def add_port_to_network_spec(network_info, port)
-      network_info['port_id'] = port.id
-      @network_spec[network(network_info).name]['mac'] = port.mac_address
-    end
-
-    ##
     # Returns the nics for this network configuration
     #
     # @return [Array] nics
@@ -171,21 +152,14 @@ module Bosh::OpenStackCloud
         net_id = network_info['net_id']
         network = network(network_info)
         nic = {}
+        #TODO cleanup separation of dynamic and manual
         nic['net_id'] = net_id if net_id
         if network.is_a?(ManualNetwork)
-          if network_info['port_id']
-            nic['port_id'] = network_info['port_id']
-          else
-            nic['v4_fixed_ip'] = network.private_ip
-          end
+          nic = network.nic
         end
         memo << nic if nic.any?
         memo
       end
-    end
-
-    def manual_port_creation?(config_drive)
-      config_drive && multiple_manual_networks?
     end
 
     def self.port_ids(openstack, server_id)
@@ -218,17 +192,8 @@ module Bosh::OpenStackCloud
 
     private
 
-    def create_port_for_manual_network(openstack, net_id, ip_address, security_group_ids)
-      with_openstack {
-        openstack.network.ports.create({
-                                           network_id: net_id,
-                                           fixed_ips: [{ip_address: ip_address}],
-                                           security_groups: security_group_ids
-                                       })
-      }
-    end
-
     def multiple_manual_networks?
+      #TODO actually we don't support any multiple networks
       @networks.count { |network_info| network(network_info).is_a?(ManualNetwork) } > 1
     end
 

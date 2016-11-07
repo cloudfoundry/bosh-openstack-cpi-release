@@ -293,10 +293,9 @@ module Bosh::OpenStackCloud
         end
 
         begin
-          if network_configurator.manual_port_creation? @config_drive
-            @logger.debug('Manual port creation because of multiple manual networks')
-            network_configurator.prepare_ports_for_manual_networks(@openstack, picked_security_groups.map { |sg| sg.id })
-          end
+          with_openstack {
+            network_configurator.prepare(@openstack, picked_security_groups.map { |sg| sg.id })
+          }
 
           nics = network_configurator.nics
           @logger.debug("Using NICs: `#{nics.join(', ')}'")
@@ -365,6 +364,9 @@ module Bosh::OpenStackCloud
 
         rescue => e
           destroy_server(server) if server
+          with_openstack {
+            network_configurator.cleanup(@openstack)
+          }
           raise e
         end
       end

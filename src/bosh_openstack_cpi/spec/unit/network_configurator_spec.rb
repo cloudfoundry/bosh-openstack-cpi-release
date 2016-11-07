@@ -123,89 +123,8 @@ describe Bosh::OpenStackCloud::NetworkConfigurator do
     end
   end
 
-  describe '#private_ips' do
-    context 'when manual network' do
-      it 'should extract private ip address' do
-        spec = {}
-        spec['network_a'] = manual_network_spec
-        spec['network_a']['ip'] = '10.0.0.1'
-
-        nc = Bosh::OpenStackCloud::NetworkConfigurator.new(spec)
-        expect(nc.private_ips).to eq(%w[10.0.0.1])
-      end
-
-      context 'when multiple manual networks' do
-        it 'should extract private ip addresses from all' do
-          nc = Bosh::OpenStackCloud::NetworkConfigurator.new(several_manual_networks)
-          expect(nc.private_ips).to eq(%w[10.0.0.1 10.0.0.2])
-        end
-      end
-
-      context 'when additional vip network' do
-        it 'should extract private ip address from manual network' do
-          spec = {}
-          spec['network_a'] = vip_network_spec
-          spec['network_a']['ip'] = '10.0.0.1'
-          spec['network_b'] = manual_network_spec
-          spec['network_b']['ip'] = '10.0.0.2'
-
-          nc = Bosh::OpenStackCloud::NetworkConfigurator.new(spec)
-          expect(nc.private_ips).to eq(%w[10.0.0.2])
-        end
-      end
-    end
-
-    context 'when dynamic network' do
-      it 'should not extract private ip address' do
-        spec = {}
-        spec['network_a'] = dynamic_network_spec
-        spec['network_a']['ip'] = '10.0.0.1'
-
-        nc = Bosh::OpenStackCloud::NetworkConfigurator.new(spec)
-        expect(nc.private_ips).to be_empty
-      end
-    end
-  end
-
-  describe '#manual_port_creation?' do
-    context 'when no config_drive' do
-      context 'and single manual network' do
-        it 'should return false' do
-          nc = Bosh::OpenStackCloud::NetworkConfigurator.new({'network' => manual_network_spec()})
-
-          expect(nc.manual_port_creation? false).to be false
-        end
-      end
-
-      context 'when multiple networks' do
-        it 'should return false' do
-          nc = Bosh::OpenStackCloud::NetworkConfigurator.new(several_manual_networks)
-
-          expect(nc.manual_port_creation? false).to be false
-        end
-      end
-    end
-
-    context 'when config_drive' do
-      context 'and single manual network' do
-        it 'should return false' do
-          nc = Bosh::OpenStackCloud::NetworkConfigurator.new({'network' => manual_network_spec()})
-
-          expect(nc.manual_port_creation? true).to be false
-        end
-      end
-
-      context 'when multiple networks' do
-        it 'should return true' do
-          nc = Bosh::OpenStackCloud::NetworkConfigurator.new(several_manual_networks)
-
-          expect(nc.manual_port_creation? true).to be true
-        end
-      end
-    end
-  end
-
   describe '#nics' do
+
     context 'when dynamic network' do
       it 'should extract net_id' do
         spec = {}
@@ -235,24 +154,34 @@ describe Bosh::OpenStackCloud::NetworkConfigurator do
       end
 
       context 'and no port id is available in network spec' do
+        let(:openstack) { instance_double(Bosh::OpenStackCloud::Openstack, use_nova_networking?: true) }
         it 'should set fixed ip only' do
+          nc.prepare(openstack, nil)
+
           expect(nc.nics).to eq([{'net_id' => 'net', 'v4_fixed_ip' => '10.0.0.1'}])
         end
       end
 
       context 'and port id is available in network spec' do
+        let(:openstack) { instance_double(Bosh::OpenStackCloud::Openstack, use_nova_networking?: false) }
+        before(:each) do
+          allow_any_instance_of(Bosh::OpenStackCloud::ManualNetwork).to receive(:nic).and_return({'net_id' => 'net', 'port_id' => '117717c1-81cb-4ac4-96ab-99aaf1be9ca8'})
+          allow_any_instance_of(Bosh::OpenStackCloud::ManualNetwork).to receive(:prepare)
+        end
+
         it 'should set port id only' do
-          port = double('port', id: '117717c1-81cb-4ac4-96ab-99aaf1be9ca8', mac_address: 'AA:BB:CC:DD:EE:FF')
-          expect(nc).to receive(:create_port_for_manual_network).and_return(port)
-          nc.prepare_ports_for_manual_networks(nil, nil)
+          nc.prepare(openstack, nil)
 
           expect(nc.nics).to eq([{'net_id' => 'net', 'port_id' => '117717c1-81cb-4ac4-96ab-99aaf1be9ca8'}])
         end
       end
 
       context 'when multiple networks' do
+        let(:openstack) { instance_double(Bosh::OpenStackCloud::Openstack, use_nova_networking?: true) }
         it 'should extract net_id and IP address from all' do
           nc = Bosh::OpenStackCloud::NetworkConfigurator.new(several_manual_networks)
+          nc.prepare(openstack, nil)
+
           expect(nc.nics).to eq([
                                     {'net_id' => 'net', 'v4_fixed_ip' => '10.0.0.1'},
                                     {'net_id' => 'bar', 'v4_fixed_ip' => '10.0.0.2'},
@@ -262,48 +191,62 @@ describe Bosh::OpenStackCloud::NetworkConfigurator do
     end
   end
 
-  describe '#prepare_ports_for_manual_networks' do
-    let(:security_groups_to_be_used) { ['default-security-group-id'] }
+  describe '#prepare' do
+    let(:openstack) { instance_double(Bosh::OpenStackCloud::Openstack, use_nova_networking?: true) }
+    let(:networks) {[]}
 
-    context 'with multiple manual networks' do
-      before(:each) do
-        port_result_net = double('ports1', id: '117717c1-81cb-4ac4-96ab-99aaf1be9ca8', network_id: 'net', mac_address: 'AA:AA:AA:AA:AA:AA')
-        port_result_bar = double('ports2', id: '217715c1-81cb-4ac4-96eb-99aaf1be9ca8', network_id: 'bar', mac_address: 'BB:BB:BB:BB:BB:BB')
-        allow(openstack).to receive(:network).and_return(neutron)
-        allow(ports).to receive(:create).with(network_id: 'net', fixed_ips: [{ip_address: '10.0.0.1'}], security_groups: ['default-security-group-id']).and_return(port_result_net)
-        allow(ports).to receive(:create).with(network_id: 'bar', fixed_ips: [{ip_address: '10.0.0.2'}], security_groups: ['default-security-group-id']).and_return(port_result_bar)
-        allow(neutron).to receive(:ports).and_return(ports)
+    before(:each) do
+      [Bosh::OpenStackCloud::ManualNetwork, Bosh::OpenStackCloud::DynamicNetwork].each do |class_name|
+        allow(class_name).to receive(:new) do
+          network = instance_double(class_name, prepare: nil)
+          networks << network
+          network
+        end
       end
-
-      let(:nc) { Bosh::OpenStackCloud::NetworkConfigurator.new(several_manual_networks) }
-      let(:neutron) { double(Fog::Network) }
-      let(:openstack) { instance_double(Bosh::OpenStackCloud::Openstack) }
-      let(:ports) { double('Fog::Network::OpenStack::Ports') }
-
-      it 'adds port_ids to nics' do
-        nc.prepare_ports_for_manual_networks(openstack, security_groups_to_be_used)
-
-        expect(nc.nics).to eq([
-                                  {'net_id' => 'net', 'port_id' => '117717c1-81cb-4ac4-96ab-99aaf1be9ca8'},
-                                  {'net_id' => 'bar', 'port_id' => '217715c1-81cb-4ac4-96eb-99aaf1be9ca8'}
-                              ])
-      end
-
-      it 'adds MAC addresses to network spec' do
-        nc.prepare_ports_for_manual_networks(openstack, security_groups_to_be_used)
-        
-        expect(nc.network_spec['network_a']['mac']).to eq('AA:AA:AA:AA:AA:AA')
-        expect(nc.network_spec['network_b']['mac']).to eq('BB:BB:BB:BB:BB:BB')
-      end
-
-      it 'sets the given security groups for the port' do
-        nc.prepare_ports_for_manual_networks(openstack, security_groups_to_be_used)
-
-        expect(ports).to have_received(:create).with(network_id: anything, fixed_ips: anything, security_groups: ['default-security-group-id']).twice
-      end
-
     end
 
+    it 'should delegate to all private networks' do
+      nc = Bosh::OpenStackCloud::NetworkConfigurator.new({
+          'network_a' => manual_network_spec(ip: '10.0.0.1'),
+          'network_b' => manual_network_spec(net_id: 'bar', ip: '10.0.0.2'),
+          'network_c' => dynamic_network_spec
+      })
+
+      nc.prepare(openstack, [])
+
+      networks.each do |network|
+        expect(network).to have_received(:prepare)
+      end
+    end
+  end
+
+  describe '#cleanup' do
+    let(:openstack) { instance_double(Bosh::OpenStackCloud::Openstack, use_nova_networking?: true) }
+    let(:networks) {[]}
+
+    before(:each) do
+      [Bosh::OpenStackCloud::ManualNetwork, Bosh::OpenStackCloud::DynamicNetwork].each do |class_name|
+        allow(class_name).to receive(:new) do
+          network = instance_double(class_name, cleanup: nil)
+          networks << network
+          network
+        end
+      end
+    end
+
+    it 'should delegate to all private networks' do
+      nc = Bosh::OpenStackCloud::NetworkConfigurator.new({
+          'network_a' => manual_network_spec(ip: '10.0.0.1'),
+          'network_b' => manual_network_spec(net_id: 'bar', ip: '10.0.0.2'),
+          'network_c' => dynamic_network_spec
+      })
+
+      nc.cleanup(openstack)
+
+      networks.each do |network|
+        expect(network).to have_received(:cleanup)
+      end
+    end
   end
 
   describe '#configure' do
