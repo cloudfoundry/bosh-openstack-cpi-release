@@ -8,8 +8,8 @@ variable "region_name" {
 
 variable "default_router_id" {}
 
-variable "ext_net_id" {
-  description = "OpenStack external network id to register floating IP"
+variable "ext_net_name" {
+  description = "OpenStack external network name to register floating IP"
 }
 
 output "lifecycle_openstack_net_id" {
@@ -105,5 +105,5 @@ resource "openstack_networking_router_interface_v2" "lifecycle_port" {
 
 resource "openstack_compute_floatingip_v2" "lifecycle_floating_ip" {
   region = "${var.region_name}"
-  pool   = "${var.ext_net_id}"
+  pool   = "${var.ext_net_name}"
 }

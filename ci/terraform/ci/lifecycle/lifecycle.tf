@@ -24,7 +24,7 @@ module "lifecycle" {
   region_name = "${var.region_name}"
   dns_nameservers = "${var.dns_nameservers}"
   default_router_id = "${module.base.default_router_id}"
-  ext_net_id = "${var.ext_net_id}"
+  ext_net_name = "${var.ext_net_name}"
 }
 
 variable "auth_url" {
@@ -58,6 +58,10 @@ variable "region_name" {
 
 variable "ext_net_id" {
   description = "OpenStack external network id to create router interface port"
+}
+
+variable "ext_net_name" {
+  description = "OpenStack external network name to create router interface port"
 }
 
 variable "dns_nameservers" {
