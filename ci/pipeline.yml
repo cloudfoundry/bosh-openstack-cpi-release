@@ -140,6 +140,7 @@ jobs:
             domain_name: {{lifecycle_openstack_domain}}
             tenant_name: {{lifecycle_openstack_project}}
             ext_net_id: {{tf_external_network_id}}
+            ext_net_name: {{tf_external_network_name}}
             region_name: {{tf_region_name}}
             openstack_default_key_public_key: {{tf_openstack_default_key_public_key}}
             dns_nameservers: {{tf_dns_nameservers}}
