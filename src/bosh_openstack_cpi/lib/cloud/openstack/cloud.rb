@@ -363,10 +363,19 @@ module Bosh::OpenStackCloud
           server.id.to_s
 
         rescue => e
-          destroy_server(server) if server
-          with_openstack {
-            network_configurator.cleanup(@openstack)
-          }
+          begin
+            destroy_server(server) if server
+          rescue => destroy_err
+            @logger.warn("Failed to destroy server: #{destroy_err.message}")
+          end
+
+          begin
+            with_openstack {
+              network_configurator.cleanup(@openstack)
+            }
+          rescue => cleanup_error
+            @logger.warn("Failed to cleanup network resources: #{cleanup_error.message}")
+          end
           raise e
         end
       end

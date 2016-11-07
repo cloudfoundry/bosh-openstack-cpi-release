@@ -313,16 +313,68 @@ describe Bosh::OpenStackCloud::Cloud, "create_vm" do
     end
 
     context 'when vm creation fails' do
-      it 'calls NetworkConfigurator#cleanup'
+
+      let(:cloud) do
+        mock_cloud(cloud_options["properties"]) do |fog|
+          allow(fog.compute.servers).to receive(:create).and_raise 'BOOM!!!'
+          allow(fog.image.images).to receive(:find_by_id).and_return(image)
+          allow(fog.compute.flavors).to receive(:find).and_return(flavor)
+          allow(fog.compute.key_pairs).to receive(:find).and_return(key_pair)
+        end
+      end
+
+      it 'calls NetworkConfigurator#cleanup' do
+        allow_any_instance_of(Bosh::OpenStackCloud::NetworkConfigurator).to receive(:prepare)
+
+        expect_any_instance_of(Bosh::OpenStackCloud::NetworkConfigurator).to receive(:cleanup)
+        expect{
+          cloud.create_vm('agent-id', 'sc-id',
+              resource_pool_spec,
+              { 'network_a' => manual_network_spec(ip: '10.0.0.1') },
+              nil, { 'test_env' => 'value'})
+
+        }.to raise_error RuntimeError, 'BOOM!!!'
+      end
 
       context 'when NetworkConfigurator#cleanup fails' do
-        it 'fails with the vm creation failure'
+        it 'fails with the vm creation failure' do
+          allow_any_instance_of(Bosh::OpenStackCloud::NetworkConfigurator).to receive(:prepare)
+
+          expect_any_instance_of(Bosh::OpenStackCloud::NetworkConfigurator).to receive(:cleanup).and_raise 'BOOM Cleanup!!!'
+          expect{
+            cloud.create_vm('agent-id', 'sc-id',
+                resource_pool_spec,
+                { 'network_a' => manual_network_spec(ip: '10.0.0.1') },
+                nil, { 'test_env' => 'value'})
+
+          }.to raise_error RuntimeError, 'BOOM!!!'
+        end
       end
 
       context 'when vm_destroy fails' do
-        it 'calls NetworkConfigurator#cleanup'
+        let(:cloud) do
+          mock_cloud(cloud_options["properties"]) do |fog|
+            allow(fog.compute.servers).to receive(:create).and_return(server)
+            allow(server).to receive(:destroy).and_raise 'BOOM!!!'
+            allow(fog.image.images).to receive(:find_by_id).and_return(image)
+            allow(fog.compute.flavors).to receive(:find).and_return(flavor)
+            allow(fog.compute.key_pairs).to receive(:find).and_return(key_pair)
+          end
+        end
 
-        it 'fails with the vm creation failure'
+        it 'calls NetworkConfigurator#cleanup and fails with vm creatin failer' do
+          allow_any_instance_of(Bosh::OpenStackCloud::NetworkConfigurator).to receive(:prepare)
+          allow_any_instance_of(Bosh::OpenStackCloud::NetworkConfigurator).to receive(:configure).and_raise 'BOOM configure!!!'
+
+          expect_any_instance_of(Bosh::OpenStackCloud::NetworkConfigurator).to receive(:cleanup)
+          expect{
+            cloud.create_vm('agent-id', 'sc-id',
+                resource_pool_spec,
+                { 'network_a' => manual_network_spec(ip: '10.0.0.1') },
+                nil, { 'test_env' => 'value'})
+
+          }.to raise_error Bosh::Clouds::VMCreationFailed, 'BOOM configure!!!'
+        end
       end
     end
   end
