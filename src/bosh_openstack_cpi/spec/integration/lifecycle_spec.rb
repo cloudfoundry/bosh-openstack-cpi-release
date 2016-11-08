@@ -21,12 +21,11 @@ describe Bosh::OpenStackCloud::Cloud do
 
   let(:boot_from_volume) { false }
   let(:config_drive) { nil }
-  let(:use_dhcp) { true }
   let(:human_readable_vm_names) { false }
   let(:use_nova_networking) { false }
 
   subject(:cpi) do
-    @config.create_cpi(boot_from_volume, config_drive, human_readable_vm_names, use_nova_networking, use_dhcp)
+    @config.create_cpi(boot_from_volume, config_drive, human_readable_vm_names, use_nova_networking)
   end
 
   before { allow(Bosh::Cpi::RegistryClient).to receive(:new).and_return(double('registry').as_null_object) }
@@ -140,7 +139,6 @@ describe Bosh::OpenStackCloud::Cloud do
       end
 
       let(:config_drive) { 'cdrom' }
-      let(:use_dhcp) { false }
 
       after { clean_up_vm(@multiple_nics_vm_id, network_spec) if @multiple_nics_vm_id }
 

@@ -272,110 +272,118 @@ describe Bosh::OpenStackCloud::Cloud, "create_vm" do
   end
 
   context 'with manual network' do
-    before(:each) do
-      allow(cloud).to receive(:generate_unique_name).and_return(unique_name)
-      allow(cloud).to receive(:wait_resource).with(server, :active, :state)
-      allow(cloud.registry).to receive(:update_settings)
-    end
-    let(:several_manual_networks) do
-      {
-          'network_a' => manual_network_spec(ip: '10.0.0.1'),
-          'network_b' => manual_network_spec(net_id: 'bar', ip: '10.0.0.2')
-      }
+    let(:nics) do
+      [
+        {'net_id' => 'foo', 'v4_fixed_ip' => '10.0.0.5'}
+      ]
     end
 
-    let(:nics) { [{'net_id' => 'net', 'v4_fixed_ip' => '10.0.0.1'}, {'net_id' => 'bar', 'v4_fixed_ip' => '10.0.0.2'}] }
-    let(:configured_security_groups) { %w[default default] }
-    let(:cloud_options) do
-      cloud_options = mock_cloud_options
-      cloud_options['properties']['openstack']['config_drive'] = 'cdrom'
-      cloud_options['properties']['openstack']['use_dhcp'] = false
-      cloud_options
-    end
+    context 'with single nic' do
+      let(:address) { double('address', :id => 'a-test', :ip => '10.0.0.1', :instance_id => nil) }
 
-    let(:cloud) do
-      mock_cloud(cloud_options["properties"]) do |fog|
-        allow(fog.compute.servers).to receive(:create).and_return(server)
-        allow(fog.image.images).to receive(:find_by_id).and_return(image)
-        allow(fog.compute.flavors).to receive(:find).and_return(flavor)
-        allow(fog.compute.key_pairs).to receive(:find).and_return(key_pair)
+      let(:network_spec) do
+        network_spec = manual_network_spec
+        network_spec['ip'] = '10.0.0.5'
+        network_spec['cloud_properties'] ||= {}
+        network_spec['cloud_properties']['net_id'] = nics[0]['net_id']
+        network_spec
+      end
+
+      it 'creates an OpenStack server' do
+        cloud = mock_cloud do |fog|
+          expect(fog.compute.servers).to receive(:create).with(openstack_params('network_a' => network_spec)).and_return(server)
+          expect(fog.image.images).to receive(:find_by_id).and_return(image)
+          expect(fog.compute.flavors).to receive(:find).and_return(flavor)
+          expect(fog.compute.key_pairs).to receive(:find).and_return(key_pair)
+        end
+
+        expect(cloud).to receive(:generate_unique_name).and_return(unique_name)
+        expect(cloud).to receive(:wait_resource).with(server, :active, :state)
+
+        expect(@registry).to receive(:update_settings).
+            with("vm-#{unique_name}", agent_settings(unique_name, network_spec))
+
+        vm_id = cloud.create_vm('agent-id', 'sc-id', resource_pool_spec,
+                                {'network_a' => network_spec },
+                                nil, {'test_env' => 'value'})
+        expect(vm_id).to eq('i-test')
+      end
+
+      it 'should not use Fog::Network' do
+        cloud = mock_cloud do |fog|
+          allow(fog.compute.servers).to receive(:create).and_return(server)
+          allow(fog.image.images).to receive(:find_by_id).and_return(image)
+          allow(fog.compute.flavors).to receive(:find).and_return(flavor)
+          allow(fog.compute.key_pairs).to receive(:find).and_return(key_pair)
+        end
+        allow(cloud).to receive(:generate_unique_name).and_return(unique_name)
+        allow(cloud).to receive(:wait_resource).with(server, :active, :state)
+        allow(@registry).to receive(:update_settings)
+
+        openstack = instance_double(Bosh::OpenStackCloud::Openstack)
+        expect(openstack).to_not receive(:network)
+
+        cloud.create_vm('agent-id', 'sc-id', resource_pool_spec,
+                        {'network_a' => network_spec},
+                        nil, {'test_env' => 'value'})
       end
     end
 
-    it 'calls NetworkConfigurator#prepare and NetworkConfigurator#nics' do
-      expect_any_instance_of(Bosh::OpenStackCloud::NetworkConfigurator).to receive(:prepare).with(anything, ['default_sec_group_id'])
-      expect_any_instance_of(Bosh::OpenStackCloud::NetworkConfigurator).to receive(:nics).and_return(nics)
+    context 'with multiple nics' do
+      before(:each) do
+        allow(cloud).to receive(:generate_unique_name).and_return(unique_name)
+        allow(cloud).to receive(:wait_resource).with(server, :active, :state)
+        allow(cloud.registry).to receive(:update_settings)
+      end
+      let(:several_manual_networks) do
+        {
+        'network_a' => manual_network_spec(ip: '10.0.0.1'),
+        'network_b' => manual_network_spec(net_id: 'bar', ip: '10.0.0.2')
+        }
+      end
 
-      cloud.create_vm("agent-id", "sc-id",
-          resource_pool_spec,
-          several_manual_networks,
-          nil, { "test_env" => "value" })
-    end
-
-    context 'when vm creation fails' do
+      let(:nics) { [{'net_id' => 'net', 'v4_fixed_ip' => '10.0.0.1'}, {'net_id' => 'bar', 'v4_fixed_ip' => '10.0.0.2'}] }
+      let(:configured_security_groups) { %w[default default] }
 
       let(:cloud) do
         mock_cloud(cloud_options["properties"]) do |fog|
-          allow(fog.compute.servers).to receive(:create).and_raise 'BOOM!!!'
+          allow(fog.compute.servers).to receive(:create).and_return(server)
           allow(fog.image.images).to receive(:find_by_id).and_return(image)
           allow(fog.compute.flavors).to receive(:find).and_return(flavor)
           allow(fog.compute.key_pairs).to receive(:find).and_return(key_pair)
         end
       end
 
-      it 'calls NetworkConfigurator#cleanup' do
-        allow_any_instance_of(Bosh::OpenStackCloud::NetworkConfigurator).to receive(:prepare)
+      context 'with config_drive set' do
+        let(:cloud_options) do
+          cloud_options = mock_cloud_options
+          cloud_options['properties']['openstack']['config_drive'] = 'cdrom'
+          cloud_options
+        end
 
-        expect_any_instance_of(Bosh::OpenStackCloud::NetworkConfigurator).to receive(:cleanup)
-        expect{
-          cloud.create_vm('agent-id', 'sc-id',
-              resource_pool_spec,
-              { 'network_a' => manual_network_spec(ip: '10.0.0.1') },
-              nil, { 'test_env' => 'value'})
+        it 'calls NetworkConfigurator#prepare' do
+          expect_any_instance_of(Bosh::OpenStackCloud::NetworkConfigurator).to receive(:prepare_ports_for_manual_networks).with(anything, ['default_sec_group_id'])
 
-        }.to raise_error RuntimeError, 'BOOM!!!'
-      end
-
-      context 'when NetworkConfigurator#cleanup fails' do
-        it 'fails with the vm creation failure' do
-          allow_any_instance_of(Bosh::OpenStackCloud::NetworkConfigurator).to receive(:prepare)
-
-          expect_any_instance_of(Bosh::OpenStackCloud::NetworkConfigurator).to receive(:cleanup).and_raise 'BOOM Cleanup!!!'
-          expect{
-            cloud.create_vm('agent-id', 'sc-id',
-                resource_pool_spec,
-                { 'network_a' => manual_network_spec(ip: '10.0.0.1') },
-                nil, { 'test_env' => 'value'})
-
-          }.to raise_error RuntimeError, 'BOOM!!!'
+          cloud.create_vm("agent-id", "sc-id",
+                          resource_pool_spec,
+                          several_manual_networks,
+                          nil, { "test_env" => "value" })
         end
       end
 
-      context 'when vm_destroy fails' do
-        let(:cloud) do
-          mock_cloud(cloud_options["properties"]) do |fog|
-            allow(fog.compute.servers).to receive(:create).and_return(server)
-            allow(server).to receive(:destroy).and_raise 'BOOM!!!'
-            allow(fog.image.images).to receive(:find_by_id).and_return(image)
-            allow(fog.compute.flavors).to receive(:find).and_return(flavor)
-            allow(fog.compute.key_pairs).to receive(:find).and_return(key_pair)
-          end
-        end
+      context 'with config_drive NOT set' do
+        let(:cloud_options) { mock_cloud_options }
 
-        it 'calls NetworkConfigurator#cleanup and fails with vm creatin failer' do
-          allow_any_instance_of(Bosh::OpenStackCloud::NetworkConfigurator).to receive(:prepare)
-          allow_any_instance_of(Bosh::OpenStackCloud::NetworkConfigurator).to receive(:configure).and_raise 'BOOM configure!!!'
+        it 'calls NetworkConfigurator#prepare' do
+          expect_any_instance_of(Bosh::OpenStackCloud::NetworkConfigurator).to_not receive(:prepare_ports_for_manual_networks).with(anything, ['default_sec_group_id'])
 
-          expect_any_instance_of(Bosh::OpenStackCloud::NetworkConfigurator).to receive(:cleanup)
-          expect{
-            cloud.create_vm('agent-id', 'sc-id',
-                resource_pool_spec,
-                { 'network_a' => manual_network_spec(ip: '10.0.0.1') },
-                nil, { 'test_env' => 'value'})
-
-          }.to raise_error Bosh::Clouds::VMCreationFailed, 'BOOM configure!!!'
+          cloud.create_vm("agent-id", "sc-id",
+                          resource_pool_spec,
+                          several_manual_networks,
+                          nil, { "test_env" => "value" })
         end
       end
+
     end
   end
 
@@ -541,7 +549,7 @@ describe Bosh::OpenStackCloud::Cloud, "create_vm" do
         cloud
       }
 
-      it 'raises a VMCreationFailed error with subnet ID' do
+      it "raises a VMCreationFailed error with subnet ID" do
         allow(networks).to receive(:get).and_return(nil)
 
         expect {
@@ -556,46 +564,21 @@ describe Bosh::OpenStackCloud::Cloud, "create_vm" do
         }.to raise_error(Bosh::Clouds::VMCreationFailed, /'vm-#{unique_name}'.*?'net'/)
       end
 
-      it 'raises a Not Found error with existing Net IDs' do
-        allow_any_instance_of(Bosh::OpenStackCloud::NetworkConfigurator).to receive(:prepare)
-        allow_any_instance_of(Bosh::OpenStackCloud::NetworkConfigurator).to receive(:cleanup)
+      it "raises a Not Found error with existing Net IDs" do
         allow(networks).to receive(:get).and_return('some_network')
-        network_with_different_net_id = manual_network_spec(net_id: 'some_other_id')
+        network_with_different_net_id = manual_network_spec
+        network_with_different_net_id['cloud_properties']['net_id'] = 'some_other_id'
 
         expect {
           cloud.create_vm(
               "agent-id",
               "sc-id",
               resource_pool_spec,
-              {"network_b" => network_with_different_net_id},
+              {"network_a" => dynamic_network_with_netid_spec, "network_b" => network_with_different_net_id},
               nil,
               {"test_env" => "value"}
           )
         }.to raise_error(Excon::Errors::NotFound, 'not found: 814bc266-c6de-4fd0-a713-502da09edbe9')
-      end
-
-      context 'when `openstack.network.networks.get` raises' do
-
-        before(:each) do
-          allow(networks).to receive(:get).and_raise('BOOM!!!')
-        end
-
-        it 'raises the original error' do
-          allow_any_instance_of(Bosh::OpenStackCloud::NetworkConfigurator).to receive(:prepare)
-          allow_any_instance_of(Bosh::OpenStackCloud::NetworkConfigurator).to receive(:cleanup)
-          network_with_different_net_id = manual_network_spec(net_id: 'some_other_id')
-
-          expect {
-            cloud.create_vm(
-                "agent-id",
-                "sc-id",
-                resource_pool_spec,
-                {"network_b" => network_with_different_net_id},
-                nil,
-                {"test_env" => "value"}
-            )
-          }.to raise_error(Excon::Errors::NotFound, 'not found: 814bc266-c6de-4fd0-a713-502da09edbe9')
-        end
       end
 
       context 'when `use_nova_networking=true`' do
@@ -606,15 +589,14 @@ describe Bosh::OpenStackCloud::Cloud, "create_vm" do
         }
 
         let(:cloud) {
-          cloud = mock_cloud(cloud_options) do |openstack|
-            allow(openstack.compute.servers).to receive(:create).and_raise(not_found_error)
-            allow(openstack.image.images).to receive(:find_by_id).and_return(image)
-            allow(openstack.compute.flavors).to receive(:find).and_return(flavor)
-            allow(openstack.compute.key_pairs).to receive(:find).and_return(key_pair)
+          cloud = mock_cloud(cloud_options) do |fog|
+            allow(fog.compute.servers).to receive(:create).and_raise(not_found_error)
+            allow(fog.image.images).to receive(:find_by_id).and_return(image)
+            allow(fog.compute.flavors).to receive(:find).and_return(flavor)
+            allow(fog.compute.key_pairs).to receive(:find).and_return(key_pair)
+            allow(fog.network).to receive(:networks).and_return(networks)
             security_groups = [double('default_sec_group', id: 'default_sec_group_id', name: 'default')]
-            allow(openstack.compute).to receive(:security_groups).and_return(security_groups)
-
-            expect(openstack.network).to_not receive(:networks)
+            allow(fog.compute).to receive(:security_groups).and_return(security_groups)
           end
 
           allow(cloud).to receive(:generate_unique_name).and_return(unique_name)
@@ -623,6 +605,8 @@ describe Bosh::OpenStackCloud::Cloud, "create_vm" do
         }
 
         it "raises a Not Found error with Network service not available" do
+          allow(Fog::Network).to receive(:new).and_raise(Excon::Errors::ServerError.new("Network service not available"))
+
           expect {
             cloud.create_vm(
                 "agent-id",
