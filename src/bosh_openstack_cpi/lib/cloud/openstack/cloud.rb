@@ -311,10 +311,13 @@ module Bosh::OpenStackCloud
                   "The VM might still have been created by OpenStack.\nOriginal message: "
               raise Bosh::Clouds::VMCreationFailed.new(false), cloud_error_message + e.message
             rescue Excon::Errors::BadRequest, Excon::Errors::NotFound, Fog::Compute::OpenStack::NotFound => e
-              not_existing_net_ids = not_existing_net_ids(nics)
-              if not_existing_net_ids.empty?
+              if @openstack.use_nova_networking?
                 raise e
               else
+                not_existing_net_ids = not_existing_net_ids(nics)
+                if not_existing_net_ids.empty?
+                  raise e
+                end
                 @logger.debug(e.backtrace)
                 cloud_error_message = "VM creation with name '#{server_params[:name]}' failed. Following network " +
                     "IDs are not existing or not accessible from this project: '#{not_existing_net_ids.join(",")}'. " +
@@ -380,22 +383,6 @@ module Bosh::OpenStackCloud
         end
       end
     end
-
-    def not_existing_net_ids(nics)
-      result = []
-      begin
-        network = @openstack.network
-        nics.each do |nic|
-          if nic["net_id"]
-            result << nic["net_id"] unless network.networks.get(nic["net_id"])
-          end
-        end
-      rescue Bosh::Clouds::CloudError => e
-        @logger.debug(e.backtrace)
-      end
-      result
-    end
-
 
     ##
     # Terminates an OpenStack server and waits until it reports as terminated
@@ -734,6 +721,21 @@ module Bosh::OpenStackCloud
     end
 
     private
+
+    def not_existing_net_ids(nics)
+      result = []
+      begin
+        network = @openstack.network
+        nics.each do |nic|
+          if nic["net_id"]
+            result << nic["net_id"] unless network.networks.get(nic["net_id"])
+          end
+        end
+      rescue => e
+        @logger.warn(e.backtrace)
+      end
+      result
+    end
 
     def property_option_for_image_option(image_option)
       if image_option == 'hypervisor_type'

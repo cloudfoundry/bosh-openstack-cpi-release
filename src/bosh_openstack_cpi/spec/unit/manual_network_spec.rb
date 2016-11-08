@@ -49,7 +49,6 @@ describe Bosh::OpenStackCloud::ManualNetwork do
       let(:ports) { double('Fog::Network::OpenStack::Ports') }
 
       it 'adds port_ids to nic' do
-        #TODO create chore in order to check security group handling (i.e. we set all sec groups on all ports currently)
         subject.prepare(openstack, security_groups_to_be_used)
 
         expect(subject.nic).to eq({'net_id' => 'net', 'port_id' => '117717c1-81cb-4ac4-96ab-99aaf1be9ca8'})
