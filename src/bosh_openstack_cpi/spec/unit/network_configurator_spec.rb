@@ -307,9 +307,9 @@ describe Bosh::OpenStackCloud::NetworkConfigurator do
 
   describe '.port_ids' do
     let(:neutron) { double(Fog::Network) }
-    let(:openstack) { instance_double(Bosh::OpenStackCloud::Openstack) }
 
     context 'when neutron is available' do
+      let(:openstack) { instance_double(Bosh::OpenStackCloud::Openstack, use_nova_networking?:false) }
 
       it 'should return all device ports' do
         port = double('port', :id => 'port_id')
@@ -323,10 +323,14 @@ describe Bosh::OpenStackCloud::NetworkConfigurator do
     end
 
     context 'when neutron returns error or is not available' do
+      let(:openstack) { instance_double(Bosh::OpenStackCloud::Openstack, use_nova_networking?:true) }
+
       it 'should return no ports' do
-        allow(openstack).to receive(:network).and_raise(Bosh::Clouds::CloudError)
+        allow(openstack).to receive(:network)
 
         expect(Bosh::OpenStackCloud::NetworkConfigurator.port_ids(openstack, 'server_id')).to eq([])
+
+        expect(openstack).to_not have_received(:network)
       end
     end
   end
@@ -338,6 +342,7 @@ describe Bosh::OpenStackCloud::NetworkConfigurator do
     let(:port_b) { double('port_b', :id => 'port_b_id') }
 
     context 'when neutron is available' do
+      let(:openstack) { instance_double(Bosh::OpenStackCloud::Openstack, use_nova_networking?:false) }
       it 'should delete all ports' do
         ports = double('ports')
         allow(openstack).to receive(:network).and_return(neutron).exactly(2).times
@@ -364,12 +369,15 @@ describe Bosh::OpenStackCloud::NetworkConfigurator do
     end
 
     context 'when neutron is not available' do
+      let(:openstack) { instance_double(Bosh::OpenStackCloud::Openstack, use_nova_networking?:true) }
       it 'should not raise any error' do
-        allow(openstack).to receive(:network).and_return(neutron).and_raise(Bosh::Clouds::CloudError)
+        allow(openstack).to receive(:network)
 
         expect{
           Bosh::OpenStackCloud::NetworkConfigurator.cleanup_ports(openstack, [port_a, port_b])
         }.to_not raise_error
+
+        expect(openstack).to_not have_received(:network)
       end
     end
   end
