@@ -111,4 +111,4 @@ cd bats
 ./write_gemfile
 
 bundle install
-bundle exec rspec --tag ~raw_ephemeral_storage spec
+bundle exec rspec --tag ~raw_ephemeral_storage --tag ~multiple_manual_networks spec
