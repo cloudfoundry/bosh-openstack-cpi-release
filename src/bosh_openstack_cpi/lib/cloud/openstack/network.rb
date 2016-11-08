@@ -7,7 +7,7 @@ module Bosh::OpenStackCloud
   class Network
     include Helpers
 
-    attr_reader :name
+    attr_reader :name, :spec
 
     ##
     # Creates a new network
@@ -16,24 +16,28 @@ module Bosh::OpenStackCloud
     # @param [Hash] spec Raw network spec
     def initialize(name, spec)
       unless spec.is_a?(Hash)
-        raise ArgumentError, "Invalid spec, Hash expected, " \
-                             "#{spec.class} provided"
+        raise ArgumentError, "Invalid spec, Hash expected, #{spec.class} provided"
       end
 
       @logger = Bosh::Clouds::Config.logger
-
+      @spec = spec
       @name = name
-      @ip = spec["ip"]
-      @cloud_properties = spec["cloud_properties"]
+      @ip = spec['ip']
+      @cloud_properties = spec['cloud_properties']
     end
 
     ##
     # Configures given server
     #
-    # @param [Fog::Compute::OpenStack] openstack Fog OpenStack Compute client
+    # @param [Bosh::OpenStackCloud::Openstack] openstack
     # @param [Fog::Compute::OpenStack::Server] server OpenStack server to configure
     def configure(openstack, server)
-      cloud_error("`configure' not implemented by #{self.class}")
+    end
+
+    def prepare(openstack, security_groups)
+    end
+
+    def cleanup(openstack)
     end
 
   end

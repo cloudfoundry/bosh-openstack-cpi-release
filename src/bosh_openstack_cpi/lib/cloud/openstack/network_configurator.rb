@@ -38,6 +38,32 @@ module Bosh::OpenStackCloud
       cloud_error("At least one dynamic or manual network should be defined") if @networks.empty?
     end
 
+    def check_preconditions(use_nova_networking, config_drive, use_dhcp)
+      return unless multiple_private_networks?
+
+      if use_nova_networking
+        error_message = "Multiple manual networks can only be used with 'openstack.use_nova_networking=false'. Multiple networks require Neutron."
+        raise Bosh::Clouds::VMCreationFailed.new(false), error_message
+      end
+
+      if use_dhcp || !config_drive
+        error_message = "Multiple manual networks can only be used with 'openstack.use_dhcp=false' and 'openstack.config_drive=cdrom|disk'"
+        raise Bosh::Clouds::VMCreationFailed.new(false), error_message
+      end
+    end
+
+    def prepare(openstack, security_group_ids)
+      @networks.each do |network|
+        network.prepare(openstack, security_group_ids)
+      end
+    end
+
+    def cleanup(openstack)
+      @networks.each do |network|
+        network.cleanup(openstack)
+      end
+    end
+
     ##
     # Setup network configuration for one network spec.
     #
@@ -54,7 +80,7 @@ module Bosh::OpenStackCloud
           cloud_error("Dynamic network with id #{net_id} is already defined") if @net_ids.include?(net_id)
           network = DynamicNetwork.new(name, network_spec)
           @security_groups += extract_security_groups(network_spec)
-          @networks << {"network" => network, "net_id" => net_id}
+          @networks << network
           @net_ids << net_id
           @dynamic_network = network
         when "manual"
@@ -63,7 +89,7 @@ module Bosh::OpenStackCloud
           cloud_error("Manual network with id #{net_id} is already defined") if @net_ids.include?(net_id)
           network = ManualNetwork.new(name, network_spec)
           @security_groups += extract_security_groups(network_spec)
-          @networks << {"network" => network, "net_id" => net_id}
+          @networks << network
           @net_ids << net_id
         when "vip"
           cloud_error("Only one VIP network per instance should be defined") if @vip_network
@@ -97,8 +123,7 @@ module Bosh::OpenStackCloud
     # @param [Fog::Compute::OpenStack::Server] server OpenStack server to
     #   configure
     def configure(openstack, server)
-      @networks.each do |network_info|
-        network = network_info['network']
+      @networks.each do |network|
         network.configure(openstack, server)
       end
 
@@ -116,114 +141,42 @@ module Bosh::OpenStackCloud
     end
 
     ##
-    # Returns the private IP addresses for this network configuration
-    #
-    # @return [Array<String>] private ip addresses
-    def private_ips
-      @networks.inject([]) do |memo, network_info|
-        network = network_info["network"]
-        memo << network.private_ip if network.is_a?(ManualNetwork)
-        memo
-      end
-    end
-
-    ##
-    # Creates network ports via Neutron
-    #
-    def prepare_ports_for_manual_networks(openstack, security_group_ids)
-      @networks.each do |network_info|
-        if network(network_info).is_a?(ManualNetwork)
-          ip_address = network(network_info).private_ip
-          net_id = network_info['net_id']
-          @logger.debug("Creating port for IP #{ip_address} in network #{net_id}")
-          port = create_port_for_manual_network(openstack, net_id, ip_address, security_group_ids)
-          @logger.debug("Port with ID #{port.id} and MAC address #{port.mac_address} created")
-          add_port_to_network_spec(network_info, port)
-        end
-      end
-    end
-
-    def add_port_to_network_spec(network_info, port)
-      network_info['port_id'] = port.id
-      @network_spec[network(network_info).name]['mac'] = port.mac_address
-    end
-
-    ##
     # Returns the nics for this network configuration
     #
     # @return [Array] nics
     def nics
-      @networks.inject([]) do |memo, network_info|
-        net_id = network_info['net_id']
-        network = network(network_info)
-        nic = {}
-        nic['net_id'] = net_id if net_id
-        if network.is_a?(ManualNetwork)
-          if network_info['port_id']
-            nic['port_id'] = network_info['port_id']
-          else
-            nic['v4_fixed_ip'] = network.private_ip
-          end
-        end
+      @networks.inject([]) do |memo, network|
+        nic = network.nic
         memo << nic if nic.any?
         memo
       end
     end
 
-    def manual_port_creation?(config_drive)
-      config_drive && multiple_manual_networks?
-    end
-
     def self.port_ids(openstack, server_id)
-      begin
-        ports = with_openstack {
-          openstack.network.ports.all(:device_id => server_id)
-        }
-        return ports.map { |port| port.id }
-      rescue Bosh::Clouds::CloudError => e
-        Bosh::Clouds::Config.logger.debug(e.backtrace)
-      end
-      []
+      return [] if openstack.use_nova_networking?
+      ports = with_openstack {
+        openstack.network.ports.all(:device_id => server_id)
+      }
+      return ports.map { |port| port.id }
     end
 
     def self.cleanup_ports(openstack, port_ids)
-      begin
-        port_ids.each do |port_id|
-          with_openstack {
-            port = openstack.network.ports.get(port_id)
-            if port
-              Bosh::Clouds::Config.logger.debug("Deleting port #{port_id}")
-              port.destroy
-            end
-          }
-        end
-      rescue Bosh::Clouds::CloudError => e
-        Bosh::Clouds::Config.logger.debug(e.backtrace)
+      return if openstack.use_nova_networking?
+      port_ids.each do |port_id|
+        with_openstack {
+          port = openstack.network.ports.get(port_id)
+          if port
+            Bosh::Clouds::Config.logger.debug("Deleting port #{port_id}")
+            port.destroy
+          end
+        }
       end
     end
 
     private
 
-    def create_port_for_manual_network(openstack, net_id, ip_address, security_group_ids)
-      with_openstack {
-        openstack.network.ports.create({
-                                           network_id: net_id,
-                                           fixed_ips: [{ip_address: ip_address}],
-                                           security_groups: security_group_ids
-                                       })
-      }
-    end
-
-    def multiple_manual_networks?
-      @networks.count { |network_info| network(network_info).is_a?(ManualNetwork) } > 1
-    end
-
-    def network(network_info)
-      network_info['network']
-    end
-
-    def manual_network?(network)
-      @network_spec[network.name]['type'] == 'manual'
+    def multiple_private_networks?
+      @networks.length > 1
     end
 
     ##
