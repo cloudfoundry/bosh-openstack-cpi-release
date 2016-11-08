@@ -53,15 +53,13 @@ module Bosh::OpenStackCloud
     end
 
     def prepare(openstack, security_group_ids)
-      @networks.each do |network_info|
-        network = network_info['network']
+      @networks.each do |network|
         network.prepare(openstack, security_group_ids)
       end
     end
 
     def cleanup(openstack)
-      @networks.each do |network_info|
-        network = network_info['network']
+      @networks.each do |network|
         network.cleanup(openstack)
       end
     end
@@ -82,7 +80,7 @@ module Bosh::OpenStackCloud
           cloud_error("Dynamic network with id #{net_id} is already defined") if @net_ids.include?(net_id)
           network = DynamicNetwork.new(name, network_spec)
           @security_groups += extract_security_groups(network_spec)
-          @networks << {"network" => network, "net_id" => net_id}
+          @networks << network
           @net_ids << net_id
           @dynamic_network = network
         when "manual"
@@ -91,7 +89,7 @@ module Bosh::OpenStackCloud
           cloud_error("Manual network with id #{net_id} is already defined") if @net_ids.include?(net_id)
           network = ManualNetwork.new(name, network_spec)
           @security_groups += extract_security_groups(network_spec)
-          @networks << {"network" => network, "net_id" => net_id}
+          @networks << network
           @net_ids << net_id
         when "vip"
           cloud_error("Only one VIP network per instance should be defined") if @vip_network
@@ -125,8 +123,7 @@ module Bosh::OpenStackCloud
     # @param [Fog::Compute::OpenStack::Server] server OpenStack server to
     #   configure
     def configure(openstack, server)
-      @networks.each do |network_info|
-        network = network_info['network']
+      @networks.each do |network|
         network.configure(openstack, server)
       end
 
@@ -148,8 +145,7 @@ module Bosh::OpenStackCloud
     #
     # @return [Array] nics
     def nics
-      @networks.inject([]) do |memo, network_info|
-        network = network(network_info)
+      @networks.inject([]) do |memo, network|
         nic = network.nic
         memo << nic if nic.any?
         memo
@@ -181,14 +177,6 @@ module Bosh::OpenStackCloud
 
     def multiple_private_networks?
       @networks.length > 1
-    end
-
-    def network(network_info)
-      network_info['network']
-    end
-
-    def manual_network?(network)
-      @network_spec[network.name]['type'] == 'manual'
     end
 
     ##
