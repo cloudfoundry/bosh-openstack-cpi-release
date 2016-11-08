@@ -149,14 +149,8 @@ module Bosh::OpenStackCloud
     # @return [Array] nics
     def nics
       @networks.inject([]) do |memo, network_info|
-        net_id = network_info['net_id']
         network = network(network_info)
-        nic = {}
-        #TODO cleanup separation of dynamic and manual
-        nic['net_id'] = net_id if net_id
-        if network.is_a?(ManualNetwork)
-          nic = network.nic
-        end
+        nic = network.nic
         memo << nic if nic.any?
         memo
       end

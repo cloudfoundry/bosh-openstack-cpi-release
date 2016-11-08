@@ -1,7 +1,7 @@
 module Bosh::OpenStackCloud
   ##
   # Represents OpenStack dynamic network: where IaaS sets VM's IP
-  class DynamicNetwork < Network
+  class DynamicNetwork < PrivateNetwork
 
     ##
     # Creates a new dynamic network

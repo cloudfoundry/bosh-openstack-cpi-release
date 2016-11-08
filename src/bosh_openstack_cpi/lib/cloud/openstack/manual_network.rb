@@ -1,9 +1,8 @@
 module Bosh::OpenStackCloud
   ##
   # Represents OpenStack manual network: where user sets VM's IP
-  class ManualNetwork < Network
+  class ManualNetwork < PrivateNetwork
 
-    attr_reader :nic
     ##
     # Creates a new manual network
     #
@@ -11,9 +10,6 @@ module Bosh::OpenStackCloud
     # @param [Hash] spec Raw network spec
     def initialize(name, spec)
       super
-      @nic = {
-          'net_id' => net_id
-      }
     end
 
     ##
@@ -44,11 +40,6 @@ module Bosh::OpenStackCloud
             security_groups: security_group_ids
         })
       }
-    end
-
-    def net_id
-      @spec.fetch("cloud_properties", {})
-           .fetch("net_id"          , nil)
     end
 
     def cleanup(openstack)
