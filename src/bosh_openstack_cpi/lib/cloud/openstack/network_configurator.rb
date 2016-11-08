@@ -39,7 +39,7 @@ module Bosh::OpenStackCloud
     end
 
     def check_preconditions(use_nova_networking, config_drive, use_dhcp)
-      return unless multiple_manual_networks?
+      return unless multiple_private_networks?
 
       if use_nova_networking
         error_message = "Multiple manual networks can only be used with 'openstack.use_nova_networking=false'. Multiple networks require Neutron."
@@ -186,9 +186,8 @@ module Bosh::OpenStackCloud
 
     private
 
-    def multiple_manual_networks?
-      #TODO actually we don't support any multiple networks
-      @networks.count { |network_info| network(network_info).is_a?(ManualNetwork) } > 1
+    def multiple_private_networks?
+      @networks.length > 1
     end
 
     def network(network_info)

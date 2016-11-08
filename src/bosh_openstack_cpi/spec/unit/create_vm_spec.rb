@@ -541,7 +541,7 @@ describe Bosh::OpenStackCloud::Cloud, "create_vm" do
         cloud
       }
 
-      it "raises a VMCreationFailed error with subnet ID" do
+      it 'raises a VMCreationFailed error with subnet ID' do
         allow(networks).to receive(:get).and_return(nil)
 
         expect {
@@ -556,19 +556,18 @@ describe Bosh::OpenStackCloud::Cloud, "create_vm" do
         }.to raise_error(Bosh::Clouds::VMCreationFailed, /'vm-#{unique_name}'.*?'net'/)
       end
 
-      it "raises a Not Found error with existing Net IDs" do
+      it 'raises a Not Found error with existing Net IDs' do
         allow_any_instance_of(Bosh::OpenStackCloud::NetworkConfigurator).to receive(:prepare)
         allow_any_instance_of(Bosh::OpenStackCloud::NetworkConfigurator).to receive(:cleanup)
         allow(networks).to receive(:get).and_return('some_network')
-        network_with_different_net_id = manual_network_spec
-        network_with_different_net_id['cloud_properties']['net_id'] = 'some_other_id'
+        network_with_different_net_id = manual_network_spec(net_id: 'some_other_id')
 
         expect {
           cloud.create_vm(
               "agent-id",
               "sc-id",
               resource_pool_spec,
-              {"network_a" => dynamic_network_with_netid_spec, "network_b" => network_with_different_net_id},
+              {"network_b" => network_with_different_net_id},
               nil,
               {"test_env" => "value"}
           )
