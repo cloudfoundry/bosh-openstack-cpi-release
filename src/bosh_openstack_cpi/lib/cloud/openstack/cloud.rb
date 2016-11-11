@@ -270,8 +270,7 @@ module Bosh::OpenStackCloud
           :key_name => keyname,
           :security_groups => picked_security_groups.map { |sg| sg.name },
           :os_scheduler_hints => resource_pool['scheduler_hints'],
-          :config_drive => @use_config_drive,
-          :user_data => JSON.dump(user_data(registry_key, network_configurator.network_spec))
+          :config_drive => @use_config_drive
         }
 
         availability_zone = @az_provider.select(disk_locality, resource_pool['availability_zone'])
@@ -299,7 +298,10 @@ module Bosh::OpenStackCloud
 
           nics = network_configurator.nics
           @logger.debug("Using NICs: `#{nics.join(', ')}'")
-          server_params[:nics] = nics
+          server_params.merge!({
+              nics: nics,
+              user_data: JSON.dump(user_data(registry_key, network_configurator.network_spec))
+          })
 
           @logger.debug("Using boot parms: `#{server_params.inspect}'")
           server = with_openstack do

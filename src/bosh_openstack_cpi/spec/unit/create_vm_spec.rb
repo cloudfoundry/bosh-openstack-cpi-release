@@ -112,6 +112,50 @@ describe Bosh::OpenStackCloud::Cloud, "create_vm" do
     expect(vm_id).to eq("i-test")
   end
 
+  describe 'multi-homed VMs' do
+
+    let(:cloud) do
+      cloud_options = mock_cloud_options['properties']
+      cloud_options["openstack"].merge!({
+          'config_drive' => 'cdrom',
+          'use_dhcp' => false,
+          'use_nova_networking' => false
+      })
+
+      mock_cloud(cloud_options) do |openstack|
+        allow(openstack.compute.servers).to receive(:create).and_return(server)
+        allow(openstack.image.images).to receive(:find_by_id).and_return(image)
+        allow(openstack.compute.flavors).to receive(:find).and_return(flavor)
+        allow(openstack.compute.key_pairs).to receive(:find).and_return(key_pair)
+        port_result_net = double('ports1', id: '117717c1-81cb-4ac4-96ab-99aaf1be9ca8', network_id: 'net', mac_address: 'AA:AA:AA:AA:AA:AA')
+        ports = double('Fog::Network::OpenStack::Ports')
+        allow(ports).to receive(:create).with(network_id: 'net', fixed_ips: [{ip_address: '10.0.0.1'}], security_groups: ['default_sec_group_id']).and_return(port_result_net)
+        allow(openstack.network).to receive(:ports).and_return(ports)
+      end
+    end
+    let(:network_spec) { {'network_a' => manual_network_spec(ip: '10.0.0.1')} }
+    let(:expected_network_spec) { {'network_a' => manual_network_spec(ip: '10.0.0.1', overwrites: {'mac' => 'AA:AA:AA:AA:AA:AA', 'use_dhcp' => false})} }
+    let(:nics) { [{'net_id' => 'net', 'port_id' => '117717c1-81cb-4ac4-96ab-99aaf1be9ca8'}] }
+
+    it 'creates an OpenStack server with config drive and mac addresses' do
+
+
+      allow(cloud).to receive(:generate_unique_name).and_return(unique_name)
+      allow(cloud).to receive(:wait_resource)#.with(server, :active, :state)
+
+      allow(@registry).to receive(:update_settings)#.with("vm-#{unique_name}", agent_settings(unique_name, network_spec))
+
+      vm_id = cloud.create_vm('agent-id', 'sc-id',
+          resource_pool_spec,
+          network_spec,
+          nil,
+          {'test_env' => 'value'}
+      )
+
+      expect(cloud.compute.servers).to have_received(:create).with(openstack_params(expected_network_spec).merge(config_drive: true))
+    end
+  end
+
   context "with nameserver" do
     let(:nameserver) { "1.2.3.4" }
 

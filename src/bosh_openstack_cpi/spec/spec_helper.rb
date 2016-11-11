@@ -144,7 +144,7 @@ def dynamic_network_spec
   }
 end
 
-def manual_network_spec(net_id: 'net', ip: '0.0.0.0', defaults: nil)
+def manual_network_spec(net_id: 'net', ip: '0.0.0.0', defaults: nil, overwrites: {})
   {
     'type' => 'manual',
     'ip' => ip,
@@ -154,7 +154,7 @@ def manual_network_spec(net_id: 'net', ip: '0.0.0.0', defaults: nil)
       'net_id' => net_id
     },
     'use_dhcp' => true
-  }
+  }.merge(overwrites)
 end
 
 def manual_network_without_netid_spec
