@@ -218,6 +218,7 @@ module Bosh::OpenStackCloud
         registry_key = "vm-#{generate_unique_name}"
 
         network_configurator = NetworkConfigurator.new(network_spec)
+        network_configurator.check_preconditions(@openstack.use_nova_networking?, @use_config_drive, @use_dhcp)
 
         picked_security_groups = SecurityGroups.validate_and_retrieve(
             @openstack,
@@ -226,14 +227,6 @@ module Bosh::OpenStackCloud
             ResourcePool.security_groups(resource_pool)
         )
         @logger.debug("Using security groups: `#{picked_security_groups.map { |sg| sg.name }.join(', ')}'")
-
-        if network_configurator.manual_port_creation? @config_drive
-          @logger.debug('Manual port creation because of multiple manual networks')
-          network_configurator.prepare_ports_for_manual_networks(@openstack, picked_security_groups.map { |sg| sg.id })
-        end
-
-        nics = network_configurator.nics
-        @logger.debug("Using NICs: `#{nics.join(', ')}'")
 
         image = nil
         begin
@@ -277,7 +270,6 @@ module Bosh::OpenStackCloud
           :key_name => keyname,
           :security_groups => picked_security_groups.map { |sg| sg.name },
           :os_scheduler_hints => resource_pool['scheduler_hints'],
-          :nics => nics,
           :config_drive => @use_config_drive,
           :user_data => JSON.dump(user_data(registry_key, network_configurator.network_spec))
         }
@@ -300,87 +292,97 @@ module Bosh::OpenStackCloud
           server_params.delete(:image_ref)
         end
 
-        @logger.debug("Using boot parms: `#{server_params.inspect}'")
-        server = with_openstack do
-          begin
-            @openstack.compute.servers.create(server_params)
-          rescue Excon::Errors::Timeout => e
-            @logger.debug(e.backtrace)
-            cloud_error_message = "VM creation with name '#{server_params[:name]}' received a timeout. " +
-                "The VM might still have been created by OpenStack.\nOriginal message: "
-            raise Bosh::Clouds::VMCreationFailed.new(false), cloud_error_message + e.message
-          rescue Excon::Errors::BadRequest, Excon::Errors::NotFound, Fog::Compute::OpenStack::NotFound => e
-            not_existing_net_ids = not_existing_net_ids(nics)
-            if not_existing_net_ids.empty?
-              raise e
-            else
+        begin
+          with_openstack {
+            network_configurator.prepare(@openstack, picked_security_groups.map { |sg| sg.id })
+          }
+
+          nics = network_configurator.nics
+          @logger.debug("Using NICs: `#{nics.join(', ')}'")
+          server_params[:nics] = nics
+
+          @logger.debug("Using boot parms: `#{server_params.inspect}'")
+          server = with_openstack do
+            begin
+              @openstack.compute.servers.create(server_params)
+            rescue Excon::Errors::Timeout => e
               @logger.debug(e.backtrace)
-              cloud_error_message = "VM creation with name '#{server_params[:name]}' failed. Following network " +
-                  "IDs are not existing or not accessible from this project: '#{not_existing_net_ids.join(",")}'. " +
-                  "Make sure you do not use subnet IDs"
-              raise Bosh::Clouds::VMCreationFailed.new(false), cloud_error_message
+              cloud_error_message = "VM creation with name '#{server_params[:name]}' received a timeout. " +
+                  "The VM might still have been created by OpenStack.\nOriginal message: "
+              raise Bosh::Clouds::VMCreationFailed.new(false), cloud_error_message + e.message
+            rescue Excon::Errors::BadRequest, Excon::Errors::NotFound, Fog::Compute::OpenStack::NotFound => e
+              if @openstack.use_nova_networking?
+                raise e
+              else
+                not_existing_net_ids = not_existing_net_ids(nics)
+                if not_existing_net_ids.empty?
+                  raise e
+                end
+                @logger.debug(e.backtrace)
+                cloud_error_message = "VM creation with name '#{server_params[:name]}' failed. Following network " +
+                    "IDs are not existing or not accessible from this project: '#{not_existing_net_ids.join(",")}'. " +
+                    "Make sure you do not use subnet IDs"
+                raise Bosh::Clouds::VMCreationFailed.new(false), cloud_error_message
+              end
             end
           end
-        end
 
-        @logger.info("Creating new server `#{server.id}'...")
-        begin
-          wait_resource(server, :active, :state)
-
-          @logger.info("Configuring network for server `#{server.id}'...")
-          with_openstack {
-            network_configurator.configure(@openstack, server)
-          }
-        rescue => e
-          @logger.warn("Failed to create server: #{e.message}")
-          destroy_server(server)
-          raise Bosh::Clouds::VMCreationFailed.new(true), e.message
-        end
-
-        if @human_readable_vm_names
-          @logger.debug("'human_readable_vm_names' enabled")
+          @logger.info("Creating new server `#{server.id}'...")
           begin
-            TagManager.tag(server, REGISTRY_KEY_TAG, registry_key)
-            @logger.debug("Tagged VM '#{server.id}' with tag '#{REGISTRY_KEY_TAG}': #{registry_key}")
+            wait_resource(server, :active, :state)
+
+            @logger.info("Configuring network for server `#{server.id}'...")
+            with_openstack {
+              network_configurator.configure(@openstack, server)
+            }
           rescue => e
-            @logger.warn("Unable to tag server with '#{REGISTRY_KEY_TAG}': #{e.message}")
-            destroy_server(server)
+            @logger.warn("Failed to create server: #{e.message}")
             raise Bosh::Clouds::VMCreationFailed.new(true), e.message
           end
-        else
-          @logger.debug("'human_readable_vm_names' disabled")
-        end
 
-        begin
-          @logger.info("Updating settings for server `#{server.id}'...")
-          settings = initial_agent_settings(registry_key, agent_id, network_configurator.network_spec, environment,
-                                            flavor_has_ephemeral_disk?(flavor))
-          @registry.update_settings(registry_key, settings)
-        rescue => e
-          @logger.warn("Failed to register server: #{e.message}")
-          destroy_server(server)
-          raise Bosh::Clouds::VMCreationFailed.new(false), e.message
-        end
-
-        server.id.to_s
-      end
-    end
-
-    def not_existing_net_ids(nics)
-      result = []
-      begin
-        network = @openstack.network
-        nics.each do |nic|
-          if nic["net_id"]
-            result << nic["net_id"] unless network.networks.get(nic["net_id"])
+          if @human_readable_vm_names
+            @logger.debug("'human_readable_vm_names' enabled")
+            begin
+              TagManager.tag(server, REGISTRY_KEY_TAG, registry_key)
+              @logger.debug("Tagged VM '#{server.id}' with tag '#{REGISTRY_KEY_TAG}': #{registry_key}")
+            rescue => e
+              @logger.warn("Unable to tag server with '#{REGISTRY_KEY_TAG}': #{e.message}")
+              raise Bosh::Clouds::VMCreationFailed.new(true), e.message
+            end
+          else
+            @logger.debug("'human_readable_vm_names' disabled")
           end
-        end
-      rescue Bosh::Clouds::CloudError => e
-        @logger.debug(e.backtrace)
-      end
-      result
-    end
 
+          begin
+            @logger.info("Updating settings for server `#{server.id}'...")
+            settings = initial_agent_settings(registry_key, agent_id, network_configurator.network_spec, environment,
+                flavor_has_ephemeral_disk?(flavor))
+            @registry.update_settings(registry_key, settings)
+          rescue => e
+            @logger.warn("Failed to register server: #{e.message}")
+            raise Bosh::Clouds::VMCreationFailed.new(false), e.message
+          end
+
+          server.id.to_s
+
+        rescue => e
+          begin
+            destroy_server(server) if server
+          rescue => destroy_err
+            @logger.warn("Failed to destroy server: #{destroy_err.message}")
+          end
+
+          begin
+            with_openstack {
+              network_configurator.cleanup(@openstack)
+            }
+          rescue => cleanup_error
+            @logger.warn("Failed to cleanup network resources: #{cleanup_error.message}")
+          end
+          raise e
+        end
+      end
+    end
 
     ##
     # Terminates an OpenStack server and waits until it reports as terminated
@@ -719,6 +721,21 @@ module Bosh::OpenStackCloud
     end
 
     private
+
+    def not_existing_net_ids(nics)
+      result = []
+      begin
+        network = @openstack.network
+        nics.each do |nic|
+          if nic["net_id"]
+            result << nic["net_id"] unless network.networks.get(nic["net_id"])
+          end
+        end
+      rescue => e
+        @logger.warn(e.backtrace)
+      end
+      result
+    end
 
     def property_option_for_image_option(image_option)
       if image_option == 'hypervisor_type'
