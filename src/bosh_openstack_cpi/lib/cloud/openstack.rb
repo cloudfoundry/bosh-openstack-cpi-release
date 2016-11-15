@@ -37,6 +37,7 @@ require "cloud/openstack/vip_network"
 require "cloud/openstack/volume_configurator"
 require "cloud/openstack/excon_logging_instrumentor"
 require "cloud/openstack/availability_zone_provider"
+require "cloud/openstack/stemcell"
 
 module Bosh
   module Clouds

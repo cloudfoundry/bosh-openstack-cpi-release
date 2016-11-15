@@ -91,7 +91,7 @@ module Bosh::OpenStackCloud
     # @param [Hash] cloud_properties CPI-specific properties
     # @option cloud_properties [String] name Stemcell name
     # @option cloud_properties [String] version Stemcell version
-    # @option cloud_properties [String] infrastructure Stemcell infraestructure
+    # @option cloud_properties [String] infrastructure Stemcell infrastructure
     # @option cloud_properties [String] disk_format Image disk format
     # @option cloud_properties [String] container_format Image container format
     # @option cloud_properties [optional, String] kernel_file Name of the
@@ -101,78 +101,10 @@ module Bosh::OpenStackCloud
     # @return [String] OpenStack image UUID of the stemcell
     def create_stemcell(image_path, cloud_properties)
       with_thread_name("create_stemcell(#{image_path}...)") do
-        begin
-          Dir.mktmpdir do |tmp_dir|
-            @logger.info('Creating new image...')
-
-            is_glance_v1 = @openstack.image.class.to_s.include?('Fog::Image::OpenStack::V1')
-
-            image_params = {
-              :name => "#{cloud_properties['name']}/#{cloud_properties['version']}",
-              :disk_format => cloud_properties['disk_format'],
-              :container_format => cloud_properties['container_format'],
-            }
-
-            is_public = !@stemcell_public_visibility.nil? && @stemcell_public_visibility.to_s != 'false'
-            if is_glance_v1
-              image_params[:is_public] = is_public
-            else
-              image_params[:visibility] = is_public ? 'public' : 'private'
-            end
-
-            image_properties = normalize_image_properties(cloud_properties)
-
-            if is_glance_v1
-              image_params[:properties] = image_properties unless image_properties.empty?
-            else
-              image_params.merge!(image_properties)
-            end
-
-            @logger.info("Extracting stemcell file to `#{tmp_dir}'...")
-            unpack_image(tmp_dir, image_path)
-            image_location = File.join(tmp_dir, 'root.img')
-
-            # v1 performs file upload as part of initial create request
-            if is_glance_v1
-              image_params[:location] = image_location
-            end
-
-            @logger.debug("Using image parms: `#{image_params.inspect}'")
-            image = with_openstack { @openstack.image.images.create(image_params) }
-
-            # v2 performs the file upload as a subsequent request
-            unless is_glance_v1
-              wait_resource(image, :queued)
-              @logger.info("Performing file upload for image: '#{image.id}'...")
-              image.upload_data(File.open(image_location, 'rb'))
-            end
-
-            @logger.info("Waiting for image '#{image.id}' to have status 'active'...")
-            wait_resource(image, :active)
-
-            image.id.to_s
-          end
-        rescue => e
-          @logger.error(e)
-          raise e
-        end
+        is_public = !@stemcell_public_visibility.nil? && @stemcell_public_visibility.to_s != 'false'
+        stemcell = Stemcell.create_instance(@logger, @openstack)
+        stemcell.create(image_path, cloud_properties, is_public)
       end
-    end
-
-    ##
-    # Normalizes the image properties hash that is passed to the OpenStack Glance service.
-    #
-    # @param [Hash] properties CPI-specific properties
-    # @return [Hash] normalized properties
-    def normalize_image_properties(properties)
-      image_properties = {}
-      image_options = ['version', 'os_type', 'os_distro', 'architecture', 'auto_disk_config',
-                       'hw_vif_model', 'hypervisor_type', 'vmware_adaptertype', 'vmware_disktype',
-                       'vmware_linked_clone', 'vmware_ostype']
-      image_options.reject { |image_option| properties[property_option_for_image_option(image_option)].nil? }.each do |image_option|
-        image_properties[image_option.to_sym] = properties[property_option_for_image_option(image_option)].to_s
-      end
-      image_properties
     end
 
     ##
@@ -739,14 +671,6 @@ module Bosh::OpenStackCloud
       result
     end
 
-    def property_option_for_image_option(image_option)
-      if image_option == 'hypervisor_type'
-        'hypervisor'
-      else
-        image_option
-      end
-    end
-
     ##
     # Generates an unique name
     #
@@ -948,25 +872,6 @@ module Bosh::OpenStackCloud
     # @return [Boolean] true if flavor has swap disk, false otherwise
     def flavor_has_swap_disk?(flavor)
       flavor.swap.nil? || flavor.swap.to_i <= 0 ? false : true
-    end
-
-    ##
-    # Unpacks a stemcell archive
-    #
-    # @param [String] tmp_dir Temporary directory
-    # @param [String] image_path Local filesystem path to a stemcell image
-    # @return [void]
-    def unpack_image(tmp_dir, image_path)
-      result = Bosh::Exec.sh("tar -C #{tmp_dir} -xzf #{image_path} 2>&1", :on_error => :return)
-      if result.failed?
-        @logger.error("Extracting stemcell root image failed in dir #{tmp_dir}, " +
-                      "tar returned #{result.exit_status}, output: #{result.output}")
-        cloud_error('Extracting stemcell root image failed. Check task debug log for details.')
-      end
-      root_image = File.join(tmp_dir, 'root.img')
-      unless File.exists?(root_image)
-        cloud_error('Root image is missing from stemcell archive')
-      end
     end
 
     ##
