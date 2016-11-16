@@ -6,7 +6,6 @@ require 'pathname'
 describe LightStemcellCreator do
   describe '.run' do
     let(:version) { '3263.8' }
-    let(:sha1) { 'f0ef788fe149a1e8bb09007649f1fd790fda9455' }
     let(:os) { 'ubuntu-trusty' }
     let(:uuid) { '66ad0633-3a4c-48b1-8532-1b31aa94334b'}
     let(:output_directory) { Dir.mktmpdir }
@@ -21,7 +20,7 @@ describe LightStemcellCreator do
 
     context 'executes successfully' do
       before do
-        @filename = LightStemcellCreator.run(version, sha1, os, uuid, actual_output_directory)
+        @filename = LightStemcellCreator.run(version, os, uuid, actual_output_directory)
       end
 
       context 'with absolute path' do
@@ -66,7 +65,7 @@ describe LightStemcellCreator do
 name: bosh-openstack-kvm-ubuntu-trusty-go_agent
 version: '3263.8'
 bosh_protocol: 1
-sha1: f0ef788fe149a1e8bb09007649f1fd790fda9455
+sha1: da39a3ee5e6b4b0d3255bfef95601890afd80709
 operating_system: ubuntu-trusty
 cloud_properties:
   name: bosh-openstack-kvm-ubuntu-trusty-go_agent
@@ -94,14 +93,6 @@ EOT
 
           it 'writes version to cloud properties in manifest' do
             expect(YAML.load_file(manifest_file)['cloud_properties']['version']).to eq(version)
-          end
-        end
-
-        context 'with specified sha1' do
-          let(:sha1) { 'my-sha1' }
-
-          it 'writes sha1 to manifest' do
-            expect(YAML.load_file(manifest_file)['sha1']).to eq(sha1)
           end
         end
 
@@ -142,7 +133,7 @@ EOT
           non_existing_directory = File.join(actual_output_directory, 'non-existing-dir')
 
           expect{
-            LightStemcellCreator.run(version, sha1, os, uuid, non_existing_directory)
+            LightStemcellCreator.run(version, os, uuid, non_existing_directory)
           }.to raise_error("Output directory '#{non_existing_directory}' does not exist")
         end
       end
@@ -152,17 +143,17 @@ EOT
           allow(Open3).to receive(:capture2e).and_return(['error text', double('status', exitstatus: 1)])
 
           expect{
-            LightStemcellCreator.run(version, sha1, os, uuid, actual_output_directory)
+            LightStemcellCreator.run(version, os, uuid, actual_output_directory)
           }.to raise_error('error text')
         end
       end
 
-      context 'when os does not contain a `-`' do
+      context 'when os parameter does not contain a `-`' do
         let(:os) { 'name_only' }
 
         it 'raises an error' do
           expect{
-            LightStemcellCreator.run(version, sha1, os, uuid, actual_output_directory)
+            LightStemcellCreator.run(version, os, uuid, actual_output_directory)
           }.to raise_error("OS name contains no dash to separate the version from the name, i.e. 'name-version'")
         end
       end

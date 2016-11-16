@@ -1,16 +1,18 @@
 require 'yaml'
 require 'tmpdir'
 require 'open3'
+require 'digest/sha1'
 
 class LightStemcellCreator
-  def self.run(version, sha1, os, image_uuid, output_directory)
+  def self.run(version, os, image_uuid, output_directory)
     raise "Output directory '#{output_directory}' does not exist" unless File.exists?(output_directory)
     filename = "light-bosh-stemcell-#{version}-openstack-kvm-#{os}-go_agent.tgz"
     output_path = File.absolute_path(File.join(output_directory, filename))
 
     Dir.mktmpdir do |tmp_dir|
       Dir.chdir(tmp_dir) do
-        system("touch image")
+        File.write('image', '')
+        sha1 = Digest::SHA1.hexdigest(File.read('image')).force_encoding('utf-8')
 
         manifest = {
           'name' => "bosh-openstack-kvm-#{os}-go_agent",
