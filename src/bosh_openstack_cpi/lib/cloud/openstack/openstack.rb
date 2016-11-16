@@ -47,6 +47,10 @@ module Bosh::OpenStackCloud
         end
       end
       @auth_url = options['auth_url']
+      @use_nova_networking = options.fetch('use_nova_networking', false)
+      if @use_nova_networking
+        @logger.debug("Property 'use_nova_networking' is set to true. Using Nova networking APIs instead of Neutron APIs.")
+      end
 
       options['connection_options'] ||= {}
 
@@ -54,6 +58,10 @@ module Bosh::OpenStackCloud
 
       @params = openstack_params(options)
       @connect_retry_options = connect_retry_options
+    end
+
+    def use_nova_networking?
+      @use_nova_networking
     end
 
     def compute

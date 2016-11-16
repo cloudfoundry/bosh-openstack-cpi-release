@@ -10,8 +10,8 @@ describe Bosh::OpenStackCloud::Cloud do
 
   context 'without registry_key set' do
     before(:each) do
-      @cloud = mock_cloud do |openstack|
-        allow(openstack.servers).to receive(:get).with('i-foobar').and_return(server)
+      @cloud = mock_cloud do |fog|
+        allow(fog.compute.servers).to receive(:get).with('i-foobar').and_return(server)
       end
       allow(server.metadata).to receive(:get)
     end
@@ -33,9 +33,9 @@ describe Bosh::OpenStackCloud::Cloud do
 
   context 'with registry_key set' do
     before(:each) do
-      @cloud = mock_cloud do |openstack|
-        allow(openstack.servers).to receive(:get).with('i-foobar').and_return(server)
-        allow(openstack).to receive(:update_server)
+      @cloud = mock_cloud do |fog|
+        allow(fog.compute.servers).to receive(:get).with('i-foobar').and_return(server)
+        allow(fog.compute).to receive(:update_server)
       end
       allow(server.metadata).to receive(:get).with(:registry_key).and_return(double('metadatum'))
     end

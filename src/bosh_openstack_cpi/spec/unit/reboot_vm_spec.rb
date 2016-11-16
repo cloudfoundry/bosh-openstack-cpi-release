@@ -8,8 +8,8 @@ describe Bosh::OpenStackCloud::Cloud do
   before :each do
     @server = double('server', :id => 'i-foobar')
 
-    @cloud = mock_cloud(mock_cloud_options['properties']) do |openstack|
-      allow(openstack.servers).to receive(:get).with('i-foobar').and_return(@server)
+    @cloud = mock_cloud(mock_cloud_options['properties']) do |fog|
+      allow(fog.compute.servers).to receive(:get).with('i-foobar').and_return(@server)
     end
   end
 

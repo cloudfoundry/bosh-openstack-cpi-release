@@ -21,10 +21,12 @@ describe Bosh::OpenStackCloud::Cloud do
 
   let(:boot_from_volume) { false }
   let(:config_drive) { nil }
+  let(:use_dhcp) { true }
   let(:human_readable_vm_names) { false }
+  let(:use_nova_networking) { false }
 
   subject(:cpi) do
-    @config.create_cpi(boot_from_volume, config_drive, human_readable_vm_names)
+    @config.create_cpi(boot_from_volume, config_drive, human_readable_vm_names, use_nova_networking, use_dhcp)
   end
 
   before { allow(Bosh::Cpi::RegistryClient).to receive(:new).and_return(double('registry').as_null_object) }
@@ -43,9 +45,18 @@ describe Bosh::OpenStackCloud::Cloud do
       }
     end
 
-    context 'without existing disks' do
+    context 'without existing disks and floating ip' do
+      let(:network_spec_with_vip_network) do
+        {
+            'vip_network' => {
+                'type' => 'vip',
+                'ip' => @config.floating_ip
+            }
+        }.merge(network_spec)
+      end
+
       it 'exercises the vm lifecycle' do
-        vm_lifecycle(@stemcell_id, network_spec, [])
+        vm_lifecycle(@stemcell_id, network_spec_with_vip_network, [])
       end
     end
 
@@ -129,6 +140,7 @@ describe Bosh::OpenStackCloud::Cloud do
       end
 
       let(:config_drive) { 'cdrom' }
+      let(:use_dhcp) { false }
 
       after { clean_up_vm(@multiple_nics_vm_id, network_spec) if @multiple_nics_vm_id }
 
@@ -180,7 +192,7 @@ describe Bosh::OpenStackCloud::Cloud do
       @vm_id = create_vm(@stemcell_id, network_spec, [])
       volumes = volumes(@vm_id)
       expect(volumes.size).to eq(1)
-      expect(volumes.first.attachments.first['device']).to eq('/dev/vda')
+      expect(volumes.first['device']).to eq('/dev/vda')
     end
 
     after(:each) { clean_up_vm(@vm_id, network_spec) if @vm_id }
@@ -287,7 +299,7 @@ describe Bosh::OpenStackCloud::Cloud do
     it 'cleans up vm' do
       expect {
         create_vm(@stemcell_id, network_spec_that_fails, [])
-      }.to raise_error Bosh::Clouds::VMCreationFailed, /Floating IP 255.255.255.255 not allocated/
+      }.to raise_error Bosh::Clouds::VMCreationFailed, /Floating IP '255.255.255.255' not allocated/
 
       expect(no_active_vm_with_ip?(@config.manual_ip)).to be
     end
@@ -332,8 +344,32 @@ describe Bosh::OpenStackCloud::Cloud do
     end
   end
 
+  describe 'use_nova_networking=true' do
+    let(:network_spec) do
+      {
+          'default' => {
+              'type' => 'dynamic',
+              'cloud_properties' => {
+                  'net_id' => @config.net_id
+              }
+          }
+      }
+    end
+
+    let(:use_nova_networking) { true }
+    after { clean_up_vm(@vm_id_for_nova_compatibility, network_spec) if @vm_id_for_nova_compatibility }
+
+    it 'create vm does not use neutron for security groups' do
+      stub_request(:any, /.*\/v2\.0\/security-groups/)
+
+      @vm_id_for_nova_compatibility = create_vm(@stemcell_id, network_spec, [])
+
+      expect(WebMock).to_not have_requested(:any, /.*\/v2\.0\/security-groups/)
+    end
+  end
+
   def volumes(vm_id)
-    cpi.compute.volumes.select {|volume| volume.attachments.detect {|attachment| attachment['serverId'] == vm_id}}
+    cpi.compute.servers.get(vm_id).volume_attachments
   end
 
   def vm_lifecycle(stemcell_id, network_spec, disk_locality, cloud_properties = {}, resource_pool = {})

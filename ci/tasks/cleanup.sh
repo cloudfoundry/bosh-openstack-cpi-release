@@ -61,6 +61,7 @@ openstack_delete_ports() {
 }
 # Destroy all images and snapshots and volumes
 
+echo "Starting cleanup for project: $BOSH_OPENSTACK_PROJECT"
 echo "openstack cli version:"
 openstack --version
 

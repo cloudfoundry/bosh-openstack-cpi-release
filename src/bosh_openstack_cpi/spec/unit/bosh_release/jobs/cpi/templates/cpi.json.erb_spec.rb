@@ -76,7 +76,8 @@ describe 'cpi.json.erb' do
             'use_dhcp' => true,
             'username' => 'openstack.username',
             'wait_resource_poll_interval' => 'openstack.wait_resource_poll_interval',
-            'human_readable_vm_names' => false
+            'human_readable_vm_names' => false,
+            'use_nova_networking' => false
           },
           'registry' => {
             'address' => 'registry.host',

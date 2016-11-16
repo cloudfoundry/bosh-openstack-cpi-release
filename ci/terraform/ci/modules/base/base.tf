@@ -1,16 +1,17 @@
+variable "prefix" {
+  description = "A prefix representing the name this script is used for, .e.g. lifecycle"
+}
+
+variable "add_security_group" {
+  description = "Set 1 to add security group, set 0 to not add it"
+}
+
 variable "tenant_name" {
   description = "OpenStack tenant name"
 }
 
 variable "region_name" {
   description = "OpenStack region name"
-}
-
-variable "availability_zone" {
-  description = "OpenStack availability zone name"
-}
-variable "ext_net_name" {
-  description = "OpenStack external network name to register floating IP"
 }
 
 variable "ext_net_id" {
@@ -25,12 +26,12 @@ variable "concourse_external_network_cidr" {
   description = "Network cidr where concourse is running in. Use value of ext_net_cidr, if it runs within OpenStack"
 }
 
-variable "openstack_default_key_name_prefix" {
-  description = "This prefix will be used as the base name of the generated key pair"
-}
-
 variable "openstack_default_key_public_key" {
   description = "This is the actual public key which is uploaded"
+}
+
+output "key_name" {
+  value = "${openstack_compute_keypair_v2.openstack_compute_keypair_v2.name}"
 }
 
 output "default_router_id" {
@@ -39,23 +40,24 @@ output "default_router_id" {
 
 # key pairs
 
-resource "openstack_compute_keypair_v2" "openstack_default_key_name" {
+resource "openstack_compute_keypair_v2" "openstack_compute_keypair_v2" {
   region     = "${var.region_name}"
-  name       = "${var.openstack_default_key_name_prefix}-${var.tenant_name}"
+  name       = "${var.prefix}-${var.tenant_name}"
   public_key = "${var.openstack_default_key_public_key}"
 }
 
 resource "openstack_networking_router_v2" "default_router" {
   region           = "${var.region_name}"
-  name             = "cpi-router"
+  name             = "${var.prefix}-router"
   admin_state_up   = "true"
   external_gateway = "${var.ext_net_id}"
 }
 
 resource "openstack_compute_secgroup_v2" "ci_secgroup" {
   region      = "${var.region_name}"
-  name        = "ci"
-  description = "ci security group"
+  name        = "${var.prefix}"
+  description = "security group"
+  count = "${var.add_security_group}"
 
   # Allow anything from own sec group (Any was not possible)
 

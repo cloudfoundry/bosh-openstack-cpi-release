@@ -127,6 +127,24 @@ jobs:
         - {trigger: false, passed: [cleanup], get: bosh-cpi-src-in, tags: *tags, timeout: *timeouts-long}
         - {trigger: false,                    get: openstack-lifecycle-stemcell, tags: *tags, timeout: *timeouts-long}
 
+      - put: terraform-lifecycle
+        tags: *tags
+        timeout: *timeouts-long
+        params:
+          env_name: lifecycle
+          vars:
+            auth_url: {{openstack_auth_url_v3}}
+            insecure: "true"
+            user_name: {{lifecycle_openstack_username_v3}}
+            password: {{lifecycle_openstack_api_key_v3}}
+            domain_name: {{lifecycle_openstack_domain}}
+            tenant_name: {{lifecycle_openstack_project}}
+            ext_net_id: {{tf_external_network_id}}
+            ext_net_name: {{tf_external_network_name}}
+            region_name: {{tf_region_name}}
+            openstack_default_key_public_key: {{tf_openstack_default_key_public_key}}
+            dns_nameservers: {{tf_dns_nameservers}}
+
       - task: test
         tags: *tags
         timeout: *timeouts-long
@@ -135,19 +153,12 @@ jobs:
           BOSH_OPENSTACK_DOMAIN:                   {{lifecycle_openstack_domain}}
           BOSH_OPENSTACK_PROJECT:                  {{lifecycle_openstack_project}}
           BOSH_OPENSTACK_TENANT:                   {{lifecycle_openstack_tenant}}
-          BOSH_OPENSTACK_MANUAL_IP:                {{lifecycle_manual_ip}}
-          BOSH_OPENSTACK_NO_DHCP_MANUAL_IP_1:      {{lifecycle_no_dhcp_manual_ip_1}}
-          BOSH_OPENSTACK_NO_DHCP_MANUAL_IP_2:      {{lifecycle_no_dhcp_manual_ip_2}}
-          BOSH_OPENSTACK_NET_ID:                   {{lifecycle_openstack_net_id}}
-          BOSH_OPENSTACK_NET_ID_NO_DHCP_1:         {{lifecycle_net_id_no_dhcp_1}}
-          BOSH_OPENSTACK_NET_ID_NO_DHCP_2:         {{lifecycle_net_id_no_dhcp_2}}
           BOSH_OPENSTACK_AUTH_URL_V2:              {{openstack_auth_url_v2}}
           BOSH_OPENSTACK_USERNAME_V2:              {{lifecycle_openstack_username_v2}}
           BOSH_OPENSTACK_API_KEY_V2:               {{lifecycle_openstack_api_key_v2}}
           BOSH_OPENSTACK_AUTH_URL_V3:              {{openstack_auth_url_v3}}
           BOSH_OPENSTACK_USERNAME_V3:              {{lifecycle_openstack_username_v3}}
           BOSH_OPENSTACK_API_KEY_V3:               {{lifecycle_openstack_api_key_v3}}
-          BOSH_OPENSTACK_DEFAULT_KEY_NAME:         {{lifecycle_openstack_default_key_name}}
           BOSH_CLI_SILENCE_SLOW_LOAD_WARNING:      true
           BOSH_OPENSTACK_VOLUME_TYPE:              {{lifecycle_openstack_volume_type}}
           BOSH_OPENSTACK_CONNECT_TIMEOUT:          "600"
@@ -558,8 +569,22 @@ resource_types:
     source:
       repository: friegger/email-resource
       tag: noauth
+  - name: terraform
+    type: docker-image
+    source:
+      repository: ljfranklin/terraform-resource
 
 resources:
+  - name: terraform-lifecycle
+    type: terraform
+    source:
+      storage:
+        bucket: {{s3_openstack_cpi_pipeline_bucket_name}}
+        bucket_path: terraform/
+        access_key_id: {{s3_openstack_cpi_pipeline_access_key}}
+        secret_access_key: {{s3_openstack_cpi_pipeline_secret_key}}
+      terraform_source: github.com/cloudfoundry-incubator/bosh-openstack-cpi-release//ci/terraform/ci/lifecycle
+
   - name: bosh-cpi-dev-artifacts
     type: s3
     source:

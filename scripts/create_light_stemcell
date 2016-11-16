@@ -1,0 +1,49 @@
+#!/usr/bin/env ruby
+
+require 'optparse'
+require_relative 'lib/create_light_stemcell'
+
+options = {}
+option_parser = OptionParser.new do |opts|
+  opts.banner = "Usage: create_light_stemcell --version --os --image_uuid [--output_directory]"
+
+  opts.on('-h', '--help', 'Show this help') do
+    puts opts
+    exit 0
+  end
+
+  opts.on("-v", "--version=VERSION", "Stemcell version") do |v|
+    options[:version] = v
+  end
+
+  opts.on('--os=DISTRO', "Name of operating system in the form 'distro-version'") do |v|
+    options[:os] = v
+  end
+
+  opts.on('-i', '--image-uuid=UUID', 'UUID of OpenStack image of heavy stemcell') do |v|
+    options[:uuid] = v
+  end
+
+  opts.on('-o', '--output-directory=PATH', "Optional output directory (default: current working directory)") do |v|
+    options[:output_directory] = v
+  end
+end
+
+option_parser.parse!
+
+required_options = [:version, :os, :uuid]
+
+missing_required_options = required_options.select do |required_option|
+  !options.include?(required_option)
+end
+unless missing_required_options.empty?
+  STDERR.puts("Required options are missing: #{missing_required_options.map { |o| "--#{o.to_s.gsub('_', '-')}" }.join(", ")}")
+  puts option_parser
+  exit 1
+end
+
+options[:output_directory] ||= Dir.pwd
+
+output_path = LightStemcellCreator.run(options[:version], options[:os], options[:uuid], options[:output_directory])
+
+puts "Created light stemcell at '#{output_path}'"

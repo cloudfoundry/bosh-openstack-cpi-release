@@ -10,9 +10,12 @@ describe Bosh::OpenStackCloud::Cloud do
     attachment = { "device" => "/dev/vdc" }
     snapshot = double("snapshot", :id => "snap-foobar")
     snapshot_params = {
+      :display_name => "snapshot-#{unique_name}",
+      :display_description => 'deployment/job/0/vdc',
       :name => "snapshot-#{unique_name}",
       :description => 'deployment/job/0/vdc',
-      :volume_id => "v-foobar"
+      :volume_id => "v-foobar",
+      :force => true
     }
     metadata = {
       :agent_id => 'agent',
@@ -24,16 +27,16 @@ describe Bosh::OpenStackCloud::Cloud do
       :index => '0'
     }
 
-    cloud = mock_cloud do |openstack|
-      expect(openstack.volumes).to receive(:get).with("v-foobar").and_return(volume)
-      expect(openstack.snapshots).to receive(:new).with(snapshot_params).and_return(snapshot)
+    cloud = mock_cloud do |fog|
+      expect(fog.volume.volumes).to receive(:get).with("v-foobar").and_return(volume)
+      expect(fog.volume.snapshots).to receive(:new).with(snapshot_params).and_return(snapshot)
     end
 
     expect(cloud).to receive(:generate_unique_name).and_return(unique_name)
     
     expect(volume).to receive(:attachments).and_return([attachment])
     
-    expect(snapshot).to receive(:save).with(true)
+    expect(snapshot).to receive(:save)
 
     expect(cloud).to receive(:wait_resource).with(snapshot, :available)
 
@@ -45,9 +48,12 @@ describe Bosh::OpenStackCloud::Cloud do
     volume = double("volume", :id => "v-foobar")
     snapshot = double("snapshot", :id => "snap-foobar")
     snapshot_params = {
+      :display_name => "snapshot-#{unique_name}",
+      :display_description => 'deployment/job/0',
       :name => "snapshot-#{unique_name}",
       :description => 'deployment/job/0',
-      :volume_id => "v-foobar"
+      :volume_id => "v-foobar",
+      :force => true
     }
     metadata = {
       :agent_id => 'agent',
@@ -59,16 +65,16 @@ describe Bosh::OpenStackCloud::Cloud do
       :index => '0'
     }
 
-    cloud = mock_cloud do |openstack|
-      expect(openstack.volumes).to receive(:get).with("v-foobar").and_return(volume)
-      expect(openstack.snapshots).to receive(:new).with(snapshot_params).and_return(snapshot)
+    cloud = mock_cloud do |fog|
+      expect(fog.volume.volumes).to receive(:get).with("v-foobar").and_return(volume)
+      expect(fog.volume.snapshots).to receive(:new).with(snapshot_params).and_return(snapshot)
     end
 
     expect(cloud).to receive(:generate_unique_name).and_return(unique_name)
     
     expect(volume).to receive(:attachments).and_return([{}])
     
-    expect(snapshot).to receive(:save).with(true)
+    expect(snapshot).to receive(:save)
 
     expect(cloud).to receive(:wait_resource).with(snapshot, :available)
 
@@ -80,9 +86,12 @@ describe Bosh::OpenStackCloud::Cloud do
     volume = double("volume", :id => "v-foobar")
     snapshot = double("snapshot", :id => "snap-foobar")
     snapshot_params = {
+      :display_name => "snapshot-#{unique_name}",
+      :display_description => 'deployment/job/0',
       :name => "snapshot-#{unique_name}",
       :description => 'deployment/job/0',
-      :volume_id => "v-foobar"
+      :volume_id => "v-foobar",
+      :force => true
     }
     metadata = {
       'agent_id' => 'agent',
@@ -94,16 +103,16 @@ describe Bosh::OpenStackCloud::Cloud do
       'index' => '0'
     }
 
-    cloud = mock_cloud do |openstack|
-      expect(openstack.volumes).to receive(:get).with("v-foobar").and_return(volume)
-      expect(openstack.snapshots).to receive(:new).with(snapshot_params).and_return(snapshot)
+    cloud = mock_cloud do |fog|
+      expect(fog.volume.volumes).to receive(:get).with("v-foobar").and_return(volume)
+      expect(fog.volume.snapshots).to receive(:new).with(snapshot_params).and_return(snapshot)
     end
 
     expect(cloud).to receive(:generate_unique_name).and_return(unique_name)
 
     expect(volume).to receive(:attachments).and_return([{}])
 
-    expect(snapshot).to receive(:save).with(true)
+    expect(snapshot).to receive(:save)
 
     expect(cloud).to receive(:wait_resource).with(snapshot, :available)
 
@@ -111,8 +120,8 @@ describe Bosh::OpenStackCloud::Cloud do
   end
 
   it "should raise an Exception if OpenStack volume is not found" do
-    cloud = mock_cloud do |openstack|
-      expect(openstack.volumes).to receive(:get).with("v-foobar").and_return(nil)
+    cloud = mock_cloud do |fog|
+      expect(fog.volume.volumes).to receive(:get).with("v-foobar").and_return(nil)
     end
 
     expect {

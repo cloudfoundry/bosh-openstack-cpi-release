@@ -27,14 +27,18 @@ require "cloud/openstack/openstack"
 require "cloud/openstack/tag_manager"
 
 require "cloud/openstack/network_configurator"
+require "cloud/openstack/resource_pool"
+require "cloud/openstack/security_groups"
+require "cloud/openstack/floating_ip"
 require "cloud/openstack/network"
+require "cloud/openstack/private_network"
 require "cloud/openstack/dynamic_network"
 require "cloud/openstack/manual_network"
 require "cloud/openstack/vip_network"
 require "cloud/openstack/volume_configurator"
 require "cloud/openstack/excon_logging_instrumentor"
 require "cloud/openstack/availability_zone_provider"
-require "cloud/openstack/redacted_params"
+require "cloud/openstack/stemcell"
 
 module Bosh
   module Clouds

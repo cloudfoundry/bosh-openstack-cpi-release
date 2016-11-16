@@ -12,8 +12,8 @@ describe Bosh::OpenStackCloud::Cloud do
   it "deletes an OpenStack server" do
     server = double("server", :id => "i-foobar", :name => "i-foobar")
 
-    cloud = mock_cloud do |openstack|
-      allow(openstack.servers).to receive(:get).with("i-foobar").and_return(server)
+    cloud = mock_cloud do |fog|
+      allow(fog.compute.servers).to receive(:get).with("i-foobar").and_return(server)
     end
 
     allow(Bosh::OpenStackCloud::NetworkConfigurator).to receive(:port_ids).and_return(['port_id'])

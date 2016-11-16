@@ -91,7 +91,7 @@ module Bosh::OpenStackCloud
     # @param [Hash] cloud_properties CPI-specific properties
     # @option cloud_properties [String] name Stemcell name
     # @option cloud_properties [String] version Stemcell version
-    # @option cloud_properties [String] infrastructure Stemcell infraestructure
+    # @option cloud_properties [String] infrastructure Stemcell infrastructure
     # @option cloud_properties [String] disk_format Image disk format
     # @option cloud_properties [String] container_format Image container format
     # @option cloud_properties [optional, String] kernel_file Name of the
@@ -101,78 +101,10 @@ module Bosh::OpenStackCloud
     # @return [String] OpenStack image UUID of the stemcell
     def create_stemcell(image_path, cloud_properties)
       with_thread_name("create_stemcell(#{image_path}...)") do
-        begin
-          Dir.mktmpdir do |tmp_dir|
-            @logger.info('Creating new image...')
-
-            is_glance_v1 = @openstack.image.class.to_s.include?('Fog::Image::OpenStack::V1')
-
-            image_params = {
-              :name => "#{cloud_properties['name']}/#{cloud_properties['version']}",
-              :disk_format => cloud_properties['disk_format'],
-              :container_format => cloud_properties['container_format'],
-            }
-
-            is_public = !@stemcell_public_visibility.nil? && @stemcell_public_visibility.to_s != 'false'
-            if is_glance_v1
-              image_params[:is_public] = is_public
-            else
-              image_params[:visibility] = is_public ? 'public' : 'private'
-            end
-
-            image_properties = normalize_image_properties(cloud_properties)
-
-            if is_glance_v1
-              image_params[:properties] = image_properties unless image_properties.empty?
-            else
-              image_params.merge!(image_properties)
-            end
-
-            @logger.info("Extracting stemcell file to `#{tmp_dir}'...")
-            unpack_image(tmp_dir, image_path)
-            image_location = File.join(tmp_dir, 'root.img')
-
-            # v1 performs file upload as part of initial create request
-            if is_glance_v1
-              image_params[:location] = image_location
-            end
-
-            @logger.debug("Using image parms: `#{image_params.inspect}'")
-            image = with_openstack { @openstack.image.images.create(image_params) }
-
-            # v2 performs the file upload as a subsequent request
-            unless is_glance_v1
-              wait_resource(image, :queued)
-              @logger.info("Performing file upload for image: '#{image.id}'...")
-              image.upload_data(File.open(image_location, 'rb'))
-            end
-
-            @logger.info("Waiting for image '#{image.id}' to have status 'active'...")
-            wait_resource(image, :active)
-
-            image.id.to_s
-          end
-        rescue => e
-          @logger.error(e)
-          raise e
-        end
+        is_public = !@stemcell_public_visibility.nil? && @stemcell_public_visibility.to_s != 'false'
+        stemcell = Stemcell.create_instance(@logger, @openstack)
+        stemcell.create(image_path, cloud_properties, is_public)
       end
-    end
-
-    ##
-    # Normalizes the image properties hash that is passed to the OpenStack Glance service.
-    #
-    # @param [Hash] properties CPI-specific properties
-    # @return [Hash] normalized properties
-    def normalize_image_properties(properties)
-      image_properties = {}
-      image_options = ['version', 'os_type', 'os_distro', 'architecture', 'auto_disk_config',
-                       'hw_vif_model', 'hypervisor_type', 'vmware_adaptertype', 'vmware_disktype',
-                       'vmware_linked_clone', 'vmware_ostype']
-      image_options.reject { |image_option| properties[property_option_for_image_option(image_option)].nil? }.each do |image_option|
-        image_properties[image_option.to_sym] = properties[property_option_for_image_option(image_option)].to_s
-      end
-      image_properties
     end
 
     ##
@@ -218,23 +150,21 @@ module Bosh::OpenStackCloud
         registry_key = "vm-#{generate_unique_name}"
 
         network_configurator = NetworkConfigurator.new(network_spec)
+        network_configurator.check_preconditions(@openstack.use_nova_networking?, @use_config_drive, @use_dhcp)
 
-        security_groups_to_be_used = retrieve_and_validate_security_groups(network_configurator, resource_pool)
-        @logger.debug("Using security groups: `#{security_groups_to_be_used.map { |sg| sg.name }.join(', ')}'")
-
-        if network_configurator.manual_port_creation? @config_drive
-          @logger.debug('Manual port creation because of multiple manual networks')
-          network_configurator.prepare_ports_for_manual_networks(@openstack, security_groups_to_be_used.map { |sg| sg.id })
-        end
-
-        nics = network_configurator.nics
-        @logger.debug("Using NICs: `#{nics.join(', ')}'")
+        picked_security_groups = SecurityGroups.validate_and_retrieve(
+            @openstack,
+            @default_security_groups,
+            network_configurator.security_groups,
+            ResourcePool.security_groups(resource_pool)
+        )
+        @logger.debug("Using security groups: `#{picked_security_groups.map { |sg| sg.name }.join(', ')}'")
 
         image = nil
         begin
           Bosh::Common.retryable(@connect_retry_options) do |tries, error|
             @logger.error("Unable to connect to OpenStack API to find image: `#{stemcell_id} due to: #{error.inspect}") unless error.nil?
-            image = with_openstack { @openstack.compute.images.find { |i| i.id == stemcell_id } }
+            image = with_openstack { @openstack.image.images.find_by_id(stemcell_id) }
             cloud_error("Image `#{stemcell_id}' not found") if image.nil?
             @logger.debug("Using image: `#{stemcell_id}'")
           end
@@ -270,11 +200,9 @@ module Bosh::OpenStackCloud
           :image_ref => image.id,
           :flavor_ref => flavor.id,
           :key_name => keyname,
-          :security_groups => security_groups_to_be_used.map { |sg| sg.name },
+          :security_groups => picked_security_groups.map { |sg| sg.name },
           :os_scheduler_hints => resource_pool['scheduler_hints'],
-          :nics => nics,
-          :config_drive => @use_config_drive,
-          :user_data => JSON.dump(user_data(registry_key, network_configurator.network_spec))
+          :config_drive => @use_config_drive
         }
 
         availability_zone = @az_provider.select(disk_locality, resource_pool['availability_zone'])
@@ -295,85 +223,100 @@ module Bosh::OpenStackCloud
           server_params.delete(:image_ref)
         end
 
-        @logger.debug("Using boot parms: `#{server_params.inspect}'")
-        server = with_openstack do
-          begin
-            @openstack.compute.servers.create(server_params)
-          rescue Excon::Errors::Timeout => e
-            @logger.debug(e.backtrace)
-            cloud_error_message = "VM creation with name '#{server_params[:name]}' received a timeout. " +
-                "The VM might still have been created by OpenStack.\nOriginal message: "
-            raise Bosh::Clouds::VMCreationFailed.new(false), cloud_error_message + e.message
-          rescue Excon::Errors::BadRequest, Excon::Errors::NotFound, Fog::Compute::OpenStack::NotFound => e
-            not_existing_net_ids = not_existing_net_ids(nics)
-            if not_existing_net_ids.empty?
-              raise e
-            else
+        begin
+          with_openstack {
+            network_configurator.prepare(@openstack, picked_security_groups.map { |sg| sg.id })
+          }
+
+          nics = network_configurator.nics
+          @logger.debug("Using NICs: `#{nics.join(', ')}'")
+          server_params.merge!({
+              nics: nics,
+              user_data: JSON.dump(user_data(registry_key, network_configurator.network_spec))
+          })
+
+          @logger.debug("Using boot parms: `#{server_params.inspect}'")
+          server = with_openstack do
+            begin
+              @openstack.compute.servers.create(server_params)
+            rescue Excon::Errors::Timeout => e
               @logger.debug(e.backtrace)
-              cloud_error_message = "VM creation with name '#{server_params[:name]}' failed. Following network " +
-                  "IDs are not existing or not accessible from this project: '#{not_existing_net_ids.join(",")}'. " +
-                  "Make sure you do not use subnet IDs"
-              raise Bosh::Clouds::VMCreationFailed.new(false), cloud_error_message
+              cloud_error_message = "VM creation with name '#{server_params[:name]}' received a timeout. " +
+                  "The VM might still have been created by OpenStack.\nOriginal message: "
+              raise Bosh::Clouds::VMCreationFailed.new(false), cloud_error_message + e.message
+            rescue Excon::Errors::BadRequest, Excon::Errors::NotFound, Fog::Compute::OpenStack::NotFound => e
+              if @openstack.use_nova_networking?
+                raise e
+              else
+                not_existing_net_ids = not_existing_net_ids(nics)
+                if not_existing_net_ids.empty?
+                  raise e
+                end
+                @logger.debug(e.backtrace)
+                cloud_error_message = "VM creation with name '#{server_params[:name]}' failed. Following network " +
+                    "IDs are not existing or not accessible from this project: '#{not_existing_net_ids.join(",")}'. " +
+                    "Make sure you do not use subnet IDs"
+                raise Bosh::Clouds::VMCreationFailed.new(false), cloud_error_message
+              end
             end
           end
-        end
 
-        @logger.info("Creating new server `#{server.id}'...")
-        begin
-          wait_resource(server, :active, :state)
-
-          @logger.info("Configuring network for server `#{server.id}'...")
-          network_configurator.configure(@openstack.compute, server)
-        rescue => e
-          @logger.warn("Failed to create server: #{e.message}")
-          destroy_server(server)
-          raise Bosh::Clouds::VMCreationFailed.new(true), e.message
-        end
-
-        if @human_readable_vm_names
-          @logger.debug("'human_readable_vm_names' enabled")
+          @logger.info("Creating new server `#{server.id}'...")
           begin
-            TagManager.tag(server, REGISTRY_KEY_TAG, registry_key)
-            @logger.debug("Tagged VM '#{server.id}' with tag '#{REGISTRY_KEY_TAG}': #{registry_key}")
+            wait_resource(server, :active, :state)
+
+            @logger.info("Configuring network for server `#{server.id}'...")
+            with_openstack {
+              network_configurator.configure(@openstack, server)
+            }
           rescue => e
-            @logger.warn("Unable to tag server with '#{REGISTRY_KEY_TAG}': #{e.message}")
-            destroy_server(server)
+            @logger.warn("Failed to create server: #{e.message}")
             raise Bosh::Clouds::VMCreationFailed.new(true), e.message
           end
-        else
-          @logger.debug("'human_readable_vm_names' disabled")
-        end
 
-        begin
-          @logger.info("Updating settings for server `#{server.id}'...")
-          settings = initial_agent_settings(registry_key, agent_id, network_configurator.network_spec, environment,
-                                            flavor_has_ephemeral_disk?(flavor))
-          @registry.update_settings(registry_key, settings)
-        rescue => e
-          @logger.warn("Failed to register server: #{e.message}")
-          destroy_server(server)
-          raise Bosh::Clouds::VMCreationFailed.new(false), e.message
-        end
-
-        server.id.to_s
-      end
-    end
-
-    def not_existing_net_ids(nics)
-      result = []
-      begin
-        network = @openstack.network
-        nics.each do |nic|
-          if nic["net_id"]
-            result << nic["net_id"] unless network.networks.get(nic["net_id"])
+          if @human_readable_vm_names
+            @logger.debug("'human_readable_vm_names' enabled")
+            begin
+              TagManager.tag(server, REGISTRY_KEY_TAG, registry_key)
+              @logger.debug("Tagged VM '#{server.id}' with tag '#{REGISTRY_KEY_TAG}': #{registry_key}")
+            rescue => e
+              @logger.warn("Unable to tag server with '#{REGISTRY_KEY_TAG}': #{e.message}")
+              raise Bosh::Clouds::VMCreationFailed.new(true), e.message
+            end
+          else
+            @logger.debug("'human_readable_vm_names' disabled")
           end
-        end
-      rescue Bosh::Clouds::CloudError => e
-        @logger.debug(e.backtrace)
-      end
-      result
-    end
 
+          begin
+            @logger.info("Updating settings for server `#{server.id}'...")
+            settings = initial_agent_settings(registry_key, agent_id, network_configurator.network_spec, environment,
+                flavor_has_ephemeral_disk?(flavor))
+            @registry.update_settings(registry_key, settings)
+          rescue => e
+            @logger.warn("Failed to register server: #{e.message}")
+            raise Bosh::Clouds::VMCreationFailed.new(false), e.message
+          end
+
+          server.id.to_s
+
+        rescue => e
+          begin
+            destroy_server(server) if server
+          rescue => destroy_err
+            @logger.warn("Failed to destroy server: #{destroy_err.message}")
+          end
+
+          begin
+            with_openstack {
+              network_configurator.cleanup(@openstack)
+            }
+          rescue => cleanup_error
+            @logger.warn("Failed to cleanup network resources: #{cleanup_error.message}")
+          end
+          raise e
+        end
+      end
+    end
 
     ##
     # Terminates an OpenStack server and waits until it reports as terminated
@@ -493,7 +436,7 @@ module Bosh::OpenStackCloud
     def has_disk?(disk_id)
       with_thread_name("has_disk?(#{disk_id})") do
         @logger.info("Check the presence of disk with id `#{disk_id}'...")
-        volume = with_openstack { @openstack.compute.volumes.get(disk_id) }
+        volume = with_openstack { @openstack.volume.volumes.get(disk_id) }
 
         !volume.nil?
       end
@@ -508,7 +451,7 @@ module Bosh::OpenStackCloud
     def delete_disk(disk_id)
       with_thread_name("delete_disk(#{disk_id})") do
         @logger.info("Deleting volume `#{disk_id}'...")
-        volume = with_openstack { @openstack.compute.volumes.get(disk_id) }
+        volume = with_openstack { @openstack.volume.volumes.get(disk_id) }
         if volume
           state = volume.status
           if state.to_sym != :available
@@ -534,7 +477,7 @@ module Bosh::OpenStackCloud
         server = with_openstack { @openstack.compute.servers.get(server_id) }
         cloud_error("Server `#{server_id}' not found") unless server
 
-        volume = with_openstack { @openstack.compute.volumes.get(disk_id) }
+        volume = with_openstack { @openstack.volume.volumes.get(disk_id) }
         cloud_error("Volume `#{disk_id}' not found") unless volume
 
         device_name = attach_volume(server, volume)
@@ -558,7 +501,7 @@ module Bosh::OpenStackCloud
         server = with_openstack { @openstack.compute.servers.get(server_id) }
         cloud_error("Server `#{server_id}' not found") unless server
 
-        volume = with_openstack { @openstack.compute.volumes.get(disk_id) }
+        volume = with_openstack { @openstack.volume.volumes.get(disk_id) }
         if volume.nil?
           @logger.info("Disk `#{disk_id}' not found while trying to detach it from vm `#{server_id}'...")
         else
@@ -583,7 +526,7 @@ module Bosh::OpenStackCloud
     def snapshot_disk(disk_id, metadata)
       with_thread_name("snapshot_disk(#{disk_id})") do
         metadata = Hash[metadata.map{|key,value| [key.to_s, value] }]
-        volume = with_openstack { @openstack.compute.volumes.get(disk_id) }
+        volume = with_openstack { @openstack.volume.volumes.get(disk_id) }
         cloud_error("Volume `#{disk_id}' not found") unless volume
 
         devices = []
@@ -591,15 +534,23 @@ module Bosh::OpenStackCloud
 
         description = ['deployment', 'job', 'index'].collect { |key| metadata[key] }
         description << devices.first.split('/').last unless devices.empty?
+        name = "snapshot-#{generate_unique_name}"
         snapshot_params = {
-          :name => "snapshot-#{generate_unique_name}",
+          # cinder v1 requires display_ prefix
+          :display_name => name,
+          :display_description => description.join('/'),
+          # cinder v2 does not require prefix
+          :name => name,
           :description => description.join('/'),
-          :volume_id => volume.id
+          :volume_id => volume.id,
+          :force => true
         }
 
         @logger.info("Creating new snapshot for volume `#{disk_id}'...")
-        snapshot = @openstack.compute.snapshots.new(snapshot_params)
-        with_openstack { snapshot.save(true) }
+        snapshot = @openstack.volume.snapshots.new(snapshot_params)
+        with_openstack {
+          snapshot.save
+        }
 
         @logger.info("Creating new snapshot `#{snapshot.id}' for volume `#{disk_id}'...")
         wait_resource(snapshot, :available)
@@ -617,7 +568,7 @@ module Bosh::OpenStackCloud
     def delete_snapshot(snapshot_id)
       with_thread_name("delete_snapshot(#{snapshot_id})") do
         @logger.info("Deleting snapshot `#{snapshot_id}'...")
-        snapshot = with_openstack { @openstack.compute.snapshots.get(snapshot_id) }
+        snapshot = with_openstack { @openstack.volume.snapshots.get(snapshot_id) }
         if snapshot
           state = snapshot.status
           if state.to_sym != :available
@@ -705,12 +656,19 @@ module Bosh::OpenStackCloud
 
     private
 
-    def property_option_for_image_option(image_option)
-      if image_option == 'hypervisor_type'
-        'hypervisor'
-      else
-        image_option
+    def not_existing_net_ids(nics)
+      result = []
+      begin
+        network = @openstack.network
+        nics.each do |nic|
+          if nic["net_id"]
+            result << nic["net_id"] unless network.networks.get(nic["net_id"])
+          end
+        end
+      rescue => e
+        @logger.warn(e.backtrace)
       end
+      result
     end
 
     ##
@@ -834,7 +792,7 @@ module Bosh::OpenStackCloud
         cloud_error('Server has too many disks attached') if device_name.nil?
 
         @logger.info("Attaching volume `#{volume.id}' to server `#{server.id}', device name is `#{device_name}'")
-        with_openstack { volume.attach(server.id, device_name) }
+        with_openstack { server.attach_volume(volume.id, device_name) }
         wait_resource(volume, :'in-use')
       else
         device_name = device['device']
@@ -891,7 +849,7 @@ module Bosh::OpenStackCloud
       volume_attachments = with_openstack { server.volume_attachments }
       attachment = volume_attachments.find { |a| a['volumeId'] == volume.id }
       if attachment
-        with_openstack { volume.detach(server.id, attachment['id']) }
+        with_openstack { server.detach_volume(volume.id) }
         wait_resource(volume, :available)
       else
         @logger.info("Disk `#{volume.id}' is not attached to server `#{server.id}'. Skipping.")
@@ -914,25 +872,6 @@ module Bosh::OpenStackCloud
     # @return [Boolean] true if flavor has swap disk, false otherwise
     def flavor_has_swap_disk?(flavor)
       flavor.swap.nil? || flavor.swap.to_i <= 0 ? false : true
-    end
-
-    ##
-    # Unpacks a stemcell archive
-    #
-    # @param [String] tmp_dir Temporary directory
-    # @param [String] image_path Local filesystem path to a stemcell image
-    # @return [void]
-    def unpack_image(tmp_dir, image_path)
-      result = Bosh::Exec.sh("tar -C #{tmp_dir} -xzf #{image_path} 2>&1", :on_error => :return)
-      if result.failed?
-        @logger.error("Extracting stemcell root image failed in dir #{tmp_dir}, " +
-                      "tar returned #{result.exit_status}, output: #{result.output}")
-        cloud_error('Extracting stemcell root image failed. Check task debug log for details.')
-      end
-      root_image = File.join(tmp_dir, 'root.img')
-      unless File.exists?(root_image)
-        cloud_error('Root image is missing from stemcell archive')
-      end
     end
 
     ##
@@ -1034,36 +973,6 @@ module Bosh::OpenStackCloud
       rescue Bosh::Clouds::CloudError => delete_server_error
         @logger.warn("Failed to destroy server: #{delete_server_error.inspect}\n#{delete_server_error.backtrace.join('\n')}")
       end
-    end
-
-    def retrieve_and_validate_security_groups(network_configurator, resource_pool)
-      resource_pool_spec_security_groups = resource_pool_spec_security_groups(resource_pool)
-
-      if network_configurator.security_groups.size > 0 && resource_pool_spec_security_groups.size > 0
-        cloud_error('Cannot define security groups in both network and resource pool.')
-      end
-
-      openstack_security_groups = with_openstack { @openstack.compute.security_groups }
-      network_security_groups = network_configurator.security_groups(@default_security_groups)
-      security_groups_to_be_used = resource_pool_spec_security_groups.size > 0 ? resource_pool_spec_security_groups : network_security_groups
-
-      security_groups_to_be_used.map do |configured_sg|
-        openstack_security_group = openstack_security_groups.find {|openstack_sg| openstack_sg.name == configured_sg}
-        cloud_error("Security group `#{configured_sg}' not found") unless openstack_security_group
-        openstack_security_group
-      end
-
-    end
-
-    def resource_pool_spec_security_groups(resource_pool_spec)
-      if resource_pool_spec && resource_pool_spec.has_key?("security_groups")
-        unless resource_pool_spec["security_groups"].is_a?(Array)
-          raise ArgumentError, "security groups must be an Array"
-        end
-        return resource_pool_spec["security_groups"]
-      end
-
-      []
     end
 
     def validate_key_exists(keyname)

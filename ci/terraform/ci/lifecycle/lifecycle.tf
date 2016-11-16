@@ -8,23 +8,23 @@ provider "openstack" {
 }
 
 module "base" {
-  source = "../modules/base"
+  source = "github.com/cloudfoundry-incubator/bosh-openstack-cpi-release//ci/terraform/ci/modules/base"
   region_name = "${var.region_name}"
   tenant_name = "${var.tenant_name}"
-  availability_zone = "${var.availability_zone}"
-  ext_net_name = "${var.ext_net_name}"
   ext_net_id = "${var.ext_net_id}"
-  ext_net_cidr = "${var.ext_net_cidr}"
-  concourse_external_network_cidr = "${var.concourse_external_network_cidr}"
-  openstack_default_key_name_prefix = "${var.openstack_default_key_name_prefix}"
+  ext_net_cidr = ""
+  concourse_external_network_cidr = ""
   openstack_default_key_public_key = "${var.openstack_default_key_public_key}"
+  prefix = "lifecycle"
+  add_security_group = "0"
 }
 
 module "lifecycle" {
-  source = "../modules/lifecycle"
+  source = "github.com/cloudfoundry-incubator/bosh-openstack-cpi-release//ci/terraform/ci/modules/lifecycle"
   region_name = "${var.region_name}"
   dns_nameservers = "${var.dns_nameservers}"
   default_router_id = "${module.base.default_router_id}"
+  ext_net_name = "${var.ext_net_name}"
 }
 
 variable "auth_url" {
@@ -56,61 +56,67 @@ variable "region_name" {
   description = "OpenStack region name"
 }
 
-variable "availability_zone" {
-  description = "OpenStack availability zone name"
-}
-
-variable "ext_net_name" {
-  description = "OpenStack external network name to register floating IP"
-}
-
 variable "ext_net_id" {
   description = "OpenStack external network id to create router interface port"
 }
 
-variable "ext_net_cidr" {
-  description = "OpenStack external network cidr to define ingress security group rules"
+variable "ext_net_name" {
+  description = "OpenStack external network name to create router interface port"
 }
 
 variable "dns_nameservers" {
-  type = "list"
-  default = []
+  default = ""
   description = "DNS server IPs"
-}
-
-variable "concourse_external_network_cidr" {
-  description = "Network cidr where concourse is running in. Use value of ext_net_cidr, if it runs within OpenStack"
-}
-
-variable "openstack_default_key_name_prefix" {
-  default = "external-cpi"
-  description = "This prefix will be used as the base name of the generated key pair"
 }
 
 variable "openstack_default_key_public_key" {
   description = "This is the actual public key which is uploaded"
 }
 
-output "net id:   lifecycle_openstack_net_id" {
+output "net_id" {
   value = "${module.lifecycle.lifecycle_openstack_net_id}"
 }
 
-output "manual ip:   lifecycle_manual_ip" {
+output "manual_ip" {
   value = "${module.lifecycle.lifecycle_manual_ip}"
 }
 
-output "net id:   lifecycle_net_id_no_dhcp_1" {
+output "net_id_no_dhcp_1" {
   value = "${module.lifecycle.lifecycle_net_id_no_dhcp_1}"
 }
 
-output "manual ip:   lifecycle_no_dhcp_manual_ip_1" {
+output "no_dhcp_manual_ip_1" {
   value = "${module.lifecycle.lifecycle_no_dhcp_manual_ip_1}"
 }
 
-output "net id:   lifecycle_net_id_no_dhcp_2" {
+output "net_id_no_dhcp_2" {
   value = "${module.lifecycle.lifecycle_net_id_no_dhcp_2}"
 }
 
-output "manual ip:   lifecycle_no_dhcp_manual_ip_2" {
+output "no_dhcp_manual_ip_2" {
   value = "${module.lifecycle.lifecycle_no_dhcp_manual_ip_2}"
+}
+
+output "auth_url_v3" {
+  value = "${var.auth_url}"
+}
+
+output "domain" {
+  value = "${var.domain_name}"
+}
+
+output "project" {
+  value = "${var.tenant_name}"
+}
+
+output "tenant" {
+  value = "${var.tenant_name}"
+}
+
+output "default_key_name" {
+  value = "${module.base.key_name}"
+}
+
+output "floating_ip" {
+  value = "${module.lifecycle.lifecycle_floating_ip}"
 }

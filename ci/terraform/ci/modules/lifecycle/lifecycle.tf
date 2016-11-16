@@ -1,5 +1,4 @@
 variable "dns_nameservers" {
-  type = "list"
   description = "DNS server IPs"
 }
 
@@ -8,6 +7,10 @@ variable "region_name" {
 }
 
 variable "default_router_id" {}
+
+variable "ext_net_name" {
+  description = "OpenStack external network name to register floating IP"
+}
 
 output "lifecycle_openstack_net_id" {
   value = "${openstack_networking_network_v2.lifecycle_net.id}"
@@ -33,6 +36,10 @@ output "lifecycle_no_dhcp_manual_ip_2" {
   value = "${cidrhost(openstack_networking_subnet_v2.lifecycle_subnet_no_dhcp_2.cidr, 3)}"
 }
 
+output "lifecycle_floating_ip" {
+  value = "${openstack_compute_floatingip_v2.lifecycle_floating_ip.address}"
+}
+
 resource "openstack_networking_network_v2" "lifecycle_net" {
   region         = "${var.region_name}"
   name           = "lifecycle"
@@ -51,7 +58,7 @@ resource "openstack_networking_subnet_v2" "lifecycle_subnet" {
   }
   gateway_ip       = "10.0.1.1"
   enable_dhcp      = "true"
-  dns_nameservers = "${var.dns_nameservers}"
+  dns_nameservers = ["${compact(split(",",var.dns_nameservers))}"]
 }
 
 resource "openstack_networking_network_v2" "lifecycle_net_no_dhcp_1" {
@@ -68,7 +75,7 @@ resource "openstack_networking_subnet_v2" "lifecycle_subnet_no_dhcp_1" {
   name             = "lifecycle-subnet-no-dhcp-1"
   gateway_ip       = "10.1.1.1"
   enable_dhcp      = "false"
-  dns_nameservers = "${var.dns_nameservers}"
+  dns_nameservers = ["${compact(split(",",var.dns_nameservers))}"]
 }
 
 resource "openstack_networking_network_v2" "lifecycle_net_no_dhcp_2" {
@@ -85,7 +92,7 @@ resource "openstack_networking_subnet_v2" "lifecycle_subnet_no_dhcp_2" {
   name             = "lifecycle-subnet-no-dhcp-2"
   gateway_ip       = "10.2.1.1"
   enable_dhcp      = "false"
-  dns_nameservers = "${var.dns_nameservers}"
+  dns_nameservers = ["${compact(split(",",var.dns_nameservers))}"]
 }
 
 # router
@@ -94,4 +101,9 @@ resource "openstack_networking_router_interface_v2" "lifecycle_port" {
   region    = "${var.region_name}"
   router_id = "${var.default_router_id}"
   subnet_id = "${openstack_networking_subnet_v2.lifecycle_subnet.id}"
+}
+
+resource "openstack_compute_floatingip_v2" "lifecycle_floating_ip" {
+  region = "${var.region_name}"
+  pool   = "${var.ext_net_name}"
 }

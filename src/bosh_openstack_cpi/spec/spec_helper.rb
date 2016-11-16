@@ -76,32 +76,36 @@ def mock_cloud(options = nil)
   images = double('images')
   flavors = double('flavors')
   volumes = double('volumes')
-  addresses = double('addresses')
   snapshots = double('snapshots')
   key_pairs = double('key_pairs')
   security_groups = [double('default_sec_group', id: 'default_sec_group_id', name: 'default')]
 
-  glance = double(Fog::Image::OpenStack::V2)
-  allow(Fog::Image::OpenStack::V2).to receive(:new).and_return(glance)
+  image = double(Fog::Image::OpenStack::V2)
+  allow(Fog::Image::OpenStack::V2).to receive(:new).and_return(image)
+  allow(image).to receive(:images).and_return(images)
 
   volume = double(Fog::Volume::OpenStack::V2)
   allow(volume).to receive(:volumes).and_return(volumes)
+  allow(volume).to receive(:snapshots).and_return(snapshots)
   allow(Fog::Volume::OpenStack::V2).to receive(:new).and_return(volume)
 
-  openstack = double(Fog::Compute)
+  network = double(Fog::Network::OpenStack)
+  allow(network).to receive(:security_groups).and_return(security_groups)
+  allow(Fog::Network::OpenStack).to receive(:new).and_return(network)
 
-  allow(openstack).to receive(:servers).and_return(servers)
-  allow(openstack).to receive(:images).and_return(images)
-  allow(openstack).to receive(:flavors).and_return(flavors)
-  allow(openstack).to receive(:volumes).and_return(volumes)
-  allow(openstack).to receive(:addresses).and_return(addresses)
-  allow(openstack).to receive(:snapshots).and_return(snapshots)
-  allow(openstack).to receive(:key_pairs).and_return(key_pairs)
-  allow(openstack).to receive(:security_groups).and_return(security_groups)
+  compute = double(Fog::Compute)
 
-  allow(Fog::Compute).to receive(:new).and_return(openstack)
+  allow(compute).to receive(:servers).and_return(servers)
+  allow(compute).to receive(:flavors).and_return(flavors)
+  allow(compute).to receive(:key_pairs).and_return(key_pairs)
 
-  yield openstack if block_given?
+  allow(Fog::Compute).to receive(:new).and_return(compute)
+
+  fog = Struct
+      .new(:compute, :network, :image, :volume)
+      .new(compute, network, image, volume)
+
+  yield(fog) if block_given?
 
   Bosh::OpenStackCloud::Cloud.new(options || mock_cloud_options['properties'])
 end
@@ -109,11 +113,11 @@ end
 def mock_glance_v1(options = nil)
   cloud = mock_cloud(options)
 
-  glance = double(Fog::Image::OpenStack::V1, images: double('images'))
-  allow(cloud.instance_variable_get('@openstack')).to receive(:image).and_return(glance)
-  allow(glance).to receive(:class).and_return(Fog::Image::OpenStack::V1::Mock)
+  image = double(Fog::Image::OpenStack::V1, images: double('images'))
+  allow(cloud.instance_variable_get('@openstack')).to receive(:image).and_return(image)
+  allow(image).to receive(:class).and_return(Fog::Image::OpenStack::V1)
 
-  yield glance if block_given?
+  yield image if block_given?
 
   cloud
 end
@@ -121,11 +125,11 @@ end
 def mock_glance_v2(options = nil)
   cloud = mock_cloud(options)
 
-  glance = double(Fog::Image::OpenStack::V2, images: double('images'))
-  allow(cloud.instance_variable_get('@openstack')).to receive(:image).and_return(glance)
-  allow(glance).to receive(:class).and_return(Fog::Image::OpenStack::V2::Mock)
+  image = double(Fog::Image::OpenStack::V2, images: double('images'))
+  allow(cloud.instance_variable_get('@openstack')).to receive(:image).and_return(image)
+  allow(image).to receive(:class).and_return(Fog::Image::OpenStack::V2)
 
-  yield glance if block_given?
+  yield image if block_given?
 
   cloud
 end
@@ -140,16 +144,17 @@ def dynamic_network_spec
   }
 end
 
-def manual_network_spec(net_id: 'net', ip: '0.0.0.0')
+def manual_network_spec(net_id: 'net', ip: '0.0.0.0', defaults: nil, overwrites: {})
   {
     'type' => 'manual',
     'ip' => ip,
+    'defaults' => defaults,
     'cloud_properties' => {
       'security_groups' => %w[default],
       'net_id' => net_id
     },
     'use_dhcp' => true
-  }
+  }.merge(overwrites)
 end
 
 def manual_network_without_netid_spec
@@ -231,12 +236,12 @@ class LifecycleHelper
       ENV[env_key]
     end
 
-    present = value && !value.empty?
-
-    if !present && default == :none
+    value_empty = value.to_s.empty?
+    if value_empty && default == :none
       raise("Missing #{key}/#{env_key}; use LIFECYCLE_ENV_FILE=file.yml and LIFECYCLE_ENV_NAME=xxx or set in ENV")
     end
-    present ? value : default
+
+    value_empty ? default : value
   end
 
   def self.load_config_from_file(env_file, env_name)
@@ -255,13 +260,6 @@ class LifecycleHelper
 
 end
 
-def write_ssl_ca_file(ca_cert, logger)
-  Dir::Tmpname.create('cacert.pem') do |path|
-    logger.info("cacert.pem file: #{path}")
-    File.write(path, ca_cert)
-  end
-end
-
 def connection_options(additional_options = {})
   options = {
       'connect_timeout' => LifecycleHelper.get_config(:connect_timeout, '120').to_i,
@@ -276,13 +274,31 @@ end
 
 def additional_connection_options(logger)
   additional_connection_options = {}
-  ca_cert = LifecycleHelper.get_config(:ca_cert, nil)
-  if ca_cert && !ca_cert.empty?
-    additional_connection_options['ssl_ca_file'] = write_ssl_ca_file(ca_cert, logger)
-  elsif LifecycleHelper.get_config(:insecure, false)
+  if ca_cert?
+    additional_connection_options['ssl_ca_file'] = ca_cert_file(logger)
+  elsif insecure?
     additional_connection_options['ssl_verify_peer'] = false
   end
   additional_connection_options
+end
+
+def ca_cert_content
+  LifecycleHelper.get_config(:ca_cert, nil)
+end
+
+def ca_cert?
+  ca_cert_content && !ca_cert_content.empty?
+end
+
+def insecure?
+  LifecycleHelper.get_config(:insecure, false)
+end
+
+def ca_cert_file(logger)
+  Dir::Tmpname.create('cacert.pem') do |path|
+    logger.info("cacert.pem file: #{path}")
+    File.write(path, ca_cert_content)
+  end
 end
 
 def str_to_bool(string)

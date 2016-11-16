@@ -7,6 +7,7 @@ image_resource:
 inputs:
   - name: bosh-cpi-src-in
   - name: openstack-lifecycle-stemcell
+  - name: terraform-lifecycle
 outputs:
   - name: output
 run:
@@ -21,12 +22,6 @@ params:
   BOSH_OPENSTACK_API_KEY_V3:               ""
   BOSH_OPENSTACK_PROJECT:                  ""
   BOSH_OPENSTACK_TENANT:                   ""
-  BOSH_OPENSTACK_MANUAL_IP:                ""
-  BOSH_OPENSTACK_NO_DHCP_MANUAL_IP_1:      ""
-  BOSH_OPENSTACK_NO_DHCP_MANUAL_IP_2:      ""
-  BOSH_OPENSTACK_NET_ID:                   ""
-  BOSH_OPENSTACK_NET_ID_NO_DHCP_1:         ""
-  BOSH_OPENSTACK_NET_ID_NO_DHCP_2:         ""
   BOSH_CLI_SILENCE_SLOW_LOAD_WARNING:      ""
   BOSH_OPENSTACK_VOLUME_TYPE:              ""
   BOSH_OPENSTACK_CONNECT_TIMEOUT:          ""
@@ -35,3 +30,4 @@ params:
   BOSH_OPENSTACK_DEFAULT_KEY_NAME:         ""
   BOSH_OPENSTACK_CA_CERT:                  ""
   BOSH_OPENSTACK_FLAVOR_WITH_NO_ROOT_DISK: ""
+

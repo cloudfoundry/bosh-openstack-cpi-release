@@ -6,8 +6,8 @@ describe Bosh::OpenStackCloud::Cloud do
       let(:disk) { instance_double('Fog::Volume') }
 
       it 'returns true' do
-        cloud = mock_cloud(mock_cloud_options['properties']) do |openstack|
-          allow(openstack.volumes).to receive(:get).with('fake-disk-uuid').and_return(disk)
+        cloud = mock_cloud(mock_cloud_options['properties']) do |fog|
+          allow(fog.volume.volumes).to receive(:get).with('fake-disk-uuid').and_return(disk)
         end
 
         expect(cloud.has_disk?('fake-disk-uuid')).to be(true)
@@ -16,8 +16,8 @@ describe Bosh::OpenStackCloud::Cloud do
 
     context 'when disk is not found' do
       it 'returns false' do
-        cloud = mock_cloud(mock_cloud_options['properties']) do |openstack|
-          allow(openstack.volumes).to receive(:get).with('fake-disk-uuid').and_return(nil)
+        cloud = mock_cloud(mock_cloud_options['properties']) do |fog|
+          allow(fog.volume.volumes).to receive(:get).with('fake-disk-uuid').and_return(nil)
         end
 
         expect(cloud.has_disk?('fake-disk-uuid')).to be(false)
