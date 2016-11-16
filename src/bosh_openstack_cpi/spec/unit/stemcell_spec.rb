@@ -1,11 +1,11 @@
 describe Bosh::OpenStackCloud::StemcellHeavy do
-  subject { described_class.new(nil, nil) }
+  subject { described_class }
 
   describe '#normalize_image_properties' do
 
     it 'rejects nil values' do
       properties = {
-        "version" => nil
+        'version' => nil
       }
 
       expect(subject.normalize_image_properties(properties)).to_not have_key(:version)
@@ -13,7 +13,7 @@ describe Bosh::OpenStackCloud::StemcellHeavy do
 
     it 'converts keys to symbols' do
       properties = {
-        "version" => "123",
+        'version' => '123',
       }
 
       expect(subject.normalize_image_properties(properties)).to have_key(:version)
@@ -21,12 +21,12 @@ describe Bosh::OpenStackCloud::StemcellHeavy do
 
     it 'maps hypervisor key to hypervisor_type' do
       properties = {
-        "hypervisor" => "kvm"
+        'hypervisor' => 'kvm'
       }
 
       image_properties = subject.normalize_image_properties(properties)
 
-      expect(image_properties[:hypervisor_type]).to eq("kvm")
+      expect(image_properties[:hypervisor_type]).to eq('kvm')
       expect(image_properties).to_not have_key(:hypervisor)
     end
   end

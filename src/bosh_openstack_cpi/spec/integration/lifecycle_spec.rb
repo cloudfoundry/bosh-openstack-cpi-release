@@ -368,6 +368,28 @@ describe Bosh::OpenStackCloud::Cloud do
     end
   end
 
+  describe 'create light stemcell' do
+    it 'returns the stemcell id with ` light` suffix' do
+      cloud_properties = {
+        'image_id' => @stemcell_id
+      }
+
+      expect(cpi.create_stemcell('not_relevant_path', cloud_properties)).to eq("#{@stemcell_id} light")
+    end
+
+    context 'when referenced image does not exist' do
+      it 'raises an error' do
+        cloud_properties = {
+          'image_id' => 'non-existing-id'
+        }
+
+        expect{
+          cpi.create_stemcell('not_relevant_path', cloud_properties)
+        }.to raise_error Bosh::Clouds::CloudError
+      end
+    end
+  end
+
   def volumes(vm_id)
     cpi.compute.servers.get(vm_id).volume_attachments
   end

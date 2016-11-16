@@ -2,19 +2,41 @@ module Bosh::OpenStackCloud
   class Stemcell
     include Helpers
 
-    def self.create_instance(logger, openstack)
-      if openstack.image.class.to_s.include?('Fog::Image::OpenStack::V1')
-        StemcellV1.new(logger, openstack)
+    def self.create_instance(logger, openstack, cloud_properties)
+      if cloud_properties.has_key?('image_id')
+        StemcellLight.new(logger, openstack, cloud_properties)
       else
-        StemcellV2.new(logger, openstack)
+        if openstack.image.class.to_s.include?('Fog::Image::OpenStack::V1')
+          StemcellV1.new(logger, openstack, cloud_properties)
+        else
+          StemcellV2.new(logger, openstack, cloud_properties)
+        end
       end
     end
 
-    def initialize(logger, openstack)
+    def initialize(logger, openstack, cloud_properties)
       @logger = logger
       @openstack = openstack
+      @cloud_properties = cloud_properties
     end
 
+  end
+
+  class StemcellLight < Stemcell
+    def initialize(*args)
+       super
+    end
+
+    def create(_, _)
+      image_id = @cloud_properties['image_id']
+      @logger.info("Checking for image with id '#{image_id}' referenced by light stemcell")
+      image = @openstack.image.images.get(image_id)
+      if !image || image.status != 'active'
+        cloud_error("No active image with id '#{image_id}' referenced by light stemcell found in OpenStack.")
+      end
+
+      image.id + ' light'
+    end
   end
 
   class StemcellHeavy < Stemcell
@@ -23,20 +45,20 @@ module Bosh::OpenStackCloud
       super
     end
 
-    def create(image_path, cloud_properties, is_public)
+    def create(image_path, is_public)
       begin
         Dir.mktmpdir do |tmp_dir|
           @logger.info('Creating new image...')
 
           image_params = {
-            :name => "#{cloud_properties['name']}/#{cloud_properties['version']}",
-            :disk_format => cloud_properties['disk_format'],
-            :container_format => cloud_properties['container_format'],
+            :name => "#{@cloud_properties['name']}/#{@cloud_properties['version']}",
+            :disk_format => @cloud_properties['disk_format'],
+            :container_format => @cloud_properties['container_format'],
           }
 
           set_public_param(image_params, is_public)
 
-          image_properties = normalize_image_properties(cloud_properties)
+          image_properties = StemcellHeavy.normalize_image_properties(@cloud_properties)
 
           set_image_properties(image_params, image_properties)
 
@@ -75,7 +97,7 @@ module Bosh::OpenStackCloud
       end
     end
 
-    def normalize_image_properties(properties)
+    def self.normalize_image_properties(properties)
       image_properties = {}
       image_options = ['version', 'os_type', 'os_distro', 'architecture', 'auto_disk_config',
         'hw_vif_model', 'hypervisor_type', 'vmware_adaptertype', 'vmware_disktype',
@@ -86,7 +108,7 @@ module Bosh::OpenStackCloud
       image_properties
     end
 
-    def property_option_for_image_option(image_option)
+    def self.property_option_for_image_option(image_option)
       if image_option == 'hypervisor_type'
         'hypervisor'
       else

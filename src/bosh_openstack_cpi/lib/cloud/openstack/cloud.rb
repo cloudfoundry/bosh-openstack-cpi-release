@@ -39,7 +39,7 @@ module Bosh::OpenStackCloud
       @default_key_name =openstack_properties["default_key_name"]
       @default_security_groups =openstack_properties["default_security_groups"]
       @state_timeout =openstack_properties["state_timeout"]
-      @stemcell_public_visibility =openstack_properties["stemcell_public_visibility"]
+      @stemcell_public_visibility = to_bool(openstack_properties["stemcell_public_visibility"])
       @wait_resource_poll_interval =openstack_properties["wait_resource_poll_interval"]
       @boot_from_volume =openstack_properties["boot_from_volume"]
       @use_dhcp =openstack_properties.fetch('use_dhcp', true)
@@ -101,9 +101,8 @@ module Bosh::OpenStackCloud
     # @return [String] OpenStack image UUID of the stemcell
     def create_stemcell(image_path, cloud_properties)
       with_thread_name("create_stemcell(#{image_path}...)") do
-        is_public = !@stemcell_public_visibility.nil? && @stemcell_public_visibility.to_s != 'false'
-        stemcell = Stemcell.create_instance(@logger, @openstack)
-        stemcell.create(image_path, cloud_properties, is_public)
+        stemcell = Stemcell.create_instance(@logger, @openstack, cloud_properties)
+        stemcell.create(image_path, @stemcell_public_visibility)
       end
     end
 
