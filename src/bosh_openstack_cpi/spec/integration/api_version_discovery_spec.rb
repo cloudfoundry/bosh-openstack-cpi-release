@@ -5,8 +5,6 @@ describe Bosh::OpenStackCloud::Cloud do
 
   before(:all) do
     @config = IntegrationConfig.new
-    @additional_connection_options = additional_connection_options(@config.logger)
-
     Bosh::Clouds::Config.configure(OpenStruct.new(:logger => @config.logger, :cpi_task_log => nil))
   end
 
@@ -196,9 +194,9 @@ describe Bosh::OpenStackCloud::Cloud do
 
   def create_http_connection(token_response_uri)
     ssl_options = {use_ssl: token_response_uri.scheme == 'https'}
-    if @additional_connection_options['ssl_ca_file']
-      ssl_options[:ca_file] = @additional_connection_options['ssl_ca_file']
-    elsif @additional_connection_options['ssl_verify_peer']
+    if ca_cert?
+      ssl_options[:ca_file] = ca_cert_file(logger)
+    elsif insecure?
       ssl_options[:verify_mode] = OpenSSL::SSL::VERIFY_NONE
     end
     Net::HTTP.start(token_response_uri.host, token_response_uri.port, ssl_options)

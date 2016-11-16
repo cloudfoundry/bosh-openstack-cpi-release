@@ -146,27 +146,27 @@ output "bats_manual_centos_floating_ip" {
 }
 
 output "lifecycle_openstack_net_id" {
-  value = "${module.lifecycle.lifecycle_openstack_net_id}"
+  value = "${module.lifecycle.net_id}"
 }
 
 output "lifecycle_manual_ip" {
-  value = "${module.lifecycle.lifecycle_manual_ip}"
+  value = "${module.lifecycle.manual_ip}"
 }
 
 output "lifecycle_net_id_no_dhcp_1" {
-  value = "${module.lifecycle.lifecycle_net_id_no_dhcp_1}"
+  value = "${module.lifecycle.net_id_no_dhcp_1}"
 }
 
 output "lifecycle_no_dhcp_manual_ip_1" {
-  value = "${module.lifecycle.lifecycle_no_dhcp_manual_ip_1}"
+  value = "${module.lifecycle.no_dhcp_manual_ip_1}"
 }
 
 output "lifecycle_net_id_no_dhcp_2" {
-  value = "${module.lifecycle.lifecycle_net_id_no_dhcp_2}"
+  value = "${module.lifecycle.net_id_no_dhcp_2}"
 }
 
 output "lifecycle_no_dhcp_manual_ip_2" {
-  value = "${module.lifecycle.lifecycle_no_dhcp_manual_ip_2}"
+  value = "${module.lifecycle.no_dhcp_manual_ip_2}"
 }
 
 output "bats_manual_centos_director_private_ip" {

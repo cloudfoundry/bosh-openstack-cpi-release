@@ -16,4 +16,4 @@ See [List of OpenStack API calls](docs/openstack-api-calls.md) to get an idea ab
 
 ## Development
 
-See [development doc](docs/development.md).
+See [development doc](CONTRIBUTING.md).

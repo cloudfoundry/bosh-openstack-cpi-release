@@ -73,46 +73,50 @@ variable "openstack_default_key_public_key" {
   description = "This is the actual public key which is uploaded"
 }
 
-output "lifecycle_openstack_net_id" {
+output "net_id" {
   value = "${module.lifecycle.lifecycle_openstack_net_id}"
 }
 
-output "lifecycle_manual_ip" {
+output "manual_ip" {
   value = "${module.lifecycle.lifecycle_manual_ip}"
 }
 
-output "lifecycle_net_id_no_dhcp_1" {
+output "net_id_no_dhcp_1" {
   value = "${module.lifecycle.lifecycle_net_id_no_dhcp_1}"
 }
 
-output "lifecycle_no_dhcp_manual_ip_1" {
+output "no_dhcp_manual_ip_1" {
   value = "${module.lifecycle.lifecycle_no_dhcp_manual_ip_1}"
 }
 
-output "lifecycle_net_id_no_dhcp_2" {
+output "net_id_no_dhcp_2" {
   value = "${module.lifecycle.lifecycle_net_id_no_dhcp_2}"
 }
 
-output "lifecycle_no_dhcp_manual_ip_2" {
+output "no_dhcp_manual_ip_2" {
   value = "${module.lifecycle.lifecycle_no_dhcp_manual_ip_2}"
 }
 
-output "lifecycle_openstack_domain" {
+output "auth_url_v3" {
+  value = "${var.auth_url}"
+}
+
+output "domain" {
   value = "${var.domain_name}"
 }
 
-output "lifecycle_openstack_project" {
+output "project" {
   value = "${var.tenant_name}"
 }
 
-output "lifecycle_openstack_tenant" {
+output "tenant" {
   value = "${var.tenant_name}"
 }
 
-output "lifecycle_key_name" {
+output "default_key_name" {
   value = "${module.base.key_name}"
 }
 
-output "lifecycle_floating_ip" {
+output "floating_ip" {
   value = "${module.lifecycle.lifecycle_floating_ip}"
 }

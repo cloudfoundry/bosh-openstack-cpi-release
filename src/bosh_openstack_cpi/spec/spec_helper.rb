@@ -236,12 +236,12 @@ class LifecycleHelper
       ENV[env_key]
     end
 
-    present = value && !value.empty?
-
-    if !present && default == :none
+    value_empty = value.to_s.empty?
+    if value_empty && default == :none
       raise("Missing #{key}/#{env_key}; use LIFECYCLE_ENV_FILE=file.yml and LIFECYCLE_ENV_NAME=xxx or set in ENV")
     end
-    present ? value : default
+
+    value_empty ? default : value
   end
 
   def self.load_config_from_file(env_file, env_name)
@@ -260,13 +260,6 @@ class LifecycleHelper
 
 end
 
-def write_ssl_ca_file(ca_cert, logger)
-  Dir::Tmpname.create('cacert.pem') do |path|
-    logger.info("cacert.pem file: #{path}")
-    File.write(path, ca_cert)
-  end
-end
-
 def connection_options(additional_options = {})
   options = {
       'connect_timeout' => LifecycleHelper.get_config(:connect_timeout, '120').to_i,
@@ -281,13 +274,31 @@ end
 
 def additional_connection_options(logger)
   additional_connection_options = {}
-  ca_cert = LifecycleHelper.get_config(:ca_cert, nil)
-  if ca_cert && !ca_cert.empty?
-    additional_connection_options['ssl_ca_file'] = write_ssl_ca_file(ca_cert, logger)
-  elsif LifecycleHelper.get_config(:insecure, false)
+  if ca_cert?
+    additional_connection_options['ssl_ca_file'] = ca_cert_file(logger)
+  elsif insecure?
     additional_connection_options['ssl_verify_peer'] = false
   end
   additional_connection_options
+end
+
+def ca_cert_content
+  LifecycleHelper.get_config(:ca_cert, nil)
+end
+
+def ca_cert?
+  ca_cert_content && !ca_cert_content.empty?
+end
+
+def insecure?
+  LifecycleHelper.get_config(:insecure, false)
+end
+
+def ca_cert_file(logger)
+  Dir::Tmpname.create('cacert.pem') do |path|
+    logger.info("cacert.pem file: #{path}")
+    File.write(path, ca_cert_content)
+  end
 end
 
 def str_to_bool(string)
