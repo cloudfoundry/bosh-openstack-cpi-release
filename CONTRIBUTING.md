@@ -33,6 +33,7 @@ $ bundle exec rspec spec/unit
 - Download and extract BOSH stemcell from [bosh.io](http://bosh.io/stemcells/bosh-openstack-kvm-ubuntu-trusty-go_agent)
 - Find or create an OpenStack project/tenant
 - Create a key pair by executing
+  
   ```bash
   $ mkdir -p <temp dir>
   $ cd <temp dir>
@@ -40,21 +41,25 @@ $ bundle exec rspec spec/unit
   ```
 - Prepare openstack project
   - Copy terraform configuration
+  
     ```bash
     $ cp <cpi project>/ci/terraform/ci/lifecycle/terraform.tfvars.template terraform.tfvars
     ```
   - Replace all '<...>' with appropriate values.
   - Run terraform
+  
     ```bash
     $ terraform get <cpi project>/ci/terraform/ci/lifecycle
     $ terraform apply <cpi project>/ci/terraform/ci/lifecycle
     ```
 - Create configuration file from terraform output
+  
   ```bash
   $ cp <cpi project>/docs/lifecycle-test-config-template.yml lifecycle-test-config.yml
   ```
   - Replace all '<replace-me>' with values from `terraform apply`
 - Run tests
+  
   ```bash
   $ export LIFECYCLE_ENV_FILE=<absolute path to temp dir>/lifecycle-test-config.yml
   $ cd <cpi project>/src/bosh_openstack_cpi
@@ -64,6 +69,7 @@ $ bundle exec rspec spec/unit
   $ bundle exec rspec spec/integration
   ```
 - Cleanup openstack project
+  
   ```bash
   $ cd <temp dir>
   $ terraform destroy <cpi project>/ci/terraform/ci/lifecycle
