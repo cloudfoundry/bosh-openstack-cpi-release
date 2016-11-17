@@ -7,7 +7,7 @@ describe LightStemcellCreator do
   describe '.run' do
     let(:version) { '3263.8' }
     let(:os) { 'ubuntu-trusty' }
-    let(:uuid) { '66ad0633-3a4c-48b1-8532-1b31aa94334b'}
+    let(:image_id) { '66ad0633-3a4c-48b1-8532-1b31aa94334b'}
     let(:output_directory) { Dir.mktmpdir }
     let(:actual_output_directory) { output_directory }
 
@@ -20,7 +20,7 @@ describe LightStemcellCreator do
 
     context 'executes successfully' do
       before do
-        @filename = LightStemcellCreator.run(version, os, uuid, actual_output_directory)
+        @filename = LightStemcellCreator.run(version, os, image_id, actual_output_directory)
       end
 
       context 'with absolute path' do
@@ -79,7 +79,7 @@ cloud_properties:
   os_distro: ubuntu
   architecture: x86_64
   auto_disk_config: true
-  image_uuid: 66ad0633-3a4c-48b1-8532-1b31aa94334b
+  image_id: 66ad0633-3a4c-48b1-8532-1b31aa94334b
 EOT
           expect(File.read(manifest_file)).to eq(expected_content)
         end
@@ -116,11 +116,11 @@ EOT
           end
         end
 
-        context 'with heavy stemcell image uuid specified' do
-          let(:uuid) { 'my-uuid' }
+        context 'with heavy stemcell image id specified' do
+          let(:image_id) { 'my-image-id' }
 
-          it 'writes uuid' do
-            expect(YAML.load_file(manifest_file)['cloud_properties']['image_uuid']).to eq(uuid)
+          it 'writes image id' do
+            expect(YAML.load_file(manifest_file)['cloud_properties']['image_id']).to eq(image_id)
           end
         end
       end
@@ -133,7 +133,7 @@ EOT
           non_existing_directory = File.join(actual_output_directory, 'non-existing-dir')
 
           expect{
-            LightStemcellCreator.run(version, os, uuid, non_existing_directory)
+            LightStemcellCreator.run(version, os, image_id, non_existing_directory)
           }.to raise_error("Output directory '#{non_existing_directory}' does not exist")
         end
       end
@@ -143,7 +143,7 @@ EOT
           allow(Open3).to receive(:capture2e).and_return(['error text', double('status', exitstatus: 1)])
 
           expect{
-            LightStemcellCreator.run(version, os, uuid, actual_output_directory)
+            LightStemcellCreator.run(version, os, image_id, actual_output_directory)
           }.to raise_error('error text')
         end
       end
@@ -153,7 +153,7 @@ EOT
 
         it 'raises an error' do
           expect{
-            LightStemcellCreator.run(version, os, uuid, actual_output_directory)
+            LightStemcellCreator.run(version, os, image_id, actual_output_directory)
           }.to raise_error("OS name contains no dash to separate the version from the name, i.e. 'name-version'")
         end
       end
