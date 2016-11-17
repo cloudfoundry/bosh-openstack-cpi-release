@@ -104,11 +104,15 @@ describe Bosh::OpenStackCloud::Openstack do
   ].each do |fog|
     describe "#{fog[:name]}" do
 
+      let(:retry_options_overwrites){ {
+        sleep: 0
+      } }
+
       context 'when the service returns Unauthorized' do
         it 'raises a CloudError exception if cannot connect to the service API 5 times' do
           allow(fog[:clazz]).to receive(:new).and_raise(Excon::Errors::Unauthorized, 'Unauthorized')
           expect {
-            Bosh::OpenStackCloud::Openstack.new(openstack_options).send(fog[:method_name])
+            Bosh::OpenStackCloud::Openstack.new(openstack_options, retry_options_overwrites).send(fog[:method_name])
           }.to raise_error(Bosh::Clouds::CloudError,
               "Unable to connect to the OpenStack #{fog[:name]} Service API: Unauthorized. Check task debug log for details.")
         end
@@ -122,7 +126,7 @@ describe Bosh::OpenStackCloud::Openstack do
           allow(fog[:clazz]).to receive(:new).and_raise(socket_error)
 
           expect {
-            Bosh::OpenStackCloud::Openstack.new(openstack_options).send(fog[:method_name])
+            Bosh::OpenStackCloud::Openstack.new(openstack_options, retry_options_overwrites).send(fog[:method_name])
           }.to raise_error(Bosh::Clouds::CloudError, expected_error_message)
         end
       end

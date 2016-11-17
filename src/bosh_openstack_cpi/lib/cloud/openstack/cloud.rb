@@ -12,9 +12,6 @@ module Bosh::OpenStackCloud
     FIRST_DEVICE_NAME_LETTER = 'b'
     REGISTRY_KEY_TAG = :registry_key
 
-    CONNECT_RETRY_DELAY = 1
-    CONNECT_RETRY_COUNT = 5
-
     attr_reader :registry
     attr_reader :state_timeout
     attr_accessor :logger
@@ -47,14 +44,7 @@ module Bosh::OpenStackCloud
       @use_config_drive = !!openstack_properties.fetch('config_drive', false)
       @config_drive = openstack_properties['config_drive']
 
-      connect_retry_errors = [Excon::Errors::GatewayTimeout, Excon::Errors::SocketError]
-
-      @connect_retry_options = {
-        sleep: CONNECT_RETRY_DELAY,
-        tries: CONNECT_RETRY_COUNT,
-        on: connect_retry_errors,
-      }
-      @openstack = Bosh::OpenStackCloud::Openstack.new(@options['openstack'], @connect_retry_options)
+      @openstack = Bosh::OpenStackCloud::Openstack.new(@options['openstack'])
 
       @az_provider = Bosh::OpenStackCloud::AvailabilityZoneProvider.new(
           @openstack,
@@ -159,17 +149,9 @@ module Bosh::OpenStackCloud
         )
         @logger.debug("Using security groups: `#{picked_security_groups.map { |sg| sg.name }.join(', ')}'")
 
-        image = nil
-        begin
-          Bosh::Common.retryable(@connect_retry_options) do |tries, error|
-            @logger.error("Unable to connect to OpenStack API to find image: `#{stemcell_id} due to: #{error.inspect}") unless error.nil?
-            image = with_openstack { @openstack.image.images.find_by_id(stemcell_id) }
-            cloud_error("Image `#{stemcell_id}' not found") if image.nil?
-            @logger.debug("Using image: `#{stemcell_id}'")
-          end
-        rescue Bosh::Common::RetryCountExceeded, Excon::Errors::SocketError => e
-          cloud_error("Unable to connect to OpenStack API to find image: `#{stemcell_id}'")
-        end
+        image = with_openstack { @openstack.image.images.find_by_id(stemcell_id) }
+        cloud_error("Image `#{stemcell_id}' not found") if image.nil?
+        @logger.debug("Using image: `#{stemcell_id}'")
 
         flavor = with_openstack { @openstack.compute.flavors.find { |f| f.name == resource_pool['instance_type'] } }
         cloud_error("Flavor `#{resource_pool['instance_type']}' not found") if flavor.nil?

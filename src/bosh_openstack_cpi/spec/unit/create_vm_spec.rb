@@ -768,32 +768,6 @@ describe Bosh::OpenStackCloud::Cloud, "create_vm" do
     end
   end
 
-  context "when fail to connect to find image on OpenStack server" do
-    let(:cloud) do
-      mock_cloud do |fog|
-        allow(fog.compute.servers).to receive(:create).and_return(server)
-        allow(fog.compute.flavors).to receive(:find).and_return(flavor)
-        allow(fog.compute.key_pairs).to receive(:find).and_return(key_pair)
-      end
-    end
-    let(:error) do
-      Excon::Errors::SocketError.new(Excon::Errors::Error.new)
-    end
-
-    it "retries 5 times" do
-      cloud.instance_variable_get('@connect_retry_options')[:sleep] = 0
-      expect(cloud.glance.images).to receive(:find_by_id).ordered.exactly(5).times.and_raise(error)
-      expect{cloud.create_vm(
-        "agent-id",
-        "sc-id",
-        resource_pool_spec,
-        { "network_a" => dynamic_network_spec },
-        nil,
-        { "test_env" => "value" }
-      )}.to raise_error(Bosh::Clouds::CloudError)
-    end
-  end
-
   context "when fail to register an OpenStack server after the server is created" do
     let(:cloud) do
       mock_cloud do |fog|
