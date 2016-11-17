@@ -781,6 +781,7 @@ describe Bosh::OpenStackCloud::Cloud, "create_vm" do
     end
 
     it "retries 5 times" do
+      cloud.instance_variable_get('@connect_retry_options')[:sleep] = 0
       expect(cloud.glance.images).to receive(:find_by_id).ordered.exactly(5).times.and_raise(error)
       expect{cloud.create_vm(
         "agent-id",

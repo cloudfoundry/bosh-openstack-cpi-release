@@ -34,18 +34,18 @@ module Bosh::OpenStackCloud
 
       @logger = Bosh::Clouds::Config.logger
 
-      @agent_properties = @options['agent'] || {}
+      @agent_properties = @options.fetch('agent', {})
       openstack_properties = @options['openstack']
-      @default_key_name =openstack_properties["default_key_name"]
-      @default_security_groups =openstack_properties["default_security_groups"]
-      @state_timeout =openstack_properties["state_timeout"]
-      @stemcell_public_visibility = to_bool(openstack_properties["stemcell_public_visibility"])
-      @wait_resource_poll_interval =openstack_properties["wait_resource_poll_interval"]
-      @boot_from_volume =openstack_properties["boot_from_volume"]
-      @use_dhcp =openstack_properties.fetch('use_dhcp', true)
-      @human_readable_vm_names =openstack_properties.fetch('human_readable_vm_names', false)
-      @use_config_drive = !!openstack_properties.fetch("config_drive", nil)
-      @config_drive =openstack_properties['config_drive']
+      @default_key_name = openstack_properties['default_key_name']
+      @default_security_groups = openstack_properties['default_security_groups']
+      @state_timeout = openstack_properties['state_timeout']
+      @stemcell_public_visibility = openstack_properties['stemcell_public_visibility']
+      @wait_resource_poll_interval = openstack_properties['wait_resource_poll_interval']
+      @boot_from_volume = openstack_properties['boot_from_volume']
+      @use_dhcp = openstack_properties['use_dhcp']
+      @human_readable_vm_names = openstack_properties['human_readable_vm_names']
+      @use_config_drive = !!openstack_properties.fetch('config_drive', false)
+      @config_drive = openstack_properties['config_drive']
 
       connect_retry_errors = [Excon::Errors::GatewayTimeout, Excon::Errors::SocketError]
 
@@ -893,7 +893,7 @@ module Bosh::OpenStackCloud
                 optional('region') => String,
                 optional('endpoint_type') => String,
                 optional('state_timeout') => Numeric,
-                optional('stemcell_public_visibility') => enum(String, bool),
+                optional('stemcell_public_visibility') => bool,
                 optional('connection_options') => Hash,
                 optional('boot_from_volume') => bool,
                 optional('default_key_name') => String,
@@ -901,6 +901,8 @@ module Bosh::OpenStackCloud
                 optional('wait_resource_poll_interval') => Integer,
                 optional('config_drive') => enum('disk', 'cdrom'),
                 optional('human_readable_vm_names') => bool,
+                optional('use_dhcp') => bool,
+                optional('use_nova_networking') => bool,
             },
             'registry' => {
                 'endpoint' => String,

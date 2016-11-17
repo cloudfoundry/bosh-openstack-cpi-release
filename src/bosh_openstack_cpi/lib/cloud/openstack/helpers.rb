@@ -180,11 +180,5 @@ module Bosh::OpenStackCloud
       end
       nil
     end
-
-    def to_bool(value)
-      value == true || value.to_s.downcase == 'true'
-    end
-
   end
-
 end
