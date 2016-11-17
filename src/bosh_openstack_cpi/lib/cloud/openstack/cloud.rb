@@ -91,8 +91,9 @@ module Bosh::OpenStackCloud
     # @return [String] OpenStack image UUID of the stemcell
     def create_stemcell(image_path, cloud_properties)
       with_thread_name("create_stemcell(#{image_path}...)") do
-        StemcellCreator.new(@logger, @openstack, cloud_properties)
-                       .create(image_path, @stemcell_public_visibility)
+        stemcell_creator = StemcellCreator.new(@logger, @openstack, cloud_properties)
+        stemcell = stemcell_creator.create(image_path, @stemcell_public_visibility)
+        stemcell.id
       end
     end
 
@@ -105,13 +106,9 @@ module Bosh::OpenStackCloud
     def delete_stemcell(stemcell_id)
       with_thread_name("delete_stemcell(#{stemcell_id})") do
         @logger.info("Deleting stemcell `#{stemcell_id}'...")
-        image = with_openstack { @openstack.image.images.find_by_id(stemcell_id) }
-        if image
-          with_openstack { image.destroy }
-          @logger.info("Stemcell `#{stemcell_id}' is now deleted")
-        else
-          @logger.info("Stemcell `#{stemcell_id}' not found. Skipping.")
-        end
+
+        stemcell = StemcellFinder.new(@logger, @openstack).by_id(stemcell_id)
+        stemcell.delete
       end
     end
 
@@ -149,7 +146,7 @@ module Bosh::OpenStackCloud
         )
         @logger.debug("Using security groups: `#{picked_security_groups.map { |sg| sg.name }.join(', ')}'")
 
-        image = StemcellFinder.new(@logger, @openstack).by_id(stemcell_id)
+        stemcell = StemcellFinder.new(@logger, @openstack).by_id(stemcell_id)
 
         flavor = with_openstack { @openstack.compute.flavors.find { |f| f.name == resource_pool['instance_type'] } }
         cloud_error("Flavor `#{resource_pool['instance_type']}' not found") if flavor.nil?
@@ -176,7 +173,7 @@ module Bosh::OpenStackCloud
 
         server_params = {
           :name => registry_key,
-          :image_ref => image.id,
+          :image_ref => stemcell.image_id,
           :flavor_ref => flavor.id,
           :key_name => keyname,
           :security_groups => picked_security_groups.map { |sg| sg.name },
@@ -191,7 +188,7 @@ module Bosh::OpenStackCloud
           volume_configurator = Bosh::OpenStackCloud::VolumeConfigurator.new(@logger)
           boot_vol_size = volume_configurator.select_boot_volume_size(flavor, resource_pool)
           server_params[:block_device_mapping_v2] = [{
-                                                   :uuid => image.id,
+                                                   :uuid => stemcell.image_id,
                                                    :source_type => "image",
                                                    :destination_type => "volume",
                                                    :volume_size => boot_vol_size,

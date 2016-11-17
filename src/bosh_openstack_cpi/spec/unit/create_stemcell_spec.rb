@@ -408,7 +408,7 @@ describe Bosh::OpenStackCloud::Cloud do
 
       it 'returns the image id with ` light` suffix' do
         cloud_properties = {
-        'image_id' => 'image_id'
+          'image_id' => 'image_id'
         }
 
         stemcell_id = @cloud.create_stemcell('/tmp/foo', cloud_properties)
