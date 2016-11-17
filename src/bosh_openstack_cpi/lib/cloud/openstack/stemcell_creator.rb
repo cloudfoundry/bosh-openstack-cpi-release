@@ -1,30 +1,37 @@
 module Bosh::OpenStackCloud
-  class Stemcell
+  class StemcellCreator
     include Helpers
-
-    def self.create_instance(logger, openstack, cloud_properties)
-      if cloud_properties.has_key?('image_id')
-        StemcellLight.new(logger, openstack, cloud_properties)
-      else
-        if openstack.image.class.to_s.include?('Fog::Image::OpenStack::V1')
-          StemcellV1.new(logger, openstack, cloud_properties)
-        else
-          StemcellV2.new(logger, openstack, cloud_properties)
-        end
-      end
-    end
-
     def initialize(logger, openstack, cloud_properties)
       @logger = logger
       @openstack = openstack
       @cloud_properties = cloud_properties
     end
 
+    def create(*args)
+      creator.create(*args)
+    end
+
+    private
+
+    def creator
+      if @cloud_properties.has_key?('image_id')
+        LightStemcellCreator.new(@logger, @openstack, @cloud_properties)
+      else
+        if @openstack.image.class.to_s.include?('Fog::Image::OpenStack::V1')
+          StemcellCreatorV1.new(@logger, @openstack, @cloud_properties)
+        else
+          StemcellCreatorV2.new(@logger, @openstack, @cloud_properties)
+        end
+      end
+    end
   end
 
-  class StemcellLight < Stemcell
-    def initialize(*args)
-       super
+  class LightStemcellCreator
+    include Helpers
+    def initialize(logger, openstack, cloud_properties)
+      @logger = logger
+      @openstack = openstack
+      @cloud_properties = cloud_properties
     end
 
     def create(_, _)
@@ -39,12 +46,8 @@ module Bosh::OpenStackCloud
     end
   end
 
-  class StemcellHeavy < Stemcell
-
-    def initialize(*args)
-      super
-    end
-
+  module HeavyStemcellCreator
+    include Helpers
     def create(image_path, is_public)
       begin
         Dir.mktmpdir do |tmp_dir|
@@ -58,7 +61,7 @@ module Bosh::OpenStackCloud
 
           set_public_param(image_params, is_public)
 
-          image_properties = StemcellHeavy.normalize_image_properties(@cloud_properties)
+          image_properties = HeavyStemcellCreator.normalize_image_properties(@cloud_properties)
 
           set_image_properties(image_params, image_properties)
 
@@ -117,9 +120,13 @@ module Bosh::OpenStackCloud
     end
   end
 
-  class StemcellV1 < StemcellHeavy
-    def initialize(*args)
-      super
+  class StemcellCreatorV1
+    include HeavyStemcellCreator
+
+    def initialize(logger, openstack, cloud_properties)
+      @logger = logger
+      @openstack = openstack
+      @cloud_properties = cloud_properties
     end
 
     def set_public_param(image_params, is_public)
@@ -137,9 +144,13 @@ module Bosh::OpenStackCloud
 
   end
 
-  class StemcellV2 < StemcellHeavy
-    def initialize(*args)
-      super
+  class StemcellCreatorV2
+    include HeavyStemcellCreator
+
+    def initialize(logger, openstack, cloud_properties)
+      @logger = logger
+      @openstack = openstack
+      @cloud_properties = cloud_properties
     end
 
     def set_public_param(image_params, is_public)
@@ -158,4 +169,5 @@ module Bosh::OpenStackCloud
       image
     end
   end
+
 end

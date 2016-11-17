@@ -1,4 +1,4 @@
-describe Bosh::OpenStackCloud::StemcellHeavy do
+describe Bosh::OpenStackCloud::HeavyStemcellCreator do
   subject { described_class }
 
   describe '#normalize_image_properties' do

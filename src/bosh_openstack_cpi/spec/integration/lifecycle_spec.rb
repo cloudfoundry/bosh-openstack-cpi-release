@@ -368,24 +368,45 @@ describe Bosh::OpenStackCloud::Cloud do
     end
   end
 
-  describe 'create light stemcell' do
-    it 'returns the stemcell id with ` light` suffix' do
-      cloud_properties = {
-        'image_id' => @stemcell_id
-      }
+  describe 'light stemcell' do
+    let(:light_stemcell_id){ "#{@stemcell_id} light" }
 
-      expect(cpi.create_stemcell('not_relevant_path', cloud_properties)).to eq("#{@stemcell_id} light")
-    end
-
-    context 'when referenced image does not exist' do
-      it 'raises an error' do
+    describe '#create_stemcell' do
+      it 'returns the stemcell id with ` light` suffix' do
         cloud_properties = {
-          'image_id' => 'non-existing-id'
+          'image_id' => @stemcell_id
         }
 
-        expect{
-          cpi.create_stemcell('not_relevant_path', cloud_properties)
-        }.to raise_error Bosh::Clouds::CloudError
+        expect(cpi.create_stemcell('not_relevant_path', cloud_properties)).to eq(light_stemcell_id)
+      end
+
+      context 'when referenced image does not exist' do
+        it 'raises an error' do
+          cloud_properties = {
+            'image_id' => 'non-existing-id'
+          }
+
+          expect{
+            cpi.create_stemcell('not_relevant_path', cloud_properties)
+          }.to raise_error Bosh::Clouds::CloudError
+        end
+      end
+    end
+
+    describe '#create_vm' do
+      let(:network_spec) do
+        {
+          'default' => {
+            'type' => 'dynamic',
+            'cloud_properties' => {
+              'net_id' => @config.net_id
+            }
+          }
+        }
+      end
+
+      it 'creates a vm with the heavy stemcell id' do
+        vm_lifecycle(light_stemcell_id, network_spec, [])
       end
     end
   end

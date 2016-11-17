@@ -91,8 +91,8 @@ module Bosh::OpenStackCloud
     # @return [String] OpenStack image UUID of the stemcell
     def create_stemcell(image_path, cloud_properties)
       with_thread_name("create_stemcell(#{image_path}...)") do
-        stemcell = Stemcell.create_instance(@logger, @openstack, cloud_properties)
-        stemcell.create(image_path, @stemcell_public_visibility)
+        StemcellCreator.new(@logger, @openstack, cloud_properties)
+                       .create(image_path, @stemcell_public_visibility)
       end
     end
 
@@ -149,9 +149,7 @@ module Bosh::OpenStackCloud
         )
         @logger.debug("Using security groups: `#{picked_security_groups.map { |sg| sg.name }.join(', ')}'")
 
-        image = with_openstack { @openstack.image.images.find_by_id(stemcell_id) }
-        cloud_error("Image `#{stemcell_id}' not found") if image.nil?
-        @logger.debug("Using image: `#{stemcell_id}'")
+        image = StemcellFinder.new(@logger, @openstack).by_id(stemcell_id)
 
         flavor = with_openstack { @openstack.compute.flavors.find { |f| f.name == resource_pool['instance_type'] } }
         cloud_error("Flavor `#{resource_pool['instance_type']}' not found") if flavor.nil?

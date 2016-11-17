@@ -1157,4 +1157,30 @@ describe Bosh::OpenStackCloud::Cloud, "create_vm" do
       end
     end
   end
+
+  describe 'with light stemcell' do
+    let(:cloud) do
+      mock_cloud do |fog|
+        allow(fog.compute.servers).to receive(:create).with(openstack_params).and_return(server)
+        allow(fog.image.images).to receive(:find_by_id).with('sc-id').and_return(image)
+        stub_compute(fog.compute)
+      end
+    end
+
+    it 'creates the vm with the image id of the heavy stemcell' do
+      expect(cloud).to receive(:generate_unique_name).and_return(unique_name)
+      expect(cloud).to receive(:wait_resource).with(server, :active, :state)
+
+      expect(@registry).to receive(:update_settings).
+        with("vm-#{unique_name}", agent_settings(unique_name))
+
+
+      cloud.create_vm('agent-id', 'sc-id light',
+        resource_pool_spec,
+        { 'network_a' => dynamic_network_spec },
+        nil, { 'test_env' => 'value'})
+
+      expect(cloud.compute.servers).to have_received(:create).with(openstack_params)
+    end
+  end
 end
