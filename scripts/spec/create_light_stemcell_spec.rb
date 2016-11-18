@@ -49,6 +49,10 @@ describe LightStemcellCreator do
           raise output if status.exitstatus != 0
         end
 
+        it 'does not contain files starting with `./`' do
+          expect(`tar tf #{File.join(actual_output_directory, expected_filename)}`.lines).to_not include( start_with('./'))
+        end
+
         it 'contains empty image file' do
           image_file = File.join(actual_output_directory, 'image')
           expect(File.exist?(image_file)).to be(true)

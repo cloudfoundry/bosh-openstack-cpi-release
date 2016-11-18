@@ -37,7 +37,7 @@ class LightStemcellCreator
         }
         File.write('stemcell.MF', YAML.dump(manifest))
 
-        output, status = Open3.capture2e("tar czf #{output_path} .")
+        output, status = Open3.capture2e("tar czf #{output_path} stemcell.MF image")
         raise output if status.exitstatus != 0
       end
       output_path
