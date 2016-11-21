@@ -10,7 +10,7 @@ module Bosh::OpenStackCloud
 
         if floating_ip['port_id']
           old_port = openstack.network.get_port(floating_ip['port_id']).body['port']
-          old_server = openstack.network.get_server(old_port['device_id']).body['server']
+          old_server = openstack.compute.get_server_details(old_port['device_id']).body['server']
           disassociate(openstack, floating_ip, old_server['name'], old_server['id'])
         end
 

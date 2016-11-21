@@ -180,7 +180,5 @@ module Bosh::OpenStackCloud
       end
       nil
     end
-
   end
-
 end

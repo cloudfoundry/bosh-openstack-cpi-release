@@ -39,6 +39,8 @@ require "cloud/openstack/volume_configurator"
 require "cloud/openstack/excon_logging_instrumentor"
 require "cloud/openstack/availability_zone_provider"
 require "cloud/openstack/stemcell"
+require "cloud/openstack/stemcell_creator"
+require "cloud/openstack/stemcell_finder"
 
 module Bosh
   module Clouds

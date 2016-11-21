@@ -20,7 +20,9 @@ def mock_cloud_options(api_version=2)
           'tenant' => 'admin',
           'region' => 'RegionOne',
           'state_timeout' => 1,
-          'wait_resource_poll_interval' => 3
+          'wait_resource_poll_interval' => 3,
+          'use_dhcp' => true,
+          'stemcell_public_visibility' => false
         },
         'registry' => {
           'endpoint' => 'localhost:42288',
@@ -45,7 +47,9 @@ def mock_cloud_options(api_version=2)
           'domain' => 'some_domain',
           'region' => 'RegionOne',
           'state_timeout' => 1,
-          'wait_resource_poll_interval' => 3
+          'wait_resource_poll_interval' => 3,
+          'use_dhcp' => true,
+          'stemcell_public_visibility' => false
         },
         'registry' => {
           'endpoint' => 'localhost:42288',

@@ -8,363 +8,110 @@ variable "dns_nameservers" {
   description = "DNS server IPs"
 }
 
+variable "primary_net_name" {
+  description = "OpenStack network name"
+}
+
+variable "primary_net_cidr" {
+  description = "OpenStack primary network cidr"
+}
+
+variable "primary_net_allocation_pool_start" {
+  description = "OpenStack network allocation pool start"
+}
+
+variable "primary_net_allocation_pool_end" {
+  description = "OpenStack network allocation pool end"
+}
+
+variable "primary_net_gateway" {
+  description = "OpenStack network gateway"
+}
+
+
 variable "ext_net_name" {
   description = "OpenStack external network name to register floating IP"
 }
 
-resource "openstack_networking_network_v2" "bats_dynamic_ubuntu_primary_net" {
+resource "openstack_networking_network_v2" "primary_net" {
   region         = "${var.region_name}"
-  name           = "bats-dynamic-ubuntu-primary"
+  name           = "${var.primary_net_name}"
   admin_state_up = "true"
 }
 
-resource "openstack_networking_subnet_v2" "bats_dynamic_ubuntu_primary_subnet" {
+resource "openstack_networking_subnet_v2" "primary_subnet" {
   region           = "${var.region_name}"
-  network_id       = "${openstack_networking_network_v2.bats_dynamic_ubuntu_primary_net.id}"
-  cidr             = "10.0.2.0/24"
+  network_id       = "${openstack_networking_network_v2.primary_net.id}"
+  cidr             = "${var.primary_net_cidr}"
   ip_version       = 4
-  name             = "bats-dynamic-ubuntu-primary-sub"
+  name             = "${var.primary_net_name}-sub"
   allocation_pools = {
-    start = "10.0.2.200"
-    end   = "10.0.2.254"
+    start = "${var.primary_net_allocation_pool_start}"
+    end   = "${var.primary_net_allocation_pool_end}"
   }
-  gateway_ip       = "10.0.2.1"
+  gateway_ip       = "${var.primary_net_gateway}"
   enable_dhcp      = "true"
   dns_nameservers = ["${compact(split(",",var.dns_nameservers))}"]
 }
 
-resource "openstack_networking_network_v2" "bats_dynamic_centos_primary_net" {
-  region         = "${var.region_name}"
-  name           = "bats-dynamic-centos-primary"
-  admin_state_up = "true"
-}
-
-resource "openstack_networking_subnet_v2" "bats_dynamic_centos_primary_subnet" {
-  region           = "${var.region_name}"
-  network_id       = "${openstack_networking_network_v2.bats_dynamic_centos_primary_net.id}"
-  cidr             = "10.0.3.0/24"
-  ip_version       = 4
-  name             = "bats-dynamic-centos-primary-sub"
-  allocation_pools = {
-    start = "10.0.3.200"
-    end   = "10.0.3.254"
-  }
-  gateway_ip       = "10.0.3.1"
-  enable_dhcp      = "true"
-  dns_nameservers = ["${compact(split(",",var.dns_nameservers))}"]
-}
-
-resource "openstack_networking_network_v2" "bats_manual_ubuntu_primary_net" {
-  region         = "${var.region_name}"
-  name           = "bats-manual-ubuntu-primary"
-  admin_state_up = "true"
-}
-
-resource "openstack_networking_subnet_v2" "bats_manual_ubuntu_primary_subnet" {
-  region           = "${var.region_name}"
-  network_id       = "${openstack_networking_network_v2.bats_manual_ubuntu_primary_net.id}"
-  cidr             = "10.0.4.0/24"
-  ip_version       = 4
-  name             = "bats-manual-ubuntu-primary-sub"
-  allocation_pools = {
-    start = "10.0.4.200"
-    end   = "10.0.4.254"
-  }
-  gateway_ip       = "10.0.4.1"
-  enable_dhcp      = "true"
-  dns_nameservers = ["${compact(split(",",var.dns_nameservers))}"]
-}
-
-resource "openstack_networking_network_v2" "bats_manual_ubuntu_secondary_net" {
-  region         = "${var.region_name}"
-  name           = "bats-manual-ubuntu-secondary"
-  admin_state_up = "true"
-}
-
-resource "openstack_networking_subnet_v2" "bats_manual_ubuntu_secondary_subnet" {
-  region           = "${var.region_name}"
-  network_id       = "${openstack_networking_network_v2.bats_manual_ubuntu_secondary_net.id}"
-  cidr             = "10.0.5.0/24"
-  ip_version       = 4
-  name             = "bats-manual-ubuntu-secondary-sub"
-  allocation_pools = {
-    start = "10.0.5.200"
-    end   = "10.0.5.254"
-  }
-  gateway_ip       = "10.0.5.1"
-  enable_dhcp      = "true"
-  dns_nameservers = ["${compact(split(",",var.dns_nameservers))}"]
-}
-
-resource "openstack_networking_network_v2" "bats_manual_centos_primary_net" {
-  region         = "${var.region_name}"
-  name           = "bats-manual-centos-primary"
-  admin_state_up = "true"
-}
-
-resource "openstack_networking_subnet_v2" "bats_manual_centos_primary_subnet" {
-  region           = "${var.region_name}"
-  network_id       = "${openstack_networking_network_v2.bats_manual_centos_primary_net.id}"
-  cidr             = "10.0.6.0/24"
-  ip_version       = 4
-  name             = "bats-manual-centos-primary-sub"
-  allocation_pools = {
-    start = "10.0.6.200"
-    end   = "10.0.6.254"
-  }
-  gateway_ip       = "10.0.6.1"
-  enable_dhcp      = "true"
-  dns_nameservers = ["${compact(split(",",var.dns_nameservers))}"]
-}
-
-resource "openstack_networking_network_v2" "bats_manual_centos_secondary_net" {
-  region         = "${var.region_name}"
-  name           = "bats-manual-centos-secondary"
-  admin_state_up = "true"
-}
-
-resource "openstack_networking_subnet_v2" "bats_manual_centos_secondary_subnet" {
-  region           = "${var.region_name}"
-  network_id       = "${openstack_networking_network_v2.bats_manual_centos_secondary_net.id}"
-  cidr             = "10.0.7.0/24"
-  ip_version       = 4
-  name             = "bats-manual-centos-secondary-sub"
-  allocation_pools = {
-    start = "10.0.7.200"
-    end   = "10.0.7.254"
-  }
-  gateway_ip       = "10.0.7.1"
-  enable_dhcp      = "true"
-  dns_nameservers = ["${compact(split(",",var.dns_nameservers))}"]
-}
-
-resource "openstack_networking_router_interface_v2" "bats_dynamic_ubuntu_primary_port" {
+resource "openstack_networking_router_interface_v2" "primary_port" {
   region    = "${var.region_name}"
   router_id = "${var.default_router_id}"
-  subnet_id = "${openstack_networking_subnet_v2.bats_dynamic_ubuntu_primary_subnet.id}"
+  subnet_id = "${openstack_networking_subnet_v2.primary_subnet.id}"
 }
 
-resource "openstack_networking_router_interface_v2" "bats_dynamic_centos_primary_port" {
-  region    = "${var.region_name}"
-  router_id = "${var.default_router_id}"
-  subnet_id = "${openstack_networking_subnet_v2.bats_dynamic_centos_primary_subnet.id}"
-}
-
-resource "openstack_networking_router_interface_v2" "bats_manual_ubuntu_primary_port" {
-  region    = "${var.region_name}"
-  router_id = "${var.default_router_id}"
-  subnet_id = "${openstack_networking_subnet_v2.bats_manual_ubuntu_primary_subnet.id}"
-}
-
-resource "openstack_networking_router_interface_v2" "bats_manual_ubuntu_secondary_port" {
-  region    = "${var.region_name}"
-  router_id = "${var.default_router_id}"
-  subnet_id = "${openstack_networking_subnet_v2.bats_manual_ubuntu_secondary_subnet.id}"
-}
-
-resource "openstack_networking_router_interface_v2" "bats_manual_centos_primary_port" {
-  region    = "${var.region_name}"
-  router_id = "${var.default_router_id}"
-  subnet_id = "${openstack_networking_subnet_v2.bats_manual_centos_primary_subnet.id}"
-}
-
-resource "openstack_networking_router_interface_v2" "bats_manual_centos_secondary_port" {
-  region    = "${var.region_name}"
-  router_id = "${var.default_router_id}"
-  subnet_id = "${openstack_networking_subnet_v2.bats_manual_centos_secondary_subnet.id}"
-}
-
-# floating ips
-
-resource "openstack_compute_floatingip_v2" "bats_dynamic_ubuntu_floating_ip" {
+resource "openstack_compute_floatingip_v2" "floating_ip" {
   region = "${var.region_name}"
   pool   = "${var.ext_net_name}"
 }
 
-resource "openstack_compute_floatingip_v2" "bats_dynamic_ubuntu_director_public_ip" {
+resource "openstack_compute_floatingip_v2" "director_public_ip" {
   region = "${var.region_name}"
   pool   = "${var.ext_net_name}"
 }
 
-resource "openstack_compute_floatingip_v2" "bats_dynamic_centos_director_public_ip" {
-  region = "${var.region_name}"
-  pool   = "${var.ext_net_name}"
+output "primary_net_id" {
+  value = "${openstack_networking_network_v2.primary_net.id}"
 }
 
-resource "openstack_compute_floatingip_v2" "bats_dynamic_centos_floating_ip" {
-  region = "${var.region_name}"
-  pool   = "${var.ext_net_name}"
+output "primary_net_cidr" {
+  value = "${openstack_networking_subnet_v2.primary_subnet.cidr}"
 }
 
-resource "openstack_compute_floatingip_v2" "bats_manual_ubuntu_director_public_ip" {
-  region = "${var.region_name}"
-  pool   = "${var.ext_net_name}"
+output "primary_net_dhcp_pool" {
+  value = "${openstack_networking_subnet_v2.primary_subnet.allocation_pools.0.start}-${openstack_networking_subnet_v2.primary_subnet.allocation_pools.0.end}"
 }
 
-resource "openstack_compute_floatingip_v2" "bats_manual_ubuntu_floating_ip" {
-  region = "${var.region_name}"
-  pool   = "${var.ext_net_name}"
+output "primary_net_gateway" {
+  value = "${openstack_networking_subnet_v2.primary_subnet.gateway_ip}"
 }
 
-resource "openstack_compute_floatingip_v2" "bats_manual_centos_director_public_ip" {
-  region = "${var.region_name}"
-  pool   = "${var.ext_net_name}"
+output "primary_net_manual_ip" {
+  value = "${cidrhost(openstack_networking_subnet_v2.primary_subnet.cidr, 4)}"
+}
+
+output "primary_net_second_manual_ip" {
+  value = "${cidrhost(openstack_networking_subnet_v2.primary_subnet.cidr, 5)}"
+}
+
+output "primary_net_static_range" {
+  value = "${cidrhost(openstack_networking_subnet_v2.primary_subnet.cidr, 4)}-${cidrhost(openstack_networking_subnet_v2.primary_subnet.cidr, 100)}"
 }
 
 
-resource "openstack_compute_floatingip_v2" "bats_manual_centos_floating_ip" {
-  region = "${var.region_name}"
-  pool   = "${var.ext_net_name}"
+output "director_floating_ip" {
+  value = "${openstack_compute_floatingip_v2.floating_ip.address}"
 }
 
-output "bats_dynamic_ubuntu_primary_net_id" {
-  value = "${openstack_networking_network_v2.bats_dynamic_ubuntu_primary_net.id}"
+output "director_private_ip" {
+  value = "${cidrhost(openstack_networking_subnet_v2.primary_subnet.cidr, 3)}"
 }
 
-output "bats_dynamic_centos_primary_net_id" {
-  value = "${openstack_networking_network_v2.bats_dynamic_centos_primary_net.id}"
+output "director_public_ip" {
+  value = "${openstack_compute_floatingip_v2.director_public_ip.address}"
 }
 
-output "bats_manual_ubuntu_primary_net_id" {
-  value = "${openstack_networking_network_v2.bats_manual_ubuntu_primary_net.id}"
+output "ubuntu_director_private_ip" {
+  value = "${cidrhost(openstack_networking_subnet_v2.primary_subnet.cidr, 3)}"
 }
 
-output "bats_manual_ubuntu_secondary_net_id" {
-  value = "${openstack_networking_network_v2.bats_manual_ubuntu_secondary_net.id}"
-}
-
-output "bats_manual_centos_primary_net_id" {
-  value = "${openstack_networking_network_v2.bats_manual_centos_primary_net.id}"
-}
-
-output "bats_manual_centos_secondary_net_id" {
-  value = "${openstack_networking_network_v2.bats_manual_centos_secondary_net.id}"
-}
-
-output "bats_dynamic_ubuntu_floating_ip" {
-  value = "${openstack_compute_floatingip_v2.bats_dynamic_ubuntu_floating_ip.address}"
-}
-
-output "bats_dynamic_ubuntu_director_public_ip" {
-  value = "${openstack_compute_floatingip_v2.bats_dynamic_ubuntu_director_public_ip.address}"
-}
-
-output "bats_dynamic_centos_director_public_ip" {
-  value = "${openstack_compute_floatingip_v2.bats_dynamic_centos_director_public_ip.address}"
-}
-
-output "bats_dynamic_centos_floating_ip" {
-  value = "${openstack_compute_floatingip_v2.bats_dynamic_centos_floating_ip.address}"
-}
-
-output "bats_manual_ubuntu_director_public_ip" {
-  value = "${openstack_compute_floatingip_v2.bats_manual_ubuntu_director_public_ip.address}"
-}
-
-output "bats_manual_ubuntu_floating_ip" {
-  value = "${openstack_compute_floatingip_v2.bats_manual_ubuntu_floating_ip.address}"
-}
-
-output "bats_manual_centos_director_public_ip" {
-  value = "${openstack_compute_floatingip_v2.bats_manual_centos_director_public_ip.address}"
-}
-
-output "bats_manual_centos_floating_ip" {
-  value = "${openstack_compute_floatingip_v2.bats_manual_centos_floating_ip.address}"
-}
-
-output "bats_manual_centos_director_private_ip" {
-  value = "${cidrhost(openstack_networking_subnet_v2.bats_manual_centos_primary_subnet.cidr, 3)}"
-}
-
-output "bats_manual_centos_primary_net_cidr" {
-  value = "${openstack_networking_subnet_v2.bats_manual_centos_primary_subnet.cidr}"
-}
-
-output "bats_manual_centos_primary_net_dhcp_pool" {
-  value = "${openstack_networking_subnet_v2.bats_manual_centos_primary_subnet.allocation_pools.0.start}-${openstack_networking_subnet_v2.bats_manual_centos_primary_subnet.allocation_pools.0.end}"
-}
-
-output "bats_manual_centos_primary_net_gateway" {
-  value = "${openstack_networking_subnet_v2.bats_manual_centos_primary_subnet.gateway_ip}"
-}
-
-output "bats_manual_centos_primary_net_manual_ip" {
-  value = "${cidrhost(openstack_networking_subnet_v2.bats_manual_centos_primary_subnet.cidr, 4)}"
-}
-
-output "bats_manual_centos_primary_net_second_manual_ip" {
-  value = "${cidrhost(openstack_networking_subnet_v2.bats_manual_centos_primary_subnet.cidr, 5)}"
-}
-
-output "bats_manual_centos_primary_net_static_range" {
-  value = "${cidrhost(openstack_networking_subnet_v2.bats_manual_centos_primary_subnet.cidr, 4)}-${cidrhost(openstack_networking_subnet_v2.bats_manual_centos_primary_subnet.cidr, 100)}"
-}
-
-output "bats_manual_centos_secondary_net_cidr" {
-  value = "${openstack_networking_subnet_v2.bats_manual_centos_secondary_subnet.cidr}"
-}
-
-output "bats_manual_centos_secondary_net_dhcp_pool" {
-  value = "${openstack_networking_subnet_v2.bats_manual_centos_secondary_subnet.allocation_pools.0.start}-${openstack_networking_subnet_v2.bats_manual_centos_secondary_subnet.allocation_pools.0.end}"
-}
-
-output "bats_manual_centos_secondary_net_gateway" {
-  value = "${openstack_networking_subnet_v2.bats_manual_centos_secondary_subnet.gateway_ip}"
-}
-
-output "bats_manual_centos_secondary_net_manual_ip" {
-  value = "${cidrhost(openstack_networking_subnet_v2.bats_manual_centos_secondary_subnet.cidr, 4)}"
-}
-
-output "bats_manual_centos_secondary_net_static_range" {
-  value = "${cidrhost(openstack_networking_subnet_v2.bats_manual_centos_secondary_subnet.cidr, 4)}-${cidrhost(openstack_networking_subnet_v2.bats_manual_centos_secondary_subnet.cidr, 100)}"
-}
-
-output "bats_manual_ubuntu_director_private_ip" {
-  value = "${cidrhost(openstack_networking_subnet_v2.bats_manual_ubuntu_primary_subnet.cidr, 3)}"
-}
-
-output "bats_manual_ubuntu_primary_net_cidr" {
-  value = "${openstack_networking_subnet_v2.bats_manual_ubuntu_primary_subnet.cidr}"
-}
-
-output "bats_manual_ubuntu_primary_net_dhcp_pool" {
-  value = "${openstack_networking_subnet_v2.bats_manual_ubuntu_primary_subnet.allocation_pools.0.start}-${openstack_networking_subnet_v2.bats_manual_ubuntu_primary_subnet.allocation_pools.0.end}"
-}
-
-output "bats_manual_ubuntu_primary_net_gateway" {
-  value = "${openstack_networking_subnet_v2.bats_manual_ubuntu_primary_subnet.gateway_ip}"
-}
-
-output "bats_manual_ubuntu_primary_net_manual_ip" {
-  value = "${cidrhost(openstack_networking_subnet_v2.bats_manual_ubuntu_primary_subnet.cidr, 4)}"
-}
-
-output "bats_manual_ubuntu_primary_net_second_manual_ip" {
-  value = "${cidrhost(openstack_networking_subnet_v2.bats_manual_ubuntu_primary_subnet.cidr, 5)}"
-}
-
-output "bats_manual_ubuntu_primary_net_static_range" {
-  value = "${cidrhost(openstack_networking_subnet_v2.bats_manual_ubuntu_primary_subnet.cidr, 4)}-${cidrhost(openstack_networking_subnet_v2.bats_manual_ubuntu_primary_subnet.cidr, 100)}"
-}
-
-output "bats_manual_ubuntu_secondary_net_cidr" {
-  value = "${openstack_networking_subnet_v2.bats_manual_ubuntu_secondary_subnet.cidr}"
-}
-
-output "bats_manual_ubuntu_secondary_net_dhcp_pool" {
-  value = "${openstack_networking_subnet_v2.bats_manual_ubuntu_secondary_subnet.allocation_pools.0.start}-${openstack_networking_subnet_v2.bats_manual_ubuntu_secondary_subnet.allocation_pools.0.end}"
-}
-
-output "bats_manual_ubuntu_secondary_net_gateway" {
-  value = "${openstack_networking_subnet_v2.bats_manual_ubuntu_secondary_subnet.gateway_ip}"
-}
-
-output "bats_manual_ubuntu_secondary_net_manual_ip" {
-  value = "${cidrhost(openstack_networking_subnet_v2.bats_manual_ubuntu_secondary_subnet.cidr, 4)}"
-}
-
-output "bats_manual_ubuntu_secondary_net_static_range" {
-  value = "${cidrhost(openstack_networking_subnet_v2.bats_manual_ubuntu_secondary_subnet.cidr, 4)}-${cidrhost(openstack_networking_subnet_v2.bats_manual_ubuntu_secondary_subnet.cidr, 100)}"
-}

@@ -36,7 +36,7 @@ module Bosh::OpenStackCloud
       auth_url.match(/\/v3(?=\/|$)/)
     end
 
-    def initialize(options, connect_retry_options = {})
+    def initialize(options, retry_options_overwrites = {})
       @logger = Bosh::Clouds::Config.logger
       @is_v3 = Openstack.is_v3(options['auth_url'])
       unless options['auth_url'].match(/\/tokens$/)
@@ -57,7 +57,11 @@ module Bosh::OpenStackCloud
       @extra_connection_options = {'instrumentor' => Bosh::OpenStackCloud::ExconLoggingInstrumentor}
 
       @params = openstack_params(options)
-      @connect_retry_options = connect_retry_options
+      @retry_options = {
+        sleep: 1,
+        tries: 5,
+        on: [Excon::Errors::GatewayTimeout, Excon::Errors::SocketError],
+      }.merge(retry_options_overwrites)
     end
 
     def use_nova_networking?
@@ -67,7 +71,7 @@ module Bosh::OpenStackCloud
     def compute
       unless @compute
         begin
-          Bosh::Common.retryable(@connect_retry_options) do |tries, error|
+          Bosh::Common.retryable(@retry_options) do |tries, error|
             @logger.error("Failed #{tries} times, last failure due to: #{error.inspect}") unless error.nil?
             @compute = Fog::Compute.new(params)
           end
@@ -83,7 +87,7 @@ module Bosh::OpenStackCloud
     def image
       unless @glance
         begin
-          Bosh::Common.retryable(@connect_retry_options) do |tries, error|
+          Bosh::Common.retryable(@retry_options) do |tries, error|
             @logger.error("Failed #{tries} times, last failure due to: #{error.inspect}") unless error.nil?
 
             begin
@@ -109,7 +113,7 @@ module Bosh::OpenStackCloud
     def volume
       unless @volume
         begin
-          Bosh::Common.retryable(@connect_retry_options) do |tries, error|
+          Bosh::Common.retryable(@retry_options) do |tries, error|
             @logger.error("Failed #{tries} times, last failure due to: #{error.inspect}") unless error.nil?
             begin
               @volume = Fog::Volume::OpenStack::V2.new(params_without_provider)
@@ -130,7 +134,7 @@ module Bosh::OpenStackCloud
     def network
       unless @network
         begin
-          Bosh::Common.retryable(@connect_retry_options) do |tries, error|
+          Bosh::Common.retryable(@retry_options) do |tries, error|
             @logger.error("Failed #{tries} times, last failure due to: #{error.inspect}") unless error.nil?
             @network = Fog::Network.new(params)
           end

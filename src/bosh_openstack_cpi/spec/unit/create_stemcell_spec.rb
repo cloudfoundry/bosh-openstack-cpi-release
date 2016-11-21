@@ -36,8 +36,8 @@ describe Bosh::OpenStackCloud::Cloud do
         expect(@glance.images).to receive(:create).with(image_params).and_return(image)
 
         expect(Dir).to receive(:mktmpdir).and_yield(@tmp_dir)
-        expect_any_instance_of(Bosh::OpenStackCloud::StemcellHeavy).to receive(:unpack_image).with(@tmp_dir, '/tmp/foo')
-        expect_any_instance_of(Bosh::OpenStackCloud::Stemcell).to receive(:wait_resource).with(image, :active)
+        expect_any_instance_of(Bosh::OpenStackCloud::HeavyStemcellCreator).to receive(:unpack_image).with(@tmp_dir, '/tmp/foo')
+        expect_any_instance_of(Bosh::OpenStackCloud::HeavyStemcellCreator).to receive(:wait_resource).with(image, :active)
 
         sc_id = @cloud.create_stemcell('/tmp/foo', {
           'name' => 'stemcell-name',
@@ -68,8 +68,8 @@ describe Bosh::OpenStackCloud::Cloud do
         expect(@glance.images).to receive(:create).with(image_params).and_return(image)
 
         expect(Dir).to receive(:mktmpdir).and_yield(@tmp_dir)
-        expect_any_instance_of(Bosh::OpenStackCloud::StemcellHeavy).to receive(:unpack_image).with(@tmp_dir, '/tmp/foo')
-        expect_any_instance_of(Bosh::OpenStackCloud::Stemcell).to receive(:wait_resource).with(image, :active)
+        expect_any_instance_of(Bosh::OpenStackCloud::HeavyStemcellCreator).to receive(:unpack_image).with(@tmp_dir, '/tmp/foo')
+        expect_any_instance_of(Bosh::OpenStackCloud::HeavyStemcellCreator).to receive(:wait_resource).with(image, :active)
 
         sc_id = @cloud.create_stemcell('/tmp/foo', {
           'name' => 'stemcell-name',
@@ -121,8 +121,8 @@ describe Bosh::OpenStackCloud::Cloud do
         expect(@glance.images).to receive(:create).with(image_params).and_return(image)
 
         allow(Dir).to receive(:mktmpdir).and_yield(@tmp_dir)
-        expect_any_instance_of(Bosh::OpenStackCloud::StemcellHeavy).to receive(:unpack_image)
-        expect_any_instance_of(Bosh::OpenStackCloud::Stemcell).to receive(:wait_resource)
+        expect_any_instance_of(Bosh::OpenStackCloud::HeavyStemcellCreator).to receive(:unpack_image)
+        expect_any_instance_of(Bosh::OpenStackCloud::HeavyStemcellCreator).to receive(:wait_resource)
 
         @cloud.create_stemcell('/tmp/foo', extra_properties)
       end
@@ -179,8 +179,8 @@ describe Bosh::OpenStackCloud::Cloud do
           expect(@glance.images).to receive(:create).with(image_params).and_return(image)
 
           expect(Dir).to receive(:mktmpdir).and_yield(@tmp_dir)
-          expect_any_instance_of(Bosh::OpenStackCloud::StemcellHeavy).to receive(:unpack_image).with(@tmp_dir, '/tmp/foo')
-          expect_any_instance_of(Bosh::OpenStackCloud::Stemcell).to receive(:wait_resource).with(image, :active)
+          expect_any_instance_of(Bosh::OpenStackCloud::HeavyStemcellCreator).to receive(:unpack_image).with(@tmp_dir, '/tmp/foo')
+          expect_any_instance_of(Bosh::OpenStackCloud::HeavyStemcellCreator).to receive(:wait_resource).with(image, :active)
 
           sc_id = @cloud.create_stemcell('/tmp/foo', {
             'name' => 'stemcell-name',
@@ -214,8 +214,8 @@ describe Bosh::OpenStackCloud::Cloud do
         expect(@glance.images).to receive(:create).with(image_params).and_return(image)
 
         expect(Dir).to receive(:mktmpdir).and_yield(@tmp_dir)
-        expect_any_instance_of(Bosh::OpenStackCloud::StemcellHeavy).to receive(:unpack_image).with(@tmp_dir, '/tmp/foo')
-        expect_any_instance_of(Bosh::OpenStackCloud::Stemcell).to receive(:wait_resource).with(image, :queued)
+        expect_any_instance_of(Bosh::OpenStackCloud::HeavyStemcellCreator).to receive(:unpack_image).with(@tmp_dir, '/tmp/foo')
+        expect_any_instance_of(Bosh::OpenStackCloud::HeavyStemcellCreator).to receive(:wait_resource).with(image, :queued)
 
         fake_file = double(File)
 
@@ -223,7 +223,7 @@ describe Bosh::OpenStackCloud::Cloud do
 
         expect(image).to receive(:upload_data).with(fake_file)
 
-        expect_any_instance_of(Bosh::OpenStackCloud::Stemcell).to receive(:wait_resource).with(image, :active)
+        expect_any_instance_of(Bosh::OpenStackCloud::HeavyStemcellCreator).to receive(:wait_resource).with(image, :active)
 
         sc_id = @cloud.create_stemcell('/tmp/foo', {
           'name' => 'stemcell-name',
@@ -251,8 +251,8 @@ describe Bosh::OpenStackCloud::Cloud do
         expect(@glance.images).to receive(:create).with(image_params).and_return(image)
 
         expect(Dir).to receive(:mktmpdir).and_yield(@tmp_dir)
-        expect_any_instance_of(Bosh::OpenStackCloud::StemcellHeavy).to receive(:unpack_image).with(@tmp_dir, '/tmp/foo')
-        expect_any_instance_of(Bosh::OpenStackCloud::Stemcell).to receive(:wait_resource).with(image, :queued)
+        expect_any_instance_of(Bosh::OpenStackCloud::HeavyStemcellCreator).to receive(:unpack_image).with(@tmp_dir, '/tmp/foo')
+        expect_any_instance_of(Bosh::OpenStackCloud::HeavyStemcellCreator).to receive(:wait_resource).with(image, :queued)
 
         fake_file = double(File)
 
@@ -260,7 +260,7 @@ describe Bosh::OpenStackCloud::Cloud do
 
         expect(image).to receive(:upload_data).with(fake_file)
 
-        expect_any_instance_of(Bosh::OpenStackCloud::Stemcell).to receive(:wait_resource).with(image, :active)
+        expect_any_instance_of(Bosh::OpenStackCloud::HeavyStemcellCreator).to receive(:wait_resource).with(image, :active)
 
         sc_id = @cloud.create_stemcell('/tmp/foo', {
           'name' => 'stemcell-name',
@@ -309,14 +309,14 @@ describe Bosh::OpenStackCloud::Cloud do
         expect(@glance.images).to receive(:create).with(image_params).and_return(image)
 
         allow(Dir).to receive(:mktmpdir).and_yield(@tmp_dir)
-        allow_any_instance_of(Bosh::OpenStackCloud::StemcellHeavy).to receive(:unpack_image)
-        allow_any_instance_of(Bosh::OpenStackCloud::Stemcell).to receive(:wait_resource).with(image, :queued)
+        allow_any_instance_of(Bosh::OpenStackCloud::HeavyStemcellCreator).to receive(:unpack_image)
+        allow_any_instance_of(Bosh::OpenStackCloud::HeavyStemcellCreator).to receive(:wait_resource).with(image, :queued)
 
         fake_file = double(File)
         expect(File).to receive(:open).with("#{@tmp_dir}/root.img", 'rb').and_return(fake_file)
         expect(image).to receive(:upload_data).with(fake_file)
 
-        allow_any_instance_of(Bosh::OpenStackCloud::Stemcell).to receive(:wait_resource).with(image, :active)
+        allow_any_instance_of(Bosh::OpenStackCloud::HeavyStemcellCreator).to receive(:wait_resource).with(image, :active)
 
         @cloud.create_stemcell('/tmp/foo', extra_properties)
       end
@@ -374,14 +374,14 @@ describe Bosh::OpenStackCloud::Cloud do
           expect(@glance.images).to receive(:create).with(image_params).and_return(image)
 
           expect(Dir).to receive(:mktmpdir).and_yield(@tmp_dir)
-          expect_any_instance_of(Bosh::OpenStackCloud::StemcellHeavy).to receive(:unpack_image).with(@tmp_dir, '/tmp/foo')
-          expect_any_instance_of(Bosh::OpenStackCloud::Stemcell).to receive(:wait_resource).with(image, :queued)
+          expect_any_instance_of(Bosh::OpenStackCloud::HeavyStemcellCreator).to receive(:unpack_image).with(@tmp_dir, '/tmp/foo')
+          expect_any_instance_of(Bosh::OpenStackCloud::HeavyStemcellCreator).to receive(:wait_resource).with(image, :queued)
 
           fake_file = double(File)
           expect(File).to receive(:open).with("#{@tmp_dir}/root.img", 'rb').and_return(fake_file)
           expect(image).to receive(:upload_data).with(fake_file)
 
-          expect_any_instance_of(Bosh::OpenStackCloud::Stemcell).to receive(:wait_resource).with(image, :active)
+          expect_any_instance_of(Bosh::OpenStackCloud::HeavyStemcellCreator).to receive(:wait_resource).with(image, :active)
 
           sc_id = @cloud.create_stemcell('/tmp/foo', {
             'name' => 'stemcell-name',
@@ -391,6 +391,66 @@ describe Bosh::OpenStackCloud::Cloud do
           })
 
           expect(sc_id).to eq 'i-bar'
+        end
+      end
+    end
+
+    context 'given a light stemcell' do
+      let(:images) { double('images', :get => image) }
+      let(:image) { double('image', :id => 'image_id', :status => 'active') }
+
+      before(:each) do
+        @cloud = mock_glance_v2(cloud_options) do |glance|
+          @glance = glance
+          allow(glance).to receive(:images).and_return(images)
+        end
+      end
+
+      it 'returns the image id with ` light` suffix' do
+        cloud_properties = {
+          'image_id' => 'image_id'
+        }
+
+        stemcell_id = @cloud.create_stemcell('/tmp/foo', cloud_properties)
+
+        expect(stemcell_id).to eq('image_id light')
+      end
+
+      it 'checks if image with id exists in OpenStack' do
+        cloud_properties = {
+          'image_id' => 'image_id'
+        }
+
+        @cloud.create_stemcell('/tmp/foo', cloud_properties)
+
+        expect(images).to have_received(:get).with('image_id')
+      end
+
+      context 'when image with given id does not exist in OpenStack' do
+        let(:images) { double('images', :get => nil) }
+
+        it 'raises a cloud error' do
+          cloud_properties = {
+            'image_id' => 'non_existing_image_id'
+          }
+
+          expect{
+            @cloud.create_stemcell('/tmp/foo', cloud_properties)
+          }.to raise_error(Bosh::Clouds::CloudError, 'No active image with id \'non_existing_image_id\' referenced by light stemcell found in OpenStack.')
+        end
+      end
+
+      context 'when image with given id is not in state `active`' do
+        let(:image) { double('image', :id => 'image_id', :status => 'not-active') }
+
+        it 'raises a cloud error' do
+          cloud_properties = {
+            'image_id' => 'image_id'
+          }
+
+          expect{
+            @cloud.create_stemcell('/tmp/foo', cloud_properties)
+          }.to raise_error(Bosh::Clouds::CloudError, 'No active image with id \'image_id\' referenced by light stemcell found in OpenStack.')
         end
       end
     end

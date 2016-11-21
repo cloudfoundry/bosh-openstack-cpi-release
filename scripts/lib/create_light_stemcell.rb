@@ -4,7 +4,7 @@ require 'open3'
 require 'digest/sha1'
 
 class LightStemcellCreator
-  def self.run(version, os, image_uuid, output_directory)
+  def self.run(version, os, image_id, output_directory)
     raise "Output directory '#{output_directory}' does not exist" unless File.exists?(output_directory)
     filename = "light-bosh-stemcell-#{version}-openstack-kvm-#{os}-go_agent.tgz"
     output_path = File.absolute_path(File.join(output_directory, filename))
@@ -32,12 +32,12 @@ class LightStemcellCreator
             'os_distro' => extract_distro(os),
             'architecture' => 'x86_64',
             'auto_disk_config' => true,
-            'image_uuid' => image_uuid
+            'image_id' => image_id
           }
         }
         File.write('stemcell.MF', YAML.dump(manifest))
 
-        output, status = Open3.capture2e("tar czf #{output_path} .")
+        output, status = Open3.capture2e("tar czf #{output_path} stemcell.MF image")
         raise output if status.exitstatus != 0
       end
       output_path

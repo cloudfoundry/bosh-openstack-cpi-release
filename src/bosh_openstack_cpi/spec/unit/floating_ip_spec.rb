@@ -57,7 +57,7 @@ describe Bosh::OpenStackCloud::FloatingIp do
       })
     }
     before(:each) {
-      allow(network).to receive(:get_server).and_return(get_server_response)
+      allow(compute).to receive(:get_server_details).and_return(get_server_response)
     }
 
     let(:port_collection) { double('Fog::Network::OpenStack::Ports', all: [port_model]) }

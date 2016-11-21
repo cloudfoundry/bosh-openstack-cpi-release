@@ -5,7 +5,7 @@ require_relative 'lib/create_light_stemcell'
 
 options = {}
 option_parser = OptionParser.new do |opts|
-  opts.banner = "Usage: create_light_stemcell --version --os --image_uuid [--output_directory]"
+  opts.banner = "Usage: create_light_stemcell --version --os --image-id [--output_directory]"
 
   opts.on('-h', '--help', 'Show this help') do
     puts opts
@@ -20,18 +20,18 @@ option_parser = OptionParser.new do |opts|
     options[:os] = v
   end
 
-  opts.on('-i', '--image-uuid=UUID', 'UUID of OpenStack image of heavy stemcell') do |v|
-    options[:uuid] = v
+  opts.on('-i', '--image-id=ID', 'Heavy stemcell\'s image ID in OpenStack') do |v|
+    options[:image_id] = v
   end
 
-  opts.on('-o', '--output-directory=PATH', "Optional output directory (default: current working directory)") do |v|
+  opts.on('-o', '--output-directory=PATH', 'Optional output directory (default: current working directory)') do |v|
     options[:output_directory] = v
   end
 end
 
 option_parser.parse!
 
-required_options = [:version, :os, :uuid]
+required_options = [:version, :os, :image_id]
 
 missing_required_options = required_options.select do |required_option|
   !options.include?(required_option)
@@ -44,6 +44,6 @@ end
 
 options[:output_directory] ||= Dir.pwd
 
-output_path = LightStemcellCreator.run(options[:version], options[:os], options[:uuid], options[:output_directory])
+output_path = LightStemcellCreator.run(options[:version], options[:os], options[:image_id], options[:output_directory])
 
 puts "Created light stemcell at '#{output_path}'"

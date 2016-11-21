@@ -768,31 +768,6 @@ describe Bosh::OpenStackCloud::Cloud, "create_vm" do
     end
   end
 
-  context "when fail to connect to find image on OpenStack server" do
-    let(:cloud) do
-      mock_cloud do |fog|
-        allow(fog.compute.servers).to receive(:create).and_return(server)
-        allow(fog.compute.flavors).to receive(:find).and_return(flavor)
-        allow(fog.compute.key_pairs).to receive(:find).and_return(key_pair)
-      end
-    end
-    let(:error) do
-      Excon::Errors::SocketError.new(Excon::Errors::Error.new)
-    end
-
-    it "retries 5 times" do
-      expect(cloud.glance.images).to receive(:find_by_id).ordered.exactly(5).times.and_raise(error)
-      expect{cloud.create_vm(
-        "agent-id",
-        "sc-id",
-        resource_pool_spec,
-        { "network_a" => dynamic_network_spec },
-        nil,
-        { "test_env" => "value" }
-      )}.to raise_error(Bosh::Clouds::CloudError)
-    end
-  end
-
   context "when fail to register an OpenStack server after the server is created" do
     let(:cloud) do
       mock_cloud do |fog|
@@ -1180,6 +1155,32 @@ describe Bosh::OpenStackCloud::Cloud, "create_vm" do
 
         expect(Bosh::Clouds::Config.logger).to have_received(:debug).with("'human_readable_vm_names' disabled")
       end
+    end
+  end
+
+  describe 'with light stemcell' do
+    let(:cloud) do
+      mock_cloud do |fog|
+        allow(fog.compute.servers).to receive(:create).with(openstack_params).and_return(server)
+        allow(fog.image.images).to receive(:find_by_id).with('sc-id').and_return(image)
+        stub_compute(fog.compute)
+      end
+    end
+
+    it 'creates the vm with the image id of the heavy stemcell' do
+      expect(cloud).to receive(:generate_unique_name).and_return(unique_name)
+      expect(cloud).to receive(:wait_resource).with(server, :active, :state)
+
+      expect(@registry).to receive(:update_settings).
+        with("vm-#{unique_name}", agent_settings(unique_name))
+
+
+      cloud.create_vm('agent-id', 'sc-id light',
+        resource_pool_spec,
+        { 'network_a' => dynamic_network_spec },
+        nil, { 'test_env' => 'value'})
+
+      expect(cloud.compute.servers).to have_received(:create).with(openstack_params)
     end
   end
 end
