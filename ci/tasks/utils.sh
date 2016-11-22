@@ -18,6 +18,34 @@ optional_value() {
   fi
 }
 
+init_openstack_cli_env(){
+    ensure_not_replace_value BOSH_OPENSTACK_AUTH_URL
+    ensure_not_replace_value BOSH_OPENSTACK_USERNAME
+    ensure_not_replace_value BOSH_OPENSTACK_API_KEY
+    ensure_not_replace_value BOSH_OPENSTACK_PROJECT
+    ensure_not_replace_value BOSH_OPENSTACK_DOMAIN_NAME
+    optional_value BOSH_OPENSTACK_CA_CERT
+
+
+    export OS_DEFAULT_DOMAIN=$BOSH_OPENSTACK_DOMAIN_NAME
+    export OS_AUTH_URL=$BOSH_OPENSTACK_AUTH_URL
+    export OS_USERNAME=$BOSH_OPENSTACK_USERNAME
+    export OS_PASSWORD=$BOSH_OPENSTACK_API_KEY
+    export OS_PROJECT_NAME=$BOSH_OPENSTACK_PROJECT
+    export OS_VOLUME_API_VERSION=1
+    export OS_DOMAIN_NAME=$BOSH_OPENSTACK_DOMAIN_NAME
+    export OS_IDENTITY_API_VERSION=3
+
+    if [ -n "$BOSH_OPENSTACK_CA_CERT" ]; then
+      tmpdir=$(mktemp -dt "$(basename $0).XXXXXXXXXX")
+      cacert="$tmpdir/cacert.pem"
+      echo "Writing cacert.pem to $cacert"
+      echo "$BOSH_OPENSTACK_CA_CERT" > $cacert
+      export OS_CACERT=$cacert
+    fi
+
+}
+
 prepare_bosh_release() {
     use_compiled_release=true
 
