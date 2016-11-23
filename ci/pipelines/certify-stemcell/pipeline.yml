@@ -598,11 +598,6 @@ resources:
     source:
       repository: cloudfoundry/bosh
 
-  - name: published-bosh-cpi-release
-    type: bosh-io-release
-    source:
-      repository: cloudfoundry-incubator/bosh-openstack-cpi-release
-
   - name: centos-stemcell
     type: bosh-io-stemcell
     source:
