@@ -47,10 +47,8 @@ describe Bosh::OpenStackCloud::CpiLambda do
     context 'if openstack properties are provided in the context' do
       it 'merges the openstack properties' do
         context = {
-            'openstack' => {
-                'newkey' => 'newvalue',
-                'newkey2' => 'newvalue2',
-            }
+            'newkey' => 'newvalue',
+            'newkey2' => 'newvalue2',
         }
 
         expect(Bosh::Clouds::Openstack).to receive(:new).with({'openstack' => { 'key1' => 'value1',
@@ -65,10 +63,8 @@ describe Bosh::OpenStackCloud::CpiLambda do
         ca_file = Tempfile.new('ca_cert')
 
         context = {
-            'openstack' => {
-                'newkey' => 'newvalue',
-                'connection_options' => {'ca_cert' => 'xyz'}
-            }
+            'newkey' => 'newvalue',
+            'connection_options' => {'ca_cert' => 'xyz'}
         }
 
         expect(Bosh::Clouds::Openstack).to receive(:new).with({'openstack' => { 'newkey' => 'newvalue',
