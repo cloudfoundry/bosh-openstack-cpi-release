@@ -17,12 +17,24 @@ chruby 2.1.2
 
 init_openstack_cli_env
 
+verify_image_in_openstack() {
+  echo "Verify that image with ID $image_id exists in OpenStack..."
+  openstack image show $image_id || image_not_found=$?
+  if [ $image_not_found ]; then
+    echo "failed to get image details"
+    exit 1
+  fi
+}
+
 stemcell_version=$(cat stemcell/version)
-image_id=$(cat deployment/e2e-director-manifest-state.json | jq --raw-output ".stemcells[0].cid")
+#image_id=$(cat deployment/e2e-director-manifest-state.json | jq --raw-output ".stemcells[0].cid")
+image_id=2ec8bc28-1fe0-4387-9453-a4b0a1d508e6
 deployment_dir="${PWD}/dummy-deployment"
 manifest_filename="dummy-manifest.yml"
 dummy_release_name="dummy"
 bosh_vcap_password_hash=$(ruby -e 'require "securerandom";puts ENV["bosh_admin_password"].crypt("$6$#{SecureRandom.base64(14)}")')
+
+verify_image_in_openstack
 
 echo "setting up artifacts used in $manifest_filename"
 mkdir -p ${deployment_dir}
@@ -35,7 +47,10 @@ bosh -n target ${bosh_director_ip}
 bosh login admin ${bosh_admin_password}
 
 echo "generating light stemcell ..."
-./bosh-cpi-src-in/scripts/create_light_stemcell --version $stemcell_version --os $os_name --image-id $image_id
+create_light_stemcell_command="./bosh-cpi-src-in/scripts/create_light_stemcell --version $stemcell_version --os $os_name --image-id $image_id"
+echo $create_light_stemcell_command
+$create_light_stemcell_command
+#./bosh-cpi-src-in/scripts/create_light_stemcell --version $stemcell_version --os $os_name --image-id $image_id
 
 echo "uploading stemcell to director..."
 bosh -n upload stemcell "light-bosh-stemcell-${stemcell_version}-openstack-kvm-${os_name}-go_agent.tgz"
@@ -115,9 +130,5 @@ pushd ${deployment_dir}
     echo "failed to delete stemcell"
     exit 1
   fi
-  openstack image show $image_id || image_not_found=$?
-  if [ $image_not_found ]; then
-    echo "failed to get image details"
-    exit 1
-  fi
+  verify_image_in_openstack
 popd
