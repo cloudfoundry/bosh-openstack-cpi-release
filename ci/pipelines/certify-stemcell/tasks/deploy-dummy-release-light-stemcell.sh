@@ -27,8 +27,7 @@ verify_image_in_openstack() {
 }
 
 stemcell_version=$(cat stemcell/version)
-#image_id=$(cat deployment/e2e-director-manifest-state.json | jq --raw-output ".stemcells[0].cid")
-image_id=2ec8bc28-1fe0-4387-9453-a4b0a1d508e6
+image_id=$(cat deployment/e2e-director-manifest-state.json | jq --raw-output ".stemcells[0].cid")
 deployment_dir="${PWD}/dummy-deployment"
 manifest_filename="dummy-manifest.yml"
 dummy_release_name="dummy"
@@ -50,7 +49,6 @@ echo "generating light stemcell ..."
 create_light_stemcell_command="./bosh-cpi-src-in/scripts/create_light_stemcell --version $stemcell_version --os $os_name --image-id $image_id"
 echo $create_light_stemcell_command
 $create_light_stemcell_command
-#./bosh-cpi-src-in/scripts/create_light_stemcell --version $stemcell_version --os $os_name --image-id $image_id
 
 echo "uploading stemcell to director..."
 bosh -n upload stemcell "light-bosh-stemcell-${stemcell_version}-openstack-kvm-${os_name}-go_agent.tgz"
