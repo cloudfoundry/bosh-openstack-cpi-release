@@ -138,7 +138,7 @@ EOT
 
           expect{
             LightStemcellCreator.run(version, os, image_id, non_existing_directory)
-          }.to raise_error("Output directory '#{non_existing_directory}' does not exist")
+          }.to raise_error LightStemcellCreator::Error, "Output directory '#{non_existing_directory}' does not exist"
         end
       end
 
@@ -148,7 +148,7 @@ EOT
 
           expect{
             LightStemcellCreator.run(version, os, image_id, actual_output_directory)
-          }.to raise_error('error text')
+          }.to raise_error LightStemcellCreator::Error, 'error text'
         end
       end
 
@@ -158,7 +158,7 @@ EOT
         it 'raises an error' do
           expect{
             LightStemcellCreator.run(version, os, image_id, actual_output_directory)
-          }.to raise_error("OS name contains no dash to separate the version from the name, i.e. 'name-version'")
+          }.to raise_error LightStemcellCreator::Error, "OS name contains no dash to separate the version from the name, i.e. 'name-version'"
         end
       end
     end

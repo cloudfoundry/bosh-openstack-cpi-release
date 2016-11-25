@@ -44,6 +44,10 @@ end
 
 options[:output_directory] ||= Dir.pwd
 
-output_path = LightStemcellCreator.run(options[:version], options[:os], options[:image_id], options[:output_directory])
-
-puts "Created light stemcell at '#{output_path}'"
+begin
+  output_path = LightStemcellCreator.run(options[:version], options[:os], options[:image_id], options[:output_directory])
+  puts "Created light stemcell at '#{output_path}'"
+rescue LightStemcellCreator::Error => e
+  $stderr.puts "Error:"
+  $stderr.puts " #{e}"
+end
