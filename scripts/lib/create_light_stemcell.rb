@@ -51,7 +51,7 @@ class LightStemcellCreator
   def self.extract_distro(os)
     distro = os.rpartition('-').first
     if distro.empty?
-      raise Error, "OS name contains no dash to separate the version from the name, i.e. 'name-version'"
+      raise Error, "OS name '#{os}' contains no dash to separate the version from the name, i.e. 'name-version'"
     end
     distro
   end

@@ -158,7 +158,7 @@ EOT
         it 'raises an error' do
           expect{
             LightStemcellCreator.run(version, os, image_id, actual_output_directory)
-          }.to raise_error LightStemcellCreator::Error, "OS name contains no dash to separate the version from the name, i.e. 'name-version'"
+          }.to raise_error LightStemcellCreator::Error, "OS name 'name_only' contains no dash to separate the version from the name, i.e. 'name-version'"
         end
       end
     end
