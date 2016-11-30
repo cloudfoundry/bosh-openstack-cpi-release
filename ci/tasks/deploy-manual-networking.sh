@@ -27,15 +27,15 @@ source /etc/profile.d/chruby-with-ruby-2.1.2.sh
 cp terraform-bats-manual/metadata terraform-bats-manual-deploy
 metadata=terraform-bats-manual/metadata
 
-export openstack_default_key_name=$(cat ${metadata} | jq --raw-output ".key_name")
-export openstack_project=$(cat ${metadata} | jq --raw-output ".openstack_project")
-export dns=$(cat ${metadata} | jq --raw-output ".dns")
-export director_private_ip=$(cat ${metadata} | jq --raw-output ".director_private_ip")
-export openstack_net_gateway=$(cat ${metadata} | jq --raw-output ".primary_net_gateway")
-export openstack_net_cidr=$(cat ${metadata} | jq --raw-output ".primary_net_cidr")
-export openstack_floating_ip=$(cat ${metadata} | jq --raw-output ".director_public_ip")
-export openstack_net_id=$(cat ${metadata} | jq --raw-output ".primary_net_id")
-export openstack_security_group=$(cat ${metadata} | jq --raw-output ".security_group")
+export_terraform_variable "key_name"
+export_terraform_variable "openstack_project"
+export_terraform_variable "dns"
+export_terraform_variable "director_private_ip"
+export_terraform_variable "primary_net_gateway"
+export_terraform_variable "primary_net_cidr"
+export_terraform_variable "director_public_ip"
+export_terraform_variable "primary_net_id"
+export_terraform_variable "security_group"
 
 export BOSH_INIT_LOG_LEVEL=DEBUG
 
@@ -76,13 +76,13 @@ networks:
   - name: private
     type: manual
     subnets:
-      - range:   ${openstack_net_cidr}
-        gateway: ${openstack_net_gateway}
+      - range:   ${primary_net_cidr}
+        gateway: ${primary_net_gateway}
         dns:     [${dns}]
         static:  [${director_private_ip}]
         cloud_properties:
-          net_id: ${openstack_net_id}
-          security_groups: [${openstack_security_group}]
+          net_id: ${primary_net_id}
+          security_groups: [${security_group}]
   - name: public
     type: vip
 
@@ -92,7 +92,7 @@ resource_pools:
     stemcell:
       url: file://stemcell.tgz
     cloud_properties:
-      instance_type: $openstack_flavor
+      instance_type: ${openstack_flavor}
     env:
       bosh:
         password: ${bosh_vcap_password_hash}
@@ -122,7 +122,7 @@ jobs:
         static_ips: [${director_private_ip}]
         default: [dns, gateway]
       - name: public
-        static_ips: [${openstack_floating_ip}]
+        static_ips: [${director_public_ip}]
 
     properties:
       nats:
@@ -184,9 +184,9 @@ jobs:
         domain: ${openstack_domain}
         region: #leave this blank
         endpoint_type: publicURL
-        default_key_name: ${openstack_default_key_name}
+        default_key_name: ${key_name}
         default_security_groups:
-          - ${openstack_security_group}
+          - ${security_group}
         state_timeout: ${openstack_state_timeout}
         wait_resource_poll_interval: 5
         connection_options:
@@ -207,13 +207,13 @@ cloud_provider:
 
   # Tells bosh-micro how to SSH into deployed VM
   ssh_tunnel:
-    host: ${openstack_floating_ip}
+    host: ${director_public_ip}
     port: 22
     user: vcap
     private_key: bats.pem
 
   # Tells bosh-micro how to contact remote agent
-  mbus: https://mbus-user:${bosh_admin_password}@${openstack_floating_ip}:6868
+  mbus: https://mbus-user:${bosh_admin_password}@${director_public_ip}:6868
 
   properties:
     openstack: *openstack
@@ -230,8 +230,8 @@ EOF
 echo "using bosh CLI version..."
 bosh version
 
-echo "targeting bosh director at ${openstack_floating_ip}"
-bosh -n target ${openstack_floating_ip} || failed_exit_code=$?
+echo "targeting bosh director at ${director_public_ip}"
+bosh -n target ${director_public_ip} || failed_exit_code=$?
 if [ -z "$failed_exit_code" ]; then
   bosh login admin ${bosh_admin_password}
   echo "cleanup director (especially orphan disks)"

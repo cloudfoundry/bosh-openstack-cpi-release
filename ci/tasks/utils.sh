@@ -78,3 +78,8 @@ find_bosh_compiled_release(){
     local s3_path_to_bosh_release=`aws --no-sign-request s3 ls s3://bosh-compiled-release-tarballs | grep -oE "[^ ](\w|-)*$bosh_release_version.+$distro.+$stemcell_version.*\.tgz" | sort -r | head -1`
     echo ${s3_path_to_bosh_release}
 }
+
+export_terraform_variable() {
+    local variable_name=$1
+    export ${variable_name}=$(cat ${metadata} | jq --raw-output ".${variable_name}")
+}
