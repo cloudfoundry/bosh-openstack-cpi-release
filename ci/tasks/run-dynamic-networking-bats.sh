@@ -5,15 +5,10 @@ set -x
 source bosh-cpi-src-in/ci/tasks/utils.sh
 
 ensure_not_replace_value stemcell_name
-ensure_not_replace_value bats_vm_floating_ip
 ensure_not_replace_value bosh_admin_password
-ensure_not_replace_value bosh_director_public_ip
 ensure_not_replace_value openstack_flavor_with_ephemeral_disk
 ensure_not_replace_value openstack_flavor_with_no_ephemeral_disk
-ensure_not_replace_value openstack_security_group
-ensure_not_replace_value primary_network_id
 ensure_not_replace_value private_key_data
-ensure_not_replace_value resource_pool_key_name
 
 working_dir=$PWD
 
@@ -27,6 +22,16 @@ ssh-add $BAT_VCAP_PRIVATE_KEY
 
 source /etc/profile.d/chruby.sh
 chruby 2.1.2
+
+#copy terraform metadata in order to use it in 'print_task_errors' and 'teardown_director' task
+# where no distinction is made between manual and dynamic
+cp terraform-bats-dynamic-deploy/metadata terraform-bats
+metadata=terraform-bats/metadata
+
+export bats_vm_floating_ip=$(cat ${metadata} | jq --raw-output ".floating_ip")
+export bosh_director_public_ip=$(cat ${metadata} | jq --raw-output ".director_public_ip")
+export primary_network_id=$(cat ${metadata} | jq --raw-output ".primary_net_id")
+export openstack_security_group=$(cat ${metadata} | jq --raw-output ".security_group")
 
 bosh_vcap_password_hash=$(ruby -e 'require "securerandom";puts ENV["bosh_admin_password"].crypt("$6$#{SecureRandom.base64(14)}")')
 

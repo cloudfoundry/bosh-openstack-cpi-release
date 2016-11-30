@@ -5,29 +5,10 @@ set -e -x
 source bosh-cpi-src-in/ci/tasks/utils.sh
 
 ensure_not_replace_value stemcell_name
-ensure_not_replace_value openstack_security_group
 ensure_not_replace_value openstack_flavor_with_ephemeral_disk
 ensure_not_replace_value openstack_flavor_with_no_ephemeral_disk
 ensure_not_replace_value bosh_admin_password
-ensure_not_replace_value bosh_director_public_ip
-ensure_not_replace_value bosh_director_private_ip
-ensure_not_replace_value bats_vm_floating_ip
 ensure_not_replace_value private_key_data
-
-ensure_not_replace_value primary_network_id
-ensure_not_replace_value primary_network_cidr
-ensure_not_replace_value primary_network_gateway
-ensure_not_replace_value primary_network_range
-ensure_not_replace_value primary_network_manual_ip
-ensure_not_replace_value primary_network_second_manual_ip
-ensure_not_replace_value primary_network_dhcp_pool
-
-ensure_not_replace_value secondary_network_id
-ensure_not_replace_value secondary_network_cidr
-ensure_not_replace_value secondary_network_gateway
-ensure_not_replace_value secondary_network_range
-ensure_not_replace_value secondary_network_manual_ip
-ensure_not_replace_value secondary_network_dhcp_pool
 
 ####
 #
@@ -38,8 +19,31 @@ ensure_not_replace_value secondary_network_dhcp_pool
 #
 ####
 
-working_dir=$PWD
+source /etc/profile.d/chruby.sh
+chruby 2.1.2
 
+cp terraform-bats-manual-deploy/metadata terraform-bats
+metadata=terraform-bats/metadata
+
+export bosh_director_public_ip=$(cat ${metadata} | jq --raw-output ".director_public_ip")
+export bosh_director_private_ip=$(cat ${metadata} | jq --raw-output ".director_private_ip")
+export bats_vm_floating_ip=$(cat ${metadata} | jq --raw-output ".floating_ip")
+export primary_network_id=$(cat ${metadata} | jq --raw-output ".primary_net_id")
+export primary_network_cidr=$(cat ${metadata} | jq --raw-output ".primary_net_cidr")
+export primary_network_gateway=$(cat ${metadata} | jq --raw-output ".primary_net_gateway")
+export primary_network_range=$(cat ${metadata} | jq --raw-output ".primary_net_static_range")
+export primary_network_manual_ip=$(cat ${metadata} | jq --raw-output ".primary_net_manual_ip")
+export primary_network_second_manual_ip=$(cat ${metadata} | jq --raw-output ".primary_net_second_manual_ip")
+export primary_network_dhcp_pool=$(cat ${metadata} | jq --raw-output ".primary_net_dhcp_pool")
+export secondary_network_id=$(cat ${metadata} | jq --raw-output ".secondary_net_id")
+export secondary_network_cidr=$(cat ${metadata} | jq --raw-output ".secondary_net_cidr")
+export secondary_network_gateway=$(cat ${metadata} | jq --raw-output ".secondary_net_gateway")
+export secondary_network_range=$(cat ${metadata} | jq --raw-output ".secondary_net_static_range")
+export secondary_network_manual_ip=$(cat ${metadata} | jq --raw-output ".secondary_net_manual_ip")
+export secondary_network_dhcp_pool=$(cat ${metadata} | jq --raw-output ".secondary_net_dhcp_pool")
+export openstack_security_group=$(cat ${metadata} | jq --raw-output ".security_group")
+
+working_dir=$PWD
 # checked by BATs environment helper (bosh-acceptance-tests.git/lib/bat/env.rb)
 export BAT_STEMCELL="${working_dir}/stemcell/stemcell.tgz"
 export BAT_VCAP_PRIVATE_KEY="$working_dir/keys/bats.pem"
@@ -49,9 +53,6 @@ export BAT_VCAP_PASSWORD=${bosh_admin_password}
 export BAT_DNS_HOST=${bosh_director_public_ip}
 export BAT_INFRASTRUCTURE='openstack'
 export BAT_NETWORKING='manual'
-
-source /etc/profile.d/chruby.sh
-chruby 2.1.2
 
 bosh_vcap_password_hash=$(ruby -e 'require "securerandom";puts ENV["bosh_admin_password"].crypt("$6$#{SecureRandom.base64(14)}")')
 

@@ -5,7 +5,6 @@ set -e
 source bosh-cpi-src-in/ci/tasks/utils.sh
 
 : {bosh_admin_password:?}
-: {dns:?}
 : {openstack_flavor:?}
 : {openstack_connection_timeout:?}
 : {openstack_read_timeout:?}
@@ -13,18 +12,10 @@ source bosh-cpi-src-in/ci/tasks/utils.sh
 : {openstack_state_timeout:?}
 : {private_key_data:?}
 : {bosh_registry_port:?}
-: {openstack_net_id:?}
-: {openstack_security_group:?}
-: {openstack_default_key_name:?}
 : {openstack_auth_url:?}
 : {openstack_username:?}
 : {openstack_api_key:?}
-: {openstack_project:?}
 : {openstack_domain:?}
-: {openstack_floating_ip:?}
-: {openstack_manual_ip:?}
-: {openstack_net_cidr:?}
-: {openstack_net_gateway:?}
 : {time_server_1:?}
 : {time_server_2:?}
 : {DEBUG_BATS:?}
@@ -32,6 +23,19 @@ optional_value bosh_openstack_ca_cert
 optional_value distro
 
 source /etc/profile.d/chruby-with-ruby-2.1.2.sh
+
+cp terraform-bats-manual/metadata terraform-bats-manual-deploy
+metadata=terraform-bats-manual/metadata
+
+export openstack_default_key_name=$(cat ${metadata} | jq --raw-output ".key_name")
+export openstack_project=$(cat ${metadata} | jq --raw-output ".openstack_project")
+export dns=$(cat ${metadata} | jq --raw-output ".dns")
+export director_private_ip=$(cat ${metadata} | jq --raw-output ".director_private_ip")
+export openstack_net_gateway=$(cat ${metadata} | jq --raw-output ".primary_net_gateway")
+export openstack_net_cidr=$(cat ${metadata} | jq --raw-output ".primary_net_cidr")
+export openstack_floating_ip=$(cat ${metadata} | jq --raw-output ".director_public_ip")
+export openstack_net_id=$(cat ${metadata} | jq --raw-output ".primary_net_id")
+export openstack_security_group=$(cat ${metadata} | jq --raw-output ".security_group")
 
 export BOSH_INIT_LOG_LEVEL=DEBUG
 
@@ -74,8 +78,8 @@ networks:
     subnets:
       - range:   ${openstack_net_cidr}
         gateway: ${openstack_net_gateway}
-        dns:     ${dns}
-        static:  [${openstack_manual_ip}]
+        dns:     [${dns}]
+        static:  [${director_private_ip}]
         cloud_properties:
           net_id: ${openstack_net_id}
           security_groups: [${openstack_security_group}]
@@ -115,7 +119,7 @@ jobs:
 
     networks:
       - name: private
-        static_ips: [${openstack_manual_ip}]
+        static_ips: [${director_private_ip}]
         default: [dns, gateway]
       - name: public
         static_ips: [${openstack_floating_ip}]
@@ -135,8 +139,8 @@ jobs:
 
       # Tells the Director/agents how to contact registry
       registry:
-        address: ${openstack_manual_ip}
-        host: ${openstack_manual_ip}
+        address: ${director_private_ip}
+        host: ${director_private_ip}
         db: *db
         http: {user: admin, password: ${bosh_admin_password}, port: ${bosh_registry_port}}
         username: admin
@@ -145,7 +149,7 @@ jobs:
 
       # Tells the Director/agents how to contact blobstore
       blobstore:
-        address: ${openstack_manual_ip}
+        address: ${director_private_ip}
         port: 25250
         provider: dav
         director: {user: director, password: ${bosh_admin_password}}
@@ -192,7 +196,7 @@ jobs:
           ca_cert: $(if [ -z "$bosh_openstack_ca_cert" ]; then echo "~"; else echo "\"$(echo ${bosh_openstack_ca_cert} | sed -r  -e 's/ /\\n/g ' -e 's/\\nCERTIFICATE-----/ CERTIFICATE-----/g')\""; fi)
 
       # Tells agents how to contact nats
-      agent: {mbus: "nats://nats:${bosh_admin_password}@${openstack_manual_ip}:4222"}
+      agent: {mbus: "nats://nats:${bosh_admin_password}@${director_private_ip}:4222"}
 
       ntp: &ntp
         - ${time_server_1}

@@ -5,7 +5,6 @@ set -e
 source bosh-cpi-src-in/ci/tasks/utils.sh
 
 : {bosh_admin_password:?}
-: {dns:?}
 : {openstack_flavor:?}
 : {openstack_connection_timeout:?}
 : {openstack_read_timeout:?}
@@ -13,21 +12,26 @@ source bosh-cpi-src-in/ci/tasks/utils.sh
 : {openstack_state_timeout:?}
 : {private_key_data:?}
 : {bosh_registry_port:?}
-: {openstack_net_id:?}
-: {openstack_security_group:?}
-: {openstack_default_key_name:?}
 : {openstack_auth_url:?}
 : {openstack_username:?}
 : {openstack_api_key:?}
-: {openstack_project:?}
 : {openstack_domain:?}
-: {openstack_floating_ip:?}
 : {time_server_1:?}
 : {time_server_2:?}
 optional_value bosh_openstack_ca_cert
 optional_value distro
 
 source /etc/profile.d/chruby-with-ruby-2.1.2.sh
+
+cp terraform-bats-dynamic/metadata terraform-bats-dynamic-deploy
+metadata=terraform-bats-dynamic/metadata
+
+export openstack_default_key_name=$(cat ${metadata} | jq --raw-output ".key_name")
+export openstack_project=$(cat ${metadata} | jq --raw-output ".openstack_project")
+export openstack_floating_ip=$(cat ${metadata} | jq --raw-output ".director_public_ip")
+export openstack_net_id=$(cat ${metadata} | jq --raw-output ".primary_net_id")
+export dns=$(cat ${metadata} | jq --raw-output ".dns")
+export openstack_security_group=$(cat ${metadata} | jq --raw-output ".security_group")
 
 export BOSH_INIT_LOG_LEVEL=DEBUG
 
@@ -67,7 +71,7 @@ releases:
 networks:
   - name: private
     type: dynamic
-    dns:     ${dns}
+    dns: [${dns}]
     cloud_properties:
       net_id: ${openstack_net_id}
       security_groups: [${openstack_security_group}]

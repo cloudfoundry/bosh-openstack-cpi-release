@@ -2,11 +2,16 @@
 
 set -e
 
+source bosh-cpi-src-in/ci/tasks/utils.sh
+
 source /etc/profile.d/chruby.sh
 chruby 2.1.2
 
 : ${bosh_admin_password:?}
-: ${bosh_director_public_ip:?}
+
+metadata=terraform-bats/metadata
+
+export bosh_director_public_ip=$(cat ${metadata} | jq --raw-output ".director_public_ip")
 
 echo 'Printing debug output of tasks in state error'
 
