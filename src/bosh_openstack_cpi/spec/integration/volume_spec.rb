@@ -51,18 +51,57 @@ describe Bosh::OpenStackCloud::Cloud do
     )
   end
 
-  let(:cloud_properties) { { 'type' => @config.volume_type } }
+  let(:cloud_properties) { {} }
+
+  let(:supported_volume_type) { cpi_for_vm.volume.volume_types.first.name }
 
   after(:each) do
     cpi_for_vm.delete_vm(vm_id)
   end
 
   describe 'Cinder V2 support' do
-    let(:cpi_for_volume) { @config.create_cpi }
+    context 'with NO global default_volume_type' do
+      let(:cpi_for_volume) { @config.create_cpi }
 
-    it 'exercises the volume lifecycle' do
-      expect(cpi_for_volume.volume.class.to_s).to start_with('Fog::Volume::OpenStack::V2')
-      volume_lifecycle
+      context 'and NO vm_type `type`' do
+        let(:cloud_properties) { {} }
+
+        it 'sets to nil' do
+          expect(cpi_for_volume.volume.class.to_s).to start_with('Fog::Volume::OpenStack::V2')
+          volume_lifecycle
+        end
+      end
+
+      context 'and with vm_type `type`' do
+        let(:cloud_properties) { { 'type' => supported_volume_type } }
+
+        it 'sets to volumes_ceph' do
+          expect(cpi_for_volume.volume.class.to_s).to start_with('Fog::Volume::OpenStack::V2')
+          volume_lifecycle(supported_volume_type)
+        end
+      end
+    end
+
+    context 'with global default_volume_type' do
+      context 'and vm_type `type`' do
+        let(:cpi_for_volume) { @config.create_cpi(default_volume_type: 'type-to-override')}
+        let(:cloud_properties) { { 'type' => supported_volume_type } }
+
+        it 'overrides to type' do
+          expect(cpi_for_volume.volume.class.to_s).to start_with('Fog::Volume::OpenStack::V2')
+          volume_lifecycle(supported_volume_type)
+        end
+      end
+
+      context 'and NO vm_type `type`' do
+        let(:cpi_for_volume) { @config.create_cpi(default_volume_type: supported_volume_type)}
+        let(:cloud_properties) { {} }
+
+        it 'uses the default_volume_type' do
+          expect(cpi_for_volume.volume.class.to_s).to start_with('Fog::Volume::OpenStack::V2')
+          volume_lifecycle(supported_volume_type)
+        end
+      end
     end
   end
 
@@ -78,13 +117,17 @@ describe Bosh::OpenStackCloud::Cloud do
     end
   end
 
-  def volume_lifecycle
+  def volume_lifecycle(volume_type = nil)
     expect(vm_id).to_not be_nil
 
     disk_id = cpi_for_volume.create_disk(2048, cloud_properties, vm_id)
     expect(disk_id).to be
 
     expect(cpi_for_volume.has_disk?(disk_id)).to be(true)
+
+    unless volume_type.nil?
+      expect(cpi_for_volume.volume.volumes.get(disk_id).volume_type).to eq(volume_type)
+    end
 
     cpi_for_volume.attach_disk(vm_id, disk_id)
 
