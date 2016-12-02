@@ -1,0 +1,28 @@
+---
+platform: linux
+image_resource:
+  type: docker-image
+  source:
+    repository: boshcpi/openstack-cpi-release
+inputs:
+  - name: bosh-cpi-src-in
+  - name: dummy-release
+  - name: stemcell
+  - name: deployment
+run:
+  path: bosh-cpi-src-in/ci/pipelines/certify-stemcell/tasks/deploy-dummy-release-light-stemcell.sh
+params:
+  bosh_admin_password:                 replace-me
+  bosh_director_ip:                    replace-me
+  dns:                                 replace-me
+  v3_e2e_security_group:               replace-me
+  os_name:                             replace-me
+  network_id:                          replace-me
+  instance_flavor:                     replace-me
+  delete_deployment_when_done:         replace-me
+  BOSH_OPENSTACK_DOMAIN_NAME:          replace-me
+  BOSH_OPENSTACK_AUTH_URL:             replace-me
+  BOSH_OPENSTACK_USERNAME:             replace-me
+  BOSH_OPENSTACK_API_KEY:              replace-me
+  BOSH_OPENSTACK_PROJECT:              replace-me
+  BOSH_OPENSTACK_CA_CERT:              replace-me

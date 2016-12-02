@@ -207,6 +207,35 @@ jobs:
         - {trigger: false,                    get: stemcell, resource: openstack-ubuntu-stemcell, tags: *tags, timeout: *timeouts-long}
         - {trigger: false,                    get: bats, tags: *tags, timeout: *timeouts-long}
 
+      - put: terraform-bats-manual
+        tags: *tags
+        timeout: *timeouts-long
+        params:
+          env_name: bats-ubuntu-manual
+          vars:
+            prefix: "bats-ubuntu-manual"
+            auth_url: {{openstack_auth_url_v3}}
+            domain_name: {{openstack_domain}}
+            user_name: {{openstack_username}}
+            password: {{openstack_api_key}}
+            tenant_name: {{openstack_project}}
+            insecure: "true"
+            region_name: {{tf_region_name}}
+            primary_net_name: "bats-ubuntu-manual-primary"
+            primary_net_cidr: "10.0.4.0/24"
+            primary_net_allocation_pool_start: "10.0.4.200"
+            primary_net_allocation_pool_end: "10.0.4.254"
+            secondary_net_name: "bats-ubuntu-manual-secondary"
+            secondary_net_cidr: "10.0.5.0/24"
+            secondary_net_allocation_pool_start: "10.0.5.200"
+            secondary_net_allocation_pool_end: "10.0.5.254"
+            ext_net_name: {{tf_external_network_name}}
+            ext_net_id: {{tf_external_network_id}}
+            ext_net_cidr: {{tf_ext_net_cidr}}
+            dns_nameservers: {{tf_dns_nameservers}}
+            concourse_external_network_cidr: {{tf_concourse_external_network_cidr}}
+            openstack_default_key_public_key: {{tf_ubuntu_manual_default_public_key}}
+
       - task: deploy
         tags: *tags
         timeout: *timeouts-long
@@ -221,19 +250,10 @@ jobs:
           private_key_data:                     {{bosh_private_key}}
           bosh_registry_port:                   {{bosh_director_registry_port}}
           bosh_openstack_ca_cert:               {{bosh_openstack_ca_cert}}
-          dns:                                  {{dns}}
-          openstack_net_id:                     {{bats_manual_ubuntu_primary_net_id}}
-          openstack_security_group:             {{openstack_security_group}}
-          openstack_default_key_name:           {{openstack_default_key_name}}
           openstack_auth_url:                   {{openstack_auth_url_v3}}
           openstack_username:                   {{openstack_username}}
           openstack_api_key:                    {{openstack_api_key}}
-          openstack_project:                    {{openstack_project}}
           openstack_domain:                     {{openstack_domain}}
-          openstack_floating_ip:                {{bats_manual_ubuntu_director_public_ip}}
-          openstack_manual_ip:                  {{bats_manual_ubuntu_director_private_ip}}
-          openstack_net_cidr:                   {{bats_manual_ubuntu_primary_net_cidr}}
-          openstack_net_gateway:                {{bats_manual_ubuntu_primary_net_gateway}}
           time_server_1:                        {{time_server_1}}
           time_server_2:                        {{time_server_2}}
           distro:                               "ubuntu"
@@ -247,26 +267,9 @@ jobs:
         params:
           stemcell_name:                            "bosh-openstack-kvm-ubuntu-trusty-go_agent"
           private_key_data:                         {{bosh_private_key}}
-          openstack_security_group:                 {{openstack_security_group}}
           openstack_flavor_with_ephemeral_disk:     {{openstack_flavor_with_ephemeral_disk}}
           openstack_flavor_with_no_ephemeral_disk:  {{openstack_flavor_with_no_ephemeral_disk}}
           bosh_admin_password:                      {{bosh_admin_password}}
-          bosh_director_public_ip:                  {{bats_manual_ubuntu_director_public_ip}}
-          bosh_director_private_ip:                 {{bats_manual_ubuntu_director_private_ip}}
-          bats_vm_floating_ip:                      {{bats_manual_ubuntu_floating_ip}}
-          primary_network_id:                       {{bats_manual_ubuntu_primary_net_id}}
-          primary_network_cidr:                     {{bats_manual_ubuntu_primary_net_cidr}}
-          primary_network_gateway:                  {{bats_manual_ubuntu_primary_net_gateway}}
-          primary_network_range:                    {{bats_manual_ubuntu_primary_net_static_range}}
-          primary_network_manual_ip:                {{bats_manual_ubuntu_primary_net_manual_ip}}
-          primary_network_dhcp_pool:                {{bats_manual_ubuntu_primary_net_dhcp_pool}}
-          primary_network_second_manual_ip:         {{bats_manual_ubuntu_primary_net_second_manual_ip}}
-          secondary_network_id:                     {{bats_manual_ubuntu_secondary_net_id}}
-          secondary_network_cidr:                   {{bats_manual_ubuntu_secondary_net_cidr}}
-          secondary_network_gateway:                {{bats_manual_ubuntu_secondary_net_gateway}}
-          secondary_network_range:                  {{bats_manual_ubuntu_secondary_net_static_range}}
-          secondary_network_manual_ip:              {{bats_manual_ubuntu_secondary_net_manual_ip}}
-          secondary_network_dhcp_pool:              {{bats_manual_ubuntu_secondary_net_dhcp_pool}}
           DEBUG_BATS:                               *debug_bats
         <<: *send-failure-email
         ensure:
@@ -275,16 +278,14 @@ jobs:
           timeout: *timeouts-long
           file: bosh-cpi-src-in/ci/tasks/print_task_errors.yml
           params:
-            bosh_admin_password:     {{bosh_admin_password}}
-            bosh_director_public_ip: {{bats_manual_ubuntu_director_public_ip}}
+            bosh_admin_password: {{bosh_admin_password}}
 
       - task: teardown-director
         tags: *tags
         timeout: *timeouts-long
         file: bosh-cpi-src-in/ci/tasks/teardown-director.yml
         params:
-          bosh_admin_password:                     {{bosh_admin_password}}
-          bosh_director_ip:                        {{bats_manual_ubuntu_director_public_ip}}
+          bosh_admin_password: {{bosh_admin_password}}
         <<: *send-failure-email
 
   - name: bats-ubuntu-dynamic
@@ -301,6 +302,31 @@ jobs:
         - {trigger: false,                    get: stemcell, resource: openstack-ubuntu-stemcell, tags: *tags, timeout: *timeouts-long}
         - {trigger: false,                    get: bats, tags: *tags, timeout: *timeouts-long}
 
+      - put: terraform-bats-dynamic
+        tags: *tags
+        timeout: *timeouts-long
+        params:
+          env_name: bats-ubuntu-dynamic
+          vars:
+            prefix: "bats-ubuntu-dynamic"
+            auth_url: {{openstack_auth_url_v3}}
+            domain_name: {{openstack_domain}}
+            user_name: {{openstack_username}}
+            password: {{openstack_api_key}}
+            tenant_name: {{openstack_project}}
+            insecure: "true"
+            region_name: {{tf_region_name}}
+            primary_net_name: "bats-ubuntu-dynamic-primary"
+            primary_net_cidr: "10.0.2.0/24"
+            primary_net_allocation_pool_start: "10.0.2.200"
+            primary_net_allocation_pool_end: "10.0.2.254"
+            ext_net_name: {{tf_external_network_name}}
+            ext_net_id: {{tf_external_network_id}}
+            ext_net_cidr: {{tf_ext_net_cidr}}
+            dns_nameservers: {{tf_dns_nameservers}}
+            concourse_external_network_cidr: {{tf_concourse_external_network_cidr}}
+            openstack_default_key_public_key: {{tf_ubuntu_dynamic_default_public_key}}
+
       - task: deploy
         tags: *tags
         timeout: *timeouts-long
@@ -314,16 +340,10 @@ jobs:
           openstack_state_timeout:              "900"
           bosh_registry_port:                   {{bosh_director_registry_port}}
           bosh_openstack_ca_cert:               {{bosh_openstack_ca_cert}}
-          dns:                                  {{dns}}
-          openstack_net_id:                     {{bats_dynamic_ubuntu_primary_net_id}}
-          openstack_security_group:             {{openstack_security_group}}
-          openstack_default_key_name:           {{openstack_default_key_name}}
           openstack_auth_url:                   {{openstack_auth_url_v3}}
           openstack_username:                   {{openstack_username}}
           openstack_api_key:                    {{openstack_api_key}}
-          openstack_project:                    {{openstack_project}}
           openstack_domain:                     {{openstack_domain}}
-          openstack_floating_ip:                {{bats_dynamic_ubuntu_director_public_ip}}
           time_server_1:                        {{time_server_1}}
           time_server_2:                        {{time_server_2}}
           private_key_data:                     {{bosh_private_key}}
@@ -337,13 +357,9 @@ jobs:
         file: bosh-cpi-src-in/ci/tasks/run-dynamic-networking-bats.yml
         params:
           stemcell_name:                            "bosh-openstack-kvm-ubuntu-trusty-go_agent"
-          bats_vm_floating_ip:                      {{bats_dynamic_ubuntu_floating_ip}}
           bosh_admin_password:                      {{bosh_admin_password}}
-          bosh_director_public_ip:                  {{bats_dynamic_ubuntu_director_public_ip}}
           openstack_flavor_with_ephemeral_disk:     {{openstack_flavor_with_ephemeral_disk}}
           openstack_flavor_with_no_ephemeral_disk:  {{openstack_flavor_with_no_ephemeral_disk}}
-          openstack_security_group:                 {{openstack_security_group}}
-          primary_network_id:                       {{bats_dynamic_ubuntu_primary_net_id}}
           private_key_data:                         {{bosh_private_key}}
           DEBUG_BATS:                               *debug_bats
         <<: *send-failure-email
@@ -353,16 +369,14 @@ jobs:
           timeout: *timeouts-long
           file: bosh-cpi-src-in/ci/tasks/print_task_errors.yml
           params:
-            bosh_admin_password:     {{bosh_admin_password}}
-            bosh_director_public_ip: {{bats_dynamic_ubuntu_director_public_ip}}
+            bosh_admin_password: {{bosh_admin_password}}
 
       - task: teardown-director
         tags: *tags
         timeout: *timeouts-long
         file: bosh-cpi-src-in/ci/tasks/teardown-director.yml
         params:
-          bosh_admin_password:                     {{bosh_admin_password}}
-          bosh_director_ip:                        {{bats_dynamic_ubuntu_director_public_ip}}
+          bosh_admin_password: {{bosh_admin_password}}
         <<: *send-failure-email
 
   - name: bats-centos-manual
@@ -379,6 +393,35 @@ jobs:
         - {trigger: false,                    get: stemcell, resource: openstack-centos-stemcell, tags: *tags, timeout: *timeouts-long}
         - {trigger: false,                    get: bats, tags: *tags, timeout: *timeouts-long}
 
+      - put: terraform-bats-manual
+        tags: *tags
+        timeout: *timeouts-long
+        params:
+          env_name: bats-centos-manual
+          vars:
+            prefix: "bats-centos-manual"
+            auth_url: {{openstack_auth_url_v3}}
+            domain_name: {{openstack_domain}}
+            user_name: {{openstack_username}}
+            password: {{openstack_api_key}}
+            tenant_name: {{openstack_project}}
+            insecure: "true"
+            region_name: {{tf_region_name}}
+            primary_net_name: "bats-centos-manual-primary"
+            primary_net_cidr: "10.0.6.0/24"
+            primary_net_allocation_pool_start: "10.0.6.200"
+            primary_net_allocation_pool_end: "10.0.6.254"
+            secondary_net_name: "bats-centos-manual-secondary"
+            secondary_net_cidr: "10.0.7.0/24"
+            secondary_net_allocation_pool_start: "10.0.7.200"
+            secondary_net_allocation_pool_end: "10.0.7.254"
+            ext_net_name: {{tf_external_network_name}}
+            ext_net_id: {{tf_external_network_id}}
+            ext_net_cidr: {{tf_ext_net_cidr}}
+            dns_nameservers: {{tf_dns_nameservers}}
+            concourse_external_network_cidr: {{tf_concourse_external_network_cidr}}
+            openstack_default_key_public_key: {{tf_centos_manual_default_public_key}}
+
       - task: deploy
         tags: *tags
         timeout: *timeouts-long
@@ -392,19 +435,10 @@ jobs:
           openstack_state_timeout:              "900"
           bosh_registry_port:                   {{bosh_director_registry_port}}
           bosh_openstack_ca_cert:               {{bosh_openstack_ca_cert}}
-          dns:                                  {{dns}}
-          openstack_net_id:                     {{bats_manual_centos_primary_net_id}}
-          openstack_security_group:             {{openstack_security_group}}
-          openstack_default_key_name:           {{openstack_default_key_name}}
           openstack_auth_url:                   {{openstack_auth_url_v3}}
           openstack_username:                   {{openstack_username}}
           openstack_api_key:                    {{openstack_api_key}}
-          openstack_project:                    {{openstack_project}}
           openstack_domain:                     {{openstack_domain}}
-          openstack_floating_ip:                {{bats_manual_centos_director_public_ip}}
-          openstack_manual_ip:                  {{bats_manual_centos_director_private_ip}}
-          openstack_net_cidr:                   {{bats_manual_centos_primary_net_cidr}}
-          openstack_net_gateway:                {{bats_manual_centos_primary_net_gateway}}
           time_server_1:                        {{time_server_1}}
           time_server_2:                        {{time_server_2}}
           private_key_data:                     {{bosh_private_key}}
@@ -419,26 +453,9 @@ jobs:
         params:
           stemcell_name:                            "bosh-openstack-kvm-centos-7-go_agent"
           private_key_data:                         {{bosh_private_key}}
-          openstack_security_group:                 {{openstack_security_group}}
           openstack_flavor_with_ephemeral_disk:     {{openstack_flavor_with_ephemeral_disk}}
           openstack_flavor_with_no_ephemeral_disk:  {{openstack_flavor_with_no_ephemeral_disk}}
           bosh_admin_password:                      {{bosh_admin_password}}
-          bosh_director_public_ip:                  {{bats_manual_centos_director_public_ip}}
-          bosh_director_private_ip:                 {{bats_manual_centos_director_private_ip}}
-          bats_vm_floating_ip:                      {{bats_manual_centos_floating_ip}}
-          primary_network_id:                       {{bats_manual_centos_primary_net_id}}
-          primary_network_cidr:                     {{bats_manual_centos_primary_net_cidr}}
-          primary_network_gateway:                  {{bats_manual_centos_primary_net_gateway}}
-          primary_network_range:                    {{bats_manual_centos_primary_net_static_range}}
-          primary_network_manual_ip:                {{bats_manual_centos_primary_net_manual_ip}}
-          primary_network_second_manual_ip:         {{bats_manual_centos_primary_net_second_manual_ip}}
-          primary_network_dhcp_pool:                {{bats_manual_centos_primary_net_dhcp_pool}}
-          secondary_network_id:                     {{bats_manual_centos_secondary_net_id}}
-          secondary_network_cidr:                   {{bats_manual_centos_secondary_net_cidr}}
-          secondary_network_gateway:                {{bats_manual_centos_secondary_net_gateway}}
-          secondary_network_range:                  {{bats_manual_centos_secondary_net_static_range}}
-          secondary_network_manual_ip:              {{bats_manual_centos_secondary_net_manual_ip}}
-          secondary_network_dhcp_pool:              {{bats_manual_centos_secondary_net_dhcp_pool}}
           DEBUG_BATS:                               *debug_bats
         <<: *send-failure-email
         ensure:
@@ -447,16 +464,14 @@ jobs:
           timeout: *timeouts-long
           file: bosh-cpi-src-in/ci/tasks/print_task_errors.yml
           params:
-            bosh_admin_password:     {{bosh_admin_password}}
-            bosh_director_public_ip: {{bats_manual_centos_director_public_ip}}
+            bosh_admin_password: {{bosh_admin_password}}
 
       - task: teardown-director
         tags: *tags
         timeout: *timeouts-long
         file: bosh-cpi-src-in/ci/tasks/teardown-director.yml
         params:
-          bosh_admin_password:                     {{bosh_admin_password}}
-          bosh_director_ip:                        {{bats_manual_centos_director_public_ip}}
+          bosh_admin_password: {{bosh_admin_password}}
         <<: *send-failure-email
 
   - name: bats-centos-dynamic
@@ -473,6 +488,31 @@ jobs:
         - {trigger: false,                    get: stemcell, resource: openstack-centos-stemcell, tags: *tags, timeout: *timeouts-long}
         - {trigger: false,                    get: bats, tags: *tags, timeout: *timeouts-long}
 
+      - put: terraform-bats-dynamic
+        tags: *tags
+        timeout: *timeouts-long
+        params:
+          env_name: bats-centos-dynamic
+          vars:
+            prefix: "bats-centos-dynamic"
+            auth_url: {{openstack_auth_url_v3}}
+            domain_name: {{openstack_domain}}
+            user_name: {{openstack_username}}
+            password: {{openstack_api_key}}
+            tenant_name: {{openstack_project}}
+            insecure: "true"
+            region_name: {{tf_region_name}}
+            primary_net_name: "bats-centos-dynamic-primary"
+            primary_net_cidr: "10.0.3.0/24"
+            primary_net_allocation_pool_start: "10.0.3.200"
+            primary_net_allocation_pool_end: "10.0.3.254"
+            ext_net_name: {{tf_external_network_name}}
+            ext_net_id: {{tf_external_network_id}}
+            ext_net_cidr: {{tf_ext_net_cidr}}
+            dns_nameservers: {{tf_dns_nameservers}}
+            concourse_external_network_cidr: {{tf_concourse_external_network_cidr}}
+            openstack_default_key_public_key: {{tf_centos_dynamic_default_public_key}}
+
       - task: deploy
         tags: *tags
         timeout: *timeouts-long
@@ -486,16 +526,10 @@ jobs:
           openstack_state_timeout:              "900"
           bosh_registry_port:                   {{bosh_director_registry_port}}
           bosh_openstack_ca_cert:               {{bosh_openstack_ca_cert}}
-          dns:                                  {{dns}}
-          openstack_net_id:                     {{bats_dynamic_centos_primary_net_id}}
-          openstack_security_group:             {{openstack_security_group}}
-          openstack_default_key_name:           {{openstack_default_key_name}}
           openstack_auth_url:                   {{openstack_auth_url_v3}}
           openstack_username:                   {{openstack_username}}
           openstack_api_key:                    {{openstack_api_key}}
-          openstack_project:                    {{openstack_project}}
           openstack_domain:                     {{openstack_domain}}
-          openstack_floating_ip:                {{bats_dynamic_centos_director_public_ip}}
           time_server_1:                        {{time_server_1}}
           time_server_2:                        {{time_server_2}}
           private_key_data:                     {{bosh_private_key}}
@@ -509,13 +543,9 @@ jobs:
         file: bosh-cpi-src-in/ci/tasks/run-dynamic-networking-bats.yml
         params:
           stemcell_name:                            "bosh-openstack-kvm-centos-7-go_agent"
-          bats_vm_floating_ip:                      {{bats_dynamic_centos_floating_ip}}
           bosh_admin_password:                      {{bosh_admin_password}}
-          bosh_director_public_ip:                  {{bats_dynamic_centos_director_public_ip}}
           openstack_flavor_with_ephemeral_disk:     {{openstack_flavor_with_ephemeral_disk}}
           openstack_flavor_with_no_ephemeral_disk:  {{openstack_flavor_with_no_ephemeral_disk}}
-          openstack_security_group:                 {{openstack_security_group}}
-          primary_network_id:                       {{bats_dynamic_centos_primary_net_id}}
           private_key_data:                         {{bosh_private_key}}
           DEBUG_BATS:                               *debug_bats
         <<: *send-failure-email
@@ -525,16 +555,14 @@ jobs:
           timeout: *timeouts-long
           file: bosh-cpi-src-in/ci/tasks/print_task_errors.yml
           params:
-            bosh_admin_password:     {{bosh_admin_password}}
-            bosh_director_public_ip: {{bats_dynamic_centos_director_public_ip}}
+            bosh_admin_password: {{bosh_admin_password}}
 
       - task: teardown-director
         tags: *tags
         timeout: *timeouts-long
         file: bosh-cpi-src-in/ci/tasks/teardown-director.yml
         params:
-          bosh_admin_password:                     {{bosh_admin_password}}
-          bosh_director_ip:                        {{bats_dynamic_centos_director_public_ip}}
+          bosh_admin_password: {{bosh_admin_password}}
         <<: *send-failure-email
 
   - name: promote-candidate
@@ -584,6 +612,26 @@ resources:
         access_key_id: {{s3_openstack_cpi_pipeline_access_key}}
         secret_access_key: {{s3_openstack_cpi_pipeline_secret_key}}
       terraform_source: github.com/cloudfoundry-incubator/bosh-openstack-cpi-release//ci/terraform/ci/lifecycle
+
+  - name: terraform-bats-dynamic
+    type: terraform
+    source:
+      storage:
+        bucket: {{s3_openstack_cpi_pipeline_bucket_name}}
+        bucket_path: terraform/
+        access_key_id: {{s3_openstack_cpi_pipeline_access_key}}
+        secret_access_key: {{s3_openstack_cpi_pipeline_secret_key}}
+      terraform_source: github.com/cloudfoundry-incubator/bosh-openstack-cpi-release//ci/terraform/ci/bats-dynamic
+
+  - name: terraform-bats-manual
+    type: terraform
+    source:
+      storage:
+        bucket: {{s3_openstack_cpi_pipeline_bucket_name}}
+        bucket_path: terraform/
+        access_key_id: {{s3_openstack_cpi_pipeline_access_key}}
+        secret_access_key: {{s3_openstack_cpi_pipeline_secret_key}}
+      terraform_source: github.com/cloudfoundry-incubator/bosh-openstack-cpi-release//ci/terraform/ci/bats-manual
 
   - name: bosh-cpi-dev-artifacts
     type: s3

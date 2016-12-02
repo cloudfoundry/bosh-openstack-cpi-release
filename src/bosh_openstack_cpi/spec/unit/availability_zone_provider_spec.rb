@@ -22,6 +22,26 @@ describe Bosh::OpenStackCloud::AvailabilityZoneProvider do
     let(:ignore_server_az) { false }
 
     describe 'when the volume IDs are present' do
+      describe 'when az of volume is empty string' do
+        before do
+          allow(bar_volume).to receive(:availability_zone).and_return('')
+        end
+
+        it 'returns nil' do
+          expect(az_provider.select(['bar_id'], nil)).to be_nil
+        end
+      end
+
+      describe 'when az of volume is nil' do
+        before do
+          allow(bar_volume).to receive(:availability_zone).and_return(nil)
+        end
+
+        it 'returns nil' do
+          expect(az_provider.select(['bar_id'], nil)).to be_nil
+        end
+      end
+
       describe 'when the volumes and resource pool are all from the same availability zone' do
         before do
           expect(bar_volume).to receive(:availability_zone).and_return('west_az')

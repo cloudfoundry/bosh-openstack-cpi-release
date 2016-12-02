@@ -2,17 +2,22 @@
 
 set -e
 
+source bosh-cpi-src-in/ci/tasks/utils.sh
+
 : {bosh_admin_password:?}
-: {bosh_director_ip:?}
 
 source /etc/profile.d/chruby.sh
 chruby 2.1.2
 
+metadata=terraform-bats/metadata
+
+export_terraform_variable "director_public_ip"
+
 echo "using bosh CLI version..."
 bosh version
 
-echo "targeting bosh director at ${bosh_director_ip}"
-bosh -n target ${bosh_director_ip}
+echo "targeting bosh director at ${director_public_ip}"
+bosh -n target ${director_public_ip}
 bosh login admin ${bosh_admin_password}
 
 echo "cleanup director (especially orphan disks)"

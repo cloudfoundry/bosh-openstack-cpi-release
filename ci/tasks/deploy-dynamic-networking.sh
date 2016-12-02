@@ -5,7 +5,6 @@ set -e
 source bosh-cpi-src-in/ci/tasks/utils.sh
 
 : {bosh_admin_password:?}
-: {dns:?}
 : {openstack_flavor:?}
 : {openstack_connection_timeout:?}
 : {openstack_read_timeout:?}
@@ -13,21 +12,26 @@ source bosh-cpi-src-in/ci/tasks/utils.sh
 : {openstack_state_timeout:?}
 : {private_key_data:?}
 : {bosh_registry_port:?}
-: {openstack_net_id:?}
-: {openstack_security_group:?}
-: {openstack_default_key_name:?}
 : {openstack_auth_url:?}
 : {openstack_username:?}
 : {openstack_api_key:?}
-: {openstack_project:?}
 : {openstack_domain:?}
-: {openstack_floating_ip:?}
 : {time_server_1:?}
 : {time_server_2:?}
 optional_value bosh_openstack_ca_cert
 optional_value distro
 
 source /etc/profile.d/chruby-with-ruby-2.1.2.sh
+
+cp terraform-bats-dynamic/metadata terraform-bats-dynamic-deploy
+metadata=terraform-bats-dynamic/metadata
+
+export_terraform_variable "key_name"
+export_terraform_variable "openstack_project"
+export_terraform_variable "director_public_ip"
+export_terraform_variable "primary_net_id"
+export_terraform_variable "dns"
+export_terraform_variable "security_group"
 
 export BOSH_INIT_LOG_LEVEL=DEBUG
 
@@ -67,10 +71,10 @@ releases:
 networks:
   - name: private
     type: dynamic
-    dns:     ${dns}
+    dns: [${dns}]
     cloud_properties:
-      net_id: ${openstack_net_id}
-      security_groups: [${openstack_security_group}]
+      net_id: ${primary_net_id}
+      security_groups: [${security_group}]
   - name: public
     type: vip
 
@@ -80,7 +84,7 @@ resource_pools:
     stemcell:
       url: file://stemcell.tgz
     cloud_properties:
-      instance_type: $openstack_flavor
+      instance_type: ${openstack_flavor}
     env:
       bosh:
         password: ${bosh_vcap_password_hash}
@@ -109,7 +113,7 @@ jobs:
       - name: private
         default: [dns, gateway]
       - name: public
-        static_ips: [${openstack_floating_ip}]
+        static_ips: [${director_public_ip}]
 
     properties:
       nats:
@@ -126,18 +130,18 @@ jobs:
 
       # Tells the Director/agents how to contact registry
       registry:
-        address: ${openstack_floating_ip}
-        host: ${openstack_floating_ip}
+        address: ${director_public_ip}
+        host: ${director_public_ip}
         db: *db
         http: {user: admin, password: ${bosh_admin_password}, port: ${bosh_registry_port}}
         username: admin
         password: ${bosh_admin_password}
         port: ${bosh_registry_port}
-        endpoint: http://admin:${bosh_admin_password}@${openstack_floating_ip}:${bosh_registry_port}
+        endpoint: http://admin:${bosh_admin_password}@${director_public_ip}:${bosh_registry_port}
 
       # Tells the Director/agents how to contact blobstore
       blobstore:
-        address: ${openstack_floating_ip}
+        address: ${director_public_ip}
         port: 25250
         provider: dav
         director: {user: director, password: ${bosh_admin_password}}
@@ -172,9 +176,9 @@ jobs:
         domain: ${openstack_domain}
         region: #leave this blank
         endpoint_type: publicURL
-        default_key_name: ${openstack_default_key_name}
+        default_key_name: ${key_name}
         default_security_groups:
-          - ${openstack_security_group}
+          - ${security_group}
         state_timeout: ${openstack_state_timeout}
         wait_resource_poll_interval: 5
         human_readable_vm_names: true
@@ -185,7 +189,7 @@ jobs:
           ca_cert: $(if [ -z "$bosh_openstack_ca_cert" ]; then echo "~"; else echo "\"$(echo ${bosh_openstack_ca_cert} | sed -r  -e 's/ /\\n/g ' -e 's/\\nCERTIFICATE-----/ CERTIFICATE-----/g')\""; fi)
 
       # Tells agents how to contact nats
-      agent: {mbus: "nats://nats:${bosh_admin_password}@${openstack_floating_ip}:4222"}
+      agent: {mbus: "nats://nats:${bosh_admin_password}@${director_public_ip}:4222"}
 
       ntp: &ntp
         - ${time_server_1}
@@ -196,13 +200,13 @@ cloud_provider:
 
   # Tells bosh-micro how to SSH into deployed VM
   ssh_tunnel:
-    host: ${openstack_floating_ip}
+    host: ${director_public_ip}
     port: 22
     user: vcap
     private_key: bats.pem
 
   # Tells bosh-micro how to contact remote agent
-  mbus: https://mbus-user:${bosh_admin_password}@${openstack_floating_ip}:6868
+  mbus: https://mbus-user:${bosh_admin_password}@${director_public_ip}:6868
 
   properties:
     openstack: *openstack
@@ -220,8 +224,8 @@ EOF
 echo "using bosh CLI version..."
 bosh version
 
-echo "targeting bosh director at ${openstack_floating_ip}"
-bosh -n target ${openstack_floating_ip} || failed_exit_code=$?
+echo "targeting bosh director at ${director_public_ip}"
+bosh -n target ${director_public_ip} || failed_exit_code=$?
 if [ -z "$failed_exit_code" ]; then
   bosh login admin ${bosh_admin_password}
   echo "cleanup director (especially orphan disks)"

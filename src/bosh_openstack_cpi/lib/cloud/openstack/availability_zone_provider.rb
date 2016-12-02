@@ -12,7 +12,7 @@ module Bosh::OpenStackCloud
         fog_volume_map = @openstack.volume.volumes
         volumes = volume_ids.map { |vid| with_openstack { fog_volume_map.get(vid) } }
         ensure_same_availability_zone(volumes, resource_pool_az)
-        volumes.first.availability_zone
+        ignore_empty_string(volumes.first.availability_zone)
       else
         resource_pool_az
       end
@@ -23,6 +23,12 @@ module Bosh::OpenStackCloud
     end
 
     private
+
+    def ignore_empty_string(string)
+      if string
+        string unless string.empty?
+      end
+    end
 
     ##
     # Ensure all supplied availability zones are the same

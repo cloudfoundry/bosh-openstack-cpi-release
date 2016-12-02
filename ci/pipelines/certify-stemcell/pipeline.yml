@@ -85,13 +85,35 @@ jobs:
         timeout: *timeouts-long
         file: bosh-cpi-src-in/ci/pipelines/certify-stemcell/tasks/deploy-dummy-release.yml
         params:
-          instance_flavor:         "m1.medium"
-          bosh_admin_password:     {{bosh_admin_password}}
-          bosh_director_ip:        {{v3_e2e_centos_director_floating_ip}}
-          dns:                     {{dns}}
-          v3_e2e_security_group:   {{v3_e2e_security_group}}
-          network_id:              {{v3_e2e_net_id}}
-          stemcell_name:           "bosh-openstack-kvm-centos-7-go_agent"
+          instance_flavor:             "m1.medium"
+          bosh_admin_password:         {{bosh_admin_password}}
+          bosh_director_ip:            {{v3_e2e_centos_director_floating_ip}}
+          dns:                         {{dns}}
+          v3_e2e_security_group:       {{v3_e2e_security_group}}
+          network_id:                  {{v3_e2e_net_id}}
+          stemcell_name:               "bosh-openstack-kvm-centos-7-go_agent"
+          delete_deployment_when_done: "true"
+        <<: *send-failure-email
+
+      - task: deploy-dummy-release-light-stemcell
+        tags: *tags
+        timeout: *timeouts-long
+        file: bosh-cpi-src-in/ci/pipelines/certify-stemcell/tasks/deploy-dummy-release-light-stemcell.yml
+        params:
+          instance_flavor:                     "m1.medium"
+          bosh_admin_password:                 {{bosh_admin_password}}
+          bosh_director_ip:                    {{v3_e2e_centos_director_floating_ip}}
+          dns:                                 {{dns}}
+          v3_e2e_security_group:               {{v3_e2e_security_group}}
+          network_id:                          {{v3_e2e_net_id}}
+          os_name:                             "centos-7"
+          delete_deployment_when_done:         "true"
+          BOSH_OPENSTACK_DOMAIN_NAME:          {{v3_e2e_domain}}
+          BOSH_OPENSTACK_AUTH_URL:             {{openstack_auth_url_v3}}
+          BOSH_OPENSTACK_USERNAME:             {{v3_e2e_username}}
+          BOSH_OPENSTACK_API_KEY:              {{v3_e2e_api_key}}
+          BOSH_OPENSTACK_PROJECT:              {{v3_e2e_project}}
+          BOSH_OPENSTACK_CA_CERT:              {{bosh_openstack_ca_cert}}
         <<: *send-failure-email
 
       - task: teardown-director
@@ -132,13 +154,35 @@ jobs:
         timeout: *timeouts-long
         file: bosh-cpi-src-in/ci/pipelines/certify-stemcell/tasks/deploy-dummy-release.yml
         params:
-          instance_flavor:         "m1.medium"
-          bosh_admin_password:     {{bosh_admin_password}}
-          bosh_director_ip:        {{v3_e2e_ubuntu_director_floating_ip}}
-          dns:                     {{dns}}
-          v3_e2e_security_group:   {{v3_e2e_security_group}}
-          network_id:              {{v3_e2e_net_id}}
-          stemcell_name:           "bosh-openstack-kvm-ubuntu-trusty-go_agent"
+          instance_flavor:                     "m1.medium"
+          bosh_admin_password:                 {{bosh_admin_password}}
+          bosh_director_ip:                    {{v3_e2e_ubuntu_director_floating_ip}}
+          dns:                                 {{dns}}
+          v3_e2e_security_group:               {{v3_e2e_security_group}}
+          network_id:                          {{v3_e2e_net_id}}
+          stemcell_name:                       "bosh-openstack-kvm-ubuntu-trusty-go_agent"
+          delete_deployment_when_done:         "true"
+        <<: *send-failure-email
+
+      - task: deploy-dummy-release-light-stemcell
+        tags: *tags
+        timeout: *timeouts-long
+        file: bosh-cpi-src-in/ci/pipelines/certify-stemcell/tasks/deploy-dummy-release-light-stemcell.yml
+        params:
+          instance_flavor:             "m1.medium"
+          bosh_admin_password:         {{bosh_admin_password}}
+          bosh_director_ip:            {{v3_e2e_ubuntu_director_floating_ip}}
+          dns:                         {{dns}}
+          v3_e2e_security_group:       {{v3_e2e_security_group}}
+          network_id:                  {{v3_e2e_net_id}}
+          os_name:                     "ubuntu-trusty"
+          delete_deployment_when_done: "true"
+          BOSH_OPENSTACK_DOMAIN_NAME:          {{v3_e2e_domain}}
+          BOSH_OPENSTACK_AUTH_URL:             {{openstack_auth_url_v3}}
+          BOSH_OPENSTACK_USERNAME:             {{v3_e2e_username}}
+          BOSH_OPENSTACK_API_KEY:              {{v3_e2e_api_key}}
+          BOSH_OPENSTACK_PROJECT:              {{v3_e2e_project}}
+          BOSH_OPENSTACK_CA_CERT:              {{bosh_openstack_ca_cert}}
         <<: *send-failure-email
 
       - task: teardown-director
@@ -472,7 +516,6 @@ jobs:
         timeout: *timeouts-long
         file: bosh-cpi-src-in/ci/tasks/cleanup.yml
         params:
-          BOSH_OPENSTACK_IDENTITY_API_VERSION: 3
           BOSH_OPENSTACK_DOMAIN_NAME:          {{v3_e2e_domain}}
           BOSH_OPENSTACK_AUTH_URL:             {{openstack_auth_url_v3}}
           BOSH_OPENSTACK_USERNAME:             {{v3_e2e_username}}
@@ -554,11 +597,6 @@ resources:
     type: bosh-io-release
     source:
       repository: cloudfoundry/bosh
-
-  - name: published-bosh-cpi-release
-    type: bosh-io-release
-    source:
-      repository: cloudfoundry-incubator/bosh-openstack-cpi-release
 
   - name: centos-stemcell
     type: bosh-io-stemcell

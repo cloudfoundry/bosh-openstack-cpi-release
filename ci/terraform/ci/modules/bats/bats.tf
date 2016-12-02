@@ -24,11 +24,6 @@ variable "primary_net_allocation_pool_end" {
   description = "OpenStack network allocation pool end"
 }
 
-variable "primary_net_gateway" {
-  description = "OpenStack network gateway"
-}
-
-
 variable "ext_net_name" {
   description = "OpenStack external network name to register floating IP"
 }
@@ -49,7 +44,7 @@ resource "openstack_networking_subnet_v2" "primary_subnet" {
     start = "${var.primary_net_allocation_pool_start}"
     end   = "${var.primary_net_allocation_pool_end}"
   }
-  gateway_ip       = "${var.primary_net_gateway}"
+  gateway_ip       = "${cidrhost(var.primary_net_cidr, 1)}"
   enable_dhcp      = "true"
   dns_nameservers = ["${compact(split(",",var.dns_nameservers))}"]
 }
@@ -98,8 +93,7 @@ output "primary_net_static_range" {
   value = "${cidrhost(openstack_networking_subnet_v2.primary_subnet.cidr, 4)}-${cidrhost(openstack_networking_subnet_v2.primary_subnet.cidr, 100)}"
 }
 
-
-output "director_floating_ip" {
+output "floating_ip" {
   value = "${openstack_compute_floatingip_v2.floating_ip.address}"
 }
 
@@ -110,8 +104,3 @@ output "director_private_ip" {
 output "director_public_ip" {
   value = "${openstack_compute_floatingip_v2.director_public_ip.address}"
 }
-
-output "ubuntu_director_private_ip" {
-  value = "${cidrhost(openstack_networking_subnet_v2.primary_subnet.cidr, 3)}"
-}
-

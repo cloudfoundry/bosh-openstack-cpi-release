@@ -4,8 +4,10 @@ require 'open3'
 require 'digest/sha1'
 
 class LightStemcellCreator
+  class Error < StandardError; end
+
   def self.run(version, os, image_id, output_directory)
-    raise "Output directory '#{output_directory}' does not exist" unless File.exists?(output_directory)
+    raise Error, "Output directory '#{output_directory}' does not exist" unless File.exists?(output_directory)
     filename = "light-bosh-stemcell-#{version}-openstack-kvm-#{os}-go_agent.tgz"
     output_path = File.absolute_path(File.join(output_directory, filename))
 
@@ -38,7 +40,7 @@ class LightStemcellCreator
         File.write('stemcell.MF', YAML.dump(manifest))
 
         output, status = Open3.capture2e("tar czf #{output_path} stemcell.MF image")
-        raise output if status.exitstatus != 0
+        raise Error, output if status.exitstatus != 0
       end
       output_path
     end
@@ -49,7 +51,7 @@ class LightStemcellCreator
   def self.extract_distro(os)
     distro = os.rpartition('-').first
     if distro.empty?
-      raise "OS name contains no dash to separate the version from the name, i.e. 'name-version'"
+      raise Error, "OS name '#{os}' contains no dash to separate the version from the name, i.e. 'name-version'"
     end
     distro
   end

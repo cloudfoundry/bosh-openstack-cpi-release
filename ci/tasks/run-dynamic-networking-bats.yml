@@ -8,15 +8,14 @@ inputs:
   - name: bosh-cpi-src-in
   - name: stemcell
   - name: bats
+  - name: terraform-bats-dynamic-deploy
+outputs:
+  - name: terraform-bats
 run:
   path: bosh-cpi-src-in/ci/tasks/run-dynamic-networking-bats.sh
 params:
-  bats_vm_floating_ip:                       replace-me
   bosh_admin_password:                       replace-me
-  bosh_director_public_ip:                   replace-me
   openstack_flavor_with_ephemeral_disk:      replace-me
   openstack_flavor_with_no_ephemeral_disk:   replace-me
-  openstack_security_group:                  replace-me
-  primary_network_id:                        replace-me
   private_key_data:                          replace-me
   stemcell_name:                             replace-me

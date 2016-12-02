@@ -11,13 +11,14 @@ inputs:
   - name: bosh-cpi-dev-artifacts
   - name: version-semver
   - name: stemcell
+  - name: terraform-bats-manual
 outputs:
   - name: bosh-director-deployment
+  - name: terraform-bats-manual-deploy
 run:
   path: bosh-cpi-src-in/ci/tasks/deploy-manual-networking.sh
 params:
   bosh_admin_password:                 ""
-  dns:                                 ""
   openstack_flavor:                    ""
   openstack_connection_timeout:        ""
   openstack_read_timeout:              ""
@@ -26,18 +27,10 @@ params:
   private_key_data:                    ""
   bosh_registry_port:                  ""
   bosh_openstack_ca_cert:              replace-me
-  openstack_net_id:                    ""
-  openstack_security_group:            ""
-  openstack_default_key_name:          ""
   openstack_auth_url:                  ""
   openstack_username:                  ""
   openstack_api_key:                   ""
-  openstack_project:                   ""
   openstack_domain:                    ""
-  openstack_floating_ip:               ""
-  openstack_manual_ip:                 ""
-  openstack_net_cidr:                  ""
-  openstack_net_gateway:               ""
   time_server_1:                       ""
   time_server_2:                       ""
   distro:                              ""

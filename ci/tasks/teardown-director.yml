@@ -12,8 +12,8 @@ inputs:
   - name: stemcell
   - name: bosh-release
   - name: version-semver
+  - name: terraform-bats
 run:
   path: bosh-cpi-src-in/ci/tasks/teardown-director.sh
 params:
   bosh_admin_password:     ""
-  bosh_director_ip:        ""

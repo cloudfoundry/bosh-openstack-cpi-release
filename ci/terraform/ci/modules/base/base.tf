@@ -38,6 +38,10 @@ output "default_router_id" {
   value = "${openstack_networking_router_v2.default_router.id}"
 }
 
+output "security_group" {
+  value = "${openstack_compute_secgroup_v2.ci_secgroup.name}"
+}
+
 # key pairs
 
 resource "openstack_compute_keypair_v2" "openstack_compute_keypair_v2" {
