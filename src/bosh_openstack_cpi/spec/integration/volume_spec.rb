@@ -44,14 +44,20 @@ describe Bosh::OpenStackCloud::Cloud do
     cpi_for_vm.create_vm(
       'agent-007',
       @stemcell_id,
-      { 'instance_type' => @config.instance_type },
+      {
+          'instance_type' => @config.instance_type,
+          'availability_zone' => @config.availability_zone
+      },
       network_spec,
       [],
       { 'key' => 'value' }
     )
   end
 
-  let(:cloud_properties) { { 'type' => @config.volume_type } }
+  let(:cloud_properties) { {
+      'type' => @config.volume_type,
+      'availability_zone' => @config.availability_zone
+  } }
 
   after(:each) do
     cpi_for_vm.delete_vm(vm_id)

@@ -64,7 +64,7 @@ describe Bosh::OpenStackCloud::Cloud do
     end
 
     context 'with existing disks' do
-      before { @existing_volume_id = cpi.create_disk(2048, {}) }
+      before { @existing_volume_id = cpi.create_disk(2048, { 'availability_zone' => @config.availability_zone }) }
       after { cpi.delete_disk(@existing_volume_id) if @existing_volume_id }
 
       it 'exercises the vm lifecycle' do
@@ -110,7 +110,7 @@ describe Bosh::OpenStackCloud::Cloud do
     end
 
     context 'with existing disks' do
-      before { @existing_volume_id = cpi.create_disk(2048, {}) }
+      before { @existing_volume_id = cpi.create_disk(2048, { 'availability_zone' => @config.availability_zone }) }
       after { cpi.delete_disk(@existing_volume_id) if @existing_volume_id }
 
       it 'exercises the vm lifecycle' do
@@ -438,7 +438,9 @@ describe Bosh::OpenStackCloud::Cloud do
     vm_id = cpi.create_vm(
       'agent-007',
       stemcell_id,
-      { 'instance_type' => @config.instance_type }.merge(resource_pool),
+      { 'instance_type' => @config.instance_type,
+        'availability_zone' => @config.availability_zone
+      }.merge(resource_pool),
       network_spec,
       disk_locality,
       { 'key' => 'value' }
@@ -471,7 +473,7 @@ describe Bosh::OpenStackCloud::Cloud do
 
   def create_disk(vm_id, cloud_properties)
     @config.logger.info("Creating disk for VM vm_id=#{vm_id}")
-    disk_id = cpi.create_disk(2048, cloud_properties, vm_id)
+    disk_id = cpi.create_disk(2048, { 'availability_zone' => @config.availability_zone }.merge!(cloud_properties), vm_id)
     expect(disk_id).to be
 
     @config.logger.info("Checking existence of disk vm_id=#{vm_id} disk_id=#{disk_id}")

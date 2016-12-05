@@ -9,6 +9,7 @@ ensure_not_replace_value openstack_flavor_with_ephemeral_disk
 ensure_not_replace_value openstack_flavor_with_no_ephemeral_disk
 ensure_not_replace_value bosh_admin_password
 ensure_not_replace_value private_key_data
+optional_value availability_zone
 
 ####
 #
@@ -82,6 +83,7 @@ properties:
   vip: ${floating_ip}
   second_static_ip: ${primary_net_second_manual_ip}
   instance_type: ${openstack_flavor_with_ephemeral_disk}
+  availability_zone: ${availability_zone:-"~"}
   flavor_with_no_ephemeral_disk: ${openstack_flavor_with_no_ephemeral_disk}
   stemcell:
     name: ${stemcell_name}
