@@ -45,7 +45,7 @@ describe Bosh::OpenStackCloud::Cloud do
       }
     end
 
-    context 'without existing disks and floating ip' do
+    context 'without existing disks and with a floating ip' do
       let(:network_spec_with_vip_network) do
         {
             'vip_network' => {
@@ -55,7 +55,10 @@ describe Bosh::OpenStackCloud::Cloud do
         }.merge(network_spec)
       end
 
-      it 'exercises the vm lifecycle' do
+      before { @vm_with_assigned_floating_ip = create_vm(@stemcell_id, network_spec_with_vip_network, []) }
+      after { clean_up_vm(@vm_with_assigned_floating_ip, network_spec) if @vm_with_assigned_floating_ip }
+
+      it 'exercises the vm lifecycle and reassigns the floating ip' do
         vm_lifecycle(@stemcell_id, network_spec_with_vip_network, [])
       end
     end
