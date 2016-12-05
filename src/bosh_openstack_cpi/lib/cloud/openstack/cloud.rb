@@ -52,6 +52,8 @@ module Bosh::OpenStackCloud
           openstack_properties["ignore_server_availability_zone"])
 
       @metadata_lock = Mutex.new
+
+      @instance_type_mapper = Bosh::OpenStackCloud::InstanceTypeMapper.new
     end
 
     def compute
@@ -600,6 +602,25 @@ module Bosh::OpenStackCloud
 
         end
       end
+    end
+
+    # Map a set of cloud agnostic VM properties (cpu, ram, ephemeral_disk_size) to
+    # a set of OpenStack specific cloud_properties
+    # @param [Hash] requirements requested cpu, ram, and ephemeral_disk_size
+    # @return [Hash] OpenStack specific cloud_properties describing instance (e.g. instance_type)
+    def calculate_vm_cloud_properties(requirements)
+      required_keys = ['cpu', 'ram', 'ephemeral_disk_size']
+      missing_keys = required_keys.reject { |key| requirements[key] }
+      unless missing_keys.empty?
+        missing_keys.map! { |k| "'#{k}'" }
+        raise "Missing VM cloud properties: #{missing_keys.join(', ')}"
+      end
+
+      @instance_type_mapper.map(
+        requirements: requirements,
+        flavors: compute.flavors,
+        boot_from_volume: @boot_from_volume,
+      )
     end
 
     ##

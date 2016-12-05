@@ -15,7 +15,7 @@ Bosh::Clouds::Config.configure(cloud_config)
 
 cpi_log = StringIO.new
 
-cpi_lambda = lambda do
+cpi_lambda = lambda do |_|
   unless cpi_config.has_key?('cloud') && cpi_config['cloud'].has_key?('properties')
     raise "Could not find cloud properties in the configuration"
   end
