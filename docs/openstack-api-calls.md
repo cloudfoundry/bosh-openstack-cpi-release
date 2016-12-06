@@ -38,7 +38,8 @@ DELETE /v1/images/<resource_id>
 DELETE /v2/images/<resource_id>
 GET /
 GET /v1/images/detail
-GET /v2/images
+GET /v2/images/<resource_id>
+GET /v2/images/non-existing-id
 POST /v1/images
 POST /v2/images body: {"name":"<name>","disk_format":"qcow2","container_format":"bare","visibility":"private","version":"<version>","os_type":"linux","os_distro":"ubuntu","architecture":"x86_64","auto_disk_config":"true","hypervisor_type":"kvm"}
 PUT /v2/images/<resource_id>/file
