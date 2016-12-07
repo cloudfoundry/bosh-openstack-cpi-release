@@ -54,10 +54,7 @@ describe Bosh::OpenStackCloud::Cloud do
     )
   end
 
-  let(:cloud_properties) { {
-      'type' => @config.volume_type,
-      'availability_zone' => @config.availability_zone
-  } }
+  let(:cloud_properties) { { 'type' => @config.volume_type } }
 
   after(:each) do
     cpi_for_vm.delete_vm(vm_id)
