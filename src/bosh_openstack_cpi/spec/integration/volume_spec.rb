@@ -64,7 +64,6 @@ describe Bosh::OpenStackCloud::Cloud do
       let(:cpi_for_volume) { @config.create_cpi }
 
       context 'and NO vm_type `type`' do
-        let(:cloud_properties) { {} }
 
         it 'sets to nil' do
           expect(cpi_for_volume.volume.class.to_s).to start_with('Fog::Volume::OpenStack::V2')
@@ -95,7 +94,6 @@ describe Bosh::OpenStackCloud::Cloud do
 
       context 'and NO vm_type `type`' do
         let(:cpi_for_volume) { @config.create_cpi(default_volume_type: supported_volume_type)}
-        let(:cloud_properties) { {} }
 
         it 'uses the default_volume_type' do
           expect(cpi_for_volume.volume.class.to_s).to start_with('Fog::Volume::OpenStack::V2')
