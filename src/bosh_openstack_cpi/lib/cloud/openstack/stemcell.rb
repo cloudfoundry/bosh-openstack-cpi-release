@@ -1,14 +1,41 @@
 module Bosh::OpenStackCloud
-  class Stemcell
+
+  module Stemcell
     include Helpers
 
     attr_reader :id, :image_id
 
     def initialize(logger, openstack, id)
-      @id = id
       @image_id = id
       @openstack = openstack
       @logger = logger
+    end
+
+    def self.create(logger, openstack, id)
+      regex = / light$/
+
+      if id =~ regex
+        LightStemcell.new(logger, openstack, id.gsub(regex, ''))
+      else
+        HeavyStemcell.new(logger, openstack, id)
+      end
+    end
+
+    def validate_existence
+      image = with_openstack { @openstack.image.images.find_by_id(image_id) }
+      if image.nil?
+        cloud_error("Image `#{id}' not found")
+      end
+      @logger.debug("Using image: `#{id}'")
+    end
+  end
+
+  class HeavyStemcell
+    include Stemcell
+
+    def initialize(logger, openstack, id)
+      super
+      @id = id
     end
 
     def delete
@@ -20,16 +47,14 @@ module Bosh::OpenStackCloud
         @logger.info("Stemcell `#{image_id}' not found. Skipping.")
       end
     end
-
   end
 
   class LightStemcell
-    attr_reader :id, :image_id
+    include Stemcell
 
-    def initialize(logger, id)
+    def initialize(logger, openstack, id)
+      super
       @id = "#{id} light"
-      @image_id = id
-      @logger = logger
     end
 
     def delete

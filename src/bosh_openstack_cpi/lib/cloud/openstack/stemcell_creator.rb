@@ -42,7 +42,7 @@ module Bosh::OpenStackCloud
         cloud_error("No active image with id '#{image_id}' referenced by light stemcell found in OpenStack.")
       end
 
-      LightStemcell.new(@logger, image.id)
+      LightStemcell.new(@logger, @openstack, image.id)
     end
   end
 
@@ -74,7 +74,7 @@ module Bosh::OpenStackCloud
           @logger.info("Waiting for image '#{image.id}' to have status 'active'...")
           wait_resource(image, :active)
 
-          Stemcell.new(@logger, @openstack, image.id.to_s)
+          HeavyStemcell.new(@logger, @openstack, image.id.to_s)
         end
       rescue => e
         @logger.error(e)

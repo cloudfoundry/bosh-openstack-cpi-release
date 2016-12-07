@@ -108,7 +108,7 @@ module Bosh::OpenStackCloud
       with_thread_name("delete_stemcell(#{stemcell_id})") do
         @logger.info("Deleting stemcell `#{stemcell_id}'...")
 
-        stemcell = StemcellFinder.new(@logger, @openstack).by_id(stemcell_id)
+        stemcell = Stemcell.create(@logger, @openstack, stemcell_id)
         stemcell.delete
       end
     end
@@ -147,7 +147,8 @@ module Bosh::OpenStackCloud
         )
         @logger.debug("Using security groups: `#{picked_security_groups.map { |sg| sg.name }.join(', ')}'")
 
-        stemcell = StemcellFinder.new(@logger, @openstack).by_id(stemcell_id)
+        stemcell = Stemcell.create(@logger, @openstack, stemcell_id)
+        stemcell.validate_existence
 
         flavor = with_openstack { @openstack.compute.flavors.find { |f| f.name == resource_pool['instance_type'] } }
         cloud_error("Flavor `#{resource_pool['instance_type']}' not found") if flavor.nil?
