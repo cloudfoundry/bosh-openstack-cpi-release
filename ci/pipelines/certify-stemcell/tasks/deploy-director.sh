@@ -5,7 +5,6 @@ set -e
 source bosh-cpi-src-in/ci/tasks/utils.sh
 
 ensure_not_replace_value bosh_admin_password
-ensure_not_replace_value dns
 ensure_not_replace_value v3_e2e_flavor
 ensure_not_replace_value v3_e2e_connection_timeout
 ensure_not_replace_value v3_e2e_read_timeout
@@ -14,13 +13,6 @@ ensure_not_replace_value v3_e2e_write_timeout
 ensure_not_replace_value v3_e2e_bosh_registry_port
 ensure_not_replace_value v3_e2e_api_key
 ensure_not_replace_value v3_e2e_auth_url
-ensure_not_replace_value v3_e2e_default_key_name
-ensure_not_replace_value director_floating_ip
-ensure_not_replace_value director_manual_ip
-ensure_not_replace_value v3_e2e_net_cidr
-ensure_not_replace_value v3_e2e_net_gateway
-ensure_not_replace_value v3_e2e_net_id
-ensure_not_replace_value v3_e2e_security_group
 ensure_not_replace_value v3_e2e_project
 ensure_not_replace_value v3_e2e_domain
 ensure_not_replace_value v3_e2e_username
@@ -37,6 +29,17 @@ optional_value v3_e2e_config_drive
 optional_value distro
 
 source /etc/profile.d/chruby-with-ruby-2.1.2.sh
+
+metadata=terraform/metadata
+
+export_terraform_variable "v3_e2e_default_key_name"
+export_terraform_variable "director_public_ip"
+export_terraform_variable "director_private_ip"
+export_terraform_variable "v3_e2e_net_cidr"
+export_terraform_variable "v3_e2e_net_gateway"
+export_terraform_variable "v3_e2e_net_id"
+export_terraform_variable "v3_e2e_security_group"
+export_terraform_variable "dns"
 
 export BOSH_INIT_LOG_LEVEL=DEBUG
 
@@ -72,8 +75,8 @@ networks:
     subnets:
       - range:    ${v3_e2e_net_cidr}
         gateway:  ${v3_e2e_net_gateway}
-        dns:     ${dns}
-        static:  [${director_manual_ip}]
+        dns:     [${dns}]
+        static:  [${director_private_ip}]
         cloud_properties:
           net_id: ${v3_e2e_net_id}
           security_groups: [${v3_e2e_security_group}]
@@ -112,10 +115,10 @@ jobs:
 
     networks:
       - name: private
-        static_ips: [${director_manual_ip}]
+        static_ips: [${director_private_ip}]
         default: [dns, gateway]
       - name: public
-        static_ips: [${director_floating_ip}]
+        static_ips: [${director_public_ip}]
 
     properties:
       nats:
@@ -132,8 +135,8 @@ jobs:
 
       # Tells the Director/agents how to contact registry
       registry:
-        address: ${director_manual_ip}
-        host: ${director_manual_ip}
+        address: ${director_private_ip}
+        host: ${director_private_ip}
         db: *db
         http: {user: admin, password: ${bosh_admin_password}, port: ${v3_e2e_bosh_registry_port}}
         username: admin
@@ -189,7 +192,7 @@ jobs:
           ca_cert: $(if [ -z "$bosh_openstack_ca_cert" ]; then echo "~"; else echo "\"$(echo ${bosh_openstack_ca_cert} | sed -r  -e 's/ /\\n/g ' -e 's/\\nCERTIFICATE-----/ CERTIFICATE-----/g')\""; fi)
 
       # Tells agents how to contact nats
-      agent: {mbus: "nats://nats:${bosh_admin_password}@${director_manual_ip}:4222"}
+      agent: {mbus: "nats://nats:${bosh_admin_password}@${director_private_ip}:4222"}
 
       ntp: &ntp
         - ${time_server_1}
@@ -200,13 +203,13 @@ cloud_provider:
 
   # Tells bosh-micro how to SSH into deployed VM
   ssh_tunnel:
-    host: ${director_floating_ip}
+    host: ${director_public_ip}
     port: 22
     user: vcap
     private_key: ${private_key}
 
   # Tells bosh-micro how to contact remote agent
-  mbus: https://mbus-user:${bosh_admin_password}@${director_floating_ip}:6868
+  mbus: https://mbus-user:${bosh_admin_password}@${director_public_ip}:6868
 
   properties:
     openstack: *openstack
@@ -224,8 +227,8 @@ EOF
 echo "using bosh CLI version..."
 bosh version
 
-echo "targeting bosh director at ${director_floating_ip}"
-bosh -n target ${director_floating_ip} || failed_exit_code=$?
+echo "targeting bosh director at ${director_public_ip}"
+bosh -n target ${director_public_ip} || failed_exit_code=$?
 if [ -z "$failed_exit_code" ]; then
   bosh login admin ${bosh_admin_password}
   echo "cleanup director (especially orphan disks)"

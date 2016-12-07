@@ -9,15 +9,12 @@ inputs:
   - name: dummy-release
   - name: stemcell
   - name: deployment
+  - name: terraform
 run:
   path: bosh-cpi-src-in/ci/pipelines/certify-stemcell/tasks/deploy-dummy-release-light-stemcell.sh
 params:
   bosh_admin_password:                 replace-me
-  bosh_director_ip:                    replace-me
-  dns:                                 replace-me
-  v3_e2e_security_group:               replace-me
   os_name:                             replace-me
-  network_id:                          replace-me
   instance_flavor:                     replace-me
   delete_deployment_when_done:         replace-me
   BOSH_OPENSTACK_DOMAIN_NAME:          replace-me

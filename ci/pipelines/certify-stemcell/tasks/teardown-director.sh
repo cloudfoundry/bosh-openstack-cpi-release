@@ -5,7 +5,10 @@ set -e
 source bosh-cpi-src-in/ci/tasks/utils.sh
 
 ensure_not_replace_value bosh_admin_password
-ensure_not_replace_value bosh_director_ip
+
+metadata=terraform/metadata
+
+export_terraform_variable "director_public_ip"
 
 export BOSH_INIT_LOG_LEVEL=DEBUG
 
@@ -15,8 +18,8 @@ chruby 2.1.2
 echo "using bosh CLI version..."
 bosh version
 
-echo "targeting bosh director at ${bosh_director_ip}"
-bosh -n target ${bosh_director_ip}
+echo "targeting bosh director at ${director_public_ip}"
+bosh -n target ${director_public_ip}
 bosh login admin ${bosh_admin_password}
 
 echo "cleanup director (especially orphan disks)"

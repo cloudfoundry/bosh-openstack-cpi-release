@@ -5,12 +5,15 @@ set -e
 source bosh-cpi-src-in/ci/tasks/utils.sh
 
 ensure_not_replace_value bosh_admin_password
-ensure_not_replace_value bosh_director_ip
-ensure_not_replace_value dns
-ensure_not_replace_value v3_e2e_security_group
 ensure_not_replace_value stemcell_name
-ensure_not_replace_value network_id
 ensure_not_replace_value instance_flavor
+
+metadata=terraform/metadata
+
+export_terraform_variable "director_public_ip"
+export_terraform_variable "dns"
+export_terraform_variable "v3_e2e_security_group"
+export_terraform_variable "v3_e2e_net_id"
 
 source /etc/profile.d/chruby.sh
 chruby 2.1.2
@@ -26,8 +29,8 @@ mkdir -p ${deployment_dir}
 echo "using bosh CLI version..."
 bosh version
 
-echo "targeting bosh director at ${bosh_director_ip}"
-bosh -n target ${bosh_director_ip}
+echo "targeting bosh director at ${director_public_ip}"
+bosh -n target ${director_public_ip}
 bosh login admin ${bosh_admin_password}
 
 echo "uploading stemcell to director..."
@@ -69,9 +72,9 @@ resource_pools:
 networks:
   - name: private
     type: dynamic
-    dns: ${dns}
+    dns: [${dns}]
     cloud_properties:
-      net_id: ${network_id}
+      net_id: ${v3_e2e_net_id}
       security_groups: [${v3_e2e_security_group}]
 
 jobs:
