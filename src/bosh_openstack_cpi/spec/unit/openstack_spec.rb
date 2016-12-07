@@ -56,7 +56,15 @@ describe Bosh::OpenStackCloud::Openstack do
         end
       end
 
+      context 'and it ends with a slash' do
+        before do
+          openstack_options_v2['auth_url'] = 'http://fake-auth-url/v2.0/'
+        end
 
+        it 'removes the trailing slash' do
+          expect(subject.auth_url).to eq('http://fake-auth-url/v2.0/tokens')
+        end
+      end
     end
   end
 

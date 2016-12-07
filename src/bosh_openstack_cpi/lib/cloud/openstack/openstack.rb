@@ -28,14 +28,9 @@ module Bosh::OpenStackCloud
     def initialize(options, retry_options_overwrites = {})
       @logger = Bosh::Clouds::Config.logger
       @is_v3 = Openstack.is_v3(options['auth_url'])
-      unless options['auth_url'].match(/\/tokens$/)
-        if is_v3
-          options['auth_url'] += '/auth/tokens'
-        else
-          options['auth_url'] += '/tokens'
-        end
-      end
-      @auth_url = options['auth_url']
+
+      @auth_url = build_auth_url(options['auth_url'])
+
       @use_nova_networking = options.fetch('use_nova_networking', false)
       if @use_nova_networking
         @logger.debug("Property 'use_nova_networking' is set to true. Using Nova networking APIs instead of Neutron APIs.")
@@ -142,7 +137,7 @@ module Bosh::OpenStackCloud
     def openstack_params(options)
       {
           :provider => 'OpenStack',
-          :openstack_auth_url => options['auth_url'],
+          :openstack_auth_url => auth_url,
           :openstack_username => options['username'],
           :openstack_api_key => options['api_key'],
           :openstack_tenant => options['tenant'],
@@ -159,7 +154,29 @@ module Bosh::OpenStackCloud
     end
 
     def socket_error_msg
-      "Unable to connect to the OpenStack Keystone API #{params[:openstack_auth_url]}\n"
+      "Unable to connect to the OpenStack Keystone API #{auth_url}\n"
+    end
+
+    def remove_url_trailing_slash(url)
+      if url.end_with?('/')
+        url[0..-2]
+      else
+        url
+      end
+    end
+
+    def append_url_sufix(url)
+      unless url.match(/\/tokens$/)
+        url += '/auth' if @is_v3
+        url += '/tokens'
+      end
+
+      url
+    end
+
+    def build_auth_url(url)
+      url = remove_url_trailing_slash(url)
+      append_url_sufix(url)
     end
 
   end
