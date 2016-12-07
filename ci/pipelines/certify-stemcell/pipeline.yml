@@ -403,7 +403,6 @@ jobs:
         timeout: *timeouts-long
         file: bosh-cpi-src-in/ci/pipelines/certify-stemcell/tasks/test-upgrade.yml
         params: &centos-test-upgrade-params
-          dns:                                  {{dns}}
           v3_e2e_flavor:                        "m1.medium"
           v3_e2e_connection_timeout:            "600"
           v3_e2e_read_timeout:                  "180"
