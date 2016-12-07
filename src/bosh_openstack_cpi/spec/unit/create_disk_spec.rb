@@ -48,7 +48,7 @@ describe Bosh::OpenStackCloud::Cloud do
     expect(cloud.create_disk(2048, {})).to eq("v-foobar")
   end
 
-  it "creates an OpenStack volume with a volume_type" do
+  it "creates an OpenStack volume with the specified volume_type" do
     unique_name = SecureRandom.uuid
     disk_params = {
       :display_name => "volume-#{unique_name}",
@@ -69,6 +69,31 @@ describe Bosh::OpenStackCloud::Cloud do
     expect(cloud).to receive(:wait_resource).with(volume, :available)
 
     expect(cloud.create_disk(2048, {"type" => "foo"})).to eq("v-foobar")
+  end
+
+  it "creates an OpenStack volume with the default volume_type" do
+    unique_name = SecureRandom.uuid
+    disk_params = {
+      :display_name => "volume-#{unique_name}",
+      :display_description => "",
+      :name => "volume-#{unique_name}",
+      :description => "",
+      :size => 2,
+      :volume_type => "default-type"
+    }
+    volume = double("volume", :id => "v-foobar")
+
+    global_properties = mock_cloud_options['properties']
+    global_properties['openstack']['default_volume_type'] = 'default-type'
+    cloud = mock_cloud(global_properties) do |fog|
+      expect(fog.volume.volumes).to receive(:create).
+        with(disk_params).and_return(volume)
+    end
+
+    expect(cloud).to receive(:generate_unique_name).and_return(unique_name)
+    expect(cloud).to receive(:wait_resource).with(volume, :available)
+
+    expect(cloud.create_disk(2048, {})).to eq("v-foobar")
   end
 
   it "rounds up disk size" do

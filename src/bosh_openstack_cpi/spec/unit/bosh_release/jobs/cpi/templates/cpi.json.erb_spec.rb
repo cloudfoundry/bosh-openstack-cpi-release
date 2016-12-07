@@ -77,7 +77,8 @@ describe 'cpi.json.erb' do
             'username' => 'openstack.username',
             'wait_resource_poll_interval' => 'openstack.wait_resource_poll_interval',
             'human_readable_vm_names' => false,
-            'use_nova_networking' => false
+            'use_nova_networking' => false,
+            'default_volume_type' => nil
           },
           'registry' => {
             'address' => 'registry.host',

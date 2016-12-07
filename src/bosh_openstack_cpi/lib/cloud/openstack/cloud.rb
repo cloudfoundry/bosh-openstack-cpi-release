@@ -35,6 +35,7 @@ module Bosh::OpenStackCloud
       openstack_properties = @options['openstack']
       @default_key_name = openstack_properties['default_key_name']
       @default_security_groups = openstack_properties['default_security_groups']
+      @default_volume_type = openstack_properties['default_volume_type']
       @state_timeout = openstack_properties['state_timeout']
       @stemcell_public_visibility = openstack_properties['stemcell_public_visibility']
       @wait_resource_poll_interval = openstack_properties['wait_resource_poll_interval']
@@ -385,6 +386,8 @@ module Bosh::OpenStackCloud
 
         if cloud_properties.has_key?('type')
           volume_params[:volume_type] = cloud_properties['type']
+        elsif !@default_volume_type.nil?
+          volume_params[:volume_type] = @default_volume_type
         end
 
         if server_id  && @az_provider.constrain_to_server_availability_zone?
@@ -875,6 +878,7 @@ module Bosh::OpenStackCloud
                 optional('boot_from_volume') => bool,
                 optional('default_key_name') => String,
                 optional('default_security_groups') => [String],
+                optional('default_volume_type') => String,
                 optional('wait_resource_poll_interval') => Integer,
                 optional('config_drive') => enum('disk', 'cdrom'),
                 optional('human_readable_vm_names') => bool,

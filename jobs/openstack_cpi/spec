@@ -61,6 +61,9 @@ properties:
   openstack.default_security_groups:
     description: Default OpenStack security groups to use when spinning up new VMs (required)
     example: [bosh-grp]
+  openstack.default_volume_type:
+    description: Default OpenStack volume type to use when creating new disks (optional)
+    example: SSD
   openstack.wait_resource_poll_interval:
     description: Changes the delay (in seconds) between each status check to OpenStack when creating a resource (optional, by default 5)
     default: 5

@@ -4,7 +4,7 @@ describe Bosh::OpenStackCloud::Cloud do
   # @formatter:off
   before(:all) do
     @config = IntegrationConfig.new
-    @cpi_for_stemcell = @config.create_cpi(false, nil, false)
+    @cpi_for_stemcell = @config.create_cpi
     @stemcell_id, _ = upload_stemcell(@cpi_for_stemcell, @config.stemcell_path)
   end
   # @formatter:on
@@ -26,7 +26,7 @@ describe Bosh::OpenStackCloud::Cloud do
   let(:use_nova_networking) { false }
 
   subject(:cpi) do
-    @config.create_cpi(boot_from_volume, config_drive, human_readable_vm_names, use_nova_networking, use_dhcp)
+    @config.create_cpi(boot_from_volume: boot_from_volume, config_drive: config_drive, human_readable_vm_names: human_readable_vm_names, use_nova_networking: use_nova_networking, use_dhcp: use_dhcp)
   end
 
   before { allow(Bosh::Cpi::RegistryClient).to receive(:new).and_return(double('registry').as_null_object) }
