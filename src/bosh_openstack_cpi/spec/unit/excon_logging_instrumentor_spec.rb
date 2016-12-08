@@ -121,6 +121,27 @@ describe Bosh::OpenStackCloud::ExconLoggingInstrumentor do
 
     end
 
+    context 'with server.user_data in body' do
+      let(:body) { {
+          server: {
+              user_data: 'user data'
+          }
+      } }
+      let(:params) { {
+          body: JSON.dump(body),
+          headers: {
+              'Content-Type' => 'application/json'
+          }
+      } }
+
+      it 'redacts server.user_data' do
+        redacted_params = subject.redact(params)
+
+        parsed_body = JSON.parse(redacted_params[:body])
+        expect(parsed_body['server']['user_data']).to eq('<redacted>')
+      end
+    end
+
     context 'with x-auth-token in header' do
       let(:headers) { {
           'X-Auth-Token' => 'token'
