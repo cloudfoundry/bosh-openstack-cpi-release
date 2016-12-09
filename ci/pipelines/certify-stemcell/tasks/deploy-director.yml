@@ -10,6 +10,7 @@ inputs:
   - name: bosh-init
   - name: bosh-release
   - name: stemcell
+  - name: terraform
 outputs:
   - name: deployment
 run:
@@ -17,7 +18,6 @@ run:
 params:
   BOSH_INIT_LOG_LEVEL:                 warn
   bosh_admin_password:                 replace-me
-  dns:                                 replace-me
   v3_e2e_config_drive:                 replace-me
   v3_e2e_use_dhcp:                     replace-me
   v3_e2e_flavor:                       replace-me
@@ -29,13 +29,6 @@ params:
   v3_e2e_bosh_registry_port:           replace-me
   v3_e2e_api_key:                      replace-me
   v3_e2e_auth_url:                     replace-me
-  v3_e2e_default_key_name:             replace-me
-  director_floating_ip:                replace-me
-  director_manual_ip:                  replace-me
-  v3_e2e_net_cidr:                     replace-me
-  v3_e2e_net_gateway:                  replace-me
-  v3_e2e_net_id:                       replace-me
-  v3_e2e_security_group:               replace-me
   v3_e2e_project:                      replace-me
   v3_e2e_domain:                       replace-me
   v3_e2e_username:                     replace-me

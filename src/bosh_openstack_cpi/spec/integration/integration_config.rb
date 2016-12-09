@@ -60,7 +60,7 @@ class IntegrationConfig
   end
 
 
-  def create_cpi(boot_from_value = false, config_drive = nil, human_readable_vm_names = false, use_nova_networking = false, use_dhcp=true)
+  def create_cpi(boot_from_volume: false, config_drive: nil, human_readable_vm_names: false, use_nova_networking: false, use_dhcp: true, default_volume_type: nil)
     openstack_properties = {'openstack' => {
         'auth_url' => @auth_url,
         'username' => @username,
@@ -69,8 +69,9 @@ class IntegrationConfig
         'endpoint_type' => 'publicURL',
         'default_key_name' => @default_key_name,
         'default_security_groups' => %w(default),
+        'default_volume_type' => default_volume_type,
         'wait_resource_poll_interval' => 5,
-        'boot_from_volume' => boot_from_value,
+        'boot_from_volume' => boot_from_volume,
         'config_drive' => config_drive,
         'use_dhcp'=> use_dhcp,
         'ignore_server_availability_zone' => str_to_bool(@ignore_server_az),

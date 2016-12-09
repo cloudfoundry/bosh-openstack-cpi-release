@@ -4,7 +4,7 @@ describe Bosh::OpenStackCloud::Cloud do
   # @formatter:off
   before(:all) do
     @config = IntegrationConfig.new
-    @cpi_for_stemcell = @config.create_cpi(false, nil, false)
+    @cpi_for_stemcell = @config.create_cpi
     @stemcell_id, _ = upload_stemcell(@cpi_for_stemcell, @config.stemcell_path)
   end
   # @formatter:on
@@ -26,7 +26,7 @@ describe Bosh::OpenStackCloud::Cloud do
   let(:use_nova_networking) { false }
 
   subject(:cpi) do
-    @config.create_cpi(boot_from_volume, config_drive, human_readable_vm_names, use_nova_networking, use_dhcp)
+    @config.create_cpi(boot_from_volume: boot_from_volume, config_drive: config_drive, human_readable_vm_names: human_readable_vm_names, use_nova_networking: use_nova_networking, use_dhcp: use_dhcp)
   end
 
   before { allow(Bosh::Cpi::RegistryClient).to receive(:new).and_return(double('registry').as_null_object) }
@@ -45,7 +45,7 @@ describe Bosh::OpenStackCloud::Cloud do
       }
     end
 
-    context 'without existing disks and floating ip' do
+    context 'without existing disks and with a floating ip' do
       let(:network_spec_with_vip_network) do
         {
             'vip_network' => {
@@ -55,7 +55,10 @@ describe Bosh::OpenStackCloud::Cloud do
         }.merge(network_spec)
       end
 
-      it 'exercises the vm lifecycle' do
+      before { @vm_with_assigned_floating_ip = create_vm(@stemcell_id, network_spec_with_vip_network, []) }
+      after { clean_up_vm(@vm_with_assigned_floating_ip, network_spec) if @vm_with_assigned_floating_ip }
+
+      it 'exercises the vm lifecycle and reassigns the floating ip' do
         vm_lifecycle(@stemcell_id, network_spec_with_vip_network, [])
       end
     end

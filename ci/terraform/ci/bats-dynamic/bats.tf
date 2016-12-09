@@ -2,7 +2,7 @@ provider "openstack" {
   auth_url    = "${var.auth_url}"
   user_name   = "${var.user_name}"
   password    = "${var.password}"
-  tenant_name = "${var.tenant_name}"
+  tenant_name = "${var.project_name}"
   domain_name = "${var.domain_name}"
   insecure    = "${var.insecure}"
 }
@@ -10,7 +10,7 @@ provider "openstack" {
 module "base" {
   source = "github.com/cloudfoundry-incubator/bosh-openstack-cpi-release//ci/terraform/ci/modules/base"
   region_name = "${var.region_name}"
-  tenant_name = "${var.tenant_name}"
+  project_name = "${var.project_name}"
   ext_net_id = "${var.ext_net_id}"
   ext_net_cidr = "${var.ext_net_cidr}"
   concourse_external_network_cidr = "${var.concourse_external_network_cidr}"
@@ -47,7 +47,7 @@ variable "password" {
   description = "OpenStack user password"
 }
 
-variable "tenant_name" {
+variable "project_name" {
   description = "OpenStack project/tenant name"
 }
 
@@ -118,7 +118,7 @@ output "director_public_ip" {
 }
 
 output "openstack_project" {
-  value = "${var.tenant_name}"
+  value = "${var.project_name}"
 }
 
 output "key_name" {

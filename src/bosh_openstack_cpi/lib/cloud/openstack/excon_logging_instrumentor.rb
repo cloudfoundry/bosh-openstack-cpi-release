@@ -15,6 +15,7 @@ module Bosh::OpenStackCloud
     def self.redact(params)
       redacted_params = params.dup
       redact_body(redacted_params, 'auth.passwordCredentials.password')
+      redact_body(redacted_params, 'server.user_data')
       redact_body(redacted_params, 'auth.identity.password.user.password')
       redact_headers(redacted_params, 'X-Auth-Token')
       redacted_params
@@ -31,12 +32,7 @@ module Bosh::OpenStackCloud
       rescue JSON::ParserError
         return
       end
-
-      properties = json_path.split('.')
-      property_to_redact = properties.pop
-
-      properties.reduce(json_content, &fetch_property).store(property_to_redact, REDACTED)
-
+      json_content = Redactor.redact(json_content, json_path)
       params[:body] = JSON.dump(json_content)
     end
 
@@ -51,6 +47,5 @@ module Bosh::OpenStackCloud
     def self.fetch_property
       -> (hash, property) { hash.fetch(property, {})}
     end
-
   end
 end

@@ -35,6 +35,7 @@ module Bosh::OpenStackCloud
       openstack_properties = @options['openstack']
       @default_key_name = openstack_properties['default_key_name']
       @default_security_groups = openstack_properties['default_security_groups']
+      @default_volume_type = openstack_properties['default_volume_type']
       @state_timeout = openstack_properties['state_timeout']
       @stemcell_public_visibility = openstack_properties['stemcell_public_visibility']
       @wait_resource_poll_interval = openstack_properties['wait_resource_poll_interval']
@@ -107,7 +108,7 @@ module Bosh::OpenStackCloud
       with_thread_name("delete_stemcell(#{stemcell_id})") do
         @logger.info("Deleting stemcell `#{stemcell_id}'...")
 
-        stemcell = StemcellFinder.new(@logger, @openstack).by_id(stemcell_id)
+        stemcell = Stemcell.create(@logger, @openstack, stemcell_id)
         stemcell.delete
       end
     end
@@ -146,7 +147,8 @@ module Bosh::OpenStackCloud
         )
         @logger.debug("Using security groups: `#{picked_security_groups.map { |sg| sg.name }.join(', ')}'")
 
-        stemcell = StemcellFinder.new(@logger, @openstack).by_id(stemcell_id)
+        stemcell = Stemcell.create(@logger, @openstack, stemcell_id)
+        stemcell.validate_existence
 
         flavor = with_openstack { @openstack.compute.flavors.find { |f| f.name == resource_pool['instance_type'] } }
         cloud_error("Flavor `#{resource_pool['instance_type']}' not found") if flavor.nil?
@@ -211,7 +213,7 @@ module Bosh::OpenStackCloud
               user_data: JSON.dump(user_data(registry_key, network_configurator.network_spec))
           })
 
-          @logger.debug("Using boot parms: `#{server_params.inspect}'")
+          @logger.debug("Using boot parms: `#{Redactor.clone_and_redact(server_params, 'user_data').inspect}'")
           server = with_openstack do
             begin
               @openstack.compute.servers.create(server_params)
@@ -385,6 +387,8 @@ module Bosh::OpenStackCloud
 
         if cloud_properties.has_key?('type')
           volume_params[:volume_type] = cloud_properties['type']
+        elsif !@default_volume_type.nil?
+          volume_params[:volume_type] = @default_volume_type
         end
 
         if server_id  && @az_provider.constrain_to_server_availability_zone?
@@ -875,6 +879,7 @@ module Bosh::OpenStackCloud
                 optional('boot_from_volume') => bool,
                 optional('default_key_name') => String,
                 optional('default_security_groups') => [String],
+                optional('default_volume_type') => String,
                 optional('wait_resource_poll_interval') => Integer,
                 optional('config_drive') => enum('disk', 'cdrom'),
                 optional('human_readable_vm_names') => bool,

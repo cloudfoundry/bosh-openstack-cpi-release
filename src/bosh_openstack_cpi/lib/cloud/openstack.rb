@@ -36,11 +36,11 @@ require "cloud/openstack/dynamic_network"
 require "cloud/openstack/manual_network"
 require "cloud/openstack/vip_network"
 require "cloud/openstack/volume_configurator"
+require "cloud/openstack/redactor"
 require "cloud/openstack/excon_logging_instrumentor"
 require "cloud/openstack/availability_zone_provider"
 require "cloud/openstack/stemcell"
 require "cloud/openstack/stemcell_creator"
-require "cloud/openstack/stemcell_finder"
 
 module Bosh
   module Clouds

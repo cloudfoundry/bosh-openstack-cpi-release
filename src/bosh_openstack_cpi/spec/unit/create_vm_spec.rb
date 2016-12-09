@@ -92,6 +92,25 @@ describe Bosh::OpenStackCloud::Cloud, "create_vm" do
     allow(compute.key_pairs).to receive(:find).and_return(key_pair)
   end
 
+  it 'redacts user_data' do
+    cloud = mock_cloud do |fog|
+      allow(fog.compute.servers).to receive(:create).and_return(server)
+      allow(fog.image.images).to receive(:find_by_id).and_return(image)
+      stub_compute(fog.compute)
+    end
+    allow(cloud).to receive(:generate_unique_name).and_return(unique_name)
+    allow(cloud).to receive(:wait_resource)
+    allow(Bosh::Clouds::Config.logger).to receive(:debug)
+    allow(@registry).to receive(:update_settings)
+
+    cloud.create_vm("agent-id", "sc-id",
+        resource_pool_spec,
+        {"network_a" => dynamic_network_spec},
+        nil, {"test_env" => "value"})
+
+    expect(Bosh::Clouds::Config.logger).to have_received(:debug).with(/Using boot parms:.*"user_data"=>"<redacted>"/)
+  end
+
   it "creates an OpenStack server and polls until it's ready" do
     cloud = mock_cloud do |fog|
       expect(fog.compute.servers).to receive(:create).with(openstack_params).and_return(server)

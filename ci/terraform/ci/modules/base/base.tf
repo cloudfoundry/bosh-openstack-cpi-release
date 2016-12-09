@@ -6,8 +6,8 @@ variable "add_security_group" {
   description = "Set 1 to add security group, set 0 to not add it"
 }
 
-variable "tenant_name" {
-  description = "OpenStack tenant name"
+variable "project_name" {
+  description = "OpenStack project/tenant name"
 }
 
 variable "region_name" {
@@ -46,7 +46,7 @@ output "security_group" {
 
 resource "openstack_compute_keypair_v2" "openstack_compute_keypair_v2" {
   region     = "${var.region_name}"
-  name       = "${var.prefix}-${var.tenant_name}"
+  name       = "${var.prefix}-${var.project_name}"
   public_key = "${var.openstack_default_key_public_key}"
 }
 

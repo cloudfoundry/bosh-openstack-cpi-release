@@ -29,6 +29,20 @@ custom:
         params:
           subject: {{email_subject}}
           body: {{email_body}}
+  terraform-base-inputs: &terraform-base-inputs
+    auth_url: {{openstack_auth_url_v3}}
+    domain_name: {{v3_e2e_domain}}
+    user_name: {{v3_e2e_username}}
+    password: {{v3_e2e_api_key}}
+    insecure: "true"
+    project_name: {{v3_e2e_project}}
+    dns_nameservers: {{tf_dns_nameservers}}
+    ext_net_name: {{tf_external_network_name}}
+    ext_net_id: {{tf_external_network_id}}
+    ext_net_cidr: {{tf_ext_net_cidr}}
+    region_name: {{tf_region_name}}
+    concourse_external_network_cidr: {{tf_concourse_external_network_cidr}}
+    default_public_key: {{tf_default_public_key}}
 
 jobs:
   - name: e2e-centos
@@ -44,6 +58,17 @@ jobs:
         - {trigger: true,  get: bosh-release,     passed: [cleanup], tags: *tags, timeout: *timeouts-long}
         - {trigger: true,  get: stemcell,         passed: [cleanup], tags: *tags, timeout: *timeouts-long, resource: centos-stemcell}
 
+      - put: terraform
+        resource: terraform-e2e-base
+        tags: *tags
+        timeout: *timeouts-long
+        params:
+          env_name: e2e-centos
+          vars:
+            <<: *terraform-base-inputs
+            prefix: "e2e-centos"
+            e2e_net_cidr: "10.0.1.0/24"
+
       - task: deploy-integration-director
         tags: *tags
         timeout: *timeouts-long
@@ -56,17 +81,9 @@ jobs:
           v3_e2e_write_timeout:                 "180"
           bosh_admin_password:                  {{bosh_admin_password}}
           bosh_openstack_ca_cert:               {{bosh_openstack_ca_cert}}
-          dns:                                  {{dns}}
           v3_e2e_bosh_registry_port:            {{v3_e2e_bosh_registry_port}}
           v3_e2e_api_key:                       {{v3_e2e_api_key}}
           v3_e2e_auth_url:                      {{openstack_auth_url_v3}}
-          v3_e2e_default_key_name:              {{v3_e2e_default_key_name}}
-          director_floating_ip:                 {{v3_e2e_centos_director_floating_ip}}
-          director_manual_ip:                   {{v3_e2e_centos_director_manual_ip}}
-          v3_e2e_net_cidr:                      {{v3_e2e_net_cidr}}
-          v3_e2e_net_gateway:                   {{v3_e2e_net_gateway}}
-          v3_e2e_net_id:                        {{v3_e2e_net_id}}
-          v3_e2e_security_group:                {{v3_e2e_security_group}}
           v3_e2e_project:                       {{v3_e2e_project}}
           v3_e2e_domain:                        {{v3_e2e_domain}}
           v3_e2e_username:                      {{v3_e2e_username}}
@@ -87,10 +104,6 @@ jobs:
         params:
           instance_flavor:             "m1.medium"
           bosh_admin_password:         {{bosh_admin_password}}
-          bosh_director_ip:            {{v3_e2e_centos_director_floating_ip}}
-          dns:                         {{dns}}
-          v3_e2e_security_group:       {{v3_e2e_security_group}}
-          network_id:                  {{v3_e2e_net_id}}
           stemcell_name:               "bosh-openstack-kvm-centos-7-go_agent"
           delete_deployment_when_done: "true"
         <<: *send-failure-email
@@ -102,10 +115,6 @@ jobs:
         params:
           instance_flavor:                     "m1.medium"
           bosh_admin_password:                 {{bosh_admin_password}}
-          bosh_director_ip:                    {{v3_e2e_centos_director_floating_ip}}
-          dns:                                 {{dns}}
-          v3_e2e_security_group:               {{v3_e2e_security_group}}
-          network_id:                          {{v3_e2e_net_id}}
           os_name:                             "centos-7"
           delete_deployment_when_done:         "true"
           BOSH_OPENSTACK_DOMAIN_NAME:          {{v3_e2e_domain}}
@@ -122,7 +131,6 @@ jobs:
         file: bosh-cpi-src-in/ci/pipelines/certify-stemcell/tasks/teardown-director.yml
         params:
           bosh_admin_password: {{bosh_admin_password}}
-          bosh_director_ip:    {{v3_e2e_centos_director_floating_ip}}
         <<: *send-failure-email
 
   - name: e2e-ubuntu
@@ -138,14 +146,23 @@ jobs:
         - {trigger: true,  get: bosh-release,     passed: [cleanup], tags: *tags, timeout: *timeouts-long}
         - {trigger: true,  get: stemcell,         passed: [cleanup], tags: *tags, timeout: *timeouts-long, resource: ubuntu-stemcell}
 
+      - put: terraform
+        resource: terraform-e2e-base
+        tags: *tags
+        timeout: *timeouts-long
+        params:
+          env_name: e2e-ubuntu
+          vars:
+            <<:     *terraform-base-inputs
+            prefix: "e2e-ubuntu"
+            e2e_net_cidr: "10.0.2.0/24"
+
       - task: deploy-integration-director
         tags: *tags
         timeout: *timeouts-long
         file: bosh-cpi-src-in/ci/pipelines/certify-stemcell/tasks/deploy-director.yml
         params:
           <<:                    *centos-deploy-director-params
-          director_floating_ip:  {{v3_e2e_ubuntu_director_floating_ip}}
-          director_manual_ip:    {{v3_e2e_ubuntu_director_manual_ip}}
           distro:                "ubuntu"
         <<: *send-failure-email
 
@@ -156,10 +173,6 @@ jobs:
         params:
           instance_flavor:                     "m1.medium"
           bosh_admin_password:                 {{bosh_admin_password}}
-          bosh_director_ip:                    {{v3_e2e_ubuntu_director_floating_ip}}
-          dns:                                 {{dns}}
-          v3_e2e_security_group:               {{v3_e2e_security_group}}
-          network_id:                          {{v3_e2e_net_id}}
           stemcell_name:                       "bosh-openstack-kvm-ubuntu-trusty-go_agent"
           delete_deployment_when_done:         "true"
         <<: *send-failure-email
@@ -171,18 +184,14 @@ jobs:
         params:
           instance_flavor:             "m1.medium"
           bosh_admin_password:         {{bosh_admin_password}}
-          bosh_director_ip:            {{v3_e2e_ubuntu_director_floating_ip}}
-          dns:                         {{dns}}
-          v3_e2e_security_group:       {{v3_e2e_security_group}}
-          network_id:                  {{v3_e2e_net_id}}
           os_name:                     "ubuntu-trusty"
           delete_deployment_when_done: "true"
-          BOSH_OPENSTACK_DOMAIN_NAME:          {{v3_e2e_domain}}
-          BOSH_OPENSTACK_AUTH_URL:             {{openstack_auth_url_v3}}
-          BOSH_OPENSTACK_USERNAME:             {{v3_e2e_username}}
-          BOSH_OPENSTACK_API_KEY:              {{v3_e2e_api_key}}
-          BOSH_OPENSTACK_PROJECT:              {{v3_e2e_project}}
-          BOSH_OPENSTACK_CA_CERT:              {{bosh_openstack_ca_cert}}
+          BOSH_OPENSTACK_DOMAIN_NAME:  {{v3_e2e_domain}}
+          BOSH_OPENSTACK_AUTH_URL:     {{openstack_auth_url_v3}}
+          BOSH_OPENSTACK_USERNAME:     {{v3_e2e_username}}
+          BOSH_OPENSTACK_API_KEY:      {{v3_e2e_api_key}}
+          BOSH_OPENSTACK_PROJECT:      {{v3_e2e_project}}
+          BOSH_OPENSTACK_CA_CERT:      {{bosh_openstack_ca_cert}}
         <<: *send-failure-email
 
       - task: teardown-director
@@ -191,7 +200,6 @@ jobs:
         file: bosh-cpi-src-in/ci/pipelines/certify-stemcell/tasks/teardown-director.yml
         params:
           bosh_admin_password: {{bosh_admin_password}}
-          bosh_director_ip:    {{v3_e2e_ubuntu_director_floating_ip}}
         <<: *send-failure-email
 
   - name: e2e-centos-config-drive
@@ -207,6 +215,19 @@ jobs:
         - {trigger: true,  get: bosh-release,     passed: [cleanup], tags: *tags, timeout: *timeouts-long}
         - {trigger: true,  get: stemcell,         passed: [cleanup], tags: *tags, timeout: *timeouts-long, resource: centos-stemcell}
 
+      - put: terraform
+        resource: terraform-e2e-config-drive
+        tags: *tags
+        timeout: *timeouts-long
+        params:
+          env_name: e2e-centos-config-drive
+          vars:
+            <<: *terraform-base-inputs
+            prefix: "e2e-centos-config-drive"
+            e2e_net_cidr: "10.0.3.0/24"
+            no_dhcp_net_1_cidr: "10.0.4.0/24"
+            no_dhcp_net_2_cidr: "10.0.5.0/24"
+
       - task: deploy-integration-director
         tags: *tags
         timeout: *timeouts-long
@@ -221,17 +242,9 @@ jobs:
           v3_e2e_use_dhcp:                      false
           bosh_admin_password:                  {{bosh_admin_password}}
           bosh_openstack_ca_cert:               {{bosh_openstack_ca_cert}}
-          dns:                                  {{dns}}
           v3_e2e_bosh_registry_port:            {{v3_e2e_bosh_registry_port}}
           v3_e2e_api_key:                       {{v3_e2e_api_key}}
           v3_e2e_auth_url:                      {{openstack_auth_url_v3}}
-          v3_e2e_default_key_name:              {{v3_e2e_default_key_name}}
-          director_floating_ip:                 {{v3_e2e_centos_config_drive_floating_ip}}
-          director_manual_ip:                   {{v3_e2e_centos_config_drive_manual_ip}}
-          v3_e2e_net_cidr:                      {{v3_e2e_net_cidr}}
-          v3_e2e_net_gateway:                   {{v3_e2e_net_gateway}}
-          v3_e2e_net_id:                        {{v3_e2e_net_id}}
-          v3_e2e_security_group:                {{v3_e2e_security_group}}
           v3_e2e_project:                       {{v3_e2e_project}}
           v3_e2e_domain:                        {{v3_e2e_domain}}
           v3_e2e_username:                      {{v3_e2e_username}}
@@ -252,19 +265,7 @@ jobs:
         params:
           instance_flavor:           "m1.medium"
           bosh_admin_password:       {{bosh_admin_password}}
-          bosh_director_ip:          {{v3_e2e_centos_config_drive_floating_ip}}
           v3_e2e_private_key_data:   {{v3_e2e_private_key_data}}
-          dns:                       {{dns}}
-          v3_e2e_security_group:     {{v3_e2e_security_group}}
-          network_id:                {{v3_e2e_net_id}}
-          network_no_dhcp_1_id:      {{v3_e2e_net_no_dhcp_1_id}}
-          network_no_dhcp_1_range:   {{v3_e2e_net_no_dhcp_1_cidr}}
-          network_no_dhcp_1_gateway: {{v3_e2e_net_no_dhcp_1_gateway}}
-          network_no_dhcp_1_ip:      {{v3_e2e_net_no_dhcp_1_ip_centos}}
-          network_no_dhcp_2_id:      {{v3_e2e_net_no_dhcp_2_id}}
-          network_no_dhcp_2_range:   {{v3_e2e_net_no_dhcp_2_cidr}}
-          network_no_dhcp_2_gateway: {{v3_e2e_net_no_dhcp_2_gateway}}
-          network_no_dhcp_2_ip:      {{v3_e2e_net_no_dhcp_2_ip_centos}}
           stemcell_name:             "bosh-openstack-kvm-centos-7-go_agent"
         <<: *send-failure-email
 
@@ -274,7 +275,6 @@ jobs:
         file: bosh-cpi-src-in/ci/pipelines/certify-stemcell/tasks/teardown-director.yml
         params:
           bosh_admin_password: {{bosh_admin_password}}
-          bosh_director_ip:    {{v3_e2e_centos_config_drive_floating_ip}}
         <<: *send-failure-email
 
   - name: e2e-ubuntu-config-drive
@@ -290,15 +290,26 @@ jobs:
         - {trigger: true,  get: bosh-release,     passed: [cleanup], tags: *tags, timeout: *timeouts-long}
         - {trigger: true,  get: stemcell,         passed: [cleanup], tags: *tags, timeout: *timeouts-long, resource: ubuntu-stemcell}
 
+      - put: terraform
+        resource: terraform-e2e-config-drive
+        tags: *tags
+        timeout: *timeouts-long
+        params:
+          env_name: e2e-ubuntu-config-drive
+          vars:
+            <<: *terraform-base-inputs
+            prefix: "e2e-ubuntu-config-drive"
+            e2e_net_cidr: "10.0.6.0/24"
+            no_dhcp_net_1_cidr: "10.0.7.0/24"
+            no_dhcp_net_2_cidr: "10.0.8.0/24"
+
       - task: deploy-integration-director
         tags: *tags
         timeout: *timeouts-long
         file: bosh-cpi-src-in/ci/pipelines/certify-stemcell/tasks/deploy-director.yml
         params:
-          <<: *e2e-centos-config-drive-director-params
-          director_floating_ip: {{v3_e2e_ubuntu_config_drive_floating_ip}}
-          director_manual_ip:   {{v3_e2e_ubuntu_config_drive_manual_ip}}
-          distro:               "ubuntu"
+          <<:     *e2e-centos-config-drive-director-params
+          distro: "ubuntu"
         <<: *send-failure-email
 
       - task: deploy-dummy-release
@@ -308,19 +319,7 @@ jobs:
         params:
           instance_flavor:           "m1.medium"
           bosh_admin_password:       {{bosh_admin_password}}
-          bosh_director_ip:          {{v3_e2e_ubuntu_config_drive_floating_ip}}
           v3_e2e_private_key_data:   {{v3_e2e_private_key_data}}
-          dns:                       {{dns}}
-          v3_e2e_security_group:     {{v3_e2e_security_group}}
-          network_id:                {{v3_e2e_net_id}}
-          network_no_dhcp_1_id:      {{v3_e2e_net_no_dhcp_1_id}}
-          network_no_dhcp_1_range:   {{v3_e2e_net_no_dhcp_1_cidr}}
-          network_no_dhcp_1_gateway: {{v3_e2e_net_no_dhcp_1_gateway}}
-          network_no_dhcp_1_ip:      {{v3_e2e_net_no_dhcp_1_ip_ubuntu}}
-          network_no_dhcp_2_id:      {{v3_e2e_net_no_dhcp_2_id}}
-          network_no_dhcp_2_range:   {{v3_e2e_net_no_dhcp_2_cidr}}
-          network_no_dhcp_2_gateway: {{v3_e2e_net_no_dhcp_2_gateway}}
-          network_no_dhcp_2_ip:      {{v3_e2e_net_no_dhcp_2_ip_ubuntu}}
           stemcell_name:             "bosh-openstack-kvm-ubuntu-trusty-go_agent"
         <<: *send-failure-email
 
@@ -330,7 +329,6 @@ jobs:
         file: bosh-cpi-src-in/ci/pipelines/certify-stemcell/tasks/teardown-director.yml
         params:
           bosh_admin_password: {{bosh_admin_password}}
-          bosh_director_ip:    {{v3_e2e_ubuntu_config_drive_floating_ip}}
         <<: *send-failure-email
 
   - name: test-upgrade-centos
@@ -347,12 +345,22 @@ jobs:
         - {trigger: true,  get: stemcell,         passed: [cleanup], tags: *tags, timeout: *timeouts-long, resource: centos-stemcell}
         - {trigger: false, get: old-bosh-init,                       tags: *tags, timeout: *timeouts-long}
 
+      - put: terraform
+        resource: terraform-e2e-base
+        tags: *tags
+        timeout: *timeouts-long
+        params:
+          env_name: e2e-centos-upgrade
+          vars:
+            <<: *terraform-base-inputs
+            prefix: "e2e-centos-upgrade"
+            e2e_net_cidr: "10.0.9.0/24"
+
       - task: deploy-old-director
         tags: *tags
         timeout: *timeouts-long
         file: bosh-cpi-src-in/ci/pipelines/certify-stemcell/tasks/deploy-old-director.yml
         params: &centos-deploy-old-director-params
-          dns:                                  {{dns}}
           v3_e2e_flavor:                        "m1.medium"
           v3_e2e_connection_timeout:            "600"
           v3_e2e_read_timeout:                  "180"
@@ -363,13 +371,6 @@ jobs:
           v3_e2e_bosh_registry_port:            {{v3_e2e_bosh_registry_port}}
           v3_e2e_api_key:                       {{v3_e2e_api_key}}
           v3_e2e_auth_url:                      {{openstack_auth_url_v3}}
-          v3_e2e_default_key_name:              {{v3_e2e_default_key_name}}
-          v3_upgrade_director_floating_ip:      {{v3_centos_upgrade_director_floating_ip}}
-          v3_upgrade_director_manual_ip:        {{v3_centos_upgrade_director_manual_ip}}
-          v3_e2e_net_cidr:                      {{v3_e2e_net_cidr}}
-          v3_e2e_net_gateway:                   {{v3_e2e_net_gateway}}
-          v3_e2e_net_id:                        {{v3_e2e_net_id}}
-          v3_e2e_security_group:                {{v3_e2e_security_group}}
           v3_e2e_project:                       {{v3_e2e_project}}
           v3_e2e_domain:                        {{v3_e2e_domain}}
           v3_e2e_username:                      {{v3_e2e_username}}
@@ -393,10 +394,6 @@ jobs:
         params:
           instance_flavor:             "m1.medium"
           bosh_admin_password:         {{bosh_admin_password}}
-          bosh_director_ip:            {{v3_centos_upgrade_director_floating_ip}}
-          dns:                         {{dns}}
-          v3_e2e_security_group:       {{v3_e2e_security_group}}
-          network_id:                  {{v3_e2e_net_id}}
           stemcell_name:               "bosh-openstack-kvm-centos-7-go_agent"
           delete_deployment_when_done: "false"
         <<: *send-failure-email
@@ -406,7 +403,6 @@ jobs:
         timeout: *timeouts-long
         file: bosh-cpi-src-in/ci/pipelines/certify-stemcell/tasks/test-upgrade.yml
         params: &centos-test-upgrade-params
-          dns:                                  {{dns}}
           v3_e2e_flavor:                        "m1.medium"
           v3_e2e_connection_timeout:            "600"
           v3_e2e_read_timeout:                  "180"
@@ -417,13 +413,6 @@ jobs:
           v3_e2e_bosh_registry_port:            {{v3_e2e_bosh_registry_port}}
           v3_e2e_api_key:                       {{v3_e2e_api_key}}
           v3_e2e_auth_url:                      {{openstack_auth_url_v3}}
-          v3_e2e_default_key_name:              {{v3_e2e_default_key_name}}
-          v3_upgrade_director_floating_ip:      {{v3_centos_upgrade_director_floating_ip}}
-          v3_upgrade_director_manual_ip:        {{v3_centos_upgrade_director_manual_ip}}
-          v3_e2e_net_cidr:                      {{v3_e2e_net_cidr}}
-          v3_e2e_net_gateway:                   {{v3_e2e_net_gateway}}
-          v3_e2e_net_id:                        {{v3_e2e_net_id}}
-          v3_e2e_security_group:                {{v3_e2e_security_group}}
           v3_e2e_project:                       {{v3_e2e_project}}
           v3_e2e_domain:                        {{v3_e2e_domain}}
           v3_e2e_username:                      {{v3_e2e_username}}
@@ -453,14 +442,23 @@ jobs:
         - {trigger: true,  get: stemcell,         passed: [cleanup], tags: *tags, timeout: *timeouts-long, resource: ubuntu-stemcell}
         - {trigger: false, get: old-bosh-init,                       tags: *tags, timeout: *timeouts-long}
 
+      - put: terraform
+        resource: terraform-e2e-base
+        tags: *tags
+        timeout: *timeouts-long
+        params:
+          env_name: e2e-ubuntu-upgrade
+          vars:
+            <<: *terraform-base-inputs
+            prefix: "e2e-ubuntu-upgrade"
+            e2e_net_cidr: "10.0.10.0/24"
+
       - task: deploy-old-director
         tags: *tags
         timeout: *timeouts-long
         file: bosh-cpi-src-in/ci/pipelines/certify-stemcell/tasks/deploy-old-director.yml
         params:
           <<:                              *centos-deploy-old-director-params
-          v3_upgrade_director_floating_ip: {{v3_ubuntu_upgrade_director_floating_ip}}
-          v3_upgrade_director_manual_ip:   {{v3_ubuntu_upgrade_director_manual_ip}}
           old_bosh_stemcell_name:          bosh-openstack-kvm-ubuntu-trusty-go_agent
           old_bosh_stemcell_sha1:          6e103aab1c4aa22e48743eb3a5d8c51410fd172f
           distro:                          "ubuntu"
@@ -473,10 +471,6 @@ jobs:
         params:
           instance_flavor:             "m1.medium"
           bosh_admin_password:         {{bosh_admin_password}}
-          bosh_director_ip:            {{v3_ubuntu_upgrade_director_floating_ip}}
-          dns:                         {{dns}}
-          v3_e2e_security_group:       {{v3_e2e_security_group}}
-          network_id:                  {{v3_e2e_net_id}}
           stemcell_name:               "bosh-openstack-kvm-ubuntu-trusty-go_agent"
           delete_deployment_when_done: "false"
         <<: *send-failure-email
@@ -486,10 +480,8 @@ jobs:
         timeout: *timeouts-long
         file: bosh-cpi-src-in/ci/pipelines/certify-stemcell/tasks/test-upgrade.yml
         params:
-          <<:                              *centos-test-upgrade-params
-          v3_upgrade_director_floating_ip: {{v3_ubuntu_upgrade_director_floating_ip}}
-          v3_upgrade_director_manual_ip:   {{v3_ubuntu_upgrade_director_manual_ip}}
-          distro:                          "ubuntu"
+          <<:     *centos-test-upgrade-params
+          distro: "ubuntu"
         <<: *send-failure-email
 
       - task: teardown-director
@@ -576,8 +568,32 @@ resource_types:
     source:
       repository: friegger/email-resource
       tag: noauth
+  - name: terraform
+    type: docker-image
+    source:
+      repository: ljfranklin/terraform-resource
 
 resources:
+  - name: terraform-e2e-base
+    type: terraform
+    source:
+      storage:
+        bucket: {{s3_openstack_cpi_pipeline_bucket_name}}
+        bucket_path: terraform-e2e/
+        access_key_id: {{s3_openstack_cpi_pipeline_access_key}}
+        secret_access_key: {{s3_openstack_cpi_pipeline_secret_key}}
+      terraform_source: github.com/cloudfoundry-incubator/bosh-openstack-cpi-release//ci/terraform/e2e/modules/base
+
+  - name: terraform-e2e-config-drive
+    type: terraform
+    source:
+      storage:
+        bucket: {{s3_openstack_cpi_pipeline_bucket_name}}
+        bucket_path: terraform-e2e/
+        access_key_id: {{s3_openstack_cpi_pipeline_access_key}}
+        secret_access_key: {{s3_openstack_cpi_pipeline_secret_key}}
+      terraform_source: github.com/cloudfoundry-incubator/bosh-openstack-cpi-release//ci/terraform/e2e/config_drive
+
   - name: bosh-cpi-dev-artifacts
     type: s3
     source:

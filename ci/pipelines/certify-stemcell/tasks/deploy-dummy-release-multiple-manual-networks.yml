@@ -8,24 +8,12 @@ inputs:
   - name: bosh-cpi-src-in
   - name: dummy-release
   - name: stemcell
+  - name: terraform
 run:
   path: bosh-cpi-src-in/ci/pipelines/certify-stemcell/tasks/deploy-dummy-release-multiple-manual-networks.sh
 params:
   bosh_admin_password:         replace-me
-  bosh_director_ip:            replace-me
   v3_e2e_private_key_data:     replace-me
-  dns:                         replace-me
-  v3_e2e_security_group:       replace-me
   stemcell_name:               replace-me
-  network_id:                  replace-me
-  network_no_dhcp_1_id:        replace-me
-  network_no_dhcp_1_range:     replace-me
-  network_no_dhcp_1_gateway:   replace-me
-  network_no_dhcp_1_ip:        replace-me
-  network_no_dhcp_2_id:        replace-me
-  network_no_dhcp_2_range:     replace-me
-  network_no_dhcp_2_gateway:   replace-me
-  network_no_dhcp_2_ip:        replace-me
-
   instance_flavor:             replace-me
   delete_deployment_when_done: "true"

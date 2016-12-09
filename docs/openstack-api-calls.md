@@ -38,7 +38,8 @@ DELETE /v1/images/<resource_id>
 DELETE /v2/images/<resource_id>
 GET /
 GET /v1/images/detail
-GET /v2/images
+GET /v2/images/<resource_id>
+GET /v2/images/non-existing-id
 POST /v1/images
 POST /v2/images body: {"name":"<name>","disk_format":"qcow2","container_format":"bare","visibility":"private","version":"<version>","os_type":"linux","os_distro":"ubuntu","architecture":"x86_64","auto_disk_config":"true","hypervisor_type":"kvm"}
 PUT /v2/images/<resource_id>/file
@@ -55,6 +56,7 @@ GET /v2.0/ports?device_id=<device_id>&network_id=<network_id>
 GET /v2.0/security-groups
 POST /v2.0/ports body: {"port":{"network_id":"<network_id>","fixed_ips":[{"ip_address":"<ip_address>"}],"security_groups":["<resource_id>"]}}
 PUT /v2.0/floatingips/<resource_id> body: {"floatingip":{"port_id":"<resource_id>"}}
+PUT /v2.0/floatingips/<resource_id> body: {"floatingip":{"port_id":null}}
 ```
 ### All calls for API endpoint 'orchestration (heat)'
 ### All calls for API endpoint 'volume (cinder)'
