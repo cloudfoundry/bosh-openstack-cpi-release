@@ -1,5 +1,3 @@
-# Copyright (c) 2012 Piston Cloud Computing, Inc.
-
 require 'spec_helper'
 require 'timecop'
 
