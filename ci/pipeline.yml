@@ -142,7 +142,7 @@ jobs:
             ext_net_id: {{tf_external_network_id}}
             ext_net_name: {{tf_external_network_name}}
             region_name: {{tf_region_name}}
-            openstack_default_key_public_key: {{tf_openstack_default_key_public_key}}
+            openstack_default_key_public_key: {{tf_default_public_key}}
             dns_nameservers: {{tf_dns_nameservers}}
 
       - task: test
@@ -234,7 +234,7 @@ jobs:
             ext_net_cidr: {{tf_ext_net_cidr}}
             dns_nameservers: {{tf_dns_nameservers}}
             concourse_external_network_cidr: {{tf_concourse_external_network_cidr}}
-            openstack_default_key_public_key: {{tf_ubuntu_manual_default_public_key}}
+            openstack_default_key_public_key: {{tf_default_public_key}}
 
       - task: deploy
         tags: *tags
@@ -325,7 +325,7 @@ jobs:
             ext_net_cidr: {{tf_ext_net_cidr}}
             dns_nameservers: {{tf_dns_nameservers}}
             concourse_external_network_cidr: {{tf_concourse_external_network_cidr}}
-            openstack_default_key_public_key: {{tf_ubuntu_dynamic_default_public_key}}
+            openstack_default_key_public_key: {{tf_default_public_key}}
 
       - task: deploy
         tags: *tags
@@ -420,7 +420,7 @@ jobs:
             ext_net_cidr: {{tf_ext_net_cidr}}
             dns_nameservers: {{tf_dns_nameservers}}
             concourse_external_network_cidr: {{tf_concourse_external_network_cidr}}
-            openstack_default_key_public_key: {{tf_centos_manual_default_public_key}}
+            openstack_default_key_public_key: {{tf_default_public_key}}
 
       - task: deploy
         tags: *tags
@@ -511,7 +511,7 @@ jobs:
             ext_net_cidr: {{tf_ext_net_cidr}}
             dns_nameservers: {{tf_dns_nameservers}}
             concourse_external_network_cidr: {{tf_concourse_external_network_cidr}}
-            openstack_default_key_public_key: {{tf_centos_dynamic_default_public_key}}
+            openstack_default_key_public_key: {{tf_default_public_key}}
 
       - task: deploy
         tags: *tags
