@@ -4,16 +4,15 @@ set -e -x
 
 source bosh-cpi-src-in/ci/tasks/utils.sh
 
-ensure_not_replace_value stemcell_name
-ensure_not_replace_value openstack_flavor_with_ephemeral_disk
-ensure_not_replace_value openstack_flavor_with_no_ephemeral_disk
-ensure_not_replace_value bosh_admin_password
-ensure_not_replace_value private_key_data
+: ${stemcell_name:?}
+: ${openstack_flavor_with_ephemeral_disk:?}
+: ${openstack_flavor_with_no_ephemeral_disk:?}
+: ${bosh_admin_password:?}
+: ${private_key_data:?}
 
 ####
 #
 # TODO:
-# - check that all environment variables defined in pipeline.yml are set
 # - reference stemcell like vCloud bats job does
 # - copy rogue vm check from vSphere pipeline
 #

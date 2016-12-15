@@ -4,9 +4,9 @@ set -e
 
 source bosh-cpi-src-in/ci/tasks/utils.sh
 
-ensure_not_replace_value bosh_release_name
-ensure_not_replace_value cpi_release_name
-ensure_not_replace_value stemcell_name
+: ${bosh_release_name:?}
+: ${cpi_release_name:?}
+: ${stemcell_name:?}
 
 timestamp="$(date -u +%Y%m%d%H%M%S)"
 bosh_release_version=$(cat bosh-release/version)

@@ -4,21 +4,21 @@ set -e
 
 source bosh-cpi-src-in/ci/tasks/utils.sh
 
-: {bosh_admin_password:?}
-: {openstack_flavor:?}
-: {openstack_connection_timeout:?}
-: {openstack_read_timeout:?}
-: {openstack_write_timeout:?}
-: {openstack_state_timeout:?}
-: {private_key_data:?}
-: {bosh_registry_port:?}
-: {openstack_auth_url:?}
-: {openstack_username:?}
-: {openstack_api_key:?}
-: {openstack_domain:?}
-: {time_server_1:?}
-: {time_server_2:?}
-: {DEBUG_BATS:?}
+: ${bosh_admin_password:?}
+: ${openstack_flavor:?}
+: ${openstack_connection_timeout:?}
+: ${openstack_read_timeout:?}
+: ${openstack_write_timeout:?}
+: ${openstack_state_timeout:?}
+: ${private_key_data:?}
+: ${bosh_registry_port:?}
+: ${openstack_auth_url:?}
+: ${openstack_username:?}
+: ${openstack_api_key:?}
+: ${openstack_domain:?}
+: ${time_server_1:?}
+: ${time_server_2:?}
+: ${DEBUG_BATS:?}
 optional_value bosh_openstack_ca_cert
 optional_value distro
 

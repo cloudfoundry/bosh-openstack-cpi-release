@@ -3,7 +3,7 @@
 set -e
 source bosh-cpi-src-in/ci/tasks/utils.sh
 
-ensure_not_replace_value publish_api_calls_enabled
+: ${publish_api_calls_enabled:?}
 
 source /etc/profile.d/chruby-with-ruby-2.1.2.sh
 
