@@ -114,72 +114,84 @@ resource "openstack_networking_floatingip_v2" "director_public_ip" {
   pool   = "${var.ext_net_name}"
 }
 
-resource "openstack_compute_secgroup_v2" "e2e_secgroup" {
+resource "openstack_networking_secgroup_v2" "secgroup" {
   region      = "${var.region_name}"
   name        = "${var.prefix}"
   description = "e2e security group"
+}
 
-  # Allow anything from own sec group (Any was not possible)
+resource "openstack_networking_secgroup_rule_v2" "secgroup_rule_1" {
+  direction = "ingress"
+  ethertype = "IPv4"
+  protocol = "tcp"
+  remote_group_id = "${openstack_networking_secgroup_v2.secgroup.id}"
+  security_group_id = "${openstack_networking_secgroup_v2.secgroup.id}"
+}
 
-  rule {
-    ip_protocol = "tcp"
-    from_port   = "1"
-    to_port     = "65535"
-    self        = true
-  }
+resource "openstack_networking_secgroup_rule_v2" "secgroup_rule_2" {
+  direction = "ingress"
+  ethertype = "IPv4"
+  protocol = "udp"
+  remote_group_id = "${openstack_networking_secgroup_v2.secgroup.id}"
+  security_group_id = "${openstack_networking_secgroup_v2.secgroup.id}"
+}
 
-  rule {
-    ip_protocol = "udp"
-    from_port   = "1"
-    to_port     = "65535"
-    self        = true
-  }
+resource "openstack_networking_secgroup_rule_v2" "secgroup_rule_3" {
+  direction = "ingress"
+  ethertype = "IPv4"
+  protocol = "icmp"
+  remote_group_id = "${openstack_networking_secgroup_v2.secgroup.id}"
+  security_group_id = "${openstack_networking_secgroup_v2.secgroup.id}"
+}
 
-  rule {
-    ip_protocol = "icmp"
-    from_port   = "-1"
-    to_port     = "-1"
-    self        = true
-  }
+resource "openstack_networking_secgroup_rule_v2" "secgroup_rule_4" {
+  direction = "ingress"
+  ethertype = "IPv4"
+  protocol = "tcp"
+  port_range_min = 22
+  port_range_max = 22
+  remote_ip_prefix = "0.0.0.0/0"
+  security_group_id = "${openstack_networking_secgroup_v2.secgroup.id}"
+}
 
-  rule {
-    ip_protocol = "tcp"
-    from_port   = "22"
-    to_port     = "22"
-    cidr        = "0.0.0.0/0"
-  }
+resource "openstack_networking_secgroup_rule_v2" "secgroup_rule_5" {
+  direction = "ingress"
+  ethertype = "IPv4"
+  protocol = "tcp"
+  port_range_min = 25555
+  port_range_max = 25555
+  remote_ip_prefix = "0.0.0.0/0"
+  security_group_id = "${openstack_networking_secgroup_v2.secgroup.id}"
+}
 
-  rule {
-    ip_protocol = "tcp"
-    from_port   = "25555"
-    to_port     = "25555"
-    cidr        = "0.0.0.0/0"
-  }
+resource "openstack_networking_secgroup_rule_v2" "secgroup_rule_6" {
+  direction = "ingress"
+  ethertype = "IPv4"
+  protocol = "tcp"
+  port_range_min = 6868
+  port_range_max = 6868
+  remote_ip_prefix = "${var.concourse_external_network_cidr}"
+  security_group_id = "${openstack_networking_secgroup_v2.secgroup.id}"
+}
 
-  rule {
-    ip_protocol = "tcp"
-    from_port   = "6868"
-    to_port     = "6868"
-    cidr        = "${var.concourse_external_network_cidr}"
-  }
+resource "openstack_networking_secgroup_rule_v2" "secgroup_rule_7" {
+  direction = "ingress"
+  ethertype = "IPv4"
+  protocol = "tcp"
+  remote_ip_prefix = "${var.ext_net_cidr}"
+  security_group_id = "${openstack_networking_secgroup_v2.secgroup.id}"
+}
 
-  rule {
-    ip_protocol = "tcp"
-    from_port   = "1"
-    to_port     = "65535"
-    cidr        = "${var.ext_net_cidr}"
-  }
-
-  rule {
-    ip_protocol = "udp"
-    from_port   = "1"
-    to_port     = "65535"
-    cidr        = "${var.ext_net_cidr}"
-  }
+resource "openstack_networking_secgroup_rule_v2" "secgroup_rule_8" {
+  direction = "ingress"
+  ethertype = "IPv4"
+  protocol = "udp"
+  remote_ip_prefix = "${var.ext_net_cidr}"
+  security_group_id = "${openstack_networking_secgroup_v2.secgroup.id}"
 }
 
 output "v3_e2e_security_group" {
-  value = "${openstack_compute_secgroup_v2.e2e_secgroup.name}"
+  value = "${openstack_networking_secgroup_v2.secgroup.name}"
 }
 
 output "v3_e2e_net_id" {
