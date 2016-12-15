@@ -109,7 +109,7 @@ resource "openstack_networking_router_interface_v2" "v3_e2e_port" {
   subnet_id = "${openstack_networking_subnet_v2.v3_e2e_subnet.id}"
 }
 
-resource "openstack_compute_floatingip_v2" "director_public_ip" {
+resource "openstack_networking_floatingip_v2" "director_public_ip" {
   region = "${var.region_name}"
   pool   = "${var.ext_net_name}"
 }
@@ -195,7 +195,7 @@ output "v3_e2e_net_gateway" {
 }
 
 output "director_public_ip" {
-  value = "${openstack_compute_floatingip_v2.director_public_ip.address}"
+  value = "${openstack_networking_floatingip_v2.director_public_ip.address}"
 }
 
 output "v3_e2e_default_key_name" {
