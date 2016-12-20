@@ -1,11 +1,9 @@
 module Bosh::OpenStackCloud
   class CpiLambda
-    CONTEXT_CA_PATH = '/var/vcap/jobs/openstack_cpi/config/cacert_context.pem'
-
-    def self.create(cpi_config, cpi_log, ca_cert_from_config, ca_cert_from_context=CONTEXT_CA_PATH)
+    def self.create(cpi_config, cpi_log, ca_cert_from_config, ca_cert_from_context)
       lambda do |context|
         unless cpi_config.has_key?('cloud') && cpi_config['cloud'].has_key?('properties')
-          raise "Could not find cloud properties in the configuration"
+          raise 'Could not find cloud properties in the configuration'
         end
 
         cloud_properties = cpi_config['cloud']['properties']

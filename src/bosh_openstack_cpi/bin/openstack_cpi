@@ -14,8 +14,9 @@ cloud_config = OpenStruct.new(:logger => Logger.new(STDERR))
 Bosh::Clouds::Config.configure(cloud_config)
 
 cpi_log = StringIO.new
+Dir.mktmpdir do |dir|
+  cpi_lambda = Bosh::OpenStackCloud::CpiLambda.create(cpi_config, cpi_log, ssl_ca_file, File.join(dir, 'cacert_context.pem'))
+  cli = Bosh::Cpi::Cli.new(cpi_lambda, cpi_log, STDOUT)
 
-cpi_lambda = Bosh::OpenStackCloud::CpiLambda.create(cpi_config, cpi_log, ssl_ca_file)
-cli = Bosh::Cpi::Cli.new(cpi_lambda, cpi_log, STDOUT)
-
-cli.run(ARGF.read)
+  cli.run(ARGF.read)
+end

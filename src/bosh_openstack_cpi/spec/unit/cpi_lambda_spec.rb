@@ -1,7 +1,7 @@
 require "spec_helper"
 
 describe Bosh::OpenStackCloud::CpiLambda do
-  subject { described_class.create(cpi_config, cpi_log, ssl_ca_file) }
+  subject { described_class.create(cpi_config, cpi_log, ssl_ca_file, ca_cert_from_context) }
   let(:cpi_config) {
     {
         'cloud' => {
@@ -16,6 +16,7 @@ describe Bosh::OpenStackCloud::CpiLambda do
   }
   let(:ssl_ca_file) { 'feel-free-to-change' }
   let(:cpi_log) { StringIO.new }
+  let(:ca_cert_from_context) { Tempfile.new('ca_cert').path }
 
   describe 'when creating a cloud' do
     it 'passes parts of the cpi config to openstack' do
@@ -60,8 +61,6 @@ describe Bosh::OpenStackCloud::CpiLambda do
       end
 
       it 'writes the given ca_cert to the disk and sets ssl_ca_file to its path' do
-        ca_file = Tempfile.new('ca_cert')
-
         context = {
             'newkey' => 'newvalue',
             'connection_options' => {'ca_cert' => 'xyz'}
@@ -70,11 +69,21 @@ describe Bosh::OpenStackCloud::CpiLambda do
         expect(Bosh::Clouds::Openstack).to receive(:new).with({'openstack' => { 'newkey' => 'newvalue',
                                                                                 'key1' => 'value1',
                                                                                 'key2' => 'value2',
-                                                                                'connection_options' => {'ssl_ca_file' => ca_file.path}},
+                                                                                'connection_options' => {'ssl_ca_file' => ca_cert_from_context}},
                                                                'cpi_log' => cpi_log})
 
-        described_class.create(cpi_config, cpi_log, ssl_ca_file, ca_file.path).call(context)
-        expect(File.read(ca_file.path)).to eq('xyz')
+        subject.call(context)
+        expect(File.read(ca_cert_from_context)).to eq('xyz')
+      end
+
+      context 'when the context does not include a ca_cert' do
+        it 'does not write into the file' do
+          allow(Bosh::Clouds::Openstack).to receive(:new)
+
+          subject.call({})
+
+          expect(File.read(ca_cert_from_context)).to eq('')
+        end
       end
     end
   end
