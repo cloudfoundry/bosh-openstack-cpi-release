@@ -6,6 +6,7 @@ module "base" {
   project_name                    = "${var.project_name}"
   domain_name                     = "${var.domain_name}"
   insecure                        = "${var.insecure}"
+  cacert_file                     = "${var.cacert_file}"
   dns_nameservers                 = "${var.dns_nameservers}"
   ext_net_name                    = "${var.ext_net_name}"
   ext_net_id                      = "${var.ext_net_id}"
@@ -26,6 +27,7 @@ module "config_drive" {
   project_name                    = "${var.project_name}"
   domain_name                     = "${var.domain_name}"
   insecure                        = "${var.insecure}"
+  cacert_file                     = "${var.cacert_file}"
   dns_nameservers                 = "${var.dns_nameservers}"
   e2e_router_id                   = "${module.base.e2e_router_id}"
   no_dhcp_net_1_cidr              = "${var.no_dhcp_net_1_cidr}"
@@ -52,6 +54,11 @@ variable "password" {
 variable "insecure" {
    default = "false"
    description = "SSL certificate validation"
+}
+
+variable "cacert_file" {
+  default = ""
+  description = "Path to trusted CA certificate for OpenStack in PEM format"
 }
 
 variable "project_name" {
