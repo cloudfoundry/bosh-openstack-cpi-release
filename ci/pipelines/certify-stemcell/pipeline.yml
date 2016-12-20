@@ -34,7 +34,7 @@ custom:
     domain_name: {{v3_e2e_domain}}
     user_name: {{v3_e2e_username}}
     password: {{v3_e2e_api_key}}
-    insecure: "true"
+    cacert_file: write_ca_file/file
     project_name: {{v3_e2e_project}}
     dns_nameservers: {{tf_dns_nameservers}}
     ext_net_name: {{tf_external_network_name}}
@@ -57,6 +57,11 @@ jobs:
         - {trigger: true,  get: bosh-cpi-release, passed: [cleanup], tags: *tags, timeout: *timeouts-long, resource: bosh-cpi-dev-artifacts}
         - {trigger: true,  get: bosh-release,     passed: [cleanup], tags: *tags, timeout: *timeouts-long}
         - {trigger: true,  get: stemcell,         passed: [cleanup], tags: *tags, timeout: *timeouts-long, resource: centos-stemcell}
+
+      - task: write_ca_file
+        file: bosh-cpi-src-in/ci/tasks/write-file.yml
+        params:
+          file_content: {{bosh_openstack_ca_cert}}
 
       - put: terraform
         resource: terraform-e2e-base
@@ -146,6 +151,11 @@ jobs:
         - {trigger: true,  get: bosh-release,     passed: [cleanup], tags: *tags, timeout: *timeouts-long}
         - {trigger: true,  get: stemcell,         passed: [cleanup], tags: *tags, timeout: *timeouts-long, resource: ubuntu-stemcell}
 
+      - task: write_ca_file
+        file: bosh-cpi-src-in/ci/tasks/write-file.yml
+        params:
+          file_content: {{bosh_openstack_ca_cert}}
+
       - put: terraform
         resource: terraform-e2e-base
         tags: *tags
@@ -214,6 +224,11 @@ jobs:
         - {trigger: true,  get: bosh-cpi-release, passed: [cleanup], tags: *tags, timeout: *timeouts-long, resource: bosh-cpi-dev-artifacts}
         - {trigger: true,  get: bosh-release,     passed: [cleanup], tags: *tags, timeout: *timeouts-long}
         - {trigger: true,  get: stemcell,         passed: [cleanup], tags: *tags, timeout: *timeouts-long, resource: centos-stemcell}
+
+      - task: write_ca_file
+        file: bosh-cpi-src-in/ci/tasks/write-file.yml
+        params:
+          file_content: {{bosh_openstack_ca_cert}}
 
       - put: terraform
         resource: terraform-e2e-config-drive
@@ -290,6 +305,11 @@ jobs:
         - {trigger: true,  get: bosh-release,     passed: [cleanup], tags: *tags, timeout: *timeouts-long}
         - {trigger: true,  get: stemcell,         passed: [cleanup], tags: *tags, timeout: *timeouts-long, resource: ubuntu-stemcell}
 
+      - task: write_ca_file
+        file: bosh-cpi-src-in/ci/tasks/write-file.yml
+        params:
+          file_content: {{bosh_openstack_ca_cert}}
+
       - put: terraform
         resource: terraform-e2e-config-drive
         tags: *tags
@@ -344,6 +364,11 @@ jobs:
         - {trigger: true,  get: bosh-release,     passed: [cleanup], tags: *tags, timeout: *timeouts-long}
         - {trigger: true,  get: stemcell,         passed: [cleanup], tags: *tags, timeout: *timeouts-long, resource: centos-stemcell}
         - {trigger: false, get: old-bosh-init,                       tags: *tags, timeout: *timeouts-long}
+
+      - task: write_ca_file
+        file: bosh-cpi-src-in/ci/tasks/write-file.yml
+        params:
+          file_content: {{bosh_openstack_ca_cert}}
 
       - put: terraform
         resource: terraform-e2e-base
@@ -441,6 +466,11 @@ jobs:
         - {trigger: true,  get: bosh-release,     passed: [cleanup], tags: *tags, timeout: *timeouts-long}
         - {trigger: true,  get: stemcell,         passed: [cleanup], tags: *tags, timeout: *timeouts-long, resource: ubuntu-stemcell}
         - {trigger: false, get: old-bosh-init,                       tags: *tags, timeout: *timeouts-long}
+
+      - task: write_ca_file
+        file: bosh-cpi-src-in/ci/tasks/write-file.yml
+        params:
+          file_content: {{bosh_openstack_ca_cert}}
 
       - put: terraform
         resource: terraform-e2e-base
