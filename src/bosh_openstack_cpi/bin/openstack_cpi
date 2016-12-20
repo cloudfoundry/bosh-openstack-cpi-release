@@ -14,23 +14,9 @@ cloud_config = OpenStruct.new(:logger => Logger.new(STDERR))
 Bosh::Clouds::Config.configure(cloud_config)
 
 cpi_log = StringIO.new
+Dir.mktmpdir do |dir|
+  cpi_lambda = Bosh::OpenStackCloud::CpiLambda.create(cpi_config, cpi_log, ssl_ca_file, File.join(dir, 'cacert_context.pem'))
+  cli = Bosh::Cpi::Cli.new(cpi_lambda, cpi_log, STDOUT)
 
-cpi_lambda = lambda do
-  unless cpi_config.has_key?('cloud') && cpi_config['cloud'].has_key?('properties')
-    raise "Could not find cloud properties in the configuration"
-  end
-
-  cloud_properties = cpi_config['cloud']['properties']
-  cloud_properties['cpi_log'] = cpi_log
-  connection_options = cloud_properties['openstack']['connection_options']
-  # If 'ca_cert' is set we render non-empty `config/openstack.crt`
-  if connection_options && connection_options['ca_cert']
-      connection_options['ssl_ca_file'] = ssl_ca_file
-      connection_options.delete('ca_cert')
-  end
-  Bosh::Clouds::Openstack.new(cloud_properties)
+  cli.run(ARGF.read)
 end
-
-cli = Bosh::Cpi::Cli.new(cpi_lambda, cpi_log, STDOUT)
-
-cli.run(ARGF.read)
