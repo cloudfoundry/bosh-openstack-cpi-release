@@ -139,7 +139,7 @@ jobs:
           env_name: lifecycle
           vars:
             auth_url: {{openstack_auth_url_v3}}
-            cacert_file: write_ca_file/file
+            cacert_file: write-file/file
             user_name: {{lifecycle_openstack_username_v3}}
             password: {{lifecycle_openstack_api_key_v3}}
             domain_name: {{lifecycle_openstack_domain}}
@@ -229,7 +229,7 @@ jobs:
             user_name: {{openstack_username}}
             password: {{openstack_api_key}}
             project_name: {{openstack_project}}
-            cacert_file: write_ca_file/file
+            cacert_file: write-file/file
             region_name: {{tf_region_name}}
             primary_net_name: "bats-ubuntu-manual-primary"
             primary_net_cidr: "10.0.4.0/24"
@@ -329,7 +329,7 @@ jobs:
             user_name: {{openstack_username}}
             password: {{openstack_api_key}}
             project_name: {{openstack_project}}
-            cacert_file: write_ca_file/file
+            cacert_file: write-file/file
             region_name: {{tf_region_name}}
             primary_net_name: "bats-ubuntu-dynamic-primary"
             primary_net_cidr: "10.0.2.0/24"
@@ -425,7 +425,7 @@ jobs:
             user_name: {{openstack_username}}
             password: {{openstack_api_key}}
             project_name: {{openstack_project}}
-            cacert_file: write_ca_file/file
+            cacert_file: write-file/file
             region_name: {{tf_region_name}}
             primary_net_name: "bats-centos-manual-primary"
             primary_net_cidr: "10.0.6.0/24"
@@ -525,7 +525,7 @@ jobs:
             user_name: {{openstack_username}}
             password: {{openstack_api_key}}
             project_name: {{openstack_project}}
-            cacert_file: write_ca_file/file
+            cacert_file: write-file/file
             region_name: {{tf_region_name}}
             primary_net_name: "bats-centos-dynamic-primary"
             primary_net_cidr: "10.0.3.0/24"

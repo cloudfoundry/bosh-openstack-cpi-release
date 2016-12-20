@@ -34,7 +34,7 @@ custom:
     domain_name: {{v3_e2e_domain}}
     user_name: {{v3_e2e_username}}
     password: {{v3_e2e_api_key}}
-    cacert_file: write_ca_file/file
+    cacert_file: write-file/file
     project_name: {{v3_e2e_project}}
     dns_nameservers: {{tf_dns_nameservers}}
     ext_net_name: {{tf_external_network_name}}

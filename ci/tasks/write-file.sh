@@ -4,4 +4,5 @@ set -e
 
 : ${file_content:?}
 
-echo ${file_content} > file
+mkdir -p write-file
+echo ${file_content} > write-file/file
