@@ -127,6 +127,11 @@ jobs:
         - {trigger: false, passed: [cleanup], get: bosh-cpi-src-in, tags: *tags, timeout: *timeouts-long}
         - {trigger: false,                    get: openstack-lifecycle-stemcell, tags: *tags, timeout: *timeouts-long}
 
+      - task: write_ca_file
+        file: bosh-cpi-src-in/ci/tasks/write-file.yml
+        params:
+          file_content: {{bosh_openstack_ca_cert}}
+
       - put: terraform-lifecycle
         tags: *tags
         timeout: *timeouts-long
@@ -134,7 +139,7 @@ jobs:
           env_name: lifecycle
           vars:
             auth_url: {{openstack_auth_url_v3}}
-            insecure: "true"
+            cacert_file: write_ca_file/file
             user_name: {{lifecycle_openstack_username_v3}}
             password: {{lifecycle_openstack_api_key_v3}}
             domain_name: {{lifecycle_openstack_domain}}
@@ -207,6 +212,11 @@ jobs:
         - {trigger: false,                    get: stemcell, resource: openstack-ubuntu-stemcell, tags: *tags, timeout: *timeouts-long}
         - {trigger: false,                    get: bats, tags: *tags, timeout: *timeouts-long}
 
+      - task: write_ca_file
+        file: bosh-cpi-src-in/ci/tasks/write-file.yml
+        params:
+          file_content: {{bosh_openstack_ca_cert}}
+
       - put: terraform-bats-manual
         tags: *tags
         timeout: *timeouts-long
@@ -219,7 +229,7 @@ jobs:
             user_name: {{openstack_username}}
             password: {{openstack_api_key}}
             project_name: {{openstack_project}}
-            insecure: "true"
+            cacert_file: write_ca_file/file
             region_name: {{tf_region_name}}
             primary_net_name: "bats-ubuntu-manual-primary"
             primary_net_cidr: "10.0.4.0/24"
@@ -302,6 +312,11 @@ jobs:
         - {trigger: false,                    get: stemcell, resource: openstack-ubuntu-stemcell, tags: *tags, timeout: *timeouts-long}
         - {trigger: false,                    get: bats, tags: *tags, timeout: *timeouts-long}
 
+      - task: write_ca_file
+        file: bosh-cpi-src-in/ci/tasks/write-file.yml
+        params:
+          file_content: {{bosh_openstack_ca_cert}}
+
       - put: terraform-bats-dynamic
         tags: *tags
         timeout: *timeouts-long
@@ -314,7 +329,7 @@ jobs:
             user_name: {{openstack_username}}
             password: {{openstack_api_key}}
             project_name: {{openstack_project}}
-            insecure: "true"
+            cacert_file: write_ca_file/file
             region_name: {{tf_region_name}}
             primary_net_name: "bats-ubuntu-dynamic-primary"
             primary_net_cidr: "10.0.2.0/24"
@@ -393,6 +408,11 @@ jobs:
         - {trigger: false,                    get: stemcell, resource: openstack-centos-stemcell, tags: *tags, timeout: *timeouts-long}
         - {trigger: false,                    get: bats, tags: *tags, timeout: *timeouts-long}
 
+      - task: write_ca_file
+        file: bosh-cpi-src-in/ci/tasks/write-file.yml
+        params:
+          file_content: {{bosh_openstack_ca_cert}}
+
       - put: terraform-bats-manual
         tags: *tags
         timeout: *timeouts-long
@@ -405,7 +425,7 @@ jobs:
             user_name: {{openstack_username}}
             password: {{openstack_api_key}}
             project_name: {{openstack_project}}
-            insecure: "true"
+            cacert_file: write_ca_file/file
             region_name: {{tf_region_name}}
             primary_net_name: "bats-centos-manual-primary"
             primary_net_cidr: "10.0.6.0/24"
@@ -488,6 +508,11 @@ jobs:
         - {trigger: false,                    get: stemcell, resource: openstack-centos-stemcell, tags: *tags, timeout: *timeouts-long}
         - {trigger: false,                    get: bats, tags: *tags, timeout: *timeouts-long}
 
+      - task: write_ca_file
+        file: bosh-cpi-src-in/ci/tasks/write-file.yml
+        params:
+          file_content: {{bosh_openstack_ca_cert}}
+
       - put: terraform-bats-dynamic
         tags: *tags
         timeout: *timeouts-long
@@ -500,7 +525,7 @@ jobs:
             user_name: {{openstack_username}}
             password: {{openstack_api_key}}
             project_name: {{openstack_project}}
-            insecure: "true"
+            cacert_file: write_ca_file/file
             region_name: {{tf_region_name}}
             primary_net_name: "bats-centos-dynamic-primary"
             primary_net_cidr: "10.0.3.0/24"
