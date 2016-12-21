@@ -418,7 +418,7 @@ describe Bosh::OpenStackCloud::Cloud do
   end
 
   def vm_lifecycle(stemcell_id, network_spec, disk_id = nil, cloud_properties = {}, resource_pool = {})
-    vm_id = create_vm(stemcell_id, network_spec, [disk_id], resource_pool)
+    vm_id = create_vm(stemcell_id, network_spec, Array(disk_id), resource_pool)
 
     if disk_id
       @config.logger.info("Reusing disk #{disk_id} for VM vm_id #{vm_id}")
