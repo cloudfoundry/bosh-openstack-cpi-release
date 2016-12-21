@@ -9,6 +9,6 @@ inputs:
 outputs:
   - name: write-file
 run:
-  path: bosh-cpi-src-in/ci/tasks/write-file.sh
+  path: bosh-cpi-src-in/ci/tasks/write-ca-file.sh
 params:
   file_content: replace-me

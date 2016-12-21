@@ -59,7 +59,7 @@ jobs:
         - {trigger: true,  get: stemcell,         passed: [cleanup], tags: *tags, timeout: *timeouts-long, resource: centos-stemcell}
 
       - task: write_ca_file
-        file: bosh-cpi-src-in/ci/tasks/write-file.yml
+        file: bosh-cpi-src-in/ci/tasks/write-ca-file.yml
         params:
           file_content: {{bosh_openstack_ca_cert}}
 
@@ -152,7 +152,7 @@ jobs:
         - {trigger: true,  get: stemcell,         passed: [cleanup], tags: *tags, timeout: *timeouts-long, resource: ubuntu-stemcell}
 
       - task: write_ca_file
-        file: bosh-cpi-src-in/ci/tasks/write-file.yml
+        file: bosh-cpi-src-in/ci/tasks/write-ca-file.yml
         params:
           file_content: {{bosh_openstack_ca_cert}}
 
@@ -226,7 +226,7 @@ jobs:
         - {trigger: true,  get: stemcell,         passed: [cleanup], tags: *tags, timeout: *timeouts-long, resource: centos-stemcell}
 
       - task: write_ca_file
-        file: bosh-cpi-src-in/ci/tasks/write-file.yml
+        file: bosh-cpi-src-in/ci/tasks/write-ca-file.yml
         params:
           file_content: {{bosh_openstack_ca_cert}}
 
@@ -306,7 +306,7 @@ jobs:
         - {trigger: true,  get: stemcell,         passed: [cleanup], tags: *tags, timeout: *timeouts-long, resource: ubuntu-stemcell}
 
       - task: write_ca_file
-        file: bosh-cpi-src-in/ci/tasks/write-file.yml
+        file: bosh-cpi-src-in/ci/tasks/write-ca-file.yml
         params:
           file_content: {{bosh_openstack_ca_cert}}
 
@@ -366,7 +366,7 @@ jobs:
         - {trigger: false, get: old-bosh-init,                       tags: *tags, timeout: *timeouts-long}
 
       - task: write_ca_file
-        file: bosh-cpi-src-in/ci/tasks/write-file.yml
+        file: bosh-cpi-src-in/ci/tasks/write-ca-file.yml
         params:
           file_content: {{bosh_openstack_ca_cert}}
 
@@ -468,7 +468,7 @@ jobs:
         - {trigger: false, get: old-bosh-init,                       tags: *tags, timeout: *timeouts-long}
 
       - task: write_ca_file
-        file: bosh-cpi-src-in/ci/tasks/write-file.yml
+        file: bosh-cpi-src-in/ci/tasks/write-ca-file.yml
         params:
           file_content: {{bosh_openstack_ca_cert}}
 
