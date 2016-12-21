@@ -22,7 +22,9 @@ class IntegrationConfig
               :instance_type,
               :instance_type_with_no_root_disk,
               :region,
-              :floating_ip
+              :floating_ip,
+              :ca_cert_path,
+              :insecure
 
   def initialize(identity_version=:v3)
     if identity_version == :v3
@@ -39,6 +41,21 @@ class IntegrationConfig
     end
 
     @logger                          = Logger.new(STDERR)
+
+    @ca_cert_content                 = LifecycleHelper.get_config(:ca_cert, nil)
+    if @ca_cert_content && !@ca_cert_content.empty?
+      @ca_cert_file = write_ca_cert(logger)
+      @ca_cert_path = @ca_cert_file.path
+    end
+    @insecure                        = LifecycleHelper.get_config(:insecure, false)
+    @connection_options = {
+      'connect_timeout'             => LifecycleHelper.get_config(:connect_timeout, '120').to_i,
+      'read_timeout'                => LifecycleHelper.get_config(:read_timeout, '120').to_i,
+      'write_timeout'               => LifecycleHelper.get_config(:write_timeout, '120').to_i,
+      'ssl_verify_peer'             => !@insecure,
+    }
+    @connection_options['ssl_ca_file'] = @ca_cert_path if @ca_cert_path
+
     @stemcell_path                   = LifecycleHelper.get_config(:stemcell_path)
     @net_id                          = LifecycleHelper.get_config(:net_id)
     @net_id_no_dhcp_1                = LifecycleHelper.get_config(:net_id_no_dhcp_1)
@@ -59,7 +76,6 @@ class IntegrationConfig
     Bosh::Clouds::Config.configure(OpenStruct.new(:logger => @logger, :cpi_task_log => nil))
   end
 
-
   def create_cpi(boot_from_volume: false, config_drive: nil, human_readable_vm_names: false, use_nova_networking: false, use_dhcp: true, default_volume_type: nil)
     openstack_properties = {'openstack' => {
         'auth_url' => @auth_url,
@@ -77,7 +93,7 @@ class IntegrationConfig
         'ignore_server_availability_zone' => str_to_bool(@ignore_server_az),
         'human_readable_vm_names' => human_readable_vm_names,
         'use_nova_networking' => use_nova_networking,
-        'connection_options' => connection_options(additional_connection_options(@logger))
+        'connection_options' => @connection_options
     },
             'registry' => {
                 'endpoint' => 'fake',
@@ -95,6 +111,15 @@ class IntegrationConfig
     Bosh::OpenStackCloud::Cloud.new(
         openstack_properties
     )
+  end
+
+  private
+
+  def write_ca_cert(logger)
+    @ca_cert_file = Tempfile.new(['cacert','.pem'])
+    logger.info("cacert.pem file: #{@ca_cert_file.path}")
+    File.write(@ca_cert_file.path, @ca_cert_content)
+    @ca_cert_file
   end
 
 end

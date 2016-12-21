@@ -12,11 +12,7 @@ describe Bosh::OpenStackCloud::Cloud do
   before { allow(Bosh::Clouds::Config).to receive(:logger).and_return(@config.logger) }
 
   after(:all) do
-    begin
-      @cpi_for_stemcell.delete_stemcell(@stemcell_id)
-    ensure
-      File.delete(@config.ca_cert_path) if @config.ca_cert_path
-    end
+    @cpi_for_stemcell.delete_stemcell(@stemcell_id)
   end
 
   let(:boot_from_volume) { false }
