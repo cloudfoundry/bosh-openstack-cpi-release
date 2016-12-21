@@ -2,6 +2,8 @@
 
 set -e
 
+source bosh-cpi-src-in/ci/tasks/utils.sh
+
 optional_value file_content
 
 mkdir -p write-file
