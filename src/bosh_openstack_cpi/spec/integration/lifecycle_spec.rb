@@ -55,7 +55,7 @@ describe Bosh::OpenStackCloud::Cloud do
       after { clean_up_vm(@vm_with_assigned_floating_ip, network_spec) if @vm_with_assigned_floating_ip }
 
       it 'exercises the vm lifecycle and reassigns the floating ip' do
-        vm_lifecycle(@stemcell_id, network_spec_with_vip_network, [])
+        vm_lifecycle(@stemcell_id, network_spec_with_vip_network)
       end
     end
 
@@ -65,7 +65,7 @@ describe Bosh::OpenStackCloud::Cloud do
 
       it 'exercises the vm lifecycle' do
         expect {
-          vm_lifecycle(@stemcell_id, network_spec, [@existing_volume_id])
+          vm_lifecycle(@stemcell_id, network_spec, @existing_volume_id)
         }.to_not raise_error
       end
     end
@@ -100,18 +100,21 @@ describe Bosh::OpenStackCloud::Cloud do
     context 'without existing disks' do
       it 'exercises the vm lifecycle' do
         expect {
-          vm_lifecycle(@stemcell_id, network_spec, [])
+          vm_lifecycle(@stemcell_id, network_spec)
         }.to_not raise_error
       end
     end
 
     context 'with existing disks' do
-      before { @existing_volume_id = cpi.create_disk(2048, {}) }
-      after { cpi.delete_disk(@existing_volume_id) if @existing_volume_id }
+      before do
+        vm_id = create_vm(@stemcell_id, network_spec, [])
+        @existing_volume_id = cpi.create_disk(2048, cloud_properties, vm_id)
+        clean_up_vm(vm_id, network_spec)
+      end
 
       it 'exercises the vm lifecycle' do
         expect {
-          vm_lifecycle(@stemcell_id, network_spec, [@existing_volume_id])
+          vm_lifecycle(@stemcell_id, network_spec, @existing_volume_id)
         }.to_not raise_error
       end
     end
@@ -223,7 +226,7 @@ describe Bosh::OpenStackCloud::Cloud do
 
         it 'raises an error' do
           expect {
-            vm_lifecycle(@stemcell_id, network_spec, [], {}, resource_pool)
+            vm_lifecycle(@stemcell_id, network_spec, nil, {}, resource_pool)
           }.to raise_error(Bosh::Clouds::CloudError, /Flavor '#{@config.instance_type_with_no_root_disk}' has a root disk size of 0/)
         end
       end
@@ -246,7 +249,7 @@ describe Bosh::OpenStackCloud::Cloud do
 
     it 'exercises the vm lifecycle' do
       expect {
-        vm_lifecycle(@stemcell_id, network_spec, [], cloud_properties)
+        vm_lifecycle(@stemcell_id, network_spec, nil, cloud_properties)
       }.to_not raise_error
     end
   end
@@ -267,7 +270,7 @@ describe Bosh::OpenStackCloud::Cloud do
 
     it 'exercises the vm lifecycle' do
       expect {
-        vm_lifecycle(@stemcell_id, network_spec, [])
+        vm_lifecycle(@stemcell_id, network_spec)
       }.to_not raise_error
     end
   end
@@ -405,7 +408,7 @@ describe Bosh::OpenStackCloud::Cloud do
       end
 
       it 'creates a vm with the heavy stemcell id' do
-        vm_lifecycle(light_stemcell_id, network_spec, [])
+        vm_lifecycle(light_stemcell_id, network_spec)
       end
     end
   end
@@ -414,13 +417,29 @@ describe Bosh::OpenStackCloud::Cloud do
     cpi.compute.servers.get(vm_id).volume_attachments
   end
 
-  def vm_lifecycle(stemcell_id, network_spec, disk_locality, cloud_properties = {}, resource_pool = {})
-    vm_id = create_vm(stemcell_id, network_spec, disk_locality, resource_pool)
-    disk_id = create_disk(vm_id, cloud_properties)
+  def vm_lifecycle(stemcell_id, network_spec, disk_id = nil, cloud_properties = {}, resource_pool = {})
+    vm_id = create_vm(stemcell_id, network_spec, [disk_id], resource_pool)
+
+    if disk_id
+      @config.logger.info("Reusing disk #{disk_id} for VM vm_id #{vm_id}")
+    else
+      @config.logger.info("Creating disk for VM vm_id #{vm_id}")
+      disk_id = cpi.create_disk(2048, cloud_properties, vm_id)
+      expect(disk_id).to be
+    end
+
+    @config.logger.info("Checking existence of disk vm_id=#{vm_id} disk_id=#{disk_id}")
+    expect(cpi.has_disk?(disk_id)).to be(true)
+
+    @config.logger.info("Attaching disk vm_id=#{vm_id} disk_id=#{disk_id}")
+    cpi.attach_disk(vm_id, disk_id)
+
+    @config.logger.info("Detaching disk vm_id=#{vm_id} disk_id=#{disk_id}")
+    cpi.detach_disk(vm_id, disk_id)
+
     disk_snapshot_id = create_disk_snapshot(disk_id) unless @config.disable_snapshots
   rescue Exception => create_error
   ensure
-    # create_error is in scope and possibly populated!
     funcs = [
       lambda { clean_up_disk(disk_id) },
       lambda { clean_up_vm(vm_id, network_spec) },
@@ -463,23 +482,6 @@ describe Bosh::OpenStackCloud::Cloud do
     else
       @config.logger.info('No VM to delete')
     end
-  end
-
-  def create_disk(vm_id, cloud_properties)
-    @config.logger.info("Creating disk for VM vm_id=#{vm_id}")
-    disk_id = cpi.create_disk(2048, cloud_properties, vm_id)
-    expect(disk_id).to be
-
-    @config.logger.info("Checking existence of disk vm_id=#{vm_id} disk_id=#{disk_id}")
-    expect(cpi.has_disk?(disk_id)).to be(true)
-
-    @config.logger.info("Attaching disk vm_id=#{vm_id} disk_id=#{disk_id}")
-    cpi.attach_disk(vm_id, disk_id)
-
-    @config.logger.info("Detaching disk vm_id=#{vm_id} disk_id=#{disk_id}")
-    cpi.detach_disk(vm_id, disk_id)
-
-    disk_id
   end
 
   def clean_up_disk(disk_id)
