@@ -108,7 +108,7 @@ describe Bosh::OpenStackCloud::Cloud do
     context 'with existing disks' do
       before do
         vm_id = create_vm(@stemcell_id, network_spec, [])
-        @existing_volume_id = cpi.create_disk(2048, cloud_properties, vm_id)
+        @existing_volume_id = cpi.create_disk(2048, {}, vm_id)
         clean_up_vm(vm_id, network_spec)
       end
 
