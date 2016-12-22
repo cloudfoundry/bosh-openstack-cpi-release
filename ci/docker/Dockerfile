@@ -15,11 +15,26 @@ RUN apt-get install -y mysql-client libmysqlclient-dev; apt-get clean
 
 RUN apt-get install -y postgresql-9.3 postgresql-client-9.3 libpq-dev; apt-get clean
 
-RUN apt-get install -y python python-pip libyaml-dev libpython-dev jq; apt-get clean
+RUN apt-get install -y build-essential checkinstall
+RUN apt-get install -y libreadline-gplv2-dev libncursesw5-dev libssl-dev libsqlite3-dev tk-dev libgdbm-dev libc6-dev libbz2-dev
+
+RUN apt-get install -y libyaml-dev jq; apt-get clean
+# install python from source
+RUN CURRENT=$PWD && \
+    cd /usr/src && \
+    wget https://www.python.org/ftp/python/2.7.12/Python-2.7.12.tgz &&\
+    tar xzf Python-2.7.12.tgz && \
+    cd Python-2.7.12 && \
+    ./configure && \
+    make install && \
+    cd $CURRENT
+
+RUN python -m ensurepip
 
 RUN pip install pytz
 
 RUN pip install python-openstackclient==2.6.0
+RUN pip install python-neutronclient==6.0.0
 
 RUN pip install awscli
 
