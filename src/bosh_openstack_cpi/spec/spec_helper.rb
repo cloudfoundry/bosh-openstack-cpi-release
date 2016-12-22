@@ -185,7 +185,6 @@ def vip_network_spec
   {
     'type' => 'vip',
     'ip' => '10.0.0.1',
-    'use_dhcp' => true
   }
 end
 
