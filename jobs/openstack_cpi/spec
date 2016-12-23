@@ -83,17 +83,17 @@ properties:
     description: 'Use Nova networking APIs instead of Neutron APIs. Note: Nova networking APIs are deprecated with the Newton release, hence this switch will likely not work in future releases.'
     default: false
 
-  registry.host:
-    description: Address of the Registry to connect to (required)
-  registry.port:
+  registry.address:
+    description: Address of the Registry to connect to (required if 'endpoint' not set)
+  registry.http.port:
     description: Port of the Registry for CPI and agent to connect to
     default: 25777
-  registry.username:
-    description: Username to access the Registry
-  registry.password:
-    description: Password to access the Registry
+  registry.http.user:
+    description: Username to access the Registry (required)
+  registry.http.password:
+    description: Password to access the Registry (required)
   registry.endpoint:
-    description: Full URL for the registry endpoint that may include basic auth credentials
+    description: Full URL for the registry endpoint that may include basic auth credentials (required if 'address' not set)
     example: http://admin:admin-password@some-ip:port
 
   ntp:

@@ -92,8 +92,10 @@ def create_config_file( auth_url = 'http://0.0.0.0:5000/v2.0', registry_endpoint
                     },
                     'registry' => {
                         'endpoint' => registry_endpoint,
-                        'user' => 'registry-user',
-                        'password' => 'registry-password',
+                        'http' => {
+                          'user' => 'registry-user',
+                          'password' => 'registry-password',
+                        }
                     }
                 }
             }

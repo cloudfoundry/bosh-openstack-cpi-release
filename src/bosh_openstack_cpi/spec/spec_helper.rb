@@ -27,8 +27,10 @@ def mock_cloud_options(api_version=2)
         },
         'registry' => {
           'endpoint' => 'localhost:42288',
-          'user' => 'admin',
-          'password' => 'admin'
+          'http' => {
+            'user' => 'admin',
+            'password' => 'admin'
+          }
         },
         'agent' => {
           'foo' => 'bar',
@@ -54,8 +56,10 @@ def mock_cloud_options(api_version=2)
         },
         'registry' => {
           'endpoint' => 'localhost:42288',
-          'user' => 'admin',
-          'password' => 'admin'
+          'http' => {
+            'user' => 'admin',
+            'password' => 'admin'
+          }
         },
         'agent' => {
           'foo' => 'bar',

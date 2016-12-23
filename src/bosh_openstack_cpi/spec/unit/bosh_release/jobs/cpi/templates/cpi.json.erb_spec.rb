@@ -34,9 +34,11 @@ describe 'cpi.json.erb' do
           'path' => 'blobstore-local-path',
         },
         'registry' => {
-          'username' => 'registry.username',
-          'password' => 'registry.password',
-          'host' => 'registry.host',
+          'http' => {
+            'user' => 'registry.http.user',
+            'password' => 'registry.http.password',
+          },
+          'address' => 'registry.address'
         },
         'nats' => {
           'address' => 'nats_address.example.com',
@@ -81,15 +83,11 @@ describe 'cpi.json.erb' do
             'default_volume_type' => nil
           },
           'registry' => {
-            'address' => 'registry.host',
-            'endpoint' => 'http://registry.host:25777',
+            'endpoint' => 'http://registry.address:25777',
             'http' => {
-              'password' => 'registry.password',
-              'port' => 25777,
-              'user' => 'registry.username'
+              'password' => 'registry.http.password',
+              'user' => 'registry.http.user'
             },
-            'password' => 'registry.password',
-            'user' => 'registry.username'
           }
         }
       }
@@ -229,12 +227,21 @@ describe 'cpi.json.erb' do
 
     it 'template render succeeds if registry configured for bosh-init' do
       manifest['properties']['registry']['endpoint'] = nil
-      manifest['properties']['registry']['host'] = '127.0.0.1'
-      manifest['properties']['registry']['port'] = 6901
+      manifest['properties']['registry']['address'] = '127.0.0.1'
+      manifest['properties']['registry']['http']['port'] = 6901
       manifest['properties']['openstack']['human_readable_vm_names'] = true
 
       expect(subject['cloud']['properties']['registry']['endpoint']).to eq('http://127.0.0.1:6901')
       expect(subject['cloud']['properties']['openstack']['human_readable_vm_names']).to be true
+    end
+  end
+
+  context 'when registry.endpoint and registry.address are not set' do
+    it 'raises error during template rendering' do
+      manifest['properties']['registry']['endpoint'] = nil
+      manifest['properties']['registry']['address'] = nil
+
+      expect{subject}.to raise_error RuntimeError, "Manifest invalid. Either 'registry.address' or 'registry.endpoint' needs to be specified."
     end
   end
 end

@@ -888,8 +888,10 @@ module Bosh::OpenStackCloud
             },
             'registry' => {
                 'endpoint' => String,
-                'user' => String,
-                'password' => String,
+                'http' => {
+                  'user' => String,
+                  'password' => String,
+                }
             },
             optional('agent') => Hash,
         }
@@ -910,8 +912,8 @@ module Bosh::OpenStackCloud
     def initialize_registry
       registry_properties = @options.fetch('registry')
       registry_endpoint   = registry_properties.fetch('endpoint')
-      registry_user       = registry_properties.fetch('user')
-      registry_password   = registry_properties.fetch('password')
+      registry_user       = registry_properties.fetch('http').fetch('user')
+      registry_password   = registry_properties.fetch('http').fetch('password')
 
       @registry = Bosh::Cpi::RegistryClient.new(registry_endpoint,
                                              registry_user,
