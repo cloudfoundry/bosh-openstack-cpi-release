@@ -5,6 +5,7 @@ DELETE /v2/<tenant_id>/servers/<resource_id>
 DELETE /v2/<tenant_id>/servers/<resource_id>/os-volume_attachments/<resource_id>
 GET /v2/<tenant_id>//servers/<resource_id>/os-volume_attachments
 GET /v2/<tenant_id>/flavors/detail.json
+GET /v2/<tenant_id>/os-floating-ips.json
 GET /v2/<tenant_id>/os-keypairs.json
 GET /v2/<tenant_id>/os-security-groups.json
 GET /v2/<tenant_id>/servers/<resource_id>.json
