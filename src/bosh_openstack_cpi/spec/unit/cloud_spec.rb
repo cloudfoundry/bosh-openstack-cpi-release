@@ -24,10 +24,8 @@ describe Bosh::OpenStackCloud::Cloud do
           },
           'registry' => {
             'endpoint' => 'fake-registry',
-            'http' => {
-              'user' => 'fake-user',
-              'password' => 'fake-password',
-            }
+            'user' => 'fake-user',
+            'password' => 'fake-password',
           }
         }
       end

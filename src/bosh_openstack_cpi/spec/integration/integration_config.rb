@@ -97,10 +97,8 @@ class IntegrationConfig
     },
             'registry' => {
                 'endpoint' => 'fake',
-                'http' => {
-                  'user' => 'fake',
-                  'password' => 'fake'
-                }
+                'user' => 'fake',
+                'password' => 'fake'
             }}
 
     if @domain

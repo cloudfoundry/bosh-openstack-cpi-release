@@ -15,9 +15,13 @@
           'use_nova_networking' => p('openstack.use_nova_networking')
         },
         'registry' => {
+          'user' => p('registry.username'),
+          'password' => p('registry.password'),
+          'address' => p('registry.host'),
           'http' => {
-            'user' => p('registry.http.user'),
-            'password' => p('registry.http.password')
+            'port' => p('registry.port'),
+            'user' => p('registry.username'),
+            'password' => p('registry.password')
           }
         },
         'agent' => {
@@ -44,16 +48,12 @@
   if_p('registry.endpoint') do |endpoint|
     params['cloud']['properties']['registry']['endpoint'] = endpoint
   end.else do
-    if_p('registry.address') do |address|
-      # 'registry.host==127.0.0.1' && registry.port==6901 is a special bosh-init case. Don't raise exception in this case.
-      if p('openstack.human_readable_vm_names') == true && address != '127.0.0.1' && p('registry.http.port') != 6901
-        raise "Property 'human_readable_vm_names' can only be used together with 'registry.endpoint'. " +
-              'Please refer to http://bosh.io/docs/openstack-registry.html.'
-      else
-        params['cloud']['properties']['registry']['endpoint'] = "http://#{address}:#{p('registry.http.port')}"
-      end
-    end.else do
-      raise "Manifest invalid. Either 'registry.address' or 'registry.endpoint' needs to be specified."
+    # 'registry.host==127.0.0.1' && registry.port==6901 is a special bosh-init case. Don't raise exception in this case.
+    if p('openstack.human_readable_vm_names') == true && p('registry.host') != '127.0.0.1' && p('registry.port') != 6901
+      raise "Property 'human_readable_vm_names' can only be used together with 'registry.endpoint'. " +
+            "Please refer to http://bosh.io/docs/openstack-registry.html."
+    else
+      params['cloud']['properties']['registry']['endpoint'] = "http://#{p('registry.host')}:#{p('registry.port')}"
     end
   end
 
