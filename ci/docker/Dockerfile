@@ -62,8 +62,12 @@ RUN ruby-install ruby 2.1.2 && \
 #Bundler
 RUN ["/bin/bash", "-l", "-c", "gem install bundler --no-ri --no-rdoc"]
 
-#BOSH CLI
+#BOSH RUBY CLI
 RUN ["/bin/bash", "-l", "-c", "gem install bosh_cli --no-ri --no-rdoc"]
+
+#BOSH GO CLI
+RUN wget https://s3.amazonaws.com/bosh-cli-artifacts/bosh-cli-0.0.140-linux-amd64 -O /usr/local/bin/bosh-go
+RUN chmod +x /usr/local/bin/bosh-go
 
 # receipt generator
 RUN cd /tmp && \
