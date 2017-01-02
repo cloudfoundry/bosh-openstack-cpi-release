@@ -44,7 +44,10 @@ describe Bosh::OpenStackCloud::Cloud do
     cpi_for_vm.create_vm(
       'agent-007',
       @stemcell_id,
-      { 'instance_type' => @config.instance_type },
+      {
+          'instance_type' => @config.instance_type,
+          'availability_zone' => @config.availability_zone
+      },
       network_spec,
       [],
       { 'key' => 'value' }

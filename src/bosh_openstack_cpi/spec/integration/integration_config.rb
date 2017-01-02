@@ -21,6 +21,7 @@ class IntegrationConfig
               :ignore_server_az,
               :instance_type,
               :instance_type_with_no_root_disk,
+              :availability_zone,
               :region,
               :floating_ip,
               :ca_cert_path,
@@ -70,6 +71,7 @@ class IntegrationConfig
     @ignore_server_az                = LifecycleHelper.get_config(:ignore_server_az, 'false')
     @instance_type                   = LifecycleHelper.get_config(:instance_type, 'm1.small')
     @instance_type_with_no_root_disk = LifecycleHelper.get_config(:flavor_with_no_root_disk)
+    @availability_zone               = LifecycleHelper.get_config(:availability_zone, nil)
     @floating_ip                     = LifecycleHelper.get_config(:floating_ip)
     # some environments may not have this set, and it isn't strictly necessary so don't raise if it isn't set
     @region                          = LifecycleHelper.get_config(:region, nil)

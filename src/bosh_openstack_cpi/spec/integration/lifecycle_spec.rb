@@ -60,7 +60,11 @@ describe Bosh::OpenStackCloud::Cloud do
     end
 
     context 'with existing disks' do
-      before { @existing_volume_id = cpi.create_disk(2048, {}) }
+      before do
+        @temp_vm_cid = create_vm(@stemcell_id, network_spec, [])
+        @existing_volume_id = cpi.create_disk(2048, {}, @temp_vm_cid)
+        cpi.delete_vm(@temp_vm_cid)
+      end
       after { cpi.delete_disk(@existing_volume_id) if @existing_volume_id }
 
       it 'exercises the vm lifecycle' do
@@ -106,11 +110,14 @@ describe Bosh::OpenStackCloud::Cloud do
     end
 
     context 'with existing disks' do
+
       before do
-        vm_id = create_vm(@stemcell_id, network_spec, [])
-        @existing_volume_id = cpi.create_disk(2048, {}, vm_id)
-        clean_up_vm(vm_id, network_spec)
+        @temp_vm_cid = create_vm(@stemcell_id, network_spec, [])
+        @existing_volume_id = cpi.create_disk(2048, {}, @temp_vm_cid)
+        clean_up_vm(@temp_vm_cid, network_spec)
       end
+
+      after { cpi.delete_disk(@existing_volume_id) if @existing_volume_id }
 
       it 'exercises the vm lifecycle' do
         expect {
@@ -453,7 +460,9 @@ describe Bosh::OpenStackCloud::Cloud do
     vm_id = cpi.create_vm(
       'agent-007',
       stemcell_id,
-      { 'instance_type' => @config.instance_type }.merge(resource_pool),
+      { 'instance_type' => @config.instance_type,
+        'availability_zone' => @config.availability_zone
+      }.merge(resource_pool),
       network_spec,
       disk_locality,
       { 'key' => 'value' }

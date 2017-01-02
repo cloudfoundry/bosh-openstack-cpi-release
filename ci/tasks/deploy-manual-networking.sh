@@ -21,6 +21,7 @@ source bosh-cpi-src-in/ci/tasks/utils.sh
 : ${DEBUG_BATS:?}
 optional_value bosh_openstack_ca_cert
 optional_value distro
+optional_value availability_zone
 
 source /etc/profile.d/chruby-with-ruby-2.1.2.sh
 
@@ -93,6 +94,7 @@ resource_pools:
       url: file://stemcell.tgz
     cloud_properties:
       instance_type: ${openstack_flavor}
+      availability_zone: ${availability_zone:-"~"}
     env:
       bosh:
         password: ${bosh_vcap_password_hash}

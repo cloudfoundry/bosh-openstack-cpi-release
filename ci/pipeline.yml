@@ -171,6 +171,7 @@ jobs:
           BOSH_OPENSTACK_WRITE_TIMEOUT:            "120"
           BOSH_OPENSTACK_CA_CERT:                  {{bosh_openstack_ca_cert}}
           BOSH_OPENSTACK_FLAVOR_WITH_NO_ROOT_DISK: {{openstack_flavor_with_no_root_disk}}
+          BOSH_OPENSTACK_AVAILABILITY_ZONE:        {{availability_zone}}
         <<: *send-failure-email
 
       - put: lifecycle-log
@@ -267,6 +268,7 @@ jobs:
           time_server_1:                        {{time_server_1}}
           time_server_2:                        {{time_server_2}}
           distro:                               "ubuntu"
+          availability_zone:                    {{availability_zone}}
           DEBUG_BATS:                           *debug_bats
         <<: *send-failure-email
 
@@ -280,6 +282,7 @@ jobs:
           openstack_flavor_with_ephemeral_disk:     {{openstack_flavor_with_ephemeral_disk}}
           openstack_flavor_with_no_ephemeral_disk:  {{openstack_flavor_with_no_ephemeral_disk}}
           bosh_admin_password:                      {{bosh_admin_password}}
+          availability_zone:                        {{availability_zone}}
           DEBUG_BATS:                               *debug_bats
         <<: *send-failure-email
         ensure:
@@ -363,6 +366,7 @@ jobs:
           time_server_2:                        {{time_server_2}}
           private_key_data:                     {{bosh_private_key}}
           distro:                               "ubuntu"
+          availability_zone:                    {{availability_zone}}
           DEBUG_BATS:                           *debug_bats
         <<: *send-failure-email
 
@@ -376,6 +380,7 @@ jobs:
           openstack_flavor_with_ephemeral_disk:     {{openstack_flavor_with_ephemeral_disk}}
           openstack_flavor_with_no_ephemeral_disk:  {{openstack_flavor_with_no_ephemeral_disk}}
           private_key_data:                         {{bosh_private_key}}
+          availability_zone:                        {{availability_zone}}
           DEBUG_BATS:                               *debug_bats
         <<: *send-failure-email
         ensure:
@@ -463,6 +468,7 @@ jobs:
           time_server_2:                        {{time_server_2}}
           private_key_data:                     {{bosh_private_key}}
           distro:                               "centos"
+          availability_zone:                    {{availability_zone}}
           DEBUG_BATS:                           *debug_bats
         <<: *send-failure-email
 
@@ -476,6 +482,7 @@ jobs:
           openstack_flavor_with_ephemeral_disk:     {{openstack_flavor_with_ephemeral_disk}}
           openstack_flavor_with_no_ephemeral_disk:  {{openstack_flavor_with_no_ephemeral_disk}}
           bosh_admin_password:                      {{bosh_admin_password}}
+          availability_zone:                        {{availability_zone}}
           DEBUG_BATS:                               *debug_bats
         <<: *send-failure-email
         ensure:
@@ -559,6 +566,7 @@ jobs:
           time_server_2:                        {{time_server_2}}
           private_key_data:                     {{bosh_private_key}}
           distro:                               "centos"
+          availability_zone:                    {{availability_zone}}
           DEBUG_BATS:                           *debug_bats
         <<: *send-failure-email
 
@@ -572,6 +580,7 @@ jobs:
           openstack_flavor_with_ephemeral_disk:     {{openstack_flavor_with_ephemeral_disk}}
           openstack_flavor_with_no_ephemeral_disk:  {{openstack_flavor_with_no_ephemeral_disk}}
           private_key_data:                         {{bosh_private_key}}
+          availability_zone:                        {{availability_zone}}
           DEBUG_BATS:                               *debug_bats
         <<: *send-failure-email
         ensure:

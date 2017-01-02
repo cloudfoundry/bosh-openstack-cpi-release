@@ -10,6 +10,8 @@ source bosh-cpi-src-in/ci/tasks/utils.sh
 : ${bosh_admin_password:?}
 : ${private_key_data:?}
 
+optional_value availability_zone
+
 ####
 #
 # TODO:
@@ -81,6 +83,7 @@ properties:
   vip: ${floating_ip}
   second_static_ip: ${primary_net_second_manual_ip}
   instance_type: ${openstack_flavor_with_ephemeral_disk}
+  availability_zone: ${availability_zone:-"~"}
   flavor_with_no_ephemeral_disk: ${openstack_flavor_with_no_ephemeral_disk}
   stemcell:
     name: ${stemcell_name}

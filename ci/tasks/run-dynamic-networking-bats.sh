@@ -10,6 +10,8 @@ source bosh-cpi-src-in/ci/tasks/utils.sh
 : ${openstack_flavor_with_no_ephemeral_disk:?}
 : ${private_key_data:?}
 
+optional_value availability_zone
+
 working_dir=$PWD
 
 mkdir -p $working_dir/keys
@@ -57,6 +59,7 @@ properties:
   uuid: $(bosh status --uuid)
   vip: ${floating_ip}
   instance_type: ${openstack_flavor_with_ephemeral_disk}
+  availability_zone: ${availability_zone:-"~"}
   pool_size: 1
   instances: 1
   flavor_with_no_ephemeral_disk: ${openstack_flavor_with_no_ephemeral_disk}
