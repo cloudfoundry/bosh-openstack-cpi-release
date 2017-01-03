@@ -48,6 +48,10 @@ export BOSH_INIT_LOG_LEVEL=DEBUG
 deployment_dir="${PWD}/deployment"
 manifest_filename="e2e-director-manifest.yml"
 private_key=${deployment_dir}/e2e.pem
+rootCA_key=${deployment_dir}/rootCA.key
+rootCA_pem=${deployment_dir}/rootCA.pem
+bosh_ssl_key=${deployment_dir}/bosh-ssl.key
+bosh_ssl_crt=${deployment_dir}/bosh-ssl.crt
 bosh_vcap_password_hash=$(ruby -e 'require "securerandom";puts ENV["bosh_admin_password"].crypt("$6$#{SecureRandom.base64(14)}")')
 
 echo "setting up artifacts used in $manifest_filename"
@@ -60,9 +64,11 @@ chmod go-r ${private_key}
 eval $(ssh-agent)
 ssh-add ${private_key}
 
-echo "${root_ca_pem}" > rootCA.pem
-echo "${root_ca_key}" > rootCA.key
-generateCert ${director_public_ip}
+echo "${root_ca_pem}" > ${rootCA_pem}
+echo "${root_ca_key}" > ${rootCA_key}
+pushd ${deployment_dir}
+  generateCert ${director_public_ip}
+popd
 
 #create director manifest as heredoc
 cat > "${deployment_dir}/${manifest_filename}"<<EOF
@@ -168,15 +174,15 @@ jobs:
             users:
               - {name: admin, password: ${bosh_admin_password}}
         ssl:
-          key: bosh-ssl.key
-          cert: bosh-ssl.crt
+          key: ${bosh_ssl_key}
+          cert: ${bosh_ssl_crt}
 
       hm:
         http: {user: hm, password: ${bosh_admin_password}}
         director_account:
           user: admin
           password: ${bosh_admin_password}
-          ca_cert: rootCA.pem
+          ca_cert: ${rootCA_pem}
 
       dns:
         address: 127.0.0.1

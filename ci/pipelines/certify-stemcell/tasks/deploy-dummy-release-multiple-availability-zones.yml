@@ -14,6 +14,7 @@ run:
   path: bosh-cpi-src-in/ci/pipelines/certify-stemcell/tasks/deploy-dummy-release-multiple-availability-zones.sh
 params:
   bosh_admin_password:         replace-me
+  root_ca_pem:                 replace-me
   stemcell_name:               replace-me
   instance_flavor:             replace-me
   delete_deployment_when_done: replace-me
@@ -27,5 +28,3 @@ params:
   project_right:               replace-me
   domain_right:                replace-me
   username_right:              replace-me
-  root_ca_pem:                 replace-me
-  root_ca_key:                 replace-me

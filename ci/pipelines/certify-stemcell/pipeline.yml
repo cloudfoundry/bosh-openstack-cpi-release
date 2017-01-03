@@ -156,6 +156,7 @@ jobs:
         params:
           instance_flavor:             "m1.medium"
           bosh_admin_password:         {{bosh_admin_password}}
+          root_ca_pem:                 {{root_ca_pem}}
           stemcell_name:               "bosh-openstack-kvm-centos-7-go_agent"
           delete_deployment_when_done: "true"
           api_key_left:                {{v3_e2e_api_key}}
@@ -268,6 +269,7 @@ jobs:
         params:
           instance_flavor:             "m1.medium"
           bosh_admin_password:         {{bosh_admin_password}}
+          root_ca_pem:                 {{root_ca_pem}}
           stemcell_name:               "bosh-openstack-kvm-ubuntu-trusty-go_agent"
           delete_deployment_when_done: "true"
           api_key_left:                {{v3_e2e_api_key}}

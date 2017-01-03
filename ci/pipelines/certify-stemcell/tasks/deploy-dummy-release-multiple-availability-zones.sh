@@ -48,7 +48,6 @@ bosh_vcap_password_hash=$(ruby -e 'require "securerandom";puts ENV["bosh_admin_p
 echo "setting up artifacts used in $manifest_filename"
 mkdir -p ${deployment_dir}
 echo "${root_ca_pem}" > rootCA.pem
-echo "${root_ca_key}" > rootCA.key
 
 echo "using BOSH Go CLI version..."
 bosh-go --version
