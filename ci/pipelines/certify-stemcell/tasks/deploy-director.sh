@@ -174,15 +174,15 @@ jobs:
             users:
               - {name: admin, password: ${bosh_admin_password}}
         ssl:
-          key: ${bosh_ssl_key}
-          cert: ${bosh_ssl_crt}
+          key: $(cat $bosh_ssl_key | sed -e 's/ /\\n/g ' -e 's/\\nRSA\\nPRIVATE\\nKEY-----/ RSA PRIVATE KEY-----/g')
+          cert: $(cat $bosh_ssl_crt | sed -e 's/ /\\n/g ' -e 's/\\nCERTIFICATE-----/ CERTIFICATE-----/g')
 
       hm:
         http: {user: hm, password: ${bosh_admin_password}}
         director_account:
           user: admin
           password: ${bosh_admin_password}
-          ca_cert: ${rootCA_pem}
+          ca_cert: $(cat $rootCA_pem | sed -e 's/ /\\n/g ' -e 's/\\nCERTIFICATE-----/ CERTIFICATE-----/g')
 
       dns:
         address: 127.0.0.1
