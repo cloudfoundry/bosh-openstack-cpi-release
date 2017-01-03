@@ -73,3 +73,27 @@ export_terraform_variable() {
     local variable_name=$1
     export ${variable_name}=$(cat ${metadata} | jq --raw-output ".${variable_name}")
 }
+
+generateCert() {
+    ip=$1
+
+    cat >openssl-exts.conf <<-EOL
+extensions = san
+[san]
+subjectAltName = IP:${ip}
+EOL
+
+    echo "Generating private key..."
+    openssl genrsa -out bosh-ssl.key 2048
+
+    echo "Generating certificate signing request for ${ip}..."
+    # golang requires to have SAN for the IP
+    openssl req -new -nodes -key bosh-ssl.key -out bosh-ssl.csr -subj "/C=US/O=BOSH/CN=${ip}"
+
+    echo "Generating certificate ${ip}..."
+    openssl x509 -req -in bosh-ssl.csr -CA rootCA.pem -CAkey rootCA.key -CAcreateserial -out bosh-ssl.crt -days 99999 -extfile ./openssl-exts.conf
+
+    echo "Deleting certificate signing request and config..."
+    rm bosh-ssl.csr
+    rm ./openssl-exts.conf
+}

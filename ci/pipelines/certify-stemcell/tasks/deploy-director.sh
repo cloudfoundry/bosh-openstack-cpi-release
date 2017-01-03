@@ -17,6 +17,8 @@ source bosh-cpi-src-in/ci/tasks/utils.sh
 : ${v3_e2e_domain:?}
 : ${v3_e2e_username:?}
 : ${v3_e2e_private_key_data:?}
+: ${root_ca_pem:?}
+: ${root_ca_key:?}
 : ${v3_e2e_blobstore_bucket:?}
 : ${v3_e2e_blobstore_host:?}
 : ${v3_e2e_blobstore_access_key:?}
@@ -57,6 +59,10 @@ echo "${v3_e2e_private_key_data}" > ${private_key}
 chmod go-r ${private_key}
 eval $(ssh-agent)
 ssh-add ${private_key}
+
+echo "${root_ca_pem}" > rootCA.pem
+echo "${root_ca_key}" > rootCA.key
+generateCert ${director_public_ip}
 
 #create director manifest as heredoc
 cat > "${deployment_dir}/${manifest_filename}"<<EOF
@@ -161,10 +167,16 @@ jobs:
           local:
             users:
               - {name: admin, password: ${bosh_admin_password}}
+        ssl:
+          key: bosh-ssl.key
+          cert: bosh-ssl.crt
 
       hm:
         http: {user: hm, password: ${bosh_admin_password}}
-        director_account: {user: admin, password: ${bosh_admin_password}}
+        director_account:
+          user: admin
+          password: ${bosh_admin_password}
+          ca_cert: rootCA.pem
 
       dns:
         address: 127.0.0.1

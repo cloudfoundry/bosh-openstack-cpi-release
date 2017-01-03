@@ -93,6 +93,8 @@ jobs:
           v3_e2e_domain:                        {{v3_e2e_domain}}
           v3_e2e_username:                      {{v3_e2e_username}}
           v3_e2e_private_key_data:              {{v3_e2e_private_key_data}}
+          root_ca_pem:                          {{root_ca_pem}}
+          root_ca_key:                          {{root_ca_key}}
           v3_e2e_blobstore_bucket:              {{v3_e2e_blobstore_bucket}}
           v3_e2e_blobstore_host:                {{v3_e2e_blobstore_host}}
           v3_e2e_blobstore_access_key:          {{v3_e2e_blobstore_access_key}}
@@ -128,6 +130,44 @@ jobs:
           BOSH_OPENSTACK_API_KEY:              {{v3_e2e_api_key}}
           BOSH_OPENSTACK_PROJECT:              {{v3_e2e_project}}
           BOSH_OPENSTACK_CA_CERT:              {{bosh_openstack_ca_cert}}
+        <<: *send-failure-email
+
+      - put: terraform-secondary-openstack
+        resource: terraform-e2e-secondary-cpi
+        tags: *tags
+        timeout: *timeouts-long
+        params:
+          env_name: e2e-centos-secondary-cpi
+          vars:
+            prefix: "e2e-centos-secondary-cpi"
+            auth_url: {{secondary_openstack_auth_url_v3}}
+            project_name: {{secondary_openstack_project_name}}
+            domain_name: {{secondary_openstack_domain_name}}
+            user_name: {{secondary_openstack_username}}
+            password: {{secondary_openstack_api_key}}
+            insecure: "true"
+            region_name: {{tf_region_name}}
+            default_public_key: {{tf_default_public_key}}
+
+      - task: deploy-dummy-release-in-multiple-availability-zones
+        tags: *tags
+        timeout: *timeouts-long
+        file: bosh-cpi-src-in/ci/pipelines/certify-stemcell/tasks/deploy-dummy-release-multiple-availability-zones.yml
+        params:
+          instance_flavor:             "m1.medium"
+          bosh_admin_password:         {{bosh_admin_password}}
+          stemcell_name:               "bosh-openstack-kvm-centos-7-go_agent"
+          delete_deployment_when_done: "true"
+          api_key_left:                {{v3_e2e_api_key}}
+          auth_url_left:               {{openstack_auth_url_v3}}
+          project_left:                {{v3_e2e_project}}
+          domain_left:                 {{v3_e2e_domain}}
+          username_left:               {{v3_e2e_username}}
+          api_key_right:               {{secondary_openstack_api_key}}
+          auth_url_right:              {{secondary_openstack_auth_url_v3}}
+          project_right:               {{secondary_openstack_project_name}}
+          domain_right:                {{secondary_openstack_domain_name}}
+          username_right:              {{secondary_openstack_username}}
         <<: *send-failure-email
 
       - task: teardown-director
@@ -204,6 +244,44 @@ jobs:
           BOSH_OPENSTACK_CA_CERT:      {{bosh_openstack_ca_cert}}
         <<: *send-failure-email
 
+      - put: terraform-secondary-openstack
+        resource: terraform-e2e-secondary-cpi
+        tags: *tags
+        timeout: *timeouts-long
+        params:
+          env_name: e2e-ubuntu-secondary-cpi
+          vars:
+            prefix: "e2e-ubuntu-secondary-cpi"
+            auth_url: {{secondary_openstack_auth_url_v3}}
+            project_name: {{secondary_openstack_project_name}}
+            domain_name: {{secondary_openstack_domain_name}}
+            user_name: {{secondary_openstack_username}}
+            password: {{secondary_openstack_api_key}}
+            insecure: "true"
+            region_name: {{tf_region_name}}
+            default_public_key: {{tf_default_public_key}}
+
+      - task: deploy-dummy-release-in-multiple-availability-zones
+        tags: *tags
+        timeout: *timeouts-long
+        file: bosh-cpi-src-in/ci/pipelines/certify-stemcell/tasks/deploy-dummy-release-multiple-availability-zones.yml
+        params:
+          instance_flavor:             "m1.medium"
+          bosh_admin_password:         {{bosh_admin_password}}
+          stemcell_name:               "bosh-openstack-kvm-ubuntu-trusty-go_agent"
+          delete_deployment_when_done: "true"
+          api_key_left:                {{v3_e2e_api_key}}
+          auth_url_left:               {{openstack_auth_url_v3}}
+          project_left:                {{v3_e2e_project}}
+          domain_left:                 {{v3_e2e_domain}}
+          username_left:               {{v3_e2e_username}}
+          api_key_right:               {{secondary_openstack_api_key}}
+          auth_url_right:              {{secondary_openstack_auth_url_v3}}
+          project_right:               {{secondary_openstack_project_name}}
+          domain_right:                {{secondary_openstack_domain_name}}
+          username_right:              {{secondary_openstack_username}}
+        <<: *send-failure-email
+
       - task: teardown-director
         tags: *tags
         timeout: *timeouts-long
@@ -264,6 +342,8 @@ jobs:
           v3_e2e_domain:                        {{v3_e2e_domain}}
           v3_e2e_username:                      {{v3_e2e_username}}
           v3_e2e_private_key_data:              {{v3_e2e_private_key_data}}
+          root_ca_pem:                          {{root_ca_pem}}
+          root_ca_key:                          {{root_ca_key}}
           v3_e2e_blobstore_bucket:              {{v3_e2e_blobstore_bucket}}
           v3_e2e_blobstore_host:                {{v3_e2e_blobstore_host}}
           v3_e2e_blobstore_access_key:          {{v3_e2e_blobstore_access_key}}
@@ -623,6 +703,16 @@ resources:
         access_key_id: {{s3_openstack_cpi_pipeline_access_key}}
         secret_access_key: {{s3_openstack_cpi_pipeline_secret_key}}
       terraform_source: github.com/cloudfoundry-incubator/bosh-openstack-cpi-release//ci/terraform/e2e/config_drive
+
+  - name: terraform-e2e-secondary-cpi
+    type: terraform
+    source:
+      storage:
+        bucket: {{s3_openstack_cpi_pipeline_bucket_name}}
+        bucket_path: terraform-e2e/
+        access_key_id: {{s3_openstack_cpi_pipeline_access_key}}
+        secret_access_key: {{s3_openstack_cpi_pipeline_secret_key}}
+      terraform_source: github.com/cloudfoundry-incubator/bosh-openstack-cpi-release//ci/terraform/e2e/secondary_cpi
 
   - name: bosh-cpi-dev-artifacts
     type: s3

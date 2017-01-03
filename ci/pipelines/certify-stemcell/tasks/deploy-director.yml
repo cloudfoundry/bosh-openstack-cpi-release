@@ -33,6 +33,8 @@ params:
   v3_e2e_domain:                       replace-me
   v3_e2e_username:                     replace-me
   v3_e2e_private_key_data:             replace-me
+  root_ca_pem:                         replace-me
+  root_ca_key:                         replace-me
   v3_e2e_blobstore_bucket:             replace-me
   v3_e2e_blobstore_host:               replace-me
   v3_e2e_blobstore_access_key:         replace-me
