@@ -54,7 +54,7 @@ bosh-go --version
 echo "setting BOSH director environment to ${director_public_ip}"
 bosh-go alias-env director -e ${director_public_ip} --ca-cert rootCA.pem
 export BOSH_ENVIRONMENT=director
-bosh-go login --user admin --password ${bosh_admin_password}
+bosh-go login --client admin --client-secret ${bosh_admin_password}
 
 echo "uploading stemcell to director..."
 bosh-go -n upload-stemcell ./stemcell/stemcell.tgz
