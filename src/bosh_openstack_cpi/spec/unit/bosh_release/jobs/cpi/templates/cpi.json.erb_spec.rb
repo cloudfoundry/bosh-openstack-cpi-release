@@ -83,11 +83,6 @@ describe 'cpi.json.erb' do
           'registry' => {
             'address' => 'registry.host',
             'endpoint' => 'http://registry.host:25777',
-            'http' => {
-              'password' => 'registry.password',
-              'port' => 25777,
-              'user' => 'registry.username'
-            },
             'password' => 'registry.password',
             'user' => 'registry.username'
           }
