@@ -18,7 +18,6 @@ source bosh-cpi-src-in/ci/tasks/utils.sh
 : ${domain_right:?}
 : ${username_right:?}
 : ${root_ca_pem:?}
-: ${root_ca_key:?}
 
 metadata=terraform/metadata
 
