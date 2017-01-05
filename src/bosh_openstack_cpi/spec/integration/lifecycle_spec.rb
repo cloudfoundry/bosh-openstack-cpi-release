@@ -20,6 +20,7 @@ describe Bosh::OpenStackCloud::Cloud do
   let(:use_dhcp) { true }
   let(:human_readable_vm_names) { false }
   let(:use_nova_networking) { false }
+  let(:openstack) { @config.create_openstack }
 
   subject(:cpi) do
     @config.create_cpi(boot_from_volume: boot_from_volume, config_drive: config_drive, human_readable_vm_names: human_readable_vm_names, use_nova_networking: use_nova_networking, use_dhcp: use_dhcp)
@@ -81,7 +82,7 @@ describe Bosh::OpenStackCloud::Cloud do
       after { clean_up_vm(@human_readable_vm_name_id, network_spec) if @human_readable_vm_name_id }
 
       it 'sets the vm name according to the metadata' do
-        vm = cpi.compute.servers.get(@human_readable_vm_name_id)
+        vm = openstack.compute.servers.get(@human_readable_vm_name_id)
         expect(vm.name).to eq 'openstack_cpi_spec/instance_id'
       end
 
@@ -164,7 +165,7 @@ describe Bosh::OpenStackCloud::Cloud do
 
         @multiple_nics_vm_id = create_vm(@stemcell_id, multiple_network_spec, [])
 
-        vm = cpi.compute.servers.get(@multiple_nics_vm_id)
+        vm = openstack.compute.servers.get(@multiple_nics_vm_id)
         network_interfaces = vm.addresses.map { |_, network_interfaces| network_interfaces }.flatten
         network_interface_1 = network_interfaces.find(&where_ip_address_is(@config.no_dhcp_manual_ip_1))
         network_interface_2 = network_interfaces.find(&where_ip_address_is(@config.no_dhcp_manual_ip_2))
@@ -172,9 +173,9 @@ describe Bosh::OpenStackCloud::Cloud do
         expect(network_interface_1['OS-EXT-IPS-MAC:mac_addr']).to eq(registry_settings['networks']['network_1']['mac'])
         expect(network_interface_2['OS-EXT-IPS-MAC:mac_addr']).to eq(registry_settings['networks']['network_2']['mac'])
 
-        ports = cpi.network.ports.all(:device_id => @multiple_nics_vm_id)
+        ports = openstack.network.ports.all(:device_id => @multiple_nics_vm_id)
         clean_up_vm(@multiple_nics_vm_id, network_spec) if @multiple_nics_vm_id
-        expect(ports.find { |port| cpi.network.ports.get port.id }).to be_nil
+        expect(ports.find { |port| openstack.network.ports.get port.id }).to be_nil
       end
 
       def where_ip_address_is(ip)
@@ -300,7 +301,7 @@ describe Bosh::OpenStackCloud::Cloud do
     end
 
     def no_active_vm_with_ip?(ip)
-      cpi.compute.servers.none? do |s|
+      openstack.compute.servers.none? do |s|
         s.private_ip_address == ip && [:active].include?(s.state.downcase.to_sym)
       end
     end
@@ -421,7 +422,7 @@ describe Bosh::OpenStackCloud::Cloud do
   end
 
   def volumes(vm_id)
-    cpi.compute.servers.get(vm_id).volume_attachments
+    openstack.compute.servers.get(vm_id).volume_attachments
   end
 
   def vm_lifecycle(stemcell_id, network_spec, disk_id = nil, cloud_properties = {}, resource_pool = {})
