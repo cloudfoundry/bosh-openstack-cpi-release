@@ -5,12 +5,10 @@ DELETE /v2/<tenant_id>/servers/<resource_id>
 DELETE /v2/<tenant_id>/servers/<resource_id>/os-volume_attachments/<resource_id>
 GET /v2/<tenant_id>//servers/<resource_id>/os-volume_attachments
 GET /v2/<tenant_id>/flavors/detail.json
-GET /v2/<tenant_id>/os-floating-ips.json
 GET /v2/<tenant_id>/os-keypairs.json
 GET /v2/<tenant_id>/os-security-groups.json
 GET /v2/<tenant_id>/servers/<resource_id>.json
 GET /v2/<tenant_id>/servers/<resource_id>/metadata/registry_key
-GET /v2/<tenant_id>/servers/detail.json
 POST /v2/<tenant_id>/servers.json body: {"server":{"flavorRef":"<resource_id>","name":"<name>","imageRef":"<resource_id>","availability_zone":"<availability_zone>","user_data":"<user_data>","key_name":"<key_name>","security_groups":[{"name":"<name>"}],"networks":[{"uuid":"<resource_id>","port":"<resource_id>"}]}}
 POST /v2/<tenant_id>/servers.json body: {"server":{"flavorRef":"<resource_id>","name":"<name>","imageRef":"<resource_id>","availability_zone":"<availability_zone>","user_data":"<user_data>","key_name":"<key_name>","security_groups":[{"name":"<name>"}],"networks":[{"uuid":"<resource_id>"}]}}
 POST /v2/<tenant_id>/servers.json body: {"server":{"flavorRef":"<resource_id>","name":"<name>","imageRef":"<resource_id>","user_data":"<user_data>","key_name":"<key_name>","config_drive":true,"security_groups":[{"name":"<name>"}],"networks":[{"uuid":"<resource_id>","port":"<resource_id>"},{"uuid":"<resource_id>","port":"<resource_id>"}]}}
