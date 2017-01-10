@@ -4,7 +4,7 @@ set -e
 
 source bosh-cpi-src-in/ci/tasks/utils.sh
 
-: {bosh_admin_password:?}
+: ${bosh_admin_password:?}
 
 source /etc/profile.d/chruby.sh
 chruby 2.1.2

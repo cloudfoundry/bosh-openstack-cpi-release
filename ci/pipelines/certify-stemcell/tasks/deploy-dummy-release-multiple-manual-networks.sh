@@ -4,10 +4,10 @@ set -e
 
 source bosh-cpi-src-in/ci/tasks/utils.sh
 
-ensure_not_replace_value bosh_admin_password
-ensure_not_replace_value v3_e2e_private_key_data
-ensure_not_replace_value stemcell_name
-ensure_not_replace_value instance_flavor
+: ${bosh_admin_password:?}
+: ${v3_e2e_private_key_data:?}
+: ${stemcell_name:?}
+: ${instance_flavor:?}
 
 metadata=terraform/metadata
 

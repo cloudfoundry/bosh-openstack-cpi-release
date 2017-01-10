@@ -21,8 +21,11 @@ class IntegrationConfig
               :ignore_server_az,
               :instance_type,
               :instance_type_with_no_root_disk,
+              :availability_zone,
               :region,
-              :floating_ip
+              :floating_ip,
+              :ca_cert_path,
+              :insecure
 
   def initialize(identity_version=:v3)
     if identity_version == :v3
@@ -39,6 +42,21 @@ class IntegrationConfig
     end
 
     @logger                          = Logger.new(STDERR)
+
+    @ca_cert_content                 = LifecycleHelper.get_config(:ca_cert, nil)
+    if @ca_cert_content && !@ca_cert_content.empty?
+      @ca_cert_file = write_ca_cert(logger)
+      @ca_cert_path = @ca_cert_file.path
+    end
+    @insecure                        = LifecycleHelper.get_config(:insecure, false)
+    @connection_options = {
+      'connect_timeout'             => LifecycleHelper.get_config(:connect_timeout, '120').to_i,
+      'read_timeout'                => LifecycleHelper.get_config(:read_timeout, '120').to_i,
+      'write_timeout'               => LifecycleHelper.get_config(:write_timeout, '120').to_i,
+      'ssl_verify_peer'             => !@insecure,
+    }
+    @connection_options['ssl_ca_file'] = @ca_cert_path if @ca_cert_path
+
     @stemcell_path                   = LifecycleHelper.get_config(:stemcell_path)
     @net_id                          = LifecycleHelper.get_config(:net_id)
     @net_id_no_dhcp_1                = LifecycleHelper.get_config(:net_id_no_dhcp_1)
@@ -53,15 +71,33 @@ class IntegrationConfig
     @ignore_server_az                = LifecycleHelper.get_config(:ignore_server_az, 'false')
     @instance_type                   = LifecycleHelper.get_config(:instance_type, 'm1.small')
     @instance_type_with_no_root_disk = LifecycleHelper.get_config(:flavor_with_no_root_disk)
+    @availability_zone               = LifecycleHelper.get_config(:availability_zone, nil)
     @floating_ip                     = LifecycleHelper.get_config(:floating_ip)
     # some environments may not have this set, and it isn't strictly necessary so don't raise if it isn't set
     @region                          = LifecycleHelper.get_config(:region, nil)
     Bosh::Clouds::Config.configure(OpenStruct.new(:logger => @logger, :cpi_task_log => nil))
   end
 
-
   def create_cpi(boot_from_volume: false, config_drive: nil, human_readable_vm_names: false, use_nova_networking: false, use_dhcp: true, default_volume_type: nil)
-    openstack_properties = {'openstack' => {
+    properties = {
+        'openstack' => openstack_properties(boot_from_volume, config_drive, human_readable_vm_names, use_nova_networking, use_dhcp, default_volume_type),
+        'registry' => {
+            'endpoint' => 'fake',
+            'user' => 'fake',
+            'password' => 'fake'
+        }
+    }
+    Bosh::OpenStackCloud::Cloud.new(
+        properties
+    )
+  end
+
+  def create_openstack
+    Bosh::OpenStackCloud::Openstack.new(openstack_properties, {}, {})
+  end
+
+  def openstack_properties(boot_from_volume = false, config_drive = nil, human_readable_vm_names = false, use_nova_networking = false, use_dhcp = true, default_volume_type = nil)
+    properties = {
         'auth_url' => @auth_url,
         'username' => @username,
         'api_key' => @api_key,
@@ -73,28 +109,29 @@ class IntegrationConfig
         'wait_resource_poll_interval' => 5,
         'boot_from_volume' => boot_from_volume,
         'config_drive' => config_drive,
-        'use_dhcp'=> use_dhcp,
+        'use_dhcp' => use_dhcp,
         'ignore_server_availability_zone' => str_to_bool(@ignore_server_az),
         'human_readable_vm_names' => human_readable_vm_names,
         'use_nova_networking' => use_nova_networking,
-        'connection_options' => connection_options(additional_connection_options(@logger))
-    },
-            'registry' => {
-                'endpoint' => 'fake',
-                'user' => 'fake',
-                'password' => 'fake'
-            }}
+        'connection_options' => @connection_options
+    }
 
     if @domain
-      openstack_properties['openstack']['domain']  = @domain
-      openstack_properties['openstack']['project'] = @project
+      properties['domain'] = @domain
+      properties['project'] = @project
     else
-      openstack_properties['openstack']['tenant'] = @tenant
+      properties['tenant'] = @tenant
     end
+    properties
+  end
 
-    Bosh::OpenStackCloud::Cloud.new(
-        openstack_properties
-    )
+  private
+
+  def write_ca_cert(logger)
+    @ca_cert_file = Tempfile.new(['cacert','.pem'])
+    logger.info("cacert.pem file: #{@ca_cert_file.path}")
+    File.write(@ca_cert_file.path, @ca_cert_content)
+    @ca_cert_file
   end
 
 end

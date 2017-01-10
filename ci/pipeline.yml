@@ -127,6 +127,11 @@ jobs:
         - {trigger: false, passed: [cleanup], get: bosh-cpi-src-in, tags: *tags, timeout: *timeouts-long}
         - {trigger: false,                    get: openstack-lifecycle-stemcell, tags: *tags, timeout: *timeouts-long}
 
+      - task: write_ca_file
+        file: bosh-cpi-src-in/ci/tasks/write-ca-file.yml
+        params:
+          file_content: {{bosh_openstack_ca_cert}}
+
       - put: terraform-lifecycle
         tags: *tags
         timeout: *timeouts-long
@@ -134,7 +139,7 @@ jobs:
           env_name: lifecycle
           vars:
             auth_url: {{openstack_auth_url_v3}}
-            insecure: "true"
+            cacert_file: {{tf_ca_file_path}}
             user_name: {{lifecycle_openstack_username_v3}}
             password: {{lifecycle_openstack_api_key_v3}}
             domain_name: {{lifecycle_openstack_domain}}
@@ -142,7 +147,7 @@ jobs:
             ext_net_id: {{tf_external_network_id}}
             ext_net_name: {{tf_external_network_name}}
             region_name: {{tf_region_name}}
-            openstack_default_key_public_key: {{tf_openstack_default_key_public_key}}
+            openstack_default_key_public_key: {{tf_default_public_key}}
             dns_nameservers: {{tf_dns_nameservers}}
 
       - task: test
@@ -166,6 +171,7 @@ jobs:
           BOSH_OPENSTACK_WRITE_TIMEOUT:            "120"
           BOSH_OPENSTACK_CA_CERT:                  {{bosh_openstack_ca_cert}}
           BOSH_OPENSTACK_FLAVOR_WITH_NO_ROOT_DISK: {{openstack_flavor_with_no_root_disk}}
+          BOSH_OPENSTACK_AVAILABILITY_ZONE:        {{availability_zone}}
         <<: *send-failure-email
 
       - put: lifecycle-log
@@ -207,6 +213,11 @@ jobs:
         - {trigger: false,                    get: stemcell, resource: openstack-ubuntu-stemcell, tags: *tags, timeout: *timeouts-long}
         - {trigger: false,                    get: bats, tags: *tags, timeout: *timeouts-long}
 
+      - task: write_ca_file
+        file: bosh-cpi-src-in/ci/tasks/write-ca-file.yml
+        params:
+          file_content: {{bosh_openstack_ca_cert}}
+
       - put: terraform-bats-manual
         tags: *tags
         timeout: *timeouts-long
@@ -219,7 +230,7 @@ jobs:
             user_name: {{openstack_username}}
             password: {{openstack_api_key}}
             project_name: {{openstack_project}}
-            insecure: "true"
+            cacert_file: {{tf_ca_file_path}}
             region_name: {{tf_region_name}}
             primary_net_name: "bats-ubuntu-manual-primary"
             primary_net_cidr: "10.0.4.0/24"
@@ -234,7 +245,7 @@ jobs:
             ext_net_cidr: {{tf_ext_net_cidr}}
             dns_nameservers: {{tf_dns_nameservers}}
             concourse_external_network_cidr: {{tf_concourse_external_network_cidr}}
-            openstack_default_key_public_key: {{tf_ubuntu_manual_default_public_key}}
+            openstack_default_key_public_key: {{tf_default_public_key}}
 
       - task: deploy
         tags: *tags
@@ -257,6 +268,7 @@ jobs:
           time_server_1:                        {{time_server_1}}
           time_server_2:                        {{time_server_2}}
           distro:                               "ubuntu"
+          availability_zone:                    {{availability_zone}}
           DEBUG_BATS:                           *debug_bats
         <<: *send-failure-email
 
@@ -270,6 +282,7 @@ jobs:
           openstack_flavor_with_ephemeral_disk:     {{openstack_flavor_with_ephemeral_disk}}
           openstack_flavor_with_no_ephemeral_disk:  {{openstack_flavor_with_no_ephemeral_disk}}
           bosh_admin_password:                      {{bosh_admin_password}}
+          availability_zone:                        {{availability_zone}}
           DEBUG_BATS:                               *debug_bats
         <<: *send-failure-email
         ensure:
@@ -302,6 +315,11 @@ jobs:
         - {trigger: false,                    get: stemcell, resource: openstack-ubuntu-stemcell, tags: *tags, timeout: *timeouts-long}
         - {trigger: false,                    get: bats, tags: *tags, timeout: *timeouts-long}
 
+      - task: write_ca_file
+        file: bosh-cpi-src-in/ci/tasks/write-ca-file.yml
+        params:
+          file_content: {{bosh_openstack_ca_cert}}
+
       - put: terraform-bats-dynamic
         tags: *tags
         timeout: *timeouts-long
@@ -314,7 +332,7 @@ jobs:
             user_name: {{openstack_username}}
             password: {{openstack_api_key}}
             project_name: {{openstack_project}}
-            insecure: "true"
+            cacert_file: {{tf_ca_file_path}}
             region_name: {{tf_region_name}}
             primary_net_name: "bats-ubuntu-dynamic-primary"
             primary_net_cidr: "10.0.2.0/24"
@@ -325,7 +343,7 @@ jobs:
             ext_net_cidr: {{tf_ext_net_cidr}}
             dns_nameservers: {{tf_dns_nameservers}}
             concourse_external_network_cidr: {{tf_concourse_external_network_cidr}}
-            openstack_default_key_public_key: {{tf_ubuntu_dynamic_default_public_key}}
+            openstack_default_key_public_key: {{tf_default_public_key}}
 
       - task: deploy
         tags: *tags
@@ -348,6 +366,7 @@ jobs:
           time_server_2:                        {{time_server_2}}
           private_key_data:                     {{bosh_private_key}}
           distro:                               "ubuntu"
+          availability_zone:                    {{availability_zone}}
           DEBUG_BATS:                           *debug_bats
         <<: *send-failure-email
 
@@ -361,6 +380,7 @@ jobs:
           openstack_flavor_with_ephemeral_disk:     {{openstack_flavor_with_ephemeral_disk}}
           openstack_flavor_with_no_ephemeral_disk:  {{openstack_flavor_with_no_ephemeral_disk}}
           private_key_data:                         {{bosh_private_key}}
+          availability_zone:                        {{availability_zone}}
           DEBUG_BATS:                               *debug_bats
         <<: *send-failure-email
         ensure:
@@ -393,6 +413,11 @@ jobs:
         - {trigger: false,                    get: stemcell, resource: openstack-centos-stemcell, tags: *tags, timeout: *timeouts-long}
         - {trigger: false,                    get: bats, tags: *tags, timeout: *timeouts-long}
 
+      - task: write_ca_file
+        file: bosh-cpi-src-in/ci/tasks/write-ca-file.yml
+        params:
+          file_content: {{bosh_openstack_ca_cert}}
+
       - put: terraform-bats-manual
         tags: *tags
         timeout: *timeouts-long
@@ -405,7 +430,7 @@ jobs:
             user_name: {{openstack_username}}
             password: {{openstack_api_key}}
             project_name: {{openstack_project}}
-            insecure: "true"
+            cacert_file: {{tf_ca_file_path}}
             region_name: {{tf_region_name}}
             primary_net_name: "bats-centos-manual-primary"
             primary_net_cidr: "10.0.6.0/24"
@@ -420,7 +445,7 @@ jobs:
             ext_net_cidr: {{tf_ext_net_cidr}}
             dns_nameservers: {{tf_dns_nameservers}}
             concourse_external_network_cidr: {{tf_concourse_external_network_cidr}}
-            openstack_default_key_public_key: {{tf_centos_manual_default_public_key}}
+            openstack_default_key_public_key: {{tf_default_public_key}}
 
       - task: deploy
         tags: *tags
@@ -443,6 +468,7 @@ jobs:
           time_server_2:                        {{time_server_2}}
           private_key_data:                     {{bosh_private_key}}
           distro:                               "centos"
+          availability_zone:                    {{availability_zone}}
           DEBUG_BATS:                           *debug_bats
         <<: *send-failure-email
 
@@ -456,6 +482,7 @@ jobs:
           openstack_flavor_with_ephemeral_disk:     {{openstack_flavor_with_ephemeral_disk}}
           openstack_flavor_with_no_ephemeral_disk:  {{openstack_flavor_with_no_ephemeral_disk}}
           bosh_admin_password:                      {{bosh_admin_password}}
+          availability_zone:                        {{availability_zone}}
           DEBUG_BATS:                               *debug_bats
         <<: *send-failure-email
         ensure:
@@ -488,6 +515,11 @@ jobs:
         - {trigger: false,                    get: stemcell, resource: openstack-centos-stemcell, tags: *tags, timeout: *timeouts-long}
         - {trigger: false,                    get: bats, tags: *tags, timeout: *timeouts-long}
 
+      - task: write_ca_file
+        file: bosh-cpi-src-in/ci/tasks/write-ca-file.yml
+        params:
+          file_content: {{bosh_openstack_ca_cert}}
+
       - put: terraform-bats-dynamic
         tags: *tags
         timeout: *timeouts-long
@@ -500,7 +532,7 @@ jobs:
             user_name: {{openstack_username}}
             password: {{openstack_api_key}}
             project_name: {{openstack_project}}
-            insecure: "true"
+            cacert_file: {{tf_ca_file_path}}
             region_name: {{tf_region_name}}
             primary_net_name: "bats-centos-dynamic-primary"
             primary_net_cidr: "10.0.3.0/24"
@@ -511,7 +543,7 @@ jobs:
             ext_net_cidr: {{tf_ext_net_cidr}}
             dns_nameservers: {{tf_dns_nameservers}}
             concourse_external_network_cidr: {{tf_concourse_external_network_cidr}}
-            openstack_default_key_public_key: {{tf_centos_dynamic_default_public_key}}
+            openstack_default_key_public_key: {{tf_default_public_key}}
 
       - task: deploy
         tags: *tags
@@ -534,6 +566,7 @@ jobs:
           time_server_2:                        {{time_server_2}}
           private_key_data:                     {{bosh_private_key}}
           distro:                               "centos"
+          availability_zone:                    {{availability_zone}}
           DEBUG_BATS:                           *debug_bats
         <<: *send-failure-email
 
@@ -547,6 +580,7 @@ jobs:
           openstack_flavor_with_ephemeral_disk:     {{openstack_flavor_with_ephemeral_disk}}
           openstack_flavor_with_no_ephemeral_disk:  {{openstack_flavor_with_no_ephemeral_disk}}
           private_key_data:                         {{bosh_private_key}}
+          availability_zone:                        {{availability_zone}}
           DEBUG_BATS:                               *debug_bats
         <<: *send-failure-email
         ensure:

@@ -28,7 +28,8 @@ describe Bosh::OpenStackCloud::Cloud do
   end
 
   let(:cpi_for_vm) { @config.create_cpi }
-
+  let(:openstack) { @config.create_openstack }
+  
   let(:network_spec) do
     {
       'default' => {
@@ -44,7 +45,10 @@ describe Bosh::OpenStackCloud::Cloud do
     cpi_for_vm.create_vm(
       'agent-007',
       @stemcell_id,
-      { 'instance_type' => @config.instance_type },
+      {
+          'instance_type' => @config.instance_type,
+          'availability_zone' => @config.availability_zone
+      },
       network_spec,
       [],
       { 'key' => 'value' }
@@ -124,7 +128,7 @@ describe Bosh::OpenStackCloud::Cloud do
     expect(cpi_for_volume.has_disk?(disk_id)).to be(true)
 
     unless volume_type.nil?
-      expect(cpi_for_volume.volume.volumes.get(disk_id).volume_type).to eq(volume_type)
+      expect(openstack.volume.volumes.get(disk_id).volume_type).to eq(volume_type)
     end
 
     cpi_for_volume.attach_disk(vm_id, disk_id)

@@ -5,6 +5,7 @@ require 'zlib'
 require 'archive/tar/minitar'
 require 'webmock'
 include Archive::Tar
+require 'tempfile'
 
 require 'cloud/openstack'
 
@@ -184,7 +185,6 @@ def vip_network_spec
   {
     'type' => 'vip',
     'ip' => '10.0.0.1',
-    'use_dhcp' => true
   }
 end
 
@@ -262,47 +262,6 @@ class LifecycleHelper
     config
   end
 
-end
-
-def connection_options(additional_options = {})
-  options = {
-      'connect_timeout' => LifecycleHelper.get_config(:connect_timeout, '120').to_i,
-      'read_timeout' => LifecycleHelper.get_config(:read_timeout, '120').to_i,
-      'write_timeout' => LifecycleHelper.get_config(:write_timeout, '120').to_i
-  }
-  additional_options.each { |key, value|
-    options[key] = value
-  }
-  options
-end
-
-def additional_connection_options(logger)
-  additional_connection_options = {}
-  if ca_cert?
-    additional_connection_options['ssl_ca_file'] = ca_cert_file(logger)
-  elsif insecure?
-    additional_connection_options['ssl_verify_peer'] = false
-  end
-  additional_connection_options
-end
-
-def ca_cert_content
-  LifecycleHelper.get_config(:ca_cert, nil)
-end
-
-def ca_cert?
-  ca_cert_content && !ca_cert_content.empty?
-end
-
-def insecure?
-  LifecycleHelper.get_config(:insecure, false)
-end
-
-def ca_cert_file(logger)
-  Dir::Tmpname.create('cacert.pem') do |path|
-    logger.info("cacert.pem file: #{path}")
-    File.write(path, ca_cert_content)
-  end
 end
 
 def str_to_bool(string)

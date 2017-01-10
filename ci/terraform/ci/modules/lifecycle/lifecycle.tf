@@ -37,7 +37,7 @@ output "lifecycle_no_dhcp_manual_ip_2" {
 }
 
 output "lifecycle_floating_ip" {
-  value = "${openstack_compute_floatingip_v2.lifecycle_floating_ip.address}"
+  value = "${openstack_networking_floatingip_v2.lifecycle_floating_ip.address}"
 }
 
 resource "openstack_networking_network_v2" "lifecycle_net" {
@@ -103,7 +103,7 @@ resource "openstack_networking_router_interface_v2" "lifecycle_port" {
   subnet_id = "${openstack_networking_subnet_v2.lifecycle_subnet.id}"
 }
 
-resource "openstack_compute_floatingip_v2" "lifecycle_floating_ip" {
+resource "openstack_networking_floatingip_v2" "lifecycle_floating_ip" {
   region = "${var.region_name}"
   pool   = "${var.ext_net_name}"
 }

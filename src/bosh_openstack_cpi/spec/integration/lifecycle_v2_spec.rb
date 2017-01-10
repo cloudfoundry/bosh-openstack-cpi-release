@@ -5,8 +5,6 @@ describe Bosh::OpenStackCloud::Cloud do
     @config = IntegrationConfig.new(:v2)
   end
 
-  after(:each) { File.delete(@ca_cert_path) if @ca_cert_path }
-
   let(:boot_from_volume) { false }
   let(:config_drive) { nil }
 

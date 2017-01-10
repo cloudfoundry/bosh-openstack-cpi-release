@@ -4,23 +4,24 @@ set -e
 
 source bosh-cpi-src-in/ci/tasks/utils.sh
 
-: {bosh_admin_password:?}
-: {openstack_flavor:?}
-: {openstack_connection_timeout:?}
-: {openstack_read_timeout:?}
-: {openstack_write_timeout:?}
-: {openstack_state_timeout:?}
-: {private_key_data:?}
-: {bosh_registry_port:?}
-: {openstack_auth_url:?}
-: {openstack_username:?}
-: {openstack_api_key:?}
-: {openstack_domain:?}
-: {time_server_1:?}
-: {time_server_2:?}
-: {DEBUG_BATS:?}
+: ${bosh_admin_password:?}
+: ${openstack_flavor:?}
+: ${openstack_connection_timeout:?}
+: ${openstack_read_timeout:?}
+: ${openstack_write_timeout:?}
+: ${openstack_state_timeout:?}
+: ${private_key_data:?}
+: ${bosh_registry_port:?}
+: ${openstack_auth_url:?}
+: ${openstack_username:?}
+: ${openstack_api_key:?}
+: ${openstack_domain:?}
+: ${time_server_1:?}
+: ${time_server_2:?}
+: ${DEBUG_BATS:?}
 optional_value bosh_openstack_ca_cert
 optional_value distro
+optional_value availability_zone
 
 source /etc/profile.d/chruby-with-ruby-2.1.2.sh
 
@@ -93,6 +94,7 @@ resource_pools:
       url: file://stemcell.tgz
     cloud_properties:
       instance_type: ${openstack_flavor}
+      availability_zone: ${availability_zone:-"~"}
     env:
       bosh:
         password: ${bosh_vcap_password_hash}

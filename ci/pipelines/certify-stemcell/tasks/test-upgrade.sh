@@ -4,21 +4,21 @@ set -e
 
 source bosh-cpi-src-in/ci/tasks/utils.sh
 
-ensure_not_replace_value bosh_admin_password
-ensure_not_replace_value v3_e2e_flavor
-ensure_not_replace_value v3_e2e_connection_timeout
-ensure_not_replace_value v3_e2e_read_timeout
-ensure_not_replace_value v3_e2e_state_timeout
-ensure_not_replace_value v3_e2e_write_timeout
-ensure_not_replace_value v3_e2e_bosh_registry_port
-ensure_not_replace_value v3_e2e_api_key
-ensure_not_replace_value v3_e2e_auth_url
-ensure_not_replace_value v3_e2e_project
-ensure_not_replace_value v3_e2e_domain
-ensure_not_replace_value v3_e2e_username
-ensure_not_replace_value v3_e2e_private_key_data
-ensure_not_replace_value time_server_1
-ensure_not_replace_value time_server_2
+: ${bosh_admin_password:?}
+: ${v3_e2e_flavor:?}
+: ${v3_e2e_connection_timeout:?}
+: ${v3_e2e_read_timeout:?}
+: ${v3_e2e_state_timeout:?}
+: ${v3_e2e_write_timeout:?}
+: ${v3_e2e_bosh_registry_port:?}
+: ${v3_e2e_api_key:?}
+: ${v3_e2e_auth_url:?}
+: ${v3_e2e_project:?}
+: ${v3_e2e_domain:?}
+: ${v3_e2e_username:?}
+: ${v3_e2e_private_key_data:?}
+: ${time_server_1:?}
+: ${time_server_2:?}
 optional_value bosh_openstack_ca_cert
 optional_value distro
 

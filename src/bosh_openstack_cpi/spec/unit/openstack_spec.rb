@@ -66,6 +66,24 @@ describe Bosh::OpenStackCloud::Openstack do
         end
       end
     end
+
+    context 'excon instrumentor' do
+      context 'default instrumentor' do
+        it 'set the default instrumentor' do
+          openstack = Bosh::OpenStackCloud::Openstack.new(openstack_options)
+
+          expect(openstack.params[:connection_options]['instrumentor']).to eq(Bosh::OpenStackCloud::ExconLoggingInstrumentor)
+        end
+      end
+
+      context 'no instrumentor' do
+        it 'set the default instrumentor' do
+          openstack = Bosh::OpenStackCloud::Openstack.new(openstack_options, {}, {})
+
+          expect(openstack.params[:connection_options].has_key?('instrumentor')).to be(false)
+        end
+      end
+    end
   end
 
   describe :use_nova_networking? do

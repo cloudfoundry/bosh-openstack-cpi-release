@@ -5,6 +5,7 @@ provider "openstack" {
   tenant_name = "${var.project_name}"
   domain_name = "${var.domain_name}"
   insecure    = "${var.insecure}"
+  cacert_file = "${var.cacert_file}"
 }
 
 variable "auth_url" {
@@ -26,6 +27,11 @@ variable "password" {
 variable "insecure" {
   default = "false"
   description = "SSL certificate validation"
+}
+
+variable "cacert_file" {
+  default = ""
+  description = "Path to trusted CA certificate for OpenStack in PEM format"
 }
 
 variable "project_name" {

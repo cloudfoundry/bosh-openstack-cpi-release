@@ -55,12 +55,12 @@ resource "openstack_networking_router_interface_v2" "primary_port" {
   subnet_id = "${openstack_networking_subnet_v2.primary_subnet.id}"
 }
 
-resource "openstack_compute_floatingip_v2" "floating_ip" {
+resource "openstack_networking_floatingip_v2" "floating_ip" {
   region = "${var.region_name}"
   pool   = "${var.ext_net_name}"
 }
 
-resource "openstack_compute_floatingip_v2" "director_public_ip" {
+resource "openstack_networking_floatingip_v2" "director_public_ip" {
   region = "${var.region_name}"
   pool   = "${var.ext_net_name}"
 }
@@ -94,7 +94,7 @@ output "primary_net_static_range" {
 }
 
 output "floating_ip" {
-  value = "${openstack_compute_floatingip_v2.floating_ip.address}"
+  value = "${openstack_networking_floatingip_v2.floating_ip.address}"
 }
 
 output "director_private_ip" {
@@ -102,5 +102,5 @@ output "director_private_ip" {
 }
 
 output "director_public_ip" {
-  value = "${openstack_compute_floatingip_v2.director_public_ip.address}"
+  value = "${openstack_networking_floatingip_v2.director_public_ip.address}"
 }

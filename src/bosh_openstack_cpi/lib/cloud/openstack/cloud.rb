@@ -749,10 +749,10 @@ module Bosh::OpenStackCloud
     end
 
     def agent_network_spec(network_spec)
-      Hash[*network_spec.map do |name, settings|
-        settings['use_dhcp'] = @use_dhcp
+      network_spec.map do |name, settings|
+        settings['use_dhcp'] = @use_dhcp unless settings['type'] == 'vip'
         [name, settings]
-      end.flatten]
+      end.to_h
     end
 
     ##

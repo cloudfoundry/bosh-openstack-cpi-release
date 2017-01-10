@@ -29,7 +29,7 @@ openstack_delete_ports() {
   # 'network:floatingip', 'network:router_gateway',
   # 'network:dhcp', 'network:router_interface'
   # Maybe we could just filter for 'network:'?
-    port_to_be_deleted=`openstack port show --format json $port | jq --raw-output '. | select(.device_owner | contains("network:floatingip") or contains("network:router_gateway") or contains("network:dhcp") or contains("network:router_interface") | not ) | .id'`
+    port_to_be_deleted=`neutron port-show --format json $port | jq --raw-output '. | select(.device_owner | contains("network:floatingip") or contains("network:router_gateway") or contains("network:dhcp") or contains("network:router_interface") | not ) | .id'`
     if [ ! -z ${port_to_be_deleted} ];
     then
       echo "Deleting port ${port_to_be_deleted}"

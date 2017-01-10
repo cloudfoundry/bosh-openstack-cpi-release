@@ -194,9 +194,9 @@ describe Bosh::OpenStackCloud::Cloud do
 
   def create_http_connection(token_response_uri)
     ssl_options = {use_ssl: token_response_uri.scheme == 'https'}
-    if ca_cert?
-      ssl_options[:ca_file] = ca_cert_file(logger)
-    elsif insecure?
+    if @config.ca_cert_path
+      ssl_options[:ca_file] = @config.ca_cert_path
+    elsif @config.insecure
       ssl_options[:verify_mode] = OpenSSL::SSL::VERIFY_NONE
     end
     Net::HTTP.start(token_response_uri.host, token_response_uri.port, ssl_options)

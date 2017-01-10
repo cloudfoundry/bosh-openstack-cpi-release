@@ -4,8 +4,8 @@ set -e -x
 
 source bosh-cpi-src-in/ci/tasks/utils.sh
 
-ensure_not_replace_value aws_access_key_id
-ensure_not_replace_value aws_secret_access_key
+: ${aws_access_key_id:?}
+: ${aws_secret_access_key:?}
 
 # Creates an integer version number from the semantic version format
 # May be changed when we decide to fully use semantic versions for releases

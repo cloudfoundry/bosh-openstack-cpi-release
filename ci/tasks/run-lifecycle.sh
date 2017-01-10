@@ -3,6 +3,8 @@
 set -e
 set -o pipefail
 
+source bosh-cpi-src-in/ci/tasks/utils.sh
+
 : ${BOSH_OPENSTACK_DOMAIN:?}
 : ${BOSH_OPENSTACK_AUTH_URL_V3:?}
 : ${BOSH_OPENSTACK_USERNAME_V3:?}
@@ -19,6 +21,8 @@ set -o pipefail
 : ${BOSH_OPENSTACK_TENANT:-""}
 : ${BOSH_OPENSTACK_CA_CERT:-""}
 : ${BOSH_OPENSTACK_VOLUME_TYPE:-""}
+
+optional_value BOSH_OPENSTACK_AVAILABILITY_ZONE
 
 source /etc/profile.d/chruby-with-ruby-2.1.2.sh
 

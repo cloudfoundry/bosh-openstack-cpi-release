@@ -25,7 +25,7 @@ module Bosh::OpenStackCloud
       auth_url.match(/\/v3(?=\/|$)/)
     end
 
-    def initialize(options, retry_options_overwrites = {})
+    def initialize(options, retry_options_overwrites = {}, extra_connection_options = {'instrumentor' => Bosh::OpenStackCloud::ExconLoggingInstrumentor})
       @logger = Bosh::Clouds::Config.logger
       @is_v3 = Openstack.is_v3(options['auth_url'])
 
@@ -38,7 +38,7 @@ module Bosh::OpenStackCloud
 
       options['connection_options'] ||= {}
 
-      @extra_connection_options = {'instrumentor' => Bosh::OpenStackCloud::ExconLoggingInstrumentor}
+      @extra_connection_options = extra_connection_options
 
       @params = openstack_params(options)
       @retry_options = {
