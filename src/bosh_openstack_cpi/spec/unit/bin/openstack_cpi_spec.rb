@@ -2,68 +2,95 @@ require 'spec_helper'
 require 'tempfile'
 
 describe "the openstack_cpi executable" do
-  it 'will not evaluate anything that causes an exception and will return the proper message to stdout' do
-    config_file = create_config_file('0.0.0.0:5000/v2.0')
-    command_file = create_cpi_command_file
+  describe '#set_vm_metadata' do
+    it 'will not evaluate anything that causes an exception and will return the proper message to stdout' do
+      config_file = create_config_file('0.0.0.0:5000/v2.0')
+      command_file = create_cpi_command_file('set_vm_metadata', [1,{}])
 
-    stdoutput = execute_cpi_command(command_file, config_file)
-    status = $?.exitstatus
+      stdoutput = execute_cpi_command(command_file, config_file)
+      status = $?.exitstatus
 
-    expect(status).to eq(0)
-    result = JSON.parse(stdoutput)
+      expect(status).to eq(0)
+      result = JSON.parse(stdoutput)
 
-    expect(result.keys).to eq(%w(result error log))
+      expect(result.keys).to eq(%w(result error log))
 
-    expect(result['result']).to be_nil
+      expect(result['result']).to be_nil
 
-    expect(result['error']).to eq({
-      'type' => 'Unknown',
-      'message' => 'bad URI(is not URI?): 0.0.0.0:5000/v2.0/tokens',
-      'ok_to_retry' => false
-    })
+      expect(result['error']).to eq({
+        'type' => 'Unknown',
+        'message' => 'bad URI(is not URI?): 0.0.0.0:5000/v2.0/tokens',
+        'ok_to_retry' => false
+      })
 
-    expect(result['log']).to include('backtrace')
-  end
-
-  it 'will fail if registry.endpoint is not provided' do
-    config_file = create_config_file('http://0.0.0.0:5000/v2.0', nil)
-    command_file = create_cpi_command_file
-
-    stdoutput = execute_cpi_command(command_file, config_file)
-
-    result = JSON.parse(stdoutput)
-
-    expect(result['result']).to be_nil
-    expect(result['error']['type']).to eq('InvalidCall')
-    expect(result['error']['message']).to match(/#<Membrane::SchemaValidationError: { registry => { endpoint => Missing key } }/)
-    expect(result['error']['ok_to_retry']).to eq(false)
-  end
-
-  it 'will return an appropriate error message when passed an invalid config file' do
-    config_file = Tempfile.new('cloud_properties.yml')
-    File.open(config_file, 'w') do |file|
-      file.write({}.to_yaml)
+      expect(result['log']).to include('backtrace')
     end
 
-    command_file = create_cpi_command_file
+    it 'will fail if registry.endpoint is not provided' do
+      config_file = create_config_file('http://0.0.0.0:5000/v2.0', nil)
+      command_file = create_cpi_command_file('set_vm_metadata', [1,{}])
 
-    stdoutput = execute_cpi_command(command_file, config_file)
-    status = $?.exitstatus
+      stdoutput = execute_cpi_command(command_file, config_file)
 
-    expect(status).to eq(0)
-    result = JSON.parse(stdoutput)
+      result = JSON.parse(stdoutput)
 
-    expect(result.keys).to eq(%w(result error log))
+      expect(result['result']).to be_nil
+      expect(result['error']['type']).to eq('InvalidCall')
+      expect(result['error']['message']).to match(/#<Membrane::SchemaValidationError: { registry => { endpoint => Missing key } }/)
+      expect(result['error']['ok_to_retry']).to eq(false)
+    end
 
-    expect(result['result']).to be_nil
+    it 'will return an appropriate error message when passed an invalid config file' do
+      config_file = Tempfile.new('cloud_properties.yml')
+      File.open(config_file, 'w') do |file|
+        file.write({}.to_yaml)
+      end
 
-    expect(result['error']).to eq({
-    'type' => 'Unknown',
-    'message' => 'Could not find cloud properties in the configuration',
-    'ok_to_retry' => false
-    })
+      command_file = create_cpi_command_file('set_vm_metadata', [1,{}])
 
-    expect(result['log']).to include('backtrace')
+      stdoutput = execute_cpi_command(command_file, config_file)
+      status = $?.exitstatus
+
+      expect(status).to eq(0)
+      result = JSON.parse(stdoutput)
+
+      expect(result.keys).to eq(%w(result error log))
+
+      expect(result['result']).to be_nil
+
+      expect(result['error']).to eq({
+      'type' => 'Unknown',
+      'message' => 'Could not find cloud properties in the configuration',
+      'ok_to_retry' => false
+      })
+
+      expect(result['log']).to include('backtrace')
+    end
+  end
+
+  describe '#calculate_vm_cloud_properties' do
+    it 'raises an error if calculate_vm_cloud_properties fields are missing' do
+      config_file = create_config_file('0.0.0.0:5000/v2.0')
+      command_file = create_cpi_command_file('calculate_vm_cloud_properties', [{}])
+
+      stdoutput = execute_cpi_command(command_file, config_file)
+      status = $?.exitstatus
+
+      expect(status).to eq(0)
+      result = JSON.parse(stdoutput)
+
+      expect(result.keys).to eq(%w(result error log))
+
+      expect(result['result']).to be_nil
+
+      expect(result['error']).to eq({
+        'type' => 'Unknown',
+        'message' => "Missing VM cloud properties: 'cpu', 'ram', 'ephemeral_disk_size'",
+        'ok_to_retry' => false,
+      })
+
+      expect(result['log']).to include('backtrace')
+    end
   end
 end
 
@@ -103,10 +130,10 @@ def create_config_file( auth_url = 'http://0.0.0.0:5000/v2.0', registry_endpoint
   config_file
 end
 
-def create_cpi_command_file
+def create_cpi_command_file(method_name, method_args)
   command_file = Tempfile.new('command.json')
   File.open(command_file, 'w') do |file|
-    file.write({'method' => 'set_vm_metadata', 'arguments' => [1,{}], 'context' => {'director_uuid' => 'abc123'}}.to_json)
+    file.write({'method' => method_name, 'arguments' => method_args, 'context' => {'director_uuid' => 'abc123'}}.to_json)
   end
   command_file
 end
