@@ -4,11 +4,13 @@ set -x
 
 source bosh-cpi-src-in/ci/tasks/utils.sh
 
-ensure_not_replace_value stemcell_name
-ensure_not_replace_value bosh_admin_password
-ensure_not_replace_value openstack_flavor_with_ephemeral_disk
-ensure_not_replace_value openstack_flavor_with_no_ephemeral_disk
-ensure_not_replace_value private_key_data
+: ${stemcell_name:?}
+: ${bosh_admin_password:?}
+: ${openstack_flavor_with_ephemeral_disk:?}
+: ${openstack_flavor_with_no_ephemeral_disk:?}
+: ${private_key_data:?}
+
+optional_value availability_zone
 
 working_dir=$PWD
 
@@ -57,6 +59,7 @@ properties:
   uuid: $(bosh status --uuid)
   vip: ${floating_ip}
   instance_type: ${openstack_flavor_with_ephemeral_disk}
+  availability_zone: ${availability_zone:-"~"}
   pool_size: 1
   instances: 1
   flavor_with_no_ephemeral_disk: ${openstack_flavor_with_no_ephemeral_disk}

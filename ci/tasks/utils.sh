@@ -1,14 +1,5 @@
 #!/usr/bin/env bash
 
-ensure_not_replace_value() {
-  local name=$1
-  local value=$(eval echo '$'$name)
-  if [ "$value" == 'replace-me' ]; then
-    echo "environment variable $name must be set"
-    exit 1
-  fi
-}
-
 optional_value() {
   local name=$1
   local value=$(eval echo '$'$name)
@@ -19,13 +10,12 @@ optional_value() {
 }
 
 init_openstack_cli_env(){
-    ensure_not_replace_value BOSH_OPENSTACK_AUTH_URL
-    ensure_not_replace_value BOSH_OPENSTACK_USERNAME
-    ensure_not_replace_value BOSH_OPENSTACK_API_KEY
-    ensure_not_replace_value BOSH_OPENSTACK_PROJECT
-    ensure_not_replace_value BOSH_OPENSTACK_DOMAIN_NAME
+    : ${BOSH_OPENSTACK_AUTH_URL:?}
+    : ${BOSH_OPENSTACK_USERNAME:?}
+    : ${BOSH_OPENSTACK_API_KEY:?}
+    : ${BOSH_OPENSTACK_PROJECT:?}
+    : ${BOSH_OPENSTACK_DOMAIN_NAME:?}
     optional_value BOSH_OPENSTACK_CA_CERT
-
 
     export OS_DEFAULT_DOMAIN=$BOSH_OPENSTACK_DOMAIN_NAME
     export OS_AUTH_URL=$BOSH_OPENSTACK_AUTH_URL

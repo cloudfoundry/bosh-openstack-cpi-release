@@ -4,7 +4,7 @@ set -e
 
 source bosh-cpi-src-in/ci/tasks/utils.sh
 
-ensure_not_replace_value bosh_admin_password
+: ${bosh_admin_password:?}
 
 metadata=terraform/metadata
 
