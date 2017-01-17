@@ -10,9 +10,7 @@ module Bosh::OpenStackCloud
       if possible_flavors.empty?
         raise ["Unable to meet requested VM requirements: #{requirements['cpu']} CPU, #{requirements['ram']} MB RAM, #{requirements['ephemeral_disk_size']/1024.0} GB Disk.\n",
           "Available flavors:\n",
-          flavors.map { |flavor|
-              "#{flavor.name}: #{flavor.vcpus} CPU, #{flavor.ram} MB RAM, #{flavor.disk} GB Disk\n"
-          }
+          flavors.map { |flavor| "#{flavor.name}: #{flavor.vcpus} CPU, #{flavor.ram} MB RAM, #{flavor.disk} GB Disk\n" }
         ].join
       end
 
@@ -20,7 +18,7 @@ module Bosh::OpenStackCloud
         [flavor.vcpus, flavor.ram, flavor.disk + flavor.ephemeral, flavor.disk]
       end
 
-      vm_cloud_properties(normalized_requirements, closest_match)
+      vm_cloud_properties(normalized_requirements, closest_match, boot_from_volume)
     end
 
     private
@@ -33,30 +31,14 @@ module Bosh::OpenStackCloud
       end
 
       if boot_from_volume
-        boot_from_volume_flavors(requirements, valid_flavors)
+        boot_from_volume_flavors(valid_flavors)
       else
         boot_default_flavors(requirements, valid_flavors)
       end
     end
 
-    def boot_from_volume_flavors(requirements, valid_flavors)
-      valid_flavors_ephemeral = valid_flavors.select do |flavor|
-        flavor.ephemeral >= requirements['ephemeral_disk_size']
-      end
-
-      if valid_flavors_ephemeral.empty?
-        # In the case where no ephemeral disk is large enough, but `boot_from_volume` is true
-        #   we can explicitly set the size of the root disk to be large enough to hold both
-        #   the root and ephemeral partitions.
-        # However if the selected flavor has a dedicated ephemeral disk, `create_vm` will
-        #   tell the agent to use that disk for the ephemeral partition.
-        # For this reason, only return flavors that have no dedicated ephemeral disk.
-        valid_flavors_ephemeral = valid_flavors.select do |flavor|
-          flavor.ephemeral == NO_DISK
-        end
-      end
-
-      valid_flavors_ephemeral
+    def boot_from_volume_flavors(valid_flavors)
+      valid_flavors.select { |flavor| flavor.ephemeral == NO_DISK }
     end
 
     def boot_default_flavors(requirements, valid_flavors)
@@ -80,25 +62,28 @@ module Bosh::OpenStackCloud
       normalized
     end
 
-    def vm_cloud_properties(requirements, closest_match)
-      if closest_match.disk < OS_OVERHEAD_IN_GB
-        if closest_match.ephemeral == NO_DISK
-          root_disk_size = OS_OVERHEAD_IN_GB + requirements['ephemeral_disk_size']
-        else
-          root_disk_size = OS_OVERHEAD_IN_GB
-        end
+    def vm_cloud_properties(requirements, closest_match, boot_from_volume)
+      properties = {
+          'instance_type' => closest_match.name,
+      }
 
-        {
-          'instance_type' => closest_match.name,
+      if boot_from_volume && root_disk_size(closest_match) < required_boot_volume_size(requirements)
+        properties.merge({
           'root_disk' => {
-            'size' => root_disk_size,
+            'size' => required_boot_volume_size(requirements),
           },
-        }
+        })
       else
-        {
-          'instance_type' => closest_match.name,
-        }
+        properties
       end
+    end
+
+    def required_boot_volume_size(requirements)
+      OS_OVERHEAD_IN_GB + requirements['ephemeral_disk_size']
+    end
+
+    def root_disk_size(flavor)
+      flavor.disk
     end
   end
 end

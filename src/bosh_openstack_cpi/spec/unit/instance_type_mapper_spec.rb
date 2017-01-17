@@ -50,8 +50,8 @@ describe Bosh::OpenStackCloud::InstanceTypeMapper do
         [
           instance_double(Fog::Compute::OpenStack::Flavor, id: '1', name: 'too_small',  vcpus: 1, ram: 2048, disk:  3, ephemeral:  9, disabled: false ),
           instance_double(Fog::Compute::OpenStack::Flavor, id: '2', name: 'too_small',  vcpus: 1, ram: 2048, disk: 12, ephemeral:  9, disabled: false ),
-          instance_double(Fog::Compute::OpenStack::Flavor, id: '4', name: 'zero_ephem', vcpus: 2, ram: 2048, disk: 14, ephemeral:  0, disabled: false ),
-          instance_double(Fog::Compute::OpenStack::Flavor, id: '3', name: 'big_root',   vcpus: 1, ram: 2048, disk: 13, ephemeral:  1, disabled: false ),
+          instance_double(Fog::Compute::OpenStack::Flavor, id: '3', name: 'zero_ephem', vcpus: 2, ram: 2048, disk: 14, ephemeral:  0, disabled: false ),
+          instance_double(Fog::Compute::OpenStack::Flavor, id: '4', name: 'big_root',   vcpus: 1, ram: 2048, disk: 13, ephemeral:  1, disabled: false ),
         ]
       end
       it 'returns the flavor that has the smallest big-enough root disk and has zero-size ephemeral disk' do
@@ -84,61 +84,84 @@ describe Bosh::OpenStackCloud::InstanceTypeMapper do
   end
 
   context 'when user sets root disk properties (`boot_from_volume` set to true)' do
-    context 'when the flavors\' ephemeral disks\' sizes are too small' do
+    context 'when only flavors with ephemeral disks exist' do
       let(:flavors) do
         [
-          instance_double(Fog::Compute::OpenStack::Flavor, id: '1', name: 'too_small',      vcpus: 1, ram: 1024, disk: 0, ephemeral: 7, disabled: false ),
-          instance_double(Fog::Compute::OpenStack::Flavor, id: '2', name: 'non_zero_ephem', vcpus: 2, ram: 2048, disk: 1, ephemeral: 8, disabled: false ),
-          instance_double(Fog::Compute::OpenStack::Flavor, id: '3', name: 'zero_ephem',     vcpus: 3, ram: 4096, disk: 2, ephemeral: 0, disabled: false ),
+            instance_double(Fog::Compute::OpenStack::Flavor, id: '1', name: 'big_enough_but_with_ephemeral_disk', vcpus: 1, ram: 2048, disk: 1, ephemeral: 1, disabled: false ),
         ]
       end
-      it 'returns the smallest flavor that has a zero-size ephemeral disk, setting the root disk large enough for ephemeral + OS' do
+      it 'raises an error even if ephemeral disk size would be big enough' do
+        requirements = {
+            'ram' => 2048,
+            'cpu' => 1,
+            'ephemeral_disk_size' => 1 * 1024,
+        }
+        expect{mapper.map(requirements: requirements, flavors: flavors, boot_from_volume: true)['instance_type']}.to raise_error(/Unable to meet requested VM requirements/)
+      end
+    end
+
+    context 'when the flavors have the same CPU and RAM specs' do
+      let(:flavors) do
+        [
+          instance_double(Fog::Compute::OpenStack::Flavor, id: '1', name: 'root_disk_small', vcpus: 2, ram: 2048, disk: 2, ephemeral: 0, disabled: false ),
+          instance_double(Fog::Compute::OpenStack::Flavor, id: '2', name: 'root_disk_medium', vcpus: 2, ram: 2048, disk: 13, ephemeral: 0, disabled: false ),
+          instance_double(Fog::Compute::OpenStack::Flavor, id: '3', name: 'root_disk_big', vcpus: 2, ram: 2048, disk: 20, ephemeral: 0, disabled: false ),
+        ]
+      end
+      it 'returns the smallest flavor and sets root_disk size to OS size plus ephemeral_disk_size' do
+        ephemeral_disk_size = 10
+        root_disk_size = 3
+
         requirements = {
           'ram' => 2048,
           'cpu' => 2,
-          'ephemeral_disk_size' => 10 * 1024,
+          'ephemeral_disk_size' => ephemeral_disk_size * 1024,
         }
         cloud_props = mapper.map(requirements: requirements, flavors: flavors, boot_from_volume: true)
-        expect(cloud_props['instance_type']).to eq('zero_ephem')
+        expect(cloud_props['instance_type']).to eq('root_disk_small')
         expect(cloud_props).to have_key('root_disk')
-        expect(cloud_props['root_disk']['size']).to eq(13)
+        expect(cloud_props['root_disk']['size']).to eq(root_disk_size + ephemeral_disk_size) #=> 13
       end
     end
 
     context 'when flavors are adequate (except root is too small)' do
       let(:flavors) do
         [
-          instance_double(Fog::Compute::OpenStack::Flavor, id: '1', name: 'too_small',  vcpus: 1, ram: 1024, disk: 2, ephemeral:  9, disabled: false ),
-          instance_double(Fog::Compute::OpenStack::Flavor, id: '2', name: 'just_right', vcpus: 2, ram: 2048, disk: 2, ephemeral: 10, disabled: false ),
-          instance_double(Fog::Compute::OpenStack::Flavor, id: '3', name: 'too_big',    vcpus: 3, ram: 4096, disk: 2, ephemeral: 11, disabled: false ),
+          instance_double(Fog::Compute::OpenStack::Flavor, id: '1', name: 'too_small',  vcpus: 1, ram: 1024, disk: 2, ephemeral: 0, disabled: false ),
+          instance_double(Fog::Compute::OpenStack::Flavor, id: '2', name: 'just_right', vcpus: 2, ram: 2048, disk: 2, ephemeral: 0, disabled: false ),
+          instance_double(Fog::Compute::OpenStack::Flavor, id: '3', name: 'too_big',    vcpus: 3, ram: 4096, disk: 2, ephemeral: 0, disabled: false ),
         ]
       end
-      it 'returns the smallest flavor, setting the root_disk large enough for the OS' do
+      it 'returns the smallest flavor, setting the root_disk large enough for the OS and ephemeral disk' do
+        ephemeral_disk_size = 10
+        root_disk_size = 3
+
         requirements = {
           'ram' => 2048,
           'cpu' => 2,
-          'ephemeral_disk_size' => 10 * 1024,
+          'ephemeral_disk_size' => ephemeral_disk_size * 1024,
         }
+
         cloud_props = mapper.map(requirements: requirements, flavors: flavors, boot_from_volume: true)
         expect(cloud_props['instance_type']).to eq('just_right')
         expect(cloud_props).to have_key('root_disk')
-        expect(cloud_props['root_disk']['size']).to eq(3) # 3 for OS
+        expect(cloud_props['root_disk']['size']).to eq(root_disk_size + ephemeral_disk_size) #=> 13
       end
     end
 
     context 'when flavors are inadequate' do
       let(:flavors) do
         [
-          instance_double(Fog::Compute::OpenStack::Flavor, id: '1', name: 'way_too_small',    vcpus: 1, ram: 2045, disk: 0, ephemeral: 0, disabled: false ),
-          instance_double(Fog::Compute::OpenStack::Flavor, id: '2', name: 'too_small',        vcpus: 1, ram: 2046, disk: 0, ephemeral: 0, disabled: false ),
-          instance_double(Fog::Compute::OpenStack::Flavor, id: '3', name: 'barely_too_small', vcpus: 1, ram: 2047, disk: 0, ephemeral: 0, disabled: false ),
+          instance_double(Fog::Compute::OpenStack::Flavor, id: '1', name: 'way_too_small',    vcpus: 1, ram: 1024, disk: 20, ephemeral: 0, disabled: false ),
+          instance_double(Fog::Compute::OpenStack::Flavor, id: '2', name: 'too_small',        vcpus: 1, ram: 2046, disk: 20, ephemeral: 0, disabled: false ),
+          instance_double(Fog::Compute::OpenStack::Flavor, id: '3', name: 'barely_too_small', vcpus: 1, ram: 2047, disk: 20, ephemeral: 0, disabled: false ),
         ]
       end
       it 'raises an error' do
         requirements = {
           'ram' => 2048,
           'cpu' => 1,
-          'ephemeral_disk_size' => 50 * 1024,
+          'ephemeral_disk_size' => 10 * 1024,
         }
         expect{mapper.map(requirements: requirements, flavors: flavors)['instance_type']}.to raise_error(/Unable to meet requested VM requirements/)
       end
