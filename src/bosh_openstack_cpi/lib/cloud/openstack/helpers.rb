@@ -87,9 +87,9 @@ module Bosh::OpenStackCloud
     # @param [Array<String>] keys Keys to look up in response
     # @return [Hash] Contents at the first key found, or nil if not found
     def parse_openstack_response(response, *keys)
-      body = parse_openstack_response_body(response.body)
-      key = keys.detect { |k| body.has_key?(k)} if body
-      body[key] if key
+      json_body = parse_openstack_response_body(response.body)
+      key = keys.detect { |k| json_body.has_key?(k)} if (json_body && !json_body.empty?)
+      json_body[key] if key
     end
 
     ##

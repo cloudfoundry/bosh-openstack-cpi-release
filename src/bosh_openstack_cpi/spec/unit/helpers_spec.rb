@@ -446,8 +446,14 @@ describe Bosh::OpenStackCloud::Helpers do
       expect(cloud.parse_openstack_response(response, 'key')).to be_nil
     end
 
-    it 'should return nil if response has an empty body' do
+    it 'should return nil if response has an empty string body' do
       response = Excon::Response.new(:body => JSON.dump(''))
+
+      expect(cloud.parse_openstack_response(response, 'key')).to be_nil
+    end
+
+    it 'should return nil if response has a nil body' do
+      response = Excon::Response.new(:body => JSON.dump(nil))
 
       expect(cloud.parse_openstack_response(response, 'key')).to be_nil
     end
