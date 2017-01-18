@@ -1,19 +1,4 @@
 require 'common/common'
-require 'fog/image/openstack/v2/models/image'
-require 'fog/image/openstack/v2/models/images'
-
-# TODO: remove these patches once https://github.com/fog/fog-openstack/pull/246 is merged
-# image_v2 breaks `reload` for images fetched via `images.get(image_id)` which
-# throws a NotFound exception instead of returning `nil`
-module FogImagesPatch
-  def find_by_id(id)
-    super
-  rescue Fog::Image::OpenStack::NotFound
-    nil
-  end
-  alias_method :get, :find_by_id
-end
-Fog::Image::OpenStack::V2::Images.prepend FogImagesPatch
 
 module Bosh::OpenStackCloud
   class Openstack
