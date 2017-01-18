@@ -38,29 +38,19 @@ RUN pip install python-neutronclient==6.0.0
 
 RUN pip install awscli
 
-# chruby
-RUN mkdir /tmp/chruby && \
-    cd /tmp && \
-    curl https://codeload.github.com/postmodern/chruby/tar.gz/v0.3.9 | tar -xz && \
-    cd /tmp/chruby-0.3.9 && \
-    sudo ./scripts/setup.sh && \
-    rm -rf /tmp/chruby
-
 # ruby-install
 RUN mkdir /tmp/ruby-install && \
     cd /tmp && \
-    curl https://codeload.github.com/postmodern/ruby-install/tar.gz/v0.5.0 | tar -xz && \
-    cd /tmp/ruby-install-0.5.0 && \
+    curl https://codeload.github.com/postmodern/ruby-install/tar.gz/v0.6.1 | tar -xz && \
+    cd /tmp/ruby-install-0.6.1 && \
     sudo make install && \
     rm -rf /tmp/ruby-install
 
-#default ruby
-RUN ruby-install ruby 2.1.2 && \
-    cp /etc/profile.d/chruby.sh /etc/profile.d/chruby-with-ruby-2.1.2.sh && \
-    echo "chruby 2.1.2" >> /etc/profile.d/chruby-with-ruby-2.1.2.sh
+#Ruby
+RUN ruby-install --system ruby 2.4.0
 
 #Bundler
-RUN ["/bin/bash", "-l", "-c", "gem install bundler --no-ri --no-rdoc"]
+RUN ["/bin/bash", "-l", "-c", "gem install bundler -v 1.13.7 --no-ri --no-rdoc"]
 
 #BOSH RUBY CLI
 RUN ["/bin/bash", "-l", "-c", "gem install bosh_cli --no-ri --no-rdoc"]

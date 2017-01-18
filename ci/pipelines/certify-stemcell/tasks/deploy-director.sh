@@ -28,8 +28,6 @@ optional_value bosh_openstack_ca_cert
 optional_value v3_e2e_config_drive
 optional_value distro
 
-source /etc/profile.d/chruby-with-ruby-2.1.2.sh
-
 metadata=terraform/metadata
 
 export_terraform_variable "v3_e2e_default_key_name"

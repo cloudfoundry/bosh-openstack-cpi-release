@@ -3,8 +3,6 @@
 set -e
 set -x
 
-source /etc/profile.d/chruby-with-ruby-2.1.2.sh
-
 semver=`cat version-semver/number`
 
 cd bosh-cpi-src-in

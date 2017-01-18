@@ -22,9 +22,6 @@ eval $(ssh-agent)
 chmod go-r $BAT_VCAP_PRIVATE_KEY
 ssh-add $BAT_VCAP_PRIVATE_KEY
 
-source /etc/profile.d/chruby.sh
-chruby 2.1.2
-
 #copy terraform metadata in order to use it in 'print_task_errors' and 'teardown_director' task
 # where no distinction is made between manual and dynamic
 cp terraform-bats-dynamic-deploy/metadata terraform-bats

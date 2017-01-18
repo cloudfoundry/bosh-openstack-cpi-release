@@ -20,9 +20,6 @@ optional_value availability_zone
 #
 ####
 
-source /etc/profile.d/chruby.sh
-chruby 2.1.2
-
 #copy terraform metadata in order to use it in 'print_task_errors' and 'teardown_director' task
 # where no distinction is made between manual and dynamic
 cp terraform-bats-manual-deploy/metadata terraform-bats

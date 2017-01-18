@@ -33,8 +33,6 @@ export_terraform_variable "v3_e2e_net_gateway"
 export_terraform_variable "v3_e2e_net_id"
 export_terraform_variable "v3_e2e_security_group"
 
-source /etc/profile.d/chruby-with-ruby-2.1.2.sh
-
 export BOSH_INIT_LOG_LEVEL=DEBUG
 
 upgrade_deployment_dir="${PWD}/upgrade-deployment"

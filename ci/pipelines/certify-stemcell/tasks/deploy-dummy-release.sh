@@ -15,9 +15,6 @@ export_terraform_variable "dns"
 export_terraform_variable "v3_e2e_security_group"
 export_terraform_variable "v3_e2e_net_id"
 
-source /etc/profile.d/chruby.sh
-chruby 2.1.2
-
 deployment_dir="${PWD}/deployment"
 manifest_filename="dummy-manifest.yml"
 dummy_release_name="dummy"

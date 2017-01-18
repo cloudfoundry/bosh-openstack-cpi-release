@@ -12,9 +12,6 @@ export_terraform_variable "director_public_ip"
 
 export BOSH_INIT_LOG_LEVEL=DEBUG
 
-source /etc/profile.d/chruby.sh
-chruby 2.1.2
-
 echo "using bosh CLI version..."
 bosh version
 

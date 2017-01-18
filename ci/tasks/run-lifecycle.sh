@@ -24,8 +24,6 @@ source bosh-cpi-src-in/ci/tasks/utils.sh
 
 optional_value BOSH_OPENSTACK_AVAILABILITY_ZONE
 
-source /etc/profile.d/chruby-with-ruby-2.1.2.sh
-
 metadata=terraform-lifecycle/metadata
 
 export BOSH_OPENSTACK_MANUAL_IP=$(cat ${metadata} | jq --raw-output ".manual_ip")

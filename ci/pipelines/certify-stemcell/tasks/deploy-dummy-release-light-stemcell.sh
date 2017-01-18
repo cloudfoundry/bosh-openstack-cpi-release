@@ -15,9 +15,6 @@ export_terraform_variable "dns"
 export_terraform_variable "v3_e2e_net_id"
 export_terraform_variable "v3_e2e_security_group"
 
-source /etc/profile.d/chruby.sh
-chruby 2.1.2
-
 init_openstack_cli_env
 
 verify_image_in_openstack() {

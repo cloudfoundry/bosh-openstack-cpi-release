@@ -29,8 +29,6 @@ source bosh-cpi-src-in/ci/tasks/utils.sh
 optional_value bosh_openstack_ca_cert
 optional_value distro
 
-source /etc/profile.d/chruby-with-ruby-2.1.2.sh
-
 metadata=terraform/metadata
 
 export_terraform_variable "dns"

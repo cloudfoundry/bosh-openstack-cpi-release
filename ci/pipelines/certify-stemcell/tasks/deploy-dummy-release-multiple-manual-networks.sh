@@ -24,9 +24,6 @@ export_terraform_variable "network_no_dhcp_2_range"
 export_terraform_variable "network_no_dhcp_2_gateway"
 export_terraform_variable "network_no_dhcp_2_ip"
 
-source /etc/profile.d/chruby.sh
-chruby 2.1.2
-
 deployment_dir="${PWD}/deployment"
 manifest_filename="dummy-manifest.yml"
 dummy_release_name="dummy"

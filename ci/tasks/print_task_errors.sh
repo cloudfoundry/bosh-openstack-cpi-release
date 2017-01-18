@@ -4,9 +4,6 @@ set -e
 
 source bosh-cpi-src-in/ci/tasks/utils.sh
 
-source /etc/profile.d/chruby.sh
-chruby 2.1.2
-
 : ${bosh_admin_password:?}
 
 metadata=terraform-bats/metadata

@@ -6,9 +6,6 @@ source bosh-cpi-src-in/ci/tasks/utils.sh
 
 : ${bosh_admin_password:?}
 
-source /etc/profile.d/chruby.sh
-chruby 2.1.2
-
 metadata=terraform-bats/metadata
 
 export_terraform_variable "director_public_ip"

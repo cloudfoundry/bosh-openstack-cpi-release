@@ -23,8 +23,6 @@ optional_value bosh_openstack_ca_cert
 optional_value distro
 optional_value availability_zone
 
-source /etc/profile.d/chruby-with-ruby-2.1.2.sh
-
 cp terraform-bats-manual/metadata terraform-bats-manual-deploy
 metadata=terraform-bats-manual/metadata
 

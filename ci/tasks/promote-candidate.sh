@@ -16,8 +16,6 @@ cp -r bosh-cpi-src-in promote/repo
 
 cd promote/repo
 
-source /etc/profile.d/chruby-with-ruby-2.1.2.sh
-
 set +x
 echo creating config/private.yml with blobstore secrets
 cat > config/private.yml << EOF
