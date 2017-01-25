@@ -232,4 +232,149 @@ describe Bosh::OpenStackCloud::Openstack do
       end
     end
   end
+
+
+  describe 'wait_resource' do
+    let(:resource) { double('resource', id: 'foobar', reload: {}) }
+    before { allow(resource).to receive(:status).and_return(:start, :stop) }
+    before { allow(subject).to receive(:sleep) }
+
+    it 'does not raise if one of the target states is reached' do
+      expect {
+        subject.wait_resource(resource, [:stop, :deleted], :status, false)
+      }.to_not raise_error
+    end
+
+    it 'waits for configured amount of time' do
+      expect(subject).to receive(:sleep).with(3)
+
+      subject.wait_resource(resource, [:stop, :deleted], :status, false)
+    end
+
+    context 'when the resource status never changes' do
+      it 'times out' do
+        start_time = Time.now
+        timeout_time = start_time + subject.state_timeout + 1
+        Timecop.freeze(start_time)
+
+        allow(resource).to receive(:status) do
+          Timecop.freeze(timeout_time)
+          :start
+        end
+
+        expect {
+          subject.wait_resource(resource, :stop, :status, false)
+        }.to raise_error Bosh::Clouds::CloudError, /Timed out/
+      end
+    end
+
+    context 'when the resource status is error' do
+      before { allow(resource).to receive(:status).and_return(:error) }
+      context 'when no additional fault is provided by OpenStack' do
+        before { allow(resource).to receive(:fault).and_return(nil) }
+
+        it 'raises Bosh::Clouds::CloudError' do
+          expect {
+            subject.wait_resource(resource, :stop, :status, false)
+          }.to raise_error Bosh::Clouds::CloudError, /state is error/
+        end
+      end
+
+      context 'when no additional fault supported by resource' do
+        it 'raises Bosh::Clouds::CloudError' do
+          expect {
+            subject.wait_resource(resource, :stop, :status, false)
+          }.to raise_error Bosh::Clouds::CloudError, /state is error/
+        end
+      end
+
+      context 'when additional fault is provided by OpenStack' do
+        let(:resource) { double('resource', id: 'foobar', reload: {}, fault: {'message' => 'fault message ', 'details' => 'fault details'}) }
+
+        it 'raises Bosh::Clouds::CloudError' do
+          expect {
+            subject.wait_resource(resource, :stop, :status, false)
+          }.to raise_error Bosh::Clouds::CloudError, /state is error, expected stop\nfault message fault details/
+        end
+      end
+    end
+
+    context 'when the resource status is failed' do
+      before { allow(resource).to receive(:status).and_return(:failed) }
+      context 'when no additional fault is provided by OpenStack' do
+        before { allow(resource).to receive(:fault).and_return(nil) }
+
+        it 'raises Bosh::Clouds::CloudError' do
+          expect {
+            subject.wait_resource(resource, :stop, :status, false)
+          }.to raise_error Bosh::Clouds::CloudError, /state is failed/
+        end
+      end
+
+      context 'when no additional fault supported by resource' do
+        it 'raises Bosh::Clouds::CloudError' do
+          expect {
+            subject.wait_resource(resource, :stop, :status, false)
+          }.to raise_error Bosh::Clouds::CloudError, /state is failed/
+        end
+      end
+
+      context 'when additional fault is provided by OpenStack' do
+        let(:resource) { double('resource', id: 'foobar', reload: {}, fault: {'message' => 'fault message ', 'details' => 'fault details'}) }
+
+        it 'raises Bosh::Clouds::CloudError' do
+          expect {
+            subject.wait_resource(resource, :stop, :status, false)
+          }.to raise_error Bosh::Clouds::CloudError, /state is failed, expected stop\nfault message fault details/
+        end
+      end
+    end
+
+    context 'when the resource status is killed' do
+      before { allow(resource).to receive(:status).and_return(:killed) }
+      context 'when no additional fault is provided by OpenStack' do
+        before { allow(resource).to receive(:fault).and_return(nil) }
+
+        it 'raises Bosh::Clouds::CloudError' do
+          expect {
+            subject.wait_resource(resource, :stop, :status, false)
+          }.to raise_error Bosh::Clouds::CloudError, /state is killed/
+        end
+      end
+
+      context 'when no additional fault supported by resource' do
+        it 'raises Bosh::Clouds::CloudError' do
+          expect {
+            subject.wait_resource(resource, :stop, :status, false)
+          }.to raise_error Bosh::Clouds::CloudError, /state is killed/
+        end
+      end
+
+      context 'when additional fault is provided by OpenStack' do
+        let(:resource) { double('resource', id: 'foobar', reload: {}, fault: {'message' => 'fault message ', 'details' => 'fault details'}) }
+
+        it 'raises Bosh::Clouds::CloudError' do
+          expect {
+            subject.wait_resource(resource, :stop, :status, false)
+          }.to raise_error Bosh::Clouds::CloudError, /state is killed, expected stop\nfault message fault details/
+        end
+      end
+    end
+
+    context 'when the resource is not found' do
+      before { allow(resource).to receive(:reload).and_return(nil) }
+
+      it 'should raise Bosh::Clouds::CloudError if resource not found' do
+        expect {
+          subject.wait_resource(resource, :deleted, :status, false)
+        }.to raise_error Bosh::Clouds::CloudError, /Resource not found/
+      end
+
+      context 'when the resource does not need to be found' do
+        it 'does not raise' do
+          expect { subject.wait_resource(resource, :deleted, :status, true) }.not_to raise_error
+        end
+      end
+    end
+  end
 end

@@ -96,7 +96,7 @@ describe Bosh::OpenStackCloud::Cloud, "create_vm" do
       stub_compute(fog.compute)
     end
     allow(cloud).to receive(:generate_unique_name).and_return(unique_name)
-    allow(cloud).to receive(:wait_resource)
+    allow(cloud.openstack).to receive(:wait_resource)
     allow(Bosh::Clouds::Config.logger).to receive(:debug)
     allow(@registry).to receive(:update_settings)
 
@@ -116,7 +116,7 @@ describe Bosh::OpenStackCloud::Cloud, "create_vm" do
     end
 
     expect(cloud).to receive(:generate_unique_name).and_return(unique_name)
-    expect(cloud).to receive(:wait_resource).with(server, :active, :state)
+    expect(cloud.openstack).to receive(:wait_resource).with(server, :active, :state)
 
     expect(@registry).to receive(:update_settings).
         with("vm-#{unique_name}", agent_settings(unique_name))
@@ -157,7 +157,7 @@ describe Bosh::OpenStackCloud::Cloud, "create_vm" do
 
 
       allow(cloud).to receive(:generate_unique_name).and_return(unique_name)
-      allow(cloud).to receive(:wait_resource)#.with(server, :active, :state)
+      allow(cloud.openstack).to receive(:wait_resource)#.with(server, :active, :state)
 
       allow(@registry).to receive(:update_settings)#.with("vm-#{unique_name}", agent_settings(unique_name, network_spec))
 
@@ -187,7 +187,7 @@ describe Bosh::OpenStackCloud::Cloud, "create_vm" do
       end
 
       expect(cloud).to receive(:generate_unique_name).and_return(unique_name)
-      expect(cloud).to receive(:wait_resource).with(server, :active, :state)
+      expect(cloud.openstack).to receive(:wait_resource).with(server, :active, :state)
 
       expect(@registry).to receive(:update_settings).
         with("vm-#{unique_name}", agent_settings(unique_name, network_spec))
@@ -250,7 +250,7 @@ describe Bosh::OpenStackCloud::Cloud, "create_vm" do
         end
 
         expect(cloud).to receive(:generate_unique_name).and_return(unique_name)
-        expect(cloud).to receive(:wait_resource).with(server, :active, :state)
+        expect(cloud.openstack).to receive(:wait_resource).with(server, :active, :state)
         expect(@registry).to receive(:update_settings).with("vm-#{unique_name}", agent_settings(unique_name, network_with_security_group_spec))
 
         vm_id = cloud.create_vm("agent-id", "sc-id",
@@ -286,7 +286,7 @@ describe Bosh::OpenStackCloud::Cloud, "create_vm" do
         end
 
         expect(cloud).to receive(:generate_unique_name).and_return(unique_name)
-        expect(cloud).to receive(:wait_resource).with(server, :active, :state)
+        expect(cloud.openstack).to receive(:wait_resource).with(server, :active, :state)
         expect(@registry).to receive(:update_settings).with("vm-#{unique_name}", agent_settings(unique_name, dynamic_network_without_security_group_spec))
 
         vm_id = cloud.create_vm("agent-id", "sc-id",
@@ -318,7 +318,7 @@ describe Bosh::OpenStackCloud::Cloud, "create_vm" do
       end
 
       expect(cloud).to receive(:generate_unique_name).and_return(unique_name)
-      expect(cloud).to receive(:wait_resource).with(server, :active, :state)
+      expect(cloud.openstack).to receive(:wait_resource).with(server, :active, :state)
 
       expect(@registry).to receive(:update_settings).
         with("vm-#{unique_name}", agent_settings(unique_name, network_spec))
@@ -334,7 +334,7 @@ describe Bosh::OpenStackCloud::Cloud, "create_vm" do
   context 'with manual network' do
     before(:each) do
       allow(cloud).to receive(:generate_unique_name).and_return(unique_name)
-      allow(cloud).to receive(:wait_resource).with(server, :active, :state)
+      allow(cloud.openstack).to receive(:wait_resource).with(server, :active, :state)
       allow(cloud.registry).to receive(:update_settings)
     end
     let(:several_manual_networks) do
@@ -453,7 +453,7 @@ describe Bosh::OpenStackCloud::Cloud, "create_vm" do
       end
 
       expect(cloud).to receive(:generate_unique_name).and_return(openstack_params[:name].gsub(/^vm-/,''))
-      expect(cloud).to receive(:wait_resource).with(server, :active, :state)
+      expect(cloud.openstack).to receive(:wait_resource).with(server, :active, :state)
       expect_any_instance_of(Bosh::OpenStackCloud::NetworkConfigurator).to receive(:configure)
 
       expect(@registry).to receive(:update_settings)
@@ -479,7 +479,7 @@ describe Bosh::OpenStackCloud::Cloud, "create_vm" do
       end
 
       expect(cloud).to receive(:generate_unique_name).and_return(unique_name)
-      expect(cloud).to receive(:wait_resource).with(server, :active, :state)
+      expect(cloud.openstack).to receive(:wait_resource).with(server, :active, :state)
 
       expect(@registry).to receive(:update_settings).
         with("vm-#{unique_name}", agent_settings(unique_name, network_spec))
@@ -511,7 +511,7 @@ describe Bosh::OpenStackCloud::Cloud, "create_vm" do
       end
 
       expect(cloud).to receive(:generate_unique_name).and_return(unique_name)
-      expect(cloud).to receive(:wait_resource).with(server, :active, :state)
+      expect(cloud.openstack).to receive(:wait_resource).with(server, :active, :state)
 
       expect(@registry).to receive(:update_settings).
         with("vm-#{unique_name}", agent_settings(unique_name, network_spec))
@@ -539,7 +539,7 @@ describe Bosh::OpenStackCloud::Cloud, "create_vm" do
       end
 
       allow(cloud).to receive(:generate_unique_name).and_return(unique_name)
-      allow(cloud).to receive(:wait_resource).with(server, :active, :state)
+      allow(cloud.openstack).to receive(:wait_resource).with(server, :active, :state)
 
       allow(@registry).to receive(:update_settings).with("vm-#{unique_name}", agent_settings(unique_name, network_spec))
 
@@ -734,8 +734,8 @@ describe Bosh::OpenStackCloud::Cloud, "create_vm" do
     it "destroys the server successfully and raises a Retryable Error" do
       allow(server).to receive(:destroy)
 
-      allow(cloud).to receive(:wait_resource).with(server, :active, :state).and_raise(Bosh::Clouds::CloudError)
-      expect(cloud).to receive(:wait_resource).with(server, [:terminated, :deleted], :state, true)
+      allow(cloud.openstack).to receive(:wait_resource).with(server, :active, :state).and_raise(Bosh::Clouds::CloudError)
+      expect(cloud.openstack).to receive(:wait_resource).with(server, [:terminated, :deleted], :state, true)
 
       expect {
         cloud.create_vm(
@@ -748,8 +748,8 @@ describe Bosh::OpenStackCloud::Cloud, "create_vm" do
         )
       }.to raise_error(Bosh::Clouds::VMCreationFailed)
 
-      allow(cloud).to receive(:wait_resource).with(server, :active, :state).and_raise(StandardError)
-      expect(cloud).to receive(:wait_resource).with(server, [:terminated, :deleted], :state, true)
+      allow(cloud.openstack).to receive(:wait_resource).with(server, :active, :state).and_raise(StandardError)
+      expect(cloud.openstack).to receive(:wait_resource).with(server, [:terminated, :deleted], :state, true)
 
       expect {
         cloud.create_vm(
@@ -765,8 +765,8 @@ describe Bosh::OpenStackCloud::Cloud, "create_vm" do
 
     it "raises a Retryable Error and logs correct failure message when failed to destroy the server" do
       allow(server).to receive(:destroy)
-      allow(cloud).to receive(:wait_resource).with(server, :active, :state).and_raise(Bosh::Clouds::CloudError)
-      allow(cloud).to receive(:wait_resource).with(server, [:terminated, :deleted], :state, true).and_raise(Bosh::Clouds::CloudError)
+      allow(cloud.openstack).to receive(:wait_resource).with(server, :active, :state).and_raise(Bosh::Clouds::CloudError)
+      allow(cloud.openstack).to receive(:wait_resource).with(server, [:terminated, :deleted], :state, true).and_raise(Bosh::Clouds::CloudError)
 
       expect(Bosh::Clouds::Config.logger).to receive(:warn).with('Failed to create server: Bosh::Clouds::CloudError')
       expect(Bosh::Clouds::Config.logger).to receive(:warn).with(/Failed to destroy server:.*/)
@@ -795,14 +795,14 @@ describe Bosh::OpenStackCloud::Cloud, "create_vm" do
     end
 
     before do
-      allow(cloud).to receive(:wait_resource).with(server, :active, :state)
+      allow(cloud.openstack).to receive(:wait_resource).with(server, :active, :state)
     end
 
     it "destroys the server successfully and raises a non-retryable Error when CloudError happens" do
       allow(server).to receive(:destroy)
 
       allow(@registry).to receive(:update_settings).and_raise(Bosh::Clouds::CloudError)
-      expect(cloud).to receive(:wait_resource).with(server, [:terminated, :deleted], :state, true)
+      expect(cloud.openstack).to receive(:wait_resource).with(server, [:terminated, :deleted], :state, true)
 
       expect {
         cloud.create_vm(
@@ -818,7 +818,7 @@ describe Bosh::OpenStackCloud::Cloud, "create_vm" do
            }
 
       allow(@registry).to receive(:update_settings).and_raise(StandardError)
-      expect(cloud).to receive(:wait_resource).with(server, [:terminated, :deleted], :state, true)
+      expect(cloud.openstack).to receive(:wait_resource).with(server, [:terminated, :deleted], :state, true)
 
       expect {
         cloud.create_vm(
@@ -837,7 +837,7 @@ describe Bosh::OpenStackCloud::Cloud, "create_vm" do
     it "logs correct failure message when failed to destroy the server" do
       allow(@registry).to receive(:update_settings).and_raise(Bosh::Clouds::CloudError)
       allow(server).to receive(:destroy)
-      allow(cloud).to receive(:wait_resource).with(server, [:terminated, :deleted], :state, true).and_raise(Bosh::Clouds::CloudError)
+      allow(cloud.openstack).to receive(:wait_resource).with(server, [:terminated, :deleted], :state, true).and_raise(Bosh::Clouds::CloudError)
 
       expect(Bosh::Clouds::Config.logger).to receive(:warn).with('Failed to register server: Bosh::Clouds::CloudError')
       expect(Bosh::Clouds::Config.logger).to receive(:warn).with(/Failed to destroy server:.*/)
@@ -970,7 +970,7 @@ describe Bosh::OpenStackCloud::Cloud, "create_vm" do
       end
 
       expect(cloud).to receive(:generate_unique_name).and_return(unique_name)
-      expect(cloud).to receive(:wait_resource).with(server, :active, :state)
+      expect(cloud.openstack).to receive(:wait_resource).with(server, :active, :state)
 
       expect(@registry).to receive(:update_settings).
           with("vm-#{unique_name}", agent_settings(unique_name, expected_network_spec))
@@ -994,7 +994,7 @@ describe Bosh::OpenStackCloud::Cloud, "create_vm" do
 
     def stub_cloud(cloud)
       allow(cloud).to receive(:generate_unique_name).and_return(unique_name)
-      allow(cloud).to receive(:wait_resource).with(server, :active, :state)
+      allow(cloud.openstack).to receive(:wait_resource).with(server, :active, :state)
       allow(@registry).to receive(:update_settings).with("vm-#{unique_name}", agent_settings(unique_name, dynamic_network_spec))
     end
 
@@ -1081,7 +1081,7 @@ describe Bosh::OpenStackCloud::Cloud, "create_vm" do
   describe 'use "vm-<uuid>" as registry key' do
     before(:each) do
       allow(cloud).to receive(:generate_unique_name).and_return(unique_name)
-      allow(cloud).to receive(:wait_resource)
+      allow(cloud.openstack).to receive(:wait_resource)
     end
 
     let(:cloud) do
@@ -1185,7 +1185,7 @@ describe Bosh::OpenStackCloud::Cloud, "create_vm" do
 
     it 'creates the vm with the image id of the heavy stemcell' do
       expect(cloud).to receive(:generate_unique_name).and_return(unique_name)
-      expect(cloud).to receive(:wait_resource).with(server, :active, :state)
+      expect(cloud.openstack).to receive(:wait_resource).with(server, :active, :state)
 
       expect(@registry).to receive(:update_settings).
         with("vm-#{unique_name}", agent_settings(unique_name))

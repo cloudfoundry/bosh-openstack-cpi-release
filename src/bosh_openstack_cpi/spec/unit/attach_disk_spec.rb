@@ -24,7 +24,7 @@ describe Bosh::OpenStackCloud::Cloud do
 
     expect(server).to receive(:volume_attachments).and_return(volume_attachments)
     expect(server).to receive(:attach_volume).with(volume.id, '/dev/sdc').and_return(attachment)
-    expect(cloud).to receive(:wait_resource).with(volume, :'in-use')
+    expect(cloud.openstack).to receive(:wait_resource).with(volume, :'in-use')
 
     old_settings = { 'foo' => 'bar'}
     new_settings = {
@@ -49,7 +49,7 @@ describe Bosh::OpenStackCloud::Cloud do
 
     expect(server).to receive(:volume_attachments).and_return(volume_attachments)
     expect(server).to receive(:attach_volume).with(volume.id, '/dev/sde').and_return(attachment)
-    expect(cloud).to receive(:wait_resource).with(volume, :'in-use')
+    expect(cloud.openstack).to receive(:wait_resource).with(volume, :'in-use')
 
     old_settings = { 'foo' => 'bar'}
     new_settings = {
@@ -110,7 +110,7 @@ describe Bosh::OpenStackCloud::Cloud do
   context 'first device name letter' do
     before do
       allow(server).to receive(:volume_attachments).and_return([])
-      allow(cloud).to receive(:wait_resource)
+      allow(cloud.openstack).to receive(:wait_resource)
       allow(cloud).to receive(:update_agent_settings)
     end
     subject(:attach_disk) { cloud.attach_disk('i-test', 'v-foobar') }

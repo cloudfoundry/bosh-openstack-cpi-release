@@ -19,7 +19,7 @@ describe Bosh::OpenStackCloud::Cloud do
       end
   
       allow(cloud).to receive(:generate_unique_name).and_return(unique_name)
-      allow(cloud).to receive(:wait_resource).with(volume, :available)
+      allow(cloud.openstack).to receive(:wait_resource).with(volume, :available)
 
       expect(Fog::Volume::OpenStack::V2).to receive(:new)
       expect(cloud.create_disk(2048, {})).to eq("v-foobar")
@@ -43,7 +43,7 @@ describe Bosh::OpenStackCloud::Cloud do
     end
 
     allow(cloud).to receive(:generate_unique_name).and_return(unique_name)
-    allow(cloud).to receive(:wait_resource).with(volume, :available)
+    allow(cloud.openstack).to receive(:wait_resource).with(volume, :available)
 
     expect(cloud.create_disk(2048, {})).to eq("v-foobar")
   end
@@ -66,7 +66,7 @@ describe Bosh::OpenStackCloud::Cloud do
     end
 
     expect(cloud).to receive(:generate_unique_name).and_return(unique_name)
-    expect(cloud).to receive(:wait_resource).with(volume, :available)
+    expect(cloud.openstack).to receive(:wait_resource).with(volume, :available)
 
     expect(cloud.create_disk(2048, {"type" => "foo"})).to eq("v-foobar")
   end
@@ -91,7 +91,7 @@ describe Bosh::OpenStackCloud::Cloud do
     end
 
     expect(cloud).to receive(:generate_unique_name).and_return(unique_name)
-    expect(cloud).to receive(:wait_resource).with(volume, :available)
+    expect(cloud.openstack).to receive(:wait_resource).with(volume, :available)
 
     expect(cloud.create_disk(2048, {})).to eq("v-foobar")
   end
@@ -113,7 +113,7 @@ describe Bosh::OpenStackCloud::Cloud do
     end
 
     expect(cloud).to receive(:generate_unique_name).and_return(unique_name)
-    expect(cloud).to receive(:wait_resource).with(volume, :available)
+    expect(cloud.openstack).to receive(:wait_resource).with(volume, :available)
 
     cloud.create_disk(2049, {})
   end
@@ -146,7 +146,7 @@ describe Bosh::OpenStackCloud::Cloud do
     end
 
     expect(cloud).to receive(:generate_unique_name).and_return(unique_name)
-    expect(cloud).to receive(:wait_resource).with(volume, :available)
+    expect(cloud.openstack).to receive(:wait_resource).with(volume, :available)
 
     cloud.create_disk(1024, {}, "i-test")
   end
@@ -173,7 +173,7 @@ describe Bosh::OpenStackCloud::Cloud do
     end
 
     expect(cloud).to receive(:generate_unique_name).and_return(unique_name)
-    expect(cloud).to receive(:wait_resource).with(volume, :available)
+    expect(cloud.openstack).to receive(:wait_resource).with(volume, :available)
 
     cloud.create_disk(1024, {}, "i-test")
   end

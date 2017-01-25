@@ -17,13 +17,13 @@ describe Bosh::OpenStackCloud::Cloud do
 
   it 'soft reboots an OpenStack server' do
     expect(@server).to receive(:reboot)
-    expect(@cloud).to receive(:wait_resource).with(@server, :active, :state)
+    expect(@cloud.openstack).to receive(:wait_resource).with(@server, :active, :state)
     @cloud.send(:soft_reboot, @server)
   end
 
   it 'hard reboots an OpenStack server' do
     expect(@server).to receive(:reboot)
-    expect(@cloud).to receive(:wait_resource).with(@server, :active, :state)
+    expect(@cloud.openstack).to receive(:wait_resource).with(@server, :active, :state)
     @cloud.send(:hard_reboot, @server)
   end
 

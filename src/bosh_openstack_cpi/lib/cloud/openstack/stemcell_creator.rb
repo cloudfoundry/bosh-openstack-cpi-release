@@ -72,7 +72,7 @@ module Bosh::OpenStackCloud
           image = upload(image_params, image_location)
 
           @logger.info("Waiting for image '#{image.id}' to have status 'active'...")
-          wait_resource(image, :active)
+          @openstack.wait_resource(image, :active)
 
           HeavyStemcell.new(@logger, @openstack, image.id.to_s)
         end
@@ -163,7 +163,7 @@ module Bosh::OpenStackCloud
 
     def upload(image_params, image_location)
       image = create_openstack_image(image_params)
-      wait_resource(image, :queued)
+      @openstack.wait_resource(image, :queued)
       @logger.info("Performing file upload for image: '#{image.id}'...")
       image.upload_data(File.open(image_location, 'rb'))
       image

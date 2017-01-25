@@ -25,7 +25,7 @@ describe Bosh::OpenStackCloud::Cloud do
 
     after do
       cpi_for_stemcell.delete_stemcell(@stemcell_id) if @stemcell_id
-      wait_resource(@image, :deleted, :status, true) if @image
+      openstack.wait_resource(@image, :deleted, :status, true) if @image
     end
 
     it 'uploads and deletes a stemcell' do
@@ -53,7 +53,7 @@ describe Bosh::OpenStackCloud::Cloud do
 
     after do
       cpi_for_stemcell.delete_stemcell(@stemcell_id) if @stemcell_id
-      wait_resource(@image, :deleted, :status, true) if @image
+      openstack.wait_resource(@image, :deleted, :status, true) if @image
     end
 
     it 'uploads and deletes a stemcell' do

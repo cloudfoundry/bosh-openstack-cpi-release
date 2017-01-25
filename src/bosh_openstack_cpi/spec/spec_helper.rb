@@ -6,6 +6,7 @@ require 'archive/tar/minitar'
 require 'webmock'
 include Archive::Tar
 require 'tempfile'
+require 'timecop'
 
 require 'cloud/openstack'
 

@@ -14,6 +14,7 @@ module Bosh::OpenStackCloud
 
     attr_reader :registry
     attr_reader :state_timeout
+    attr_reader :openstack
     attr_accessor :logger
 
     ##
@@ -36,9 +37,7 @@ module Bosh::OpenStackCloud
       @default_key_name = openstack_properties['default_key_name']
       @default_security_groups = openstack_properties['default_security_groups']
       @default_volume_type = openstack_properties['default_volume_type']
-      @state_timeout = openstack_properties['state_timeout']
       @stemcell_public_visibility = openstack_properties['stemcell_public_visibility']
-      @wait_resource_poll_interval = openstack_properties['wait_resource_poll_interval']
       @boot_from_volume = openstack_properties['boot_from_volume']
       @use_dhcp = openstack_properties['use_dhcp']
       @human_readable_vm_names = openstack_properties['human_readable_vm_names']
@@ -243,7 +242,7 @@ module Bosh::OpenStackCloud
 
           @logger.info("Creating new server `#{server.id}'...")
           begin
-            wait_resource(server, :active, :state)
+            @openstack.wait_resource(server, :active, :state)
 
             @logger.info("Configuring network for server `#{server.id}'...")
             with_openstack {
@@ -311,7 +310,7 @@ module Bosh::OpenStackCloud
           server_port_ids = NetworkConfigurator.port_ids(@openstack, server_id)
           @logger.debug("Network ports: `#{server_port_ids.join(', ')}' found for server #{server_id}")
           with_openstack { server.destroy }
-          wait_resource(server, [:terminated, :deleted], :state, true)
+          @openstack.wait_resource(server, [:terminated, :deleted], :state, true)
           NetworkConfigurator.cleanup_ports(@openstack, server_port_ids)
 
           @logger.info("Deleting settings for server `#{server.id}'...")
@@ -404,7 +403,7 @@ module Bosh::OpenStackCloud
         new_volume = with_openstack { volume_service_client.volumes.create(volume_params) }
 
         @logger.info("Creating new volume `#{new_volume.id}'...")
-        wait_resource(new_volume, :available)
+        @openstack.wait_resource(new_volume, :available)
 
         new_volume.id.to_s
       end
@@ -441,7 +440,7 @@ module Bosh::OpenStackCloud
           end
 
           with_openstack { volume.destroy }
-          wait_resource(volume, :deleted, :status, true)
+          @openstack.wait_resource(volume, :deleted, :status, true)
         else
           @logger.info("Volume `#{disk_id}' not found. Skipping.")
         end
@@ -535,7 +534,7 @@ module Bosh::OpenStackCloud
         }
 
         @logger.info("Creating new snapshot `#{snapshot.id}' for volume `#{disk_id}'...")
-        wait_resource(snapshot, :available)
+        @openstack.wait_resource(snapshot, :available)
 
         snapshot.id.to_s
       end
@@ -558,7 +557,7 @@ module Bosh::OpenStackCloud
           end
 
           with_openstack { snapshot.destroy }
-          wait_resource(snapshot, :deleted, :status, true)
+          @openstack.wait_resource(snapshot, :deleted, :status, true)
         else
           @logger.info("Snapshot `#{snapshot_id}' not found. Skipping.")
         end
@@ -763,7 +762,7 @@ module Bosh::OpenStackCloud
     def soft_reboot(server)
       @logger.info("Soft rebooting server `#{server.id}'...")
       with_openstack { server.reboot }
-      wait_resource(server, :active, :state)
+      @openstack.wait_resource(server, :active, :state)
     end
 
     ##
@@ -774,7 +773,7 @@ module Bosh::OpenStackCloud
     def hard_reboot(server)
       @logger.info("Hard rebooting server `#{server.id}'...")
       with_openstack { server.reboot(type = 'HARD') }
-      wait_resource(server, :active, :state)
+      @openstack.wait_resource(server, :active, :state)
     end
 
     ##
@@ -794,7 +793,7 @@ module Bosh::OpenStackCloud
 
         @logger.info("Attaching volume `#{volume.id}' to server `#{server.id}', device name is `#{device_name}'")
         with_openstack { server.attach_volume(volume.id, device_name) }
-        wait_resource(volume, :'in-use')
+        @openstack.wait_resource(volume, :'in-use')
       else
         device_name = device['device']
         @logger.info("Volume `#{volume.id}' is already attached to server `#{server.id}' in `#{device_name}'. Skipping.")
@@ -851,7 +850,7 @@ module Bosh::OpenStackCloud
       attachment = volume_attachments.find { |a| a['volumeId'] == volume.id }
       if attachment
         with_openstack { server.detach_volume(volume.id) }
-        wait_resource(volume, :available)
+        @openstack.wait_resource(volume, :available)
       else
         @logger.info("Disk `#{volume.id}' is not attached to server `#{server.id}'. Skipping.")
       end
@@ -973,7 +972,7 @@ module Bosh::OpenStackCloud
       with_openstack { server.destroy }
 
       begin
-        wait_resource(server, [:terminated, :deleted], :state, true)
+        @openstack.wait_resource(server, [:terminated, :deleted], :state, true)
       rescue Bosh::Clouds::CloudError => delete_server_error
         @logger.warn("Failed to destroy server: #{delete_server_error.inspect}\n#{delete_server_error.backtrace.join('\n')}")
       end

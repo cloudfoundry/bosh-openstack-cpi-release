@@ -36,7 +36,7 @@ describe Bosh::OpenStackCloud::Cloud do
     
     expect(snapshot).to receive(:save)
 
-    expect(cloud).to receive(:wait_resource).with(snapshot, :available)
+    expect(cloud.openstack).to receive(:wait_resource).with(snapshot, :available)
 
     expect(cloud.snapshot_disk("v-foobar", metadata)).to eq("snap-foobar")
   end
@@ -74,7 +74,7 @@ describe Bosh::OpenStackCloud::Cloud do
     
     expect(snapshot).to receive(:save)
 
-    expect(cloud).to receive(:wait_resource).with(snapshot, :available)
+    expect(cloud.openstack).to receive(:wait_resource).with(snapshot, :available)
 
     expect(cloud.snapshot_disk("v-foobar", metadata)).to eq("snap-foobar")
   end
@@ -112,7 +112,7 @@ describe Bosh::OpenStackCloud::Cloud do
 
     expect(snapshot).to receive(:save)
 
-    expect(cloud).to receive(:wait_resource).with(snapshot, :available)
+    expect(cloud.openstack).to receive(:wait_resource).with(snapshot, :available)
 
     expect(cloud.snapshot_disk("v-foobar", metadata)).to eq("snap-foobar")
   end
