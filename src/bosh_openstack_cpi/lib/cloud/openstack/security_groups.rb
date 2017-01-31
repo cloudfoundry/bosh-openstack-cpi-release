@@ -11,7 +11,7 @@ module Bosh::OpenStackCloud
           resource_pool_spec_security_groups
       )
 
-      openstack_security_groups = with_openstack {
+      openstack_security_groups = openstack.with_openstack {
           retrieve_security_groups(openstack)
       }
 

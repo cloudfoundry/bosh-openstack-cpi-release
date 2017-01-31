@@ -33,7 +33,7 @@ module Bosh::OpenStackCloud
     end
 
     def create_port_for_manual_network(openstack, net_id, ip_address, security_group_ids)
-      with_openstack {
+      openstack.with_openstack {
         openstack.network.ports.create({
             network_id: net_id,
             fixed_ips: [{ip_address: ip_address}],

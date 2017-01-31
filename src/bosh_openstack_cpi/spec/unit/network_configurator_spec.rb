@@ -17,6 +17,9 @@ describe Bosh::OpenStackCloud::NetworkConfigurator do
         'network_b' => manual_network_spec(net_id: 'bar', ip: '10.0.0.2')
     }
   end
+  let(:openstack) { instance_double(Bosh::OpenStackCloud::Openstack) }
+
+  before { allow(openstack).to receive(:with_openstack) { |&block| block.call } }
 
   it 'exposes network_spec as attribute' do
     spec = {
@@ -337,7 +340,6 @@ describe Bosh::OpenStackCloud::NetworkConfigurator do
 
   describe '.cleanup_ports' do
     let(:neutron) { double(Fog::Network) }
-    let(:openstack) { instance_double(Bosh::OpenStackCloud::Openstack) }
     let(:port_a) { double('port_a', :id => 'port_a_id') }
     let(:port_b) { double('port_b', :id => 'port_b_id') }
 

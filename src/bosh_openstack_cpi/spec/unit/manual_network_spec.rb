@@ -3,6 +3,9 @@ require 'spec_helper'
 describe Bosh::OpenStackCloud::ManualNetwork do
 
   subject { Bosh::OpenStackCloud::ManualNetwork.new(network_name, network_spec) }
+  let(:openstack) { double(Bosh::OpenStackCloud::Openstack) }
+
+  before { allow(openstack).to receive(:with_openstack) { |&block| block.call } }
 
   describe '#initialize' do
     context 'when spec is not a hash' do

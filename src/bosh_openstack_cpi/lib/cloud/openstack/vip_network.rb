@@ -24,7 +24,7 @@ module Bosh::OpenStackCloud
         cloud_error("No IP provided for vip network `#{@name}'")
       end
 
-      with_openstack do
+      openstack.with_openstack do
         FloatingIp.reassociate(openstack, @ip, server, network_id)
       end
     end

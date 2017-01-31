@@ -12,6 +12,7 @@ describe Bosh::OpenStackCloud::AvailabilityZoneProvider do
   before do
     allow(openstack).to receive(:compute).and_return(compute)
     allow(openstack).to receive(:volume).and_return(volume)
+    allow(openstack).to receive(:with_openstack) { |&block| block.call }
     allow(foo_volume).to receive(:availability_zone).and_return('west_az')
     allow(volumes).to receive(:get).with('foo_id').and_return(foo_volume)
     allow(volumes).to receive(:get).with('bar_id').and_return(bar_volume)

@@ -10,7 +10,7 @@ module Bosh::OpenStackCloud
     def select(volume_ids, resource_pool_az)
       if volume_ids && !volume_ids.empty? && constrain_to_server_availability_zone?
         fog_volume_map = @openstack.volume.volumes
-        volumes = volume_ids.map { |vid| with_openstack { fog_volume_map.get(vid) } }
+        volumes = volume_ids.map { |vid| @openstack.with_openstack { fog_volume_map.get(vid) } }
         ensure_same_availability_zone(volumes, resource_pool_az)
         ignore_empty_string(volumes.first.availability_zone)
       else

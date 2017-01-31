@@ -7,6 +7,7 @@ describe Bosh::OpenStackCloud::SecurityGroups do
   let(:use_nova_networking?) { false }
   let(:openstack) { double('openstack', compute: compute, network: network, use_nova_networking?: use_nova_networking?) }
 
+  before { allow(openstack).to receive(:with_openstack) { |&block| block.call } }
 
   describe '.retrieve_and_validate_security_groups' do
     context 'manifest validation' do

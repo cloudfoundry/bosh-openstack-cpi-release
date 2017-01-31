@@ -84,7 +84,7 @@ module Bosh::OpenStackCloud
 
     def create_openstack_image(image_params)
       @logger.debug("Using image parms: `#{image_params.inspect}'")
-      with_openstack { @openstack.image.images.create(image_params) }
+      @openstack.with_openstack { @openstack.image.images.create(image_params) }
     end
 
     def unpack_image(tmp_dir, image_path)

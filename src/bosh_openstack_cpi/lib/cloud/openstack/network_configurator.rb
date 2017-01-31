@@ -151,7 +151,7 @@ module Bosh::OpenStackCloud
 
     def self.port_ids(openstack, server_id)
       return [] if openstack.use_nova_networking?
-      ports = with_openstack {
+      ports = openstack.with_openstack {
         openstack.network.ports.all(:device_id => server_id)
       }
       return ports.map { |port| port.id }
@@ -160,7 +160,7 @@ module Bosh::OpenStackCloud
     def self.cleanup_ports(openstack, port_ids)
       return if openstack.use_nova_networking?
       port_ids.each do |port_id|
-        with_openstack {
+        openstack.with_openstack {
           port = openstack.network.ports.get(port_id)
           if port
             Bosh::Clouds::Config.logger.debug("Deleting port #{port_id}")

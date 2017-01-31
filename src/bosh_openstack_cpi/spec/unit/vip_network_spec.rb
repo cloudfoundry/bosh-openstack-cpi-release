@@ -23,8 +23,10 @@ describe Bosh::OpenStackCloud::VipNetwork do
 
     context 'floating IP is provided' do
 
+      let(:openstack) { double('openstack') }
+      before { allow(openstack).to receive(:with_openstack) { |&block| block.call } }
+
       it 'calls FloatingIp.reassiciate' do
-        openstack = double('openstack')
         server = double('server')
         allow(Bosh::OpenStackCloud::FloatingIp).to receive(:reassociate)
 
