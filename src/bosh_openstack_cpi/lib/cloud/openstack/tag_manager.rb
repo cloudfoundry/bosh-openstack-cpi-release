@@ -11,5 +11,9 @@ module Bosh::OpenStackCloud
       taggable.metadata.update(trimmed_key => trimmed_value)
     end
 
+    def self.tag_and_save(taggable, key, value)
+      self.tag(taggable, key, value)
+      taggable.save
+    end
   end
 end

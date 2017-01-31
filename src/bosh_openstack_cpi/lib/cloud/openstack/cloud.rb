@@ -463,6 +463,8 @@ module Bosh::OpenStackCloud
 
         device_name = attach_volume(server, volume)
 
+        set_disk_metadata(volume, disk_metadata(server.metadata))
+
         update_agent_settings(server) do |settings|
           settings['disks'] ||= {}
           settings['disks']['persistent'] ||= {}
@@ -984,5 +986,18 @@ module Bosh::OpenStackCloud
       @logger.debug("Using key-pair: `#{keypair.name}' (#{keypair.fingerprint})")
     end
 
+    def disk_metadata(server_metadata)
+      server_metadata.select{ |metadata| ['deployment','job','index','id'].include?(metadata.key) }
+    end
+
+    def set_disk_metadata(disk, metadata)
+      with_thread_name("set_disk_metadata(#{disk.id}, ...)") do
+        with_openstack do
+          metadata.each do |metadatum|
+            TagManager.tag_and_save(disk, metadatum.key, metadatum.value)
+          end
+        end
+      end
+    end
   end
 end

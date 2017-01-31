@@ -76,7 +76,6 @@ describe Bosh::OpenStackCloud::Cloud do
     end
 
     describe 'set_vm_metadata' do
-
       let(:human_readable_vm_names) { true }
       before { @human_readable_vm_name_id = create_vm(@stemcell_id, network_spec, []) }
       after { clean_up_vm(@human_readable_vm_name_id, network_spec) if @human_readable_vm_name_id }
@@ -85,7 +84,26 @@ describe Bosh::OpenStackCloud::Cloud do
         vm = openstack.compute.servers.get(@human_readable_vm_name_id)
         expect(vm.name).to eq 'openstack_cpi_spec/instance_id'
       end
+    end
 
+    describe 'attach_disk' do
+      before do
+        @vm_id = create_vm(@stemcell_id, network_spec, [])
+        @metadata_disk_id = cpi.create_disk(2048, {}, @vm_id)
+      end
+
+      after do
+        cpi.detach_disk(@vm_id, @metadata_disk_id) if @metadata_disk_id && @vm_id
+        clean_up_disk(@metadata_disk_id) if @metadata_disk_id
+        clean_up_vm(@vm_id, network_spec) if @vm_id
+      end
+
+      it 'sets the vm name according to the metadata' do
+        cpi.attach_disk(@vm_id, @metadata_disk_id)
+
+        disk = openstack.volume.volumes.get(@metadata_disk_id)
+        expect(disk.metadata).to include('deployment' => 'deployment')
+      end
     end
   end
 
