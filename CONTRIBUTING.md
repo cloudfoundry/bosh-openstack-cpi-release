@@ -29,55 +29,8 @@ $ bundle install
 $ bundle exec rspec spec/unit
 ```
 
-### Running integration tests
-- Download and extract BOSH stemcell from [bosh.io](http://bosh.io/stemcells/bosh-openstack-kvm-ubuntu-trusty-go_agent)
-- Find or create an OpenStack project/tenant
-- Create a key pair by executing
-  
-  ```bash
-  $ mkdir -p <temp dir>
-  $ cd <temp dir>
-  $ ssh-keygen -t rsa -b 4096 -N "" -f bosh-lifecycle.rsa_id
-  ```
-- Prepare openstack project
-  - Copy terraform configuration
-  
-    ```bash
-    $ cp <cpi project>/ci/terraform/ci/lifecycle/terraform.tfvars.template terraform.tfvars
-    ```
-  - Replace all '<...>' with appropriate values.
-  - Run terraform
-  
-    ```bash
-    $ terraform get <cpi project>/ci/terraform/ci/lifecycle
-    $ terraform apply <cpi project>/ci/terraform/ci/lifecycle
-    ```
-- Create configuration file from terraform output
-  
-  ```bash
-  $ cp <cpi project>/docs/lifecycle-test-config-template.yml lifecycle-test-config.yml
-  ```
-  - Replace all '<replace-me>' with values from `terraform apply`
-- Run tests
-  
-  ```bash
-  $ export LIFECYCLE_ENV_FILE=<absolute path to temp dir>/lifecycle-test-config.yml
-  $ cd <cpi project>/src/bosh_openstack_cpi
-  $ bundle install
-  $ bundle exec rspec spec/integration --exclude-pattern spec/integration/lifecycle_v2_spec.rb
-  # If keystone v2 is available/configured:
-  $ bundle exec rspec spec/integration
-  ```
-- Cleanup openstack project
-  
-  ```bash
-  $ cd <temp dir>
-  $ terraform destroy <cpi project>/ci/terraform/ci/lifecycle
-  ```
-
-
 ### Running manual tests
-*Note:* This is not required for opening a pull request. Having green unit and integration tests is good enough from our perspective.
+*Note:* This is not required for opening a pull request. Having green unit tests is good enough from our perspective.
 
 If you still want to run manual tests (e.g. in order to validate your use case) this is how you do it: 
 
