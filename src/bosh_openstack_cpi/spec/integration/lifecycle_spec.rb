@@ -89,6 +89,15 @@ describe Bosh::OpenStackCloud::Cloud do
     describe 'attach_disk' do
       before do
         @vm_id = create_vm(@stemcell_id, network_spec, [])
+
+        cpi.set_vm_metadata(@vm_id, {
+          'id' => 'my-id',
+          'deployment' => 'my-deployment',
+          'job' => 'my-job',
+          'index' => 'my-index',
+          'some_key' => 'some_value'
+        })
+
         @metadata_disk_id = cpi.create_disk(2048, {}, @vm_id)
       end
 
@@ -98,11 +107,18 @@ describe Bosh::OpenStackCloud::Cloud do
         clean_up_vm(@vm_id, network_spec) if @vm_id
       end
 
-      it 'sets the vm name according to the metadata' do
+      it 'copies the vm metadata into the disk and keeps original metadata' do
+        disk = openstack.volume.volumes.get(@metadata_disk_id)
+        original_metadata = disk.metadata
         cpi.attach_disk(@vm_id, @metadata_disk_id)
 
         disk = openstack.volume.volumes.get(@metadata_disk_id)
-        expect(disk.metadata).to include('deployment' => 'deployment')
+        expect(disk.metadata).to include(original_metadata)
+        expect(disk.metadata).to include('id' => 'my-id',
+                                         'deployment' => 'my-deployment',
+                                         'job' => 'my-job',
+                                         'index' => 'my-index')
+        expect(disk.metadata).not_to include('some_key' => 'some_value')
       end
     end
   end

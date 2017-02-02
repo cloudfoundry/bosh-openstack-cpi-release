@@ -993,9 +993,13 @@ module Bosh::OpenStackCloud
     def set_disk_metadata(disk, metadata)
       with_thread_name("set_disk_metadata(#{disk.id}, ...)") do
         @openstack.with_openstack do
+          metadata_hash = {}
           metadata.each do |metadatum|
-            TagManager.tag_and_save(disk, metadatum.key, metadatum.value)
+            key, value = TagManager.trim( metadatum.key, metadatum.value)
+            metadata_hash[key] = value
           end
+
+          @openstack.volume.update_metadata(disk.id, metadata_hash)
         end
       end
     end

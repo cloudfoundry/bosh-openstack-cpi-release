@@ -6,14 +6,15 @@ module Bosh::OpenStackCloud
 
     def self.tag(taggable, key, value)
       return if key.nil? || value.nil?
-      trimmed_key = key[0..(MAX_TAG_KEY_LENGTH - 1)]
-      trimmed_value = value[0..(MAX_TAG_VALUE_LENGTH - 1)]
+      
+      trimmed_key, trimmed_value = self.trim(key, value)
       taggable.metadata.update(trimmed_key => trimmed_value)
     end
-
-    def self.tag_and_save(taggable, key, value)
-      self.tag(taggable, key, value)
-      taggable.save
+    
+    def self.trim(key, value)
+      return if key.nil? || value.nil?
+      
+      return key[0..(MAX_TAG_KEY_LENGTH - 1)], value[0..(MAX_TAG_VALUE_LENGTH - 1)]
     end
   end
 end

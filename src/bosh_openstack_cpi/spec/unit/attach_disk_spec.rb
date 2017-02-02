@@ -10,14 +10,13 @@ describe Bosh::OpenStackCloud::Cloud do
       expect(fog.compute.servers).to receive(:get).with('i-test').and_return(server)
       expect(fog.volume.volumes).to receive(:get).with('v-foobar').and_return(volume)
       expect(fog.compute.flavors).to receive(:find).and_return(flavor)
+      allow(fog.volume).to receive(:update_metadata)
     end
   end
   let(:cloud_options) { mock_cloud_options }
 
   before(:each) do
     allow(server.metadata).to receive(:get).with(:registry_key).and_return(double('metadatum',{'value' => 'i-test'}))
-    allow(Bosh::OpenStackCloud::TagManager).to receive(:tag)
-    allow(volume).to receive(:save)
     @registry = mock_registry
   end
 
@@ -63,12 +62,7 @@ describe Bosh::OpenStackCloud::Cloud do
     it 'copies the relevant server metadata to the disk' do
       cloud.attach_disk('i-test', 'v-foobar')
 
-      expect(Bosh::OpenStackCloud::TagManager).to have_received(:tag).with(volume, deployment_md.key, deployment_md.value)
-      expect(Bosh::OpenStackCloud::TagManager).to have_received(:tag).with(volume, job_md.key, job_md.value)
-      expect(Bosh::OpenStackCloud::TagManager).to have_received(:tag).with(volume, index_md.key, index_md.value)
-      expect(Bosh::OpenStackCloud::TagManager).to have_received(:tag).with(volume, id_md.key, id_md.value)
-      expect(Bosh::OpenStackCloud::TagManager).to_not have_received(:tag).with(volume, some_other_server_metadatum.key, some_other_server_metadatum.value)
-      expect(volume).to have_received(:save).exactly(4).times
+      expect(cloud.volume).to have_received(:update_metadata).with('v-foobar', {'deployment' => 'deployment-1', 'job' => 'job-1', 'index' => 'index-1', 'id' => 'id-1'})
     end
   end
 
@@ -116,6 +110,7 @@ describe Bosh::OpenStackCloud::Cloud do
     cloud = mock_cloud do |fog|
       expect(fog.compute.servers).to receive(:get).with('i-test').and_return(server)
       expect(fog.volume.volumes).to receive(:get).with('v-foobar').and_return(volume)
+      allow(fog.volume).to receive(:update_metadata)
     end
 
     expect(server).to receive(:volume_attachments).and_return(volume_attachments)
