@@ -178,4 +178,12 @@ describe Bosh::OpenStackCloud::Cloud do
     end
   end
 
+  describe :info do
+    let(:cloud_options) { mock_cloud_options }
+
+    it 'returns correct info' do
+      cpi = Bosh::OpenStackCloud::Cloud.new(cloud_options['properties'])
+      expect(cpi.info).to eq({'stemcell_formats' => ['openstack-raw', 'openstack-qcow2', 'openstack-light']})
+    end
+  end
 end

@@ -1,4 +1,5 @@
 require 'common/common'
+require 'membrane'
 
 module Bosh::OpenStackCloud
   ##
@@ -654,6 +655,12 @@ module Bosh::OpenStackCloud
       settings = @registry.read_settings(registry_key)
       yield settings
       @registry.update_settings(registry_key, settings)
+    end
+
+    # Information about Openstack CPI, currently supported stemcell formats
+    # @return [Hash] Openstack CPI properties
+    def info
+      {'stemcell_formats' => ['openstack-raw', 'openstack-qcow2', 'openstack-light']}
     end
 
     private
