@@ -45,6 +45,12 @@ describe Bosh::OpenStackCloud::Cloud do
 
     def force_image_v1
       allow(Fog::Image::OpenStack::V2).to receive(:new).and_raise(Fog::OpenStack::Errors::ServiceUnavailable)
+      begin
+        cpi_for_stemcell.glance
+      rescue Fog::OpenStack::Errors::ServiceUnavailable
+        pending 'Image is not available in version v1.'
+        raise
+      end
     end
 
     before do

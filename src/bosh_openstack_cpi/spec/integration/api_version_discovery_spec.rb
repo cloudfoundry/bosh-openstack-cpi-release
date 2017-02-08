@@ -59,7 +59,12 @@ describe Bosh::OpenStackCloud::Cloud do
     service_catalog = retrieve_catalog
     image_url = find_service_url(service_catalog, 'image')
     stub_root_service_versions(image_url) do |versions|
-      versions.select { |v| v['id'].start_with?('v1.') }
+      filtered_versions = versions.select { |v| v['id'].start_with?('v1.') }.reject { |v| v['status'] == 'DEPRECATED' }
+      if filtered_versions.empty?
+        pending 'Image is not available in version v1.'
+        raise
+      end
+      filtered_versions
     end
   end
 
