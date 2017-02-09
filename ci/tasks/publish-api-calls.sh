@@ -11,7 +11,7 @@ cd publish/repo/ci/ruby_scripts
 
 bundle install
 bundle exec rspec spec/
-bundle exec ruby get_api_calls.rb < ../../../../lifecycle-log/lifecycle.log > ../../docs/openstack-api-calls.md
+bundle exec get_api_calls < ../../../../lifecycle-log/lifecycle.log > ../../docs/openstack-api-calls.md
 
 git diff | cat
 

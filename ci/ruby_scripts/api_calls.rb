@@ -1,13 +1,12 @@
 require 'json'
 
-def target_service(request, catalog)
-  service_catalog = catalog['access']['serviceCatalog']
+def target_service(request, endpoints)
   url = /(http|https):\/\/#{request[:host]}:#{request[:port]}/
   url_with_version = /#{url}#{request[:path][/\/v[1-9](\.[0-9]+)?/]}/
 
-  catalog_entry = find_versioned_target_service(service_catalog, url_with_version)
+  catalog_entry = find_versioned_target_service(endpoints, url_with_version)
   if catalog_entry.empty?
-    catalog_entry = find_unversioned_target_service(service_catalog, url)
+    catalog_entry = find_unversioned_target_service(endpoints, url)
   end
 
   if catalog_entry.empty?
@@ -21,17 +20,22 @@ def target_service(request, catalog)
   end
 end
 
-def find_versioned_target_service(service_catalog, url)
-  match_service_url(service_catalog, url)
+def find_versioned_target_service(endpoints, url)
+  match_service_url(endpoints, url)
 end
 
-def find_unversioned_target_service(service_catalog, url)
-  match_service_url(service_catalog, url)
+def find_unversioned_target_service(endpoints, url)
+  match_service_url(endpoints, url)
 end
 
-def match_service_url(service_catalog, url_pattern)
-  service_catalog.select do |catalog_entry|
-    catalog_entry['endpoints'].any? { |endpoint| endpoint['publicURL'] =~ url_pattern }
+def match_service_url(endpoints, url_pattern)
+  endpoints.select do |catalog_entry|
+    catalog_entry['endpoints'].any? { |endpoint|
+      is_url = false
+      is_url = true if endpoint['publicURL'] =~ url_pattern
+      is_url = true if endpoint['interface'] == 'public' && endpoint['url'] =~ url_pattern
+      is_url
+    }
   end
 end
 
@@ -77,16 +81,30 @@ def unescape_double_quote(string)
   string.gsub('\"', '"') if string
 end
 
+def update_catalog(catalog, line)
+  catalog_response_regex = /excon\.response {.*?:body=>"({.*?serviceCatalog.*?})"/
+  catalog_matched = catalog_response_regex.match(line)
+  if catalog_matched
+    catalog[:v2] = JSON.parse(unescape_double_quote(catalog_matched[1]))
+  end
+
+  catalog_response_regex = /excon\.response {.*?:body=>"({.*?catalog.*?})"/
+  catalog_matched = catalog_response_regex.match(line)
+  if catalog_matched
+    catalog[:v3] = JSON.parse(unescape_double_quote(catalog_matched[1]))
+  end
+
+  catalog
+end
+
 def run
-  catalog = nil
+  catalog = {
+    v2: {},
+    v3: {}
+  }
   requests = []
   STDIN.each_line do |line|
-
-    catalog_response_regex = /excon\.response {.*?:body=>"({.*?serviceCatalog.*?})"/
-    catalog_matched = catalog_response_regex.match(line)
-    if catalog_matched
-      catalog = JSON.parse(unescape_double_quote(catalog_matched[1]))
-    end
+    update_catalog(catalog, line)
 
     request_regex = /^.*excon\.request ({.*})$/
     matched = request_regex.match(line)
@@ -99,10 +117,10 @@ def run
       body_regex = /:body=>"({.*?})"/
 
       request = {
-          method: method_regex.match(matched[1])[1],
-          host: host_regex.match(matched[1])[1],
-          port: port_regex.match(matched[1])[1],
-          path: path_regex.match(matched[1])[1],
+        method: method_regex.match(matched[1])[1],
+        host: host_regex.match(matched[1])[1],
+        port: port_regex.match(matched[1])[1],
+        path: path_regex.match(matched[1])[1],
       }
       query = query_regex.match(matched[1])
       if query && query[1] != '{}'
@@ -115,29 +133,30 @@ def run
     end
   end
 
-  if catalog
-    scrub_random_values!(requests)
-
-    requests.uniq!
-
-    requests.each do |request|
-      request[:target] = target_service(request, catalog)
-    end
-
-    lines = catalog['access']['serviceCatalog']
-    .sort_by { |entry| entry['type'] }
-    .reduce([]) do |result, catalog_entry|
-      result << ["### All calls for API endpoint '#{catalog_entry['type']} (#{catalog_entry['name']})'"]
-      requests_per_catalog_entry = requests.select(&request_of(catalog_entry['type'])).map(&to_formatted_line).sort
-
-      result.push(*['```', requests_per_catalog_entry, '```']) unless requests_per_catalog_entry.empty?
-
-      result
-    end
-    lines.each { |line| puts line }
+  if !catalog[:v3].empty?
+    endpoints = catalog[:v3]['token']['catalog']
+  elsif !catalog[:v2].empty?
+    endpoints = catalog[:v2]['access']['serviceCatalog']
   else
-    puts 'No catalog found'
+    raise 'No catalog found'
   end
+
+  scrub_random_values!(requests)
+  requests.uniq!
+  requests.each do |request|
+    request[:target] = target_service(request, endpoints)
+  end
+
+  lines = endpoints.sort_by { |entry| entry['type'] }
+    .reduce([]) do |result, catalog_entry|
+    result << ["### All calls for API endpoint '#{catalog_entry['type']} (#{catalog_entry['name']})'"]
+    requests_per_catalog_entry = requests.select(&request_of(catalog_entry['type'])).map(&to_formatted_line).sort
+
+    result.push(*['```', requests_per_catalog_entry, '```']) unless requests_per_catalog_entry.empty?
+
+    result
+  end
+  lines.each { |line| puts line }
 end
 
 def request_of(catalog_entry_type)
@@ -175,5 +194,3 @@ def to_formatted_line
     "#{request[:method]} #{request[:path]}#{query}#{body}"
   }
 end
-
-run
