@@ -640,6 +640,7 @@ resource_types:
 resources:
   - name: terraform-lifecycle
     type: terraform
+    tags: *tags
     source:
       storage:
         bucket: {{s3_openstack_cpi_pipeline_bucket_name}}
@@ -650,6 +651,7 @@ resources:
 
   - name: terraform-bats-dynamic
     type: terraform
+    tags: *tags
     source:
       storage:
         bucket: {{s3_openstack_cpi_pipeline_bucket_name}}
@@ -660,6 +662,7 @@ resources:
 
   - name: terraform-bats-manual
     type: terraform
+    tags: *tags
     source:
       storage:
         bucket: {{s3_openstack_cpi_pipeline_bucket_name}}
@@ -670,6 +673,7 @@ resources:
 
   - name: bosh-cpi-dev-artifacts
     type: s3
+    tags: *tags
     source:
       regexp: bosh-openstack-cpi-([0-9.]+)\.tgz
       bucket: {{s3_openstack_cpi_pipeline_bucket_name}} # OpenStack CPI account
@@ -679,6 +683,7 @@ resources:
 
   - name: lifecycle-log
     type: s3
+    tags: *tags
     source:
       bucket: {{s3_openstack_cpi_pipeline_bucket_name}} # OpenStack CPI account
       versioned_file: lifecycle.log
@@ -688,6 +693,7 @@ resources:
 
   - name: bosh-cpi-src-in
     type: git
+    tags: *tags
     source:
       uri: https://github.com/cloudfoundry-incubator/bosh-openstack-cpi-release.git
       branch: master
@@ -699,6 +705,7 @@ resources:
 
   - name: bosh-cpi-src-out
     type: git
+    tags: *tags
     source:
       uri: git@github.com:cloudfoundry-incubator/bosh-openstack-cpi-release.git
       branch: master
@@ -706,6 +713,7 @@ resources:
 
   - name: version-semver
     type: semver
+    tags: *tags
     source:
       key:                current-version
       bucket:             {{s3_openstack_cpi_pipeline_bucket_name}}
@@ -714,6 +722,7 @@ resources:
 
   - name: release-version-semver
     type: semver
+    tags: *tags
     source:
       key:                release-current-version
       bucket:             {{s3_openstack_cpi_pipeline_bucket_name}}
@@ -722,6 +731,7 @@ resources:
 
   - name: bosh-init
     type: s3
+    tags: *tags
     source:
       regexp: bosh-init-([0-9.]+)-linux-amd64
       bucket: bosh-init-artifacts
@@ -729,37 +739,44 @@ resources:
 
   - name: bats
     type: git
+    tags: *tags
     source:
       uri: https://github.com/cloudfoundry/bosh-acceptance-tests.git
       branch: master
 
   - name: bosh-release
     type: bosh-io-release
+    tags: *tags
     source:
       repository: cloudfoundry/bosh
 
   - name: openstack-ubuntu-stemcell
     type: bosh-io-stemcell
+    tags: *tags
     source:
       name: bosh-openstack-kvm-ubuntu-trusty-go_agent
 
   - name: openstack-centos-stemcell
     type: bosh-io-stemcell
+    tags: *tags
     source:
       name: bosh-openstack-kvm-centos-7-go_agent
 
   - name: openstack-lifecycle-stemcell
     type: bosh-io-stemcell
+    tags: *tags
     source:
       name: bosh-openstack-kvm-ubuntu-trusty-go_agent
 
   - name: pipeline-time-trigger
     type: time
+    tags: *tags
     source:
       interval: {{pipeline-time-trigger-interval}}
 
   - name: send-an-email
     type: email
+    tags: *tags
     source:
       smtp:
         host: {{email_host}}

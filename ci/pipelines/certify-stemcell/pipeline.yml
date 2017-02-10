@@ -607,6 +607,7 @@ resource_types:
 resources:
   - name: terraform-e2e-base
     type: terraform
+    tags: *tags
     source:
       storage:
         bucket: {{s3_openstack_cpi_pipeline_bucket_name}}
@@ -617,6 +618,7 @@ resources:
 
   - name: terraform-e2e-config-drive
     type: terraform
+    tags: *tags
     source:
       storage:
         bucket: {{s3_openstack_cpi_pipeline_bucket_name}}
@@ -627,6 +629,7 @@ resources:
 
   - name: bosh-cpi-dev-artifacts
     type: s3
+    tags: *tags
     source:
       regexp: bosh-openstack-cpi-([0-9.]+)\.tgz
       bucket: {{s3_openstack_cpi_pipeline_bucket_name}} # OpenStack CPI account
@@ -636,27 +639,32 @@ resources:
 
   - name: dummy-release
     type: git
+    tags: *tags
     source:
       uri: https://github.com/pivotal-cf-experimental/dummy-boshrelease.git
       branch: master
 
   - name: bosh-release
     type: bosh-io-release
+    tags: *tags
     source:
       repository: cloudfoundry/bosh
 
   - name: centos-stemcell
     type: bosh-io-stemcell
+    tags: *tags
     source:
       name: bosh-openstack-kvm-centos-7-go_agent
 
   - name: ubuntu-stemcell
     type: bosh-io-stemcell
+    tags: *tags
     source:
       name: bosh-openstack-kvm-ubuntu-trusty-go_agent
 
   - name: bosh-init
     type: s3
+    tags: *tags
     source:
       regexp: bosh-init-([0-9.]+)-linux-amd64
       bucket: bosh-init-artifacts
@@ -664,6 +672,7 @@ resources:
 
   - name: old-bosh-init
     type: s3
+    tags: *tags
     source:
       regexp: bosh-init-(0\.0\.81)-linux-amd64
       bucket: bosh-init-artifacts
@@ -671,6 +680,7 @@ resources:
 
   - name: bosh-cpi-src-in
     type: git
+    tags: *tags
     source:
       uri: https://github.com/cloudfoundry-incubator/bosh-openstack-cpi-release.git
       branch: master
@@ -682,6 +692,7 @@ resources:
 
   - name: certification
     type: s3
+    tags: *tags
     source:
       access_key_id: {{s3_openstack_cpi_receipts_access_key}}
       secret_access_key: {{s3_openstack_cpi_receipts_secret_key}}
@@ -691,6 +702,7 @@ resources:
 
   - name: send-an-email
     type: email
+    tags: *tags
     source:
       smtp:
         host: {{email_host}}
