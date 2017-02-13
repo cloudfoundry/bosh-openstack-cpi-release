@@ -22,7 +22,7 @@ class LightStemcellCreator
           'bosh_protocol' => 1,
           'sha1' => sha1,
           'operating_system' => os,
-          'stemcell_formats' => ['openstack-qcow2'],
+          'stemcell_formats' => ['openstack-light'],
           'cloud_properties' => {
             'name' => "bosh-openstack-kvm-#{os}-go_agent",
             'version' => version,

@@ -72,7 +72,7 @@ bosh_protocol: 1
 sha1: da39a3ee5e6b4b0d3255bfef95601890afd80709
 operating_system: ubuntu-trusty
 stemcell_formats:
-- openstack-qcow2
+- openstack-light
 cloud_properties:
   name: bosh-openstack-kvm-ubuntu-trusty-go_agent
   version: '3263.8'
