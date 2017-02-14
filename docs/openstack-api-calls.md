@@ -16,14 +16,7 @@ POST /v2/<tenant_id>/servers.json body: {"server":{"flavorRef":"<resource_id>","
 POST /v2/<tenant_id>/servers.json body: {"server":{"flavorRef":"<resource_id>","name":"<name>","imageRef":"<resource_id>","user_data":"<user_data>","key_name":"<key_name>","security_groups":[{"name":"<name>"}],"networks":[{"uuid":"<resource_id>","port":"<resource_id>"}]}}
 POST /v2/<tenant_id>/servers.json body: {"server":{"flavorRef":"<resource_id>","name":"<name>","imageRef":"<resource_id>","user_data":"<user_data>","key_name":"<key_name>","security_groups":[{"name":"<name>"}],"networks":[{"uuid":"<resource_id>"}]}}
 POST /v2/<tenant_id>/servers.json body: {"server":{"flavorRef":"<resource_id>","name":"<name>","user_data":"<user_data>","key_name":"<key_name>","security_groups":[{"name":"<name>"}],"networks":[{"uuid":"<resource_id>","port":"<resource_id>"}],"block_device_mapping_v2":[{"boot_index":"0","delete_on_termination":"1","destination_type":"volume","device_name":"/dev/vda","source_type":"image","uuid":"<resource_id>","volume_size":"<volume_size>"}]}}
-POST /v2/<tenant_id>/servers/<resource_id>/metadata.json body: {"metadata":{"deployment":"deployment"}}
-POST /v2/<tenant_id>/servers/<resource_id>/metadata.json body: {"metadata":{"deployment":"my-deployment"}}
-POST /v2/<tenant_id>/servers/<resource_id>/metadata.json body: {"metadata":{"id":"my-id"}}
-POST /v2/<tenant_id>/servers/<resource_id>/metadata.json body: {"metadata":{"index":"my-index"}}
-POST /v2/<tenant_id>/servers/<resource_id>/metadata.json body: {"metadata":{"job":"my-job"}}
-POST /v2/<tenant_id>/servers/<resource_id>/metadata.json body: {"metadata":{"name":"<name>"}}
-POST /v2/<tenant_id>/servers/<resource_id>/metadata.json body: {"metadata":{"registry_key":"vm-<resource_id>"}}
-POST /v2/<tenant_id>/servers/<resource_id>/metadata.json body: {"metadata":{"some_key":"some_value"}}
+POST /v2/<tenant_id>/servers/<resource_id>/metadata.json body: {"metadata":"<metadata>"}
 POST /v2/<tenant_id>/servers/<resource_id>/os-volume_attachments body: {"volumeAttachment":{"volumeId":"<resource_id>","device":"<device>"}}
 PUT /v2/<tenant_id>/servers/<resource_id>.json body: {"server":{"name":"<name>"}}
 ```
@@ -33,7 +26,7 @@ POST /v2.0/tokens body: {"auth":{"passwordCredentials":{"username":"<username>",
 ```
 ### All calls for API endpoint 'identityv3 (keystonev3)'
 ```
-POST /v3/auth/tokens body: {"auth":{"identity":{"methods":["password"],"password":{"user":{"password":"<password>","domain":{"name":"<name>"},"name":"<name>"}}},"scope":{"project":{"name":"<name>","domain":{"name":"<name>"}}}}}
+POST /v3/auth/tokens body: {"auth":{"identity":{"methods":["password"],"password":"<password>","name":"<name>"}}},"scope":{"project":{"name":"<name>","domain":{"name":"<name>"}}}}}
 ```
 ### All calls for API endpoint 'image (glance)'
 ```
@@ -72,6 +65,5 @@ GET /v2/<tenant_id>/volumes/<resource_id>
 POST /v2/<tenant_id>/snapshots body: {"snapshot":{"volume_id":"<resource_id>","name":"<name>","description":"<description>","force":true}}
 POST /v2/<tenant_id>/volumes body: {"volume":{"name":"<name>","description":"<description>","size":"<size>","availability_zone":"<availability_zone>"}}
 POST /v2/<tenant_id>/volumes body: {"volume":{"name":"<name>","description":"<description>","size":"<size>","volume_type":"SSD","availability_zone":"<availability_zone>"}}
-POST /v2/<tenant_id>/volumes/<resource_id>/metadata body: {"metadata":{"deployment":"deployment"}}
-POST /v2/<tenant_id>/volumes/<resource_id>/metadata body: {"metadata":{"index":"my-index","job":"my-job","deployment":"my-deployment","id":"my-id"}}
+POST /v2/<tenant_id>/volumes/<resource_id>/metadata body: {"metadata":"<metadata>"}
 ```
