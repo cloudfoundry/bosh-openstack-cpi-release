@@ -43,6 +43,10 @@ def scrub_random_body_value!(request, key)
   request[:body].gsub!(/"#{key}":\".*?\"/, "\"#{key}\":\"<#{key}>\"")
 end
 
+def scrub_random_body_hash!(request, key)
+  request[:body].gsub!(/"#{key}":\{.*?\}/, "\"#{key}\":\"<#{key}>\"")
+end
+
 def scrub_random_query_value!(query, key)
   query.gsub!(/(\A|&)#{key}=.*?(\Z|&)/, "\\1#{key}=<#{key}>\\2")
 end
@@ -59,7 +63,7 @@ def scrub_random_values!(requests)
     # life cycle test uses this fake ids which doesn't match any uuid reqex
     request[:path].gsub!('non-existing-disk', '<resource_id>')
     request[:path].gsub!('non-existing-vm-id', '<resource_id>')
-    keys_to_scrub = ['user_data', 'display_description', 'device', 'password', 'fixed_ip', 'availability_zone', 'key_name', 'username', 'tenantName', 'name', 'token', 'ip_address', 'device_id', 'version', 'floating_ip_address', 'network_id', 'description']
+    keys_to_scrub = ['user_data', 'display_description', 'device', 'password', 'fixed_ip', 'availability_zone', 'key_name', 'username', 'tenantName', 'name', 'token', 'ip_address', 'device_id', 'version', 'floating_ip_address', 'network_id', 'description', 'metadata']
     if request[:query]
       keys_to_scrub.each do |key|
         scrub_random_query_value!(request[:query], key)
@@ -72,6 +76,7 @@ def scrub_random_values!(requests)
       request[:body].gsub!(/"size":\d+/, "\"size\":\"<size>\"")
       keys_to_scrub.each do |key|
         scrub_random_body_value!(request, key)
+        scrub_random_body_hash!(request, key)
       end
     end
   end
