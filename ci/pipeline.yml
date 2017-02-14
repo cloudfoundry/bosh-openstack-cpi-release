@@ -38,6 +38,7 @@ custom:
     suse-liberty: ['suse-liberty']
     suse-mitaka: ['suse-mitaka']
     suse-newton: ['suse-newton']
+    blue-box: ['blue-box']
   timeouts:
     long: &timeouts-long 2h
   build_logs_to_retain: &build_logs_to_retain 500
