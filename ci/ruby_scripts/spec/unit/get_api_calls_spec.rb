@@ -49,8 +49,11 @@ describe 'Get API calls script' do
     context 'with Keystone API V2' do
       it 'prints openstack api usage markdown' do
         allow(STDIN).to receive(:each_line) do |&block|
-          File.open('spec/assets/lifecycle_v2.log') do |input|
-            input.each_line &block
+          File.open('spec/assets/lifecycle.log') do |lifecycle|
+            File.open('spec/assets/catalog_v2.log') do |catalog|
+              lifecycle.each_line &block
+              catalog.each_line &block
+            end
           end
         end
 
@@ -63,8 +66,11 @@ describe 'Get API calls script' do
     context 'with Keystone API V3' do
       it 'prints openstack api usage markdown' do
         allow(STDIN).to receive(:each_line) do |&block|
-          File.open('spec/assets/lifecycle_v3.log') do |input|
-            input.each_line &block
+          File.open('spec/assets/lifecycle.log') do |lifecycle|
+            File.open('spec/assets/catalog_v3.log') do |catalog|
+              lifecycle.each_line &block
+              catalog.each_line &block
+            end
           end
         end
 
@@ -77,8 +83,14 @@ describe 'Get API calls script' do
     context 'with Keystone API V2 and V3' do
       it 'prefers the V3 over V2' do
         allow(STDIN).to receive(:each_line) do |&block|
-          File.open('spec/assets/lifecycle_v2_and_v3.log') do |input|
-            input.each_line &block
+          File.open('spec/assets/lifecycle.log') do |lifecycle|
+            File.open('spec/assets/catalog_v2.log') do |catalog_v2|
+              File.open('spec/assets/catalog_v2.log') do |catalog_v3|
+                lifecycle.each_line &block
+                catalog_v2.each_line &block
+                catalog_v3.each_line &block
+              end
+            end
           end
         end
 
