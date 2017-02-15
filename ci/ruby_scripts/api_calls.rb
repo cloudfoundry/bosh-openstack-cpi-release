@@ -44,7 +44,7 @@ def scrub_random_body_value!(request, key)
 end
 
 def scrub_random_body_hash!(request, key)
-  request[:body].gsub!(/"#{key}":\{.*?\}/, "\"#{key}\":\"<#{key}>\"")
+  request[:body].gsub!(/"#{key}":\{[^{]*?\}/, "\"#{key}\":\"<#{key}>\"")
 end
 
 def scrub_random_query_value!(query, key)

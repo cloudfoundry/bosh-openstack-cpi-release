@@ -174,7 +174,7 @@ describe 'Get API calls script' do
       expect(requests.map { |request| request[:query] }).to all (eq('floating_ip_address=<floating_ip_address>'))
     end
 
-    ['user_data', 'display_description', 'device', 'password', 'fixed_ip', 'availability_zone', 'key_name', 'username', 'tenantName', 'name', 'token', 'ip_address', 'device_id', 'floating_ip_address', 'network_id', 'description'].each do |key|
+    ['user_data', 'display_description', 'device', 'password', 'fixed_ip', 'availability_zone', 'key_name', 'username', 'tenantName', 'name', 'token', 'ip_address', 'device_id', 'floating_ip_address', 'network_id', 'description', 'metadata'].each do |key|
       it "scrubs '#{key}' values from body" do
         requests = requests_with_body "{\"#{key}\":\"aribitrary_value\"}"
 
@@ -190,10 +190,30 @@ describe 'Get API calls script' do
 
         expect(requests.map { |request| request[:query] }).to all (eq("#{key}=<#{key}>"))
       end
+
+      it "scrubs '#{key}' one level deep hash values from body" do
+        requests = requests_with_body "{\"#{key}\":\{\"key\":\"value\"}}"
+
+        scrub_random_values!(requests)
+
+        expect(requests.map &to_json).to (eq([{"#{key}" => "<#{key}>"}]))
+
+        requests_nested = requests_with_body "{\"#{key}\":\{\"nested\":{\"somekey\":\"value\"}}}"
+
+        scrub_random_values!(requests_nested)
+
+        expect(requests_nested.map &to_json).to (eq([{"#{key}" => { 'nested' => { 'somekey' => 'value'}}}]))
+      end
     end
 
     def to_path
       lambda {|req| req[:path]}
+    end
+
+    def to_json
+      lambda do |req|
+        JSON.parse(req[:body])
+      end
     end
 
     def to_body_value(key)
