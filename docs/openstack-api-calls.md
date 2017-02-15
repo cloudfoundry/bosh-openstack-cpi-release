@@ -26,7 +26,7 @@ POST /v2.0/tokens body: {"auth":{"passwordCredentials":{"username":"<username>",
 ```
 ### All calls for API endpoint 'identityv3 (keystonev3)'
 ```
-POST /v3/auth/tokens body: {"auth":{"identity":{"methods":["password"],"password":"<password>","name":"<name>"}}},"scope":{"project":{"name":"<name>","domain":{"name":"<name>"}}}}}
+POST /v3/auth/tokens body: {"auth":{"identity":{"methods":["password"],"password":{"user":{"password":"<password>","domain":{"name":"<name>"},"name":"<name>"}}},"scope":{"project":{"name":"<name>","domain":{"name":"<name>"}}}}}
 ```
 ### All calls for API endpoint 'image (glance)'
 ```
