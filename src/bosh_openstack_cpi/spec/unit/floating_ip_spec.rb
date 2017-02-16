@@ -67,6 +67,40 @@ describe Bosh::OpenStackCloud::FloatingIp do
       allow(network).to receive(:ports).and_return(port_collection)
     }
 
+
+    describe '.port_attached?' do
+      context 'when the floating_ip port_id is nil' do
+        let(:floating_ip) {
+          {
+              'port_id' => nil,
+          }
+        }
+        it 'returns false' do
+          expect(Bosh::OpenStackCloud::FloatingIp.port_attached?(floating_ip)).to be false
+        end
+      end
+      context 'when the floating_ip port_id is empty' do
+        let(:floating_ip) {
+          {
+              'port_id' => '',
+          }
+        }
+        it 'returns false' do
+          expect(Bosh::OpenStackCloud::FloatingIp.port_attached?(floating_ip)).to be false
+        end
+      end
+      context 'when the floating_ip port_id is non-empty' do
+        let(:floating_ip) {
+          {
+              'port_id' => floating_ip_port_id,
+          }
+        }
+        it 'returns true' do
+          expect(Bosh::OpenStackCloud::FloatingIp.port_attached?(floating_ip)).to be true
+        end
+      end
+    end
+
     describe '.reassociate' do
 
       before(:each) {
