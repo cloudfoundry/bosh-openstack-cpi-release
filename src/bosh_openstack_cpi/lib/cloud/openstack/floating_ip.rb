@@ -8,7 +8,7 @@ module Bosh::OpenStackCloud
       else
         floating_ip = get_floating_ip(openstack, ip)
 
-        if floating_ip['port_id']
+        if port_attached?(floating_ip)
           old_port = openstack.network.get_port(floating_ip['port_id']).body['port']
           old_server = openstack.compute.get_server_details(old_port['device_id']).body['server']
           disassociate(openstack, floating_ip, old_server['name'], old_server['id'])
@@ -21,6 +21,19 @@ module Bosh::OpenStackCloud
     end
 
     private
+
+    def self.port_attached?(floating_ip)
+      case floating_ip['port_id']
+        when nil
+          false
+        when ''
+          false
+        else
+          true
+      end
+    end
+
+
 
     def self.disassociate(openstack, floating_ip, server_name, server_id)
       Bosh::Clouds::Config.logger.info("Disassociating floating IP '#{floating_ip['floating_ip_address']}' from server '#{server_name} (#{server_id})'")
