@@ -1,6 +1,3 @@
-require 'common/common'
-require 'membrane'
-
 module Bosh::OpenStackCloud
   ##
   # BOSH OpenStack CPI

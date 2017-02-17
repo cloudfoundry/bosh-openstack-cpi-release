@@ -10,7 +10,9 @@ require "set"
 require "tmpdir"
 require "securerandom"
 require "json"
+require 'membrane'
 
+require 'common/common'
 require "common/exec"
 require "common/thread_pool"
 require "common/thread_formatter"
