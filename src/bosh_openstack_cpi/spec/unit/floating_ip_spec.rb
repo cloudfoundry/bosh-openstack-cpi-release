@@ -67,7 +67,6 @@ describe Bosh::OpenStackCloud::FloatingIp do
       allow(network).to receive(:ports).and_return(port_collection)
     }
 
-
     describe '.port_attached?' do
       context 'when the floating_ip port_id is nil' do
         let(:floating_ip) {

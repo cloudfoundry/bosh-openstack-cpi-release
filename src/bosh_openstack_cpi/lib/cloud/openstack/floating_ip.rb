@@ -23,17 +23,10 @@ module Bosh::OpenStackCloud
     private
 
     def self.port_attached?(floating_ip)
-      case floating_ip['port_id']
-        when nil
-          false
-        when ''
-          false
-        else
-          true
-      end
+      return false if floating_ip['port_id'].nil? || floating_ip['port_id'].empty?
+
+      true
     end
-
-
 
     def self.disassociate(openstack, floating_ip, server_name, server_id)
       Bosh::Clouds::Config.logger.info("Disassociating floating IP '#{floating_ip['floating_ip_address']}' from server '#{server_name} (#{server_id})'")
