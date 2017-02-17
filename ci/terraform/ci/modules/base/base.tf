@@ -168,4 +168,5 @@ resource "openstack_networking_secgroup_rule_v2" "secgroup_rule_11" {
   direction = "egress"
   ethertype = "IPv4"
   security_group_id = "${openstack_networking_secgroup_v2.secgroup.id}"
+  count       = "${var.add_security_group}"
 }
