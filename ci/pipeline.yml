@@ -130,6 +130,7 @@ jobs:
         - {trigger: false,                    get: openstack-lifecycle-stemcell, tags: *tags, timeout: *timeouts-long}
 
       - task: write_ca_file
+        tags: *tags
         file: bosh-cpi-src-in/ci/tasks/write-ca-file.yml
         params:
           file_content: {{bosh_openstack_ca_cert}}
@@ -216,6 +217,7 @@ jobs:
         - {trigger: false,                    get: bats, tags: *tags, timeout: *timeouts-long}
 
       - task: write_ca_file
+        tags: *tags
         file: bosh-cpi-src-in/ci/tasks/write-ca-file.yml
         params:
           file_content: {{bosh_openstack_ca_cert}}
@@ -318,6 +320,7 @@ jobs:
         - {trigger: false,                    get: bats, tags: *tags, timeout: *timeouts-long}
 
       - task: write_ca_file
+        tags: *tags
         file: bosh-cpi-src-in/ci/tasks/write-ca-file.yml
         params:
           file_content: {{bosh_openstack_ca_cert}}
@@ -416,6 +419,7 @@ jobs:
         - {trigger: false,                    get: bats, tags: *tags, timeout: *timeouts-long}
 
       - task: write_ca_file
+        tags: *tags
         file: bosh-cpi-src-in/ci/tasks/write-ca-file.yml
         params:
           file_content: {{bosh_openstack_ca_cert}}
@@ -518,6 +522,7 @@ jobs:
         - {trigger: false,                    get: bats, tags: *tags, timeout: *timeouts-long}
 
       - task: write_ca_file
+        tags: *tags
         file: bosh-cpi-src-in/ci/tasks/write-ca-file.yml
         params:
           file_content: {{bosh_openstack_ca_cert}}
@@ -617,6 +622,7 @@ jobs:
         params:
           aws_access_key_id: {{s3_openstack_cpi_blobs_access_key}}
           aws_secret_access_key: {{s3_openstack_cpi_blobs_secret_key}}
+
       - put: release-version-semver
         tags: *tags
         timeout: *timeouts-long
