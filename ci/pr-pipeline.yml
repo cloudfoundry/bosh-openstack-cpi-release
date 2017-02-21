@@ -11,7 +11,7 @@ resources:
   type: pull-request
   source:
     repo: cloudfoundry-incubator/bosh-openstack-cpi-release
-    access_token: {{ github-access-token }}
+    access_token: {{github-access-token}}
 
 jobs:
 - name: unit-test
