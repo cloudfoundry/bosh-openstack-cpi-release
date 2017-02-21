@@ -1,0 +1,50 @@
+---
+resource_types:
+- name: pull-request
+  type: docker-image
+  source:
+    repository: jtarchie/pr
+
+resources:
+- name: pull-request
+  tags: [suse-newton]
+  type: pull-request
+  source:
+    repo: cloudfoundry-incubator/bosh-openstack-cpi-release
+    access_token: {{ github-access-token }}
+
+jobs:
+- name: unit-test
+  public: true
+  tags: [suse-newton]
+  plan:
+  - get: pull-request
+    tags: [suse-newton]
+    trigger: true
+    version: every
+  - put: pull-request
+    tags: [suse-newton]
+    params: {path: pull-request, status: pending}
+  - task: test
+    tags: [suse-newton]
+    config:
+      platform: linux
+      image_resource:
+        type: docker-image
+        source:
+          repository: boshcpi/openstack-cpi-release
+      inputs:
+      - name: pull-request
+      run:
+        path: sh
+        args:
+        - -c
+        - "cd pull-request/src/bosh_openstack_cpi && bundle install && bundle exec rspec spec/unit/*"
+    on_failure:
+      put: pull-request
+      tags: [suse-newton]
+      params: {path: pull-request, status: failure}
+    on_success:
+      put: pull-request
+      tags: [suse-newton]
+      params: {path: pull-request, status: success}
