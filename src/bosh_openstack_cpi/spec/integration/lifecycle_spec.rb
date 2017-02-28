@@ -455,6 +455,31 @@ describe Bosh::OpenStackCloud::Cloud do
     end
   end
 
+  describe 'set_disk_metadata' do
+    before { @disk_id = cpi.create_disk(2048, {}, nil) }
+    after { clean_up_disk(@disk_id) if @disk_id }
+
+    let(:metadata) do
+      {
+        'id' => 'my-id',
+        'deployment' => 'my-deployment',
+        'job' => 'my-job',
+        'index' => 'my-index',
+        'some_key' => 'some_value'
+      }
+    end
+
+    it 'sets the disk metadata accordingly' do
+      disk = openstack.volume.volumes.get(@disk_id)
+      expect(disk.metadata).not_to include(metadata)
+
+      cpi.set_disk_metadata(@disk_id, metadata)
+
+      disk = openstack.volume.volumes.get(@disk_id)
+      expect(disk.metadata).to include(metadata)
+    end
+  end
+
   def volumes(vm_id)
     openstack.compute.servers.get(vm_id).volume_attachments
   end

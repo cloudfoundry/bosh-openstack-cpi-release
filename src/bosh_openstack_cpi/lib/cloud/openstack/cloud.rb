@@ -461,7 +461,7 @@ module Bosh::OpenStackCloud
 
         device_name = attach_volume(server, volume)
 
-        set_disk_metadata(volume, disk_metadata(server.metadata))
+        set_disk_metadata_on_object(volume, disk_metadata(server.metadata))
 
         update_agent_settings(server) do |settings|
           settings['disks'] ||= {}
@@ -599,6 +599,29 @@ module Bosh::OpenStackCloud
             @logger.debug("VM with id '#{server_id}' has no 'registry_key' tag")
           end
 
+        end
+      end
+    end
+
+    ##
+    # Set metadata for an OpenStack disk
+    #
+    # @param [String] disk_id OpenStack disk UUID
+    # @param [Hash] metadata Metadata key/value pairs
+    # @return [void]
+    def set_disk_metadata(disk_id, metadata)
+      with_thread_name("set_disk_metadata(#{disk_id}, ...)") do
+        @openstack.with_openstack do
+          disk = @openstack.volume.volumes.get(disk_id)
+          cloud_error("Disk `#{disk_id}' not found") unless disk
+
+          metadata_hash = {}
+          metadata.each do |key, value|
+            key, value = TagManager.trim(key, value)
+            metadata_hash[key] = value
+          end
+
+          @openstack.volume.update_metadata(disk.id, metadata_hash)
         end
       end
     end
@@ -994,12 +1017,12 @@ module Bosh::OpenStackCloud
       server_metadata.select{ |metadata| ['deployment','job','index','id'].include?(metadata.key) }
     end
 
-    def set_disk_metadata(disk, metadata)
-      with_thread_name("set_disk_metadata(#{disk.id}, ...)") do
+    def set_disk_metadata_on_object(disk, metadata)
+      with_thread_name("set_disk_metadata_on_object(#{disk.id}, ...)") do
         @openstack.with_openstack do
           metadata_hash = {}
           metadata.each do |metadatum|
-            key, value = TagManager.trim( metadatum.key, metadatum.value)
+            key, value = TagManager.trim(metadatum.key, metadatum.value)
             metadata_hash[key] = value
           end
 
