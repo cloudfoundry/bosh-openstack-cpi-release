@@ -94,7 +94,6 @@ module Bosh::OpenStackCloud
         stemcell_creator = StemcellCreator.new(@logger, @openstack, cloud_properties)
         stemcell = stemcell_creator.create(image_path, @stemcell_public_visibility)
         stemcell.id
-        return "1337!"
       end
     end
 
