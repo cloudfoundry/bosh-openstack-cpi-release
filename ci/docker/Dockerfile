@@ -56,7 +56,7 @@ RUN ["/bin/bash", "-l", "-c", "gem install bundler -v 1.13.7 --no-ri --no-rdoc"]
 RUN ["/bin/bash", "-l", "-c", "gem install bosh_cli --no-ri --no-rdoc"]
 
 #BOSH GO CLI
-RUN wget https://s3.amazonaws.com/bosh-cli-artifacts/bosh-cli-0.0.140-linux-amd64 -O /usr/local/bin/bosh-go
+RUN wget https://s3.amazonaws.com/bosh-cli-artifacts/bosh-cli-2.0.12-linux-amd64 -O /usr/local/bin/bosh-go
 RUN chmod +x /usr/local/bin/bosh-go
 
 # receipt generator
