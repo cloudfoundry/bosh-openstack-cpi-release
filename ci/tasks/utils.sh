@@ -37,9 +37,13 @@ init_openstack_cli_env(){
 }
 
 prepare_bosh_release() {
+    local distribution=${1:-$distro}
+    local bosh_release_version=${2:-$old_bosh_release_version}
+    local stemcell_version=${3:-$old_bosh_stemcell_version}
+
     use_compiled_release=true
 
-    local s3_path_to_bosh_release=$(find_bosh_compiled_release ${distro} ${old_bosh_release_version} ${old_bosh_stemcell_version})
+    local s3_path_to_bosh_release=$(find_bosh_compiled_release ${distro} ${bosh_release_version} ${stemcell_version})
 
     if [ ! -z ${s3_path_to_bosh_release} ];then
         echo "Using compiled BOSH release: s3://bosh-compiled-release-tarballs/$s3_path_to_bosh_release"
@@ -50,26 +54,26 @@ prepare_bosh_release() {
 
     if [ "${use_compiled_release}" = "false" ];then
        echo "Using BOSH release from sources"
-       if [ -z ${old_bosh_release_version} ];then
+       if [ -z ${bosh_release_version} ];then
         cp ./bosh-release/release.tgz ${deployment_dir}/bosh-release.tgz
        else
-         wget https://bosh.io/d/github.com/cloudfoundry/bosh?v=${old_bosh_release_version} -O ${deployment_dir}/bosh-release.tgz
+         wget https://bosh.io/d/github.com/cloudfoundry/bosh?v=${bosh_release_version} -O ${deployment_dir}/bosh-release.tgz
          echo "$old_bosh_release_sha1 $deployment_dir/bosh-release.tgz" | sha1sum -c -
        fi
     fi
-
 }
 
 find_bosh_compiled_release(){
-    local distro=$1
+    local distribution=$1
     local bosh_release_version=${2:-`cat ./bosh-release/version`}
     local stemcell_version=${3:-`cat ./stemcell/version`}
 
-    local s3_path_to_bosh_release=`aws --no-sign-request s3 ls s3://bosh-compiled-release-tarballs | grep -oE "[^ ](\w|-)*$bosh_release_version.+$distro.+$stemcell_version.*\.tgz" | sort -r | head -1`
+    local s3_path_to_bosh_release=`aws --no-sign-request s3 ls s3://bosh-compiled-release-tarballs | grep -oE "[^ ](\w|-)*$bosh_release_version.+$distribution.+$stemcell_version.*\.tgz" | sort -r | head -1`
     echo ${s3_path_to_bosh_release}
 }
 
 export_terraform_variable() {
     local variable_name=$1
-    export ${variable_name}=$(cat ${metadata} | jq --raw-output ".${variable_name}")
+    local prefix=$2
+    export ${prefix}${variable_name}=$(cat ${metadata} | jq --raw-output ".${variable_name}")
 }

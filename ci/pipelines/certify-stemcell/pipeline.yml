@@ -393,30 +393,32 @@ jobs:
         timeout: *timeouts-long
         file: bosh-cpi-src-in/ci/pipelines/certify-stemcell/tasks/deploy-old-director.yml
         params: &centos-deploy-old-director-params
-          v3_e2e_flavor:                        "m1.medium"
-          v3_e2e_connection_timeout:            "600"
-          v3_e2e_read_timeout:                  "180"
-          v3_e2e_state_timeout:                 "900"
-          v3_e2e_write_timeout:                 "180"
-          bosh_admin_password:                  {{bosh_admin_password}}
+          distro:                               "centos"
+          director_ca:                          {{director_ca}}
+          director_ca_private_key:              {{director_ca_private_key}}
           bosh_openstack_ca_cert:               {{bosh_openstack_ca_cert}}
-          v3_e2e_bosh_registry_port:            {{v3_e2e_bosh_registry_port}}
-          v3_e2e_api_key:                       {{v3_e2e_api_key}}
-          v3_e2e_auth_url:                      {{openstack_auth_url_v3}}
-          v3_e2e_project:                       {{v3_e2e_project}}
-          v3_e2e_domain:                        {{v3_e2e_domain}}
-          v3_e2e_username:                      {{v3_e2e_username}}
           v3_e2e_private_key_data:              {{v3_e2e_private_key_data}}
-          time_server_1:                        {{time_server_1}}
-          time_server_2:                        {{time_server_2}}
           old_bosh_release_version:             255.5
           old_bosh_release_sha1:                ffc41db255450cb72b74190c8b9c2a1fe9846ad7
-          old_openstack_cpi_release_version:    26
-          old_openstack_cpi_release_sha1:       09c18a410aca8a15c11fcbe028f3eac39bef31b5
-          old_bosh_stemcell_name:               bosh-openstack-kvm-centos-7-go_agent
-          old_bosh_stemcell_version:            3215
-          old_bosh_stemcell_sha1:               8a4f597368d330f8699c17b62993c43de5de2ba4
-          distro:                               "centos"
+          ci_bosh_admin_password:               {{bosh_admin_password}}
+          ci_v3_e2e_flavor:                     "m1.medium"
+          ci_v3_e2e_connection_timeout:         "600"
+          ci_v3_e2e_read_timeout:               "180"
+          ci_v3_e2e_state_timeout:              "900"
+          ci_v3_e2e_write_timeout:              "180"
+          ci_v3_e2e_bosh_registry_port:         {{v3_e2e_bosh_registry_port}}
+          ci_v3_e2e_api_key:                    {{v3_e2e_api_key}}
+          ci_v3_e2e_auth_url:                   {{openstack_auth_url_v3}}
+          ci_v3_e2e_project:                    {{v3_e2e_project}}
+          ci_v3_e2e_domain:                     {{v3_e2e_domain}}
+          ci_v3_e2e_username:                   {{v3_e2e_username}}
+          ci_time_server_1:                     {{time_server_1}}
+          ci_time_server_2:                     {{time_server_2}}
+          ci_old_openstack_cpi_release_version: 26
+          ci_old_openstack_cpi_release_sha1:    09c18a410aca8a15c11fcbe028f3eac39bef31b5
+          ci_old_bosh_stemcell_name:            bosh-openstack-kvm-centos-7-go_agent
+          ci_old_bosh_stemcell_version:         3215
+          ci_old_bosh_stemcell_sha1:            8a4f597368d330f8699c17b62993c43de5de2ba4
         <<: *send-failure-email
 
       - task: deploy-dummy-release-with-old-cpi
@@ -496,10 +498,10 @@ jobs:
         timeout: *timeouts-long
         file: bosh-cpi-src-in/ci/pipelines/certify-stemcell/tasks/deploy-old-director.yml
         params:
-          <<:                              *centos-deploy-old-director-params
-          old_bosh_stemcell_name:          bosh-openstack-kvm-ubuntu-trusty-go_agent
-          old_bosh_stemcell_sha1:          6e103aab1c4aa22e48743eb3a5d8c51410fd172f
-          distro:                          "ubuntu"
+          <<:                         *centos-deploy-old-director-params
+          ci_old_bosh_stemcell_name:  bosh-openstack-kvm-ubuntu-trusty-go_agent
+          ci_old_bosh_stemcell_sha1:  6e103aab1c4aa22e48743eb3a5d8c51410fd172f
+          distro:                     "ubuntu"
         <<: *send-failure-email
 
       - task: deploy-dummy-release-with-old-cpi
