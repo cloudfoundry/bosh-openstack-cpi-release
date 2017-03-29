@@ -46,7 +46,6 @@ echo -e "${director_ca}" > director_ca
 echo -e "${director_ca_private_key}" > director_ca_private_key
 echo -e "${bosh_openstack_ca_cert}" > bosh_openstack_ca_cert
 ./bosh-cpi-src-in/ci/ruby_scripts/render_credentials > ${deployment_dir}/credentials.yml
-./bosh-cpi-src-in/ci/ruby_scripts/render_credentials ./director_ca ./director_ca_private_key ./bosh_openstack_ca_cert > ${deployment_dir}/credentials.yml
 
 cd ${deployment_dir}
 
