@@ -82,27 +82,29 @@ jobs:
         timeout: *timeouts-long
         file: bosh-cpi-src-in/ci/pipelines/certify-stemcell/tasks/deploy-director.yml
         params: &centos-deploy-director-params
-          v3_e2e_flavor:                        "m1.medium"
-          v3_e2e_connection_timeout:            "600"
-          v3_e2e_read_timeout:                  "180"
-          v3_e2e_state_timeout:                 "900"
-          v3_e2e_write_timeout:                 "180"
-          bosh_admin_password:                  {{bosh_admin_password}}
-          bosh_openstack_ca_cert:               {{bosh_openstack_ca_cert}}
-          v3_e2e_bosh_registry_port:            {{v3_e2e_bosh_registry_port}}
-          v3_e2e_api_key:                       {{v3_e2e_api_key}}
-          v3_e2e_auth_url:                      {{openstack_auth_url_v3}}
-          v3_e2e_project:                       {{v3_e2e_project}}
-          v3_e2e_domain:                        {{v3_e2e_domain}}
-          v3_e2e_username:                      {{v3_e2e_username}}
-          v3_e2e_private_key_data:              {{v3_e2e_private_key_data}}
-          v3_e2e_blobstore_bucket:              {{v3_e2e_blobstore_bucket}}
-          v3_e2e_blobstore_host:                {{v3_e2e_blobstore_host}}
-          v3_e2e_blobstore_access_key:          {{v3_e2e_blobstore_access_key}}
-          v3_e2e_blobstore_secret_key:          {{v3_e2e_blobstore_secret_key}}
-          time_server_1:                        {{time_server_1}}
-          time_server_2:                        {{time_server_2}}
           distro:                               "centos"
+          director_ca:                          {{director_ca}}
+          director_ca_private_key:              {{director_ca_private_key}}
+          bosh_openstack_ca_cert:               {{bosh_openstack_ca_cert}}
+          v3_e2e_private_key_data:              {{v3_e2e_private_key_data}}
+          ci_bosh_admin_password:               {{bosh_admin_password}}
+          ci_v3_e2e_flavor:                     "m1.medium"
+          ci_v3_e2e_connection_timeout:         "600"
+          ci_v3_e2e_read_timeout:               "180"
+          ci_v3_e2e_state_timeout:              "900"
+          ci_v3_e2e_write_timeout:              "180"
+          ci_v3_e2e_bosh_registry_port:         {{v3_e2e_bosh_registry_port}}
+          ci_v3_e2e_api_key:                    {{v3_e2e_api_key}}
+          ci_v3_e2e_auth_url:                   {{openstack_auth_url_v3}}
+          ci_v3_e2e_project:                    {{v3_e2e_project}}
+          ci_v3_e2e_domain:                     {{v3_e2e_domain}}
+          ci_v3_e2e_username:                   {{v3_e2e_username}}
+          ci_time_server_1:                     {{time_server_1}}
+          ci_time_server_2:                     {{time_server_2}}
+          ci_v3_e2e_blobstore_bucket:           {{v3_e2e_blobstore_bucket}}
+          ci_v3_e2e_blobstore_host:             {{v3_e2e_blobstore_host}}
+          ci_v3_e2e_blobstore_access_key:       {{v3_e2e_blobstore_access_key}}
+          ci_v3_e2e_blobstore_secret_key:       {{v3_e2e_blobstore_secret_key}}
         <<: *send-failure-email
 
       - task: deploy-dummy-release
@@ -253,29 +255,31 @@ jobs:
         timeout: *timeouts-long
         file: bosh-cpi-src-in/ci/pipelines/certify-stemcell/tasks/deploy-director.yml
         params: &e2e-centos-config-drive-director-params
-          v3_e2e_flavor:                        "m1.medium"
-          v3_e2e_connection_timeout:            "600"
-          v3_e2e_read_timeout:                  "180"
-          v3_e2e_state_timeout:                 "900"
-          v3_e2e_write_timeout:                 "180"
-          v3_e2e_config_drive:                  "disk"
-          v3_e2e_use_dhcp:                      false
-          bosh_admin_password:                  {{bosh_admin_password}}
-          bosh_openstack_ca_cert:               {{bosh_openstack_ca_cert}}
-          v3_e2e_bosh_registry_port:            {{v3_e2e_bosh_registry_port}}
-          v3_e2e_api_key:                       {{v3_e2e_api_key}}
-          v3_e2e_auth_url:                      {{openstack_auth_url_v3}}
-          v3_e2e_project:                       {{v3_e2e_project}}
-          v3_e2e_domain:                        {{v3_e2e_domain}}
-          v3_e2e_username:                      {{v3_e2e_username}}
-          v3_e2e_private_key_data:              {{v3_e2e_private_key_data}}
-          v3_e2e_blobstore_bucket:              {{v3_e2e_blobstore_bucket}}
-          v3_e2e_blobstore_host:                {{v3_e2e_blobstore_host}}
-          v3_e2e_blobstore_access_key:          {{v3_e2e_blobstore_access_key}}
-          v3_e2e_blobstore_secret_key:          {{v3_e2e_blobstore_secret_key}}
-          time_server_1:                        {{time_server_1}}
-          time_server_2:                        {{time_server_2}}
           distro:                               "centos"
+          director_ca:                          {{director_ca}}
+          director_ca_private_key:              {{director_ca_private_key}}
+          bosh_openstack_ca_cert:               {{bosh_openstack_ca_cert}}
+          v3_e2e_private_key_data:              {{v3_e2e_private_key_data}}
+          ci_bosh_admin_password:               {{bosh_admin_password}}
+          ci_v3_e2e_config_drive:               "disk"
+          ci_v3_e2e_use_dhcp:                   false
+          ci_v3_e2e_flavor:                     "m1.medium"
+          ci_v3_e2e_connection_timeout:         "600"
+          ci_v3_e2e_read_timeout:               "180"
+          ci_v3_e2e_state_timeout:              "900"
+          ci_v3_e2e_write_timeout:              "180"
+          ci_v3_e2e_bosh_registry_port:         {{v3_e2e_bosh_registry_port}}
+          ci_v3_e2e_api_key:                    {{v3_e2e_api_key}}
+          ci_v3_e2e_auth_url:                   {{openstack_auth_url_v3}}
+          ci_v3_e2e_project:                    {{v3_e2e_project}}
+          ci_v3_e2e_domain:                     {{v3_e2e_domain}}
+          ci_v3_e2e_username:                   {{v3_e2e_username}}
+          ci_time_server_1:                     {{time_server_1}}
+          ci_time_server_2:                     {{time_server_2}}
+          ci_v3_e2e_blobstore_bucket:           {{v3_e2e_blobstore_bucket}}
+          ci_v3_e2e_blobstore_host:             {{v3_e2e_blobstore_host}}
+          ci_v3_e2e_blobstore_access_key:       {{v3_e2e_blobstore_access_key}}
+          ci_v3_e2e_blobstore_secret_key:       {{v3_e2e_blobstore_secret_key}}
         <<: *send-failure-email
 
       - task: deploy-dummy-release
@@ -397,8 +401,8 @@ jobs:
           director_ca_private_key:              {{director_ca_private_key}}
           bosh_openstack_ca_cert:               {{bosh_openstack_ca_cert}}
           v3_e2e_private_key_data:              {{v3_e2e_private_key_data}}
-          old_bosh_release_version:             255.5
-          old_bosh_release_sha1:                ffc41db255450cb72b74190c8b9c2a1fe9846ad7
+          old_bosh_release_version:             "256.10"
+          old_bosh_release_sha1:                65157148ed1bcc5af364730ff7e396da37401aef
           ci_bosh_admin_password:               {{bosh_admin_password}}
           ci_v3_e2e_flavor:                     "m1.medium"
           ci_v3_e2e_connection_timeout:         "600"

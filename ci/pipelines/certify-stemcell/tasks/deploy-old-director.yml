@@ -13,29 +13,29 @@ run:
   path: bosh-cpi-src-in/ci/pipelines/certify-stemcell/tasks/deploy-old-director.sh
 params:
   BOSH_INIT_LOG_LEVEL:                    warn
-  distro:                                 replace-me
-  director_ca:                            replace-me
-  director_ca_private_key:                replace-me
+  distro:                                 ""
+  director_ca:                            ""
+  director_ca_private_key:                ""
   bosh_openstack_ca_cert:                 replace-me
-  v3_e2e_private_key_data:                replace-me
-  old_bosh_release_version:               replace-me
-  old_bosh_release_sha1:                  replace-me
-  ci_bosh_admin_password:                 replace-me
-  ci_v3_e2e_flavor:                       replace-me
-  ci_v3_e2e_connection_timeout:           replace-me
-  ci_v3_e2e_read_timeout:                 replace-me
-  ci_v3_e2e_state_timeout:                replace-me
-  ci_v3_e2e_write_timeout:                replace-me
-  ci_v3_e2e_bosh_registry_port:           replace-me
-  ci_v3_e2e_api_key:                      replace-me
-  ci_v3_e2e_auth_url:                     replace-me
-  ci_v3_e2e_project:                      replace-me
-  ci_v3_e2e_domain:                       replace-me
-  ci_v3_e2e_username:                     replace-me
-  ci_time_server_1:                       replace-me
-  ci_time_server_2:                       replace-me
-  ci_old_openstack_cpi_release_version:   replace-me
-  ci_old_openstack_cpi_release_sha1:      replace-me
-  ci_old_bosh_stemcell_name:              replace-me
-  ci_old_bosh_stemcell_version:           replace-me
-  ci_old_bosh_stemcell_sha1:              replace-me
+  v3_e2e_private_key_data:                ""
+  old_bosh_release_version:               ""
+  old_bosh_release_sha1:                  ""
+  ci_bosh_admin_password:                 ""
+  ci_v3_e2e_flavor:                       ""
+  ci_v3_e2e_connection_timeout:           ""
+  ci_v3_e2e_read_timeout:                 ""
+  ci_v3_e2e_state_timeout:                ""
+  ci_v3_e2e_write_timeout:                ""
+  ci_v3_e2e_bosh_registry_port:           ""
+  ci_v3_e2e_api_key:                      ""
+  ci_v3_e2e_auth_url:                     ""
+  ci_v3_e2e_project:                      ""
+  ci_v3_e2e_domain:                       ""
+  ci_v3_e2e_username:                     ""
+  ci_time_server_1:                       ""
+  ci_time_server_2:                       ""
+  ci_old_openstack_cpi_release_version:   ""
+  ci_old_openstack_cpi_release_sha1:      ""
+  ci_old_bosh_stemcell_name:              ""
+  ci_old_bosh_stemcell_version:           ""
+  ci_old_bosh_stemcell_sha1:              ""

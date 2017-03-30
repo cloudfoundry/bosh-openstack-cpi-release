@@ -1,0 +1,14 @@
+---
+- type: replace
+  path: /releases/-
+  value:
+    name: bosh-openstack-cpi
+    url: http://bosh.io/d/github.com/cloudfoundry-incubator/bosh-openstack-cpi-release?v=((old_openstack_cpi_release_version))
+    sha1: ((old_openstack_cpi_release_sha1))
+
+- type: replace
+  path: /resource_pools/name=default/stemcell?
+  value:
+    url: https://bosh.io/d/stemcells/((old_bosh_stemcell_name))?v=((old_bosh_stemcell_version))
+    sha1: ((old_bosh_stemcell_sha1))
+

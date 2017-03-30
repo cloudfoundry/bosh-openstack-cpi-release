@@ -4,9 +4,6 @@ name: bosh
 releases:
   - name: bosh
     url: file://((bosh_release_tgz))
-  - name: bosh-openstack-cpi
-    url: http://bosh.io/d/github.com/cloudfoundry-incubator/bosh-openstack-cpi-release?v=((old_openstack_cpi_release_version))
-    sha1: ((old_openstack_cpi_release_sha1))
 
 networks:
   - name: private
@@ -25,9 +22,6 @@ networks:
 resource_pools:
   - name: default
     network: private
-    stemcell:
-      url: https://bosh.io/d/stemcells/((old_bosh_stemcell_name))?v=((old_bosh_stemcell_version))
-      sha1: ((old_bosh_stemcell_sha1))
     cloud_properties:
       instance_type: ((v3_e2e_flavor))
     env:
@@ -42,7 +36,6 @@ jobs:
   - name: bosh
     templates:
       - {name: nats, release: bosh}
-      - {name: redis, release: bosh}
       - {name: postgres, release: bosh}
       - {name: blobstore, release: bosh}
       - {name: director, release: bosh}
@@ -66,11 +59,6 @@ jobs:
       nats:
         address: 127.0.0.1
         user: nats
-        password: ((bosh_admin_password))
-
-      redis:
-        listen_addresss: 127.0.0.1
-        address: 127.0.0.1
         password: ((bosh_admin_password))
 
       postgres: &db

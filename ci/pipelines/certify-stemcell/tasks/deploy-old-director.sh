@@ -35,7 +35,6 @@ echo "setting up artifacts used in $manifest_filename"
 mkdir -p ${deployment_dir}
 prepare_bosh_release $distro $old_bosh_release_version $ci_old_bosh_stemcell_version
 export ci_bosh_release_tgz=${deployment_dir}/bosh-release.tgz
-export ci_bosh_release_tgz=${deployment_dir}/bosh-release.tgz
 
 echo "${v3_e2e_private_key_data}" > ${ci_private_key}
 chmod go-r ${ci_private_key}
@@ -52,14 +51,17 @@ cd ${deployment_dir}
 echo "using bosh CLI version..."
 bosh-go --version
 
-bosh-go int ../bosh-cpi-src-in/ci/pipelines/certify-stemcell/assets/old-director-manifest-template.yml \
+echo "validating manifest and variables..."
+bosh-go int ../bosh-cpi-src-in/ci/pipelines/certify-stemcell/assets/director-manifest-template.yml \
+    -o ../bosh-cpi-src-in/ci/pipelines/certify-stemcell/assets/old-director-delta.yml \
     --var-errs \
     --var-errs-unused \
     --vars-env=ci \
     --vars-store credentials.yml
 
 echo "deploying BOSH..."
-bosh-go create-env ../bosh-cpi-src-in/ci/pipelines/certify-stemcell/assets/old-director-manifest-template.yml \
+bosh-go create-env ../bosh-cpi-src-in/ci/pipelines/certify-stemcell/assets/director-manifest-template.yml \
+    -o ../bosh-cpi-src-in/ci/pipelines/certify-stemcell/assets/old-director-delta.yml \
     --vars-env=ci \
     --vars-store credentials.yml \
     --state director-manifest-state.json

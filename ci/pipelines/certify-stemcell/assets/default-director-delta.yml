@@ -1,0 +1,31 @@
+---
+- type: replace
+  path: /releases/-
+  value:
+    name: bosh-openstack-cpi
+    url: file://((bosh_openstack_cpi_release_tgz))
+
+- type: replace
+  path: /resource_pools/name=default/stemcell?
+  value:
+    url: file://((stemcell_tgz))
+
+- type: remove
+  path: /jobs/name=bosh/templates/name=blobstore
+
+- type: replace
+  path: /jobs/name=bosh/properties/blobstore
+  value:
+    provider: s3
+    access_key_id: ((v3_e2e_blobstore_access_key))
+    secret_access_key: ((v3_e2e_blobstore_secret_key))
+    bucket_name: ((v3_e2e_blobstore_bucket))
+    host: ((v3_e2e_blobstore_host))
+
+- type: replace
+  path: /jobs/name=bosh/properties/openstack/config_drive?
+  value: ((v3_e2e_config_drive))
+
+- type: replace
+  path: /jobs/name=bosh/properties/openstack/use_dhcp?
+  value: ((v3_e2e_use_dhcp))
