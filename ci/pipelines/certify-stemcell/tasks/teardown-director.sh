@@ -23,7 +23,6 @@ echo "cleanup director (especially orphan disks)"
 bosh -n cleanup --all
 
 echo "Copying inputs..."
-cp ./deployment/e2e-director-manifest* .
 cp ./bosh-cpi-release/*.tgz bosh-openstack-cpi.tgz
 cp ./bosh-release/release.tgz bosh-release.tgz
 cp ./stemcell/stemcell.tgz stemcell.tgz
