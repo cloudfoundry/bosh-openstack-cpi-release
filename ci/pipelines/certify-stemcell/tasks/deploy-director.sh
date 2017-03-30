@@ -65,4 +65,6 @@ bosh-go create-env ../bosh-cpi-src-in/ci/pipelines/certify-stemcell/assets/direc
     -o ../bosh-cpi-src-in/ci/pipelines/certify-stemcell/assets/default-director-delta.yml \
     --vars-env=ci \
     --vars-store credentials.yml \
-    --state director-manifest-state.json
+    --state e2e-director-manifest-state.json
+
+bosh-go -e ${ci_director_public_ip} -d bosh --client admin --client-secret ${ci_bosh_admin_password} manifest > ${deployment_dir}/${manifest_filename}
