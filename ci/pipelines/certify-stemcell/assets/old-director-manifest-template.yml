@@ -14,7 +14,7 @@ networks:
     subnets:
       - range:    ((v3_e2e_net_cidr))
         gateway:  ((v3_e2e_net_gateway))
-        dns:     [((dns))]
+        dns:     ((dns))
         static:  [((director_private_ip))]
         cloud_properties:
           net_id: ((v3_e2e_net_id))
