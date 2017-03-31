@@ -14,7 +14,7 @@ optional_value distro
 
 metadata=terraform/metadata
 
-export_terraform_variable "dns" "ci_"
+export_terraform_variable "dns_array" "ci_"
 export_terraform_variable "v3_e2e_default_key_name" "ci_"
 export_terraform_variable "director_public_ip" "ci_"
 export_terraform_variable "director_private_ip" "ci_"
@@ -34,7 +34,6 @@ export ci_bosh_vcap_password_hash=$(ruby -e 'require "securerandom";puts ENV["ci
 echo "setting up artifacts used in $manifest_filename"
 mkdir -p ${deployment_dir}
 prepare_bosh_release $distro $old_bosh_release_version $ci_old_bosh_stemcell_version
-export ci_bosh_release_tgz=${deployment_dir}/bosh-release.tgz
 export ci_bosh_release_tgz=${deployment_dir}/bosh-release.tgz
 
 echo "${v3_e2e_private_key_data}" > ${ci_private_key}

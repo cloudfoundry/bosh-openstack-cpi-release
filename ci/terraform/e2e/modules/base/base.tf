@@ -235,5 +235,9 @@ output "director_private_ip" {
 }
 
 output "dns" {
+  value = "${var.dns_nameservers}"
+}
+
+output "dns_array" {
   value = "[${var.dns_nameservers}]"
 }
