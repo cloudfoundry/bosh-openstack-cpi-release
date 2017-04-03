@@ -23,10 +23,12 @@ source bosh-cpi-src-in/ci/tasks/utils.sh
 : ${v3_e2e_blobstore_secret_key:?}
 : ${time_server_1:?}
 : ${time_server_2:?}
-optional_value v3_e2e_use_dhcp
+: ${director_ca:?}
+: ${director_ca_private_key:?}
+: ${distro:?}
 optional_value bosh_openstack_ca_cert
+optional_value v3_e2e_use_dhcp
 optional_value v3_e2e_config_drive
-optional_value distro
 
 metadata=terraform/metadata
 
@@ -42,11 +44,11 @@ export_terraform_variable "dns"
 export BOSH_INIT_LOG_LEVEL=DEBUG
 
 deployment_dir="${PWD}/deployment"
-manifest_filename="e2e-director-manifest.yml"
+manifest_filename="e2e-director-manifest"
 private_key=${deployment_dir}/e2e.pem
 bosh_vcap_password_hash=$(ruby -e 'require "securerandom";puts ENV["bosh_admin_password"].crypt("$6$#{SecureRandom.base64(14)}")')
 
-echo "setting up artifacts used in $manifest_filename"
+echo "setting up artifacts used in ${manifest_filename}-template.yml"
 cp ./bosh-cpi-release/*.tgz ${deployment_dir}/bosh-openstack-cpi.tgz
 cp ./stemcell/stemcell.tgz ${deployment_dir}/stemcell.tgz
 prepare_bosh_release
@@ -56,8 +58,10 @@ chmod go-r ${private_key}
 eval $(ssh-agent)
 ssh-add ${private_key}
 
-#create director manifest as heredoc
-cat > "${deployment_dir}/${manifest_filename}"<<EOF
+cd ${deployment_dir}
+
+#create director manifest template as heredoc
+cat > "${manifest_filename}-template.yml"<<EOF
 ---
 name: bosh
 
@@ -159,10 +163,13 @@ jobs:
           local:
             users:
               - {name: admin, password: ${bosh_admin_password}}
+        ssl:
+          key: ((director_ssl.private_key))
+          cert: ((director_ssl.certificate))
 
       hm:
         http: {user: hm, password: ${bosh_admin_password}}
-        director_account: {user: admin, password: ${bosh_admin_password}}
+        director_account: {user: admin, password: ${bosh_admin_password}, ca_cert: ((default_ca.ca))}
 
       dns:
         address: 127.0.0.1
@@ -187,7 +194,7 @@ jobs:
           connect_timeout: ${v3_e2e_connection_timeout}
           read_timeout: ${v3_e2e_read_timeout}
           write_timeout: ${v3_e2e_write_timeout}
-          ca_cert: $(if [ -z "$bosh_openstack_ca_cert" ]; then echo "~"; else echo "\"$(echo ${bosh_openstack_ca_cert} | sed -r  -e 's/ /\\n/g ' -e 's/\\nCERTIFICATE-----/ CERTIFICATE-----/g')\""; fi)
+          ca_cert: ((openstack_ca_cert))
 
       # Tells agents how to contact nats
       agent: {mbus: "nats://nats:${bosh_admin_password}@${director_private_ip}:4222"}
@@ -220,22 +227,33 @@ cloud_provider:
       path: /var/vcap/micro_bosh/data/cache
 
     ntp: *ntp
+
+variables:
+- name: default_ca
+  type: certificate
+- name: director_ssl
+  type: certificate
+  options:
+    ca: default_ca
+    common_name: ${director_public_ip}
+    alternative_names: [${director_public_ip}]
 EOF
 
+echo -e "${director_ca}" > director_ca
+echo -e "${director_ca_private_key}" > director_ca_private_key
+echo -e "${bosh_openstack_ca_cert}" > bosh_openstack_ca_cert
+../bosh-cpi-src-in/ci/ruby_scripts/render_credentials > credentials.yml
+
 echo "using bosh CLI version..."
-bosh version
+bosh-go --version
 
-echo "targeting bosh director at ${director_public_ip}"
-bosh -n target ${director_public_ip} || failed_exit_code=$?
-if [ -z "$failed_exit_code" ]; then
-  bosh login admin ${bosh_admin_password}
-  echo "cleanup director (especially orphan disks)"
-  bosh -n cleanup --all
-fi
-
-initver=$(cat bosh-init/version)
-bosh_init="${PWD}/bosh-init/bosh-init-${initver}-linux-amd64"
-chmod +x $bosh_init
+echo "validating manifest and variables..."
+bosh-go int ${manifest_filename}-template.yml \
+    --var-errs \
+    --var-errs-unused \
+    --vars-store credentials.yml > ${manifest_filename}.yml
 
 echo "deploying BOSH..."
-$bosh_init deploy ${deployment_dir}/${manifest_filename}
+bosh-go create-env ${manifest_filename}-template.yml \
+    --vars-store credentials.yml \
+    --state ${manifest_filename}-state.json

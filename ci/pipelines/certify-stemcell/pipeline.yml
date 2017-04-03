@@ -103,6 +103,8 @@ jobs:
           time_server_1:                        {{time_server_1}}
           time_server_2:                        {{time_server_2}}
           distro:                               "centos"
+          director_ca:                          {{director_ca}}
+          director_ca_private_key:              {{director_ca_private_key}}
         <<: *send-failure-email
 
       - task: deploy-dummy-release
@@ -276,6 +278,8 @@ jobs:
           time_server_1:                        {{time_server_1}}
           time_server_2:                        {{time_server_2}}
           distro:                               "centos"
+          director_ca:                          {{director_ca}}
+          director_ca_private_key:              {{director_ca_private_key}}
         <<: *send-failure-email
 
       - task: deploy-dummy-release

@@ -17,26 +17,28 @@ run:
   path: bosh-cpi-src-in/ci/pipelines/certify-stemcell/tasks/deploy-director.sh
 params:
   BOSH_INIT_LOG_LEVEL:                 warn
-  bosh_admin_password:                 replace-me
+  bosh_admin_password:                 ""
   v3_e2e_config_drive:                 replace-me
   v3_e2e_use_dhcp:                     replace-me
-  v3_e2e_flavor:                       replace-me
-  v3_e2e_connection_timeout:           replace-me
-  v3_e2e_read_timeout:                 replace-me
-  v3_e2e_state_timeout:                replace-me
-  v3_e2e_write_timeout:                replace-me
+  v3_e2e_flavor:                       ""
+  v3_e2e_connection_timeout:           ""
+  v3_e2e_read_timeout:                 ""
+  v3_e2e_state_timeout:                ""
+  v3_e2e_write_timeout:                ""
   bosh_openstack_ca_cert:              replace-me
-  v3_e2e_bosh_registry_port:           replace-me
-  v3_e2e_api_key:                      replace-me
-  v3_e2e_auth_url:                     replace-me
-  v3_e2e_project:                      replace-me
-  v3_e2e_domain:                       replace-me
-  v3_e2e_username:                     replace-me
-  v3_e2e_private_key_data:             replace-me
-  v3_e2e_blobstore_bucket:             replace-me
-  v3_e2e_blobstore_host:               replace-me
-  v3_e2e_blobstore_access_key:         replace-me
-  v3_e2e_blobstore_secret_key:         replace-me
-  time_server_1:                       replace-me
-  time_server_2:                       replace-me
-  distro:                              replace-me
+  v3_e2e_bosh_registry_port:           ""
+  v3_e2e_api_key:                      ""
+  v3_e2e_auth_url:                     ""
+  v3_e2e_project:                      ""
+  v3_e2e_domain:                       ""
+  v3_e2e_username:                     ""
+  v3_e2e_private_key_data:             ""
+  v3_e2e_blobstore_bucket:             ""
+  v3_e2e_blobstore_host:               ""
+  v3_e2e_blobstore_access_key:         ""
+  v3_e2e_blobstore_secret_key:         ""
+  time_server_1:                       ""
+  time_server_2:                       ""
+  director_ca:                         ""
+  director_ca_private_key:             ""
+  distro:                              ""
