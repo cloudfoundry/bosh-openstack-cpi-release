@@ -9,8 +9,8 @@ source bosh-cpi-src-in/ci/tasks/utils.sh
 : ${old_bosh_release_sha1:?}
 : ${director_ca:?}
 : ${director_ca_private_key:?}
+: ${distro:?}
 optional_value bosh_openstack_ca_cert
-optional_value distro
 
 metadata=terraform/metadata
 
@@ -51,6 +51,7 @@ cd ${deployment_dir}
 echo "using bosh CLI version..."
 bosh-go --version
 
+echo "validating manifest and variables..."
 bosh-go int ../bosh-cpi-src-in/ci/pipelines/certify-stemcell/assets/old-director-manifest-template.yml \
     --var-errs \
     --var-errs-unused \
