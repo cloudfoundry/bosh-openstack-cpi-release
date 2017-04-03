@@ -9,6 +9,7 @@ inputs:
   - name: dummy-release
   - name: stemcell
   - name: terraform
+  - name: deployment
 run:
   path: bosh-cpi-src-in/ci/pipelines/certify-stemcell/tasks/deploy-dummy-release.sh
 params:

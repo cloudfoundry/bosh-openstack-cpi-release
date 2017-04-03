@@ -20,33 +20,29 @@ manifest_filename="dummy-manifest.yml"
 dummy_release_name="dummy"
 bosh_vcap_password_hash=$(ruby -e 'require "securerandom";puts ENV["bosh_admin_password"].crypt("$6$#{SecureRandom.base64(14)}")')
 
-echo "setting up artifacts used in $manifest_filename"
-mkdir -p ${deployment_dir}
+cd ${deployment_dir}
+
+export BOSH_ENVIRONMENT=${director_public_ip}
+export BOSH_CLIENT=admin
+export BOSH_CLIENT_SECRET=${bosh_admin_password}
+export BOSH_CA_CERT=director_ca
 
 echo "using bosh CLI version..."
-bosh version
-
-echo "targeting bosh director at ${director_public_ip}"
-bosh -n target ${director_public_ip}
-bosh login admin ${bosh_admin_password}
+bosh-go --version
 
 echo "uploading stemcell to director..."
-bosh -n upload stemcell --skip-if-exists ./stemcell/stemcell.tgz
+bosh-go -n upload-stemcell ../stemcell/stemcell.tgz
 
-pushd dummy-release
-  echo "creating release..."
-  bosh -n create release --name ${dummy_release_name}
+echo "creating release..."
+bosh-go -n create-release --dir ../dummy-release --name ${dummy_release_name}
 
-  echo "uploading release to director..."
-  bosh -n upload release --skip-if-exists
-popd
-
+echo "uploading release to director..."
+bosh-go -n upload-release --dir ../dummy-release
 
 #create dummy release manifest as heredoc
-cat > "${deployment_dir}/${manifest_filename}"<<EOF
+cat > "${manifest_filename}"<<EOF
 ---
 name: dummy
-director_uuid: $(bosh status --uuid)
 
 releases:
   - name: ${dummy_release_name}
@@ -97,12 +93,9 @@ update:
   max_in_flight: 3
 EOF
 
-pushd ${deployment_dir}
-  echo "deploying dummy release..."
-  bosh deployment ${manifest_filename}
-  bosh -n deploy
-  if [ "${delete_deployment_when_done}" = "true" ]; then
-    bosh -n delete deployment dummy
-    bosh -n cleanup --all
-  fi
-popd
+echo "deploying dummy release..."
+bosh-go -n deploy -d dummy ${manifest_filename}
+if [ "${delete_deployment_when_done}" = "true" ]; then
+    bosh-go -n delete-deployment -d dummy
+    bosh-go -n clean-up --all
+fi
