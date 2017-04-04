@@ -30,4 +30,5 @@ bosh-go -n clean-up --all
 echo "deleting BOSH..."
 bosh-go delete-env \
     --state ${manifest_filename}-state.json \
+    --vars-file credentials.yml \
     ${manifest_filename}.yml

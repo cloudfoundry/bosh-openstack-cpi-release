@@ -15,4 +15,5 @@ bosh-go --version
 echo "deleting BOSH..."
 bosh-go delete-env \
     --state director-manifest-state.json \
+    --vars-file credentials.yml \
     director-manifest.yml
