@@ -133,7 +133,12 @@ bosh-go -n deploy -d ${deployment_name} ${manifest_filename}
 echo "checking network interfaces..."
 echo "${v3_e2e_private_key_data}" > bosh.pem
 chmod go-r bosh.pem
-bosh-go ssh --gw-host ${director_public_ip} --gw-user vcap --gw-private-key bosh.pem dummy/0 "PATH=/usr/sbin:/sbin ifconfig" > network_config
+bosh-go ssh -d ${deployment_name} \
+    --gw-host ${director_public_ip} \
+    --gw-user vcap \
+    --gw-private-key bosh.pem \
+    dummy/0 \
+    "PATH=/usr/sbin:/sbin ifconfig" > network_config
 
 cat network_config | grep ${network_no_dhcp_1_ip} || failed_exit_code_1=$?
 if [ $failed_exit_code_1 ]; then
