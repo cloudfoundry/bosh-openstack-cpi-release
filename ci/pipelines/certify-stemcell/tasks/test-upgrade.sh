@@ -35,14 +35,19 @@ export_terraform_variable "v3_e2e_security_group"
 
 export BOSH_INIT_LOG_LEVEL=DEBUG
 
-upgrade_deployment_dir="${PWD}/upgrade-deployment"
-deployment_dir="${PWD}/deployment"
+deployment_dir="${PWD}/upgrade-deployment"
+dummy_deployment_input="${PWD}/dummy-deployment"
+director_deployment_input="${PWD}/director-deployment"
 manifest_filename="director-manifest.yml"
 private_key=${deployment_dir}/bosh.pem
 bosh_vcap_password_hash=$(ruby -e 'require "securerandom";puts ENV["bosh_admin_password"].crypt("$6$#{SecureRandom.base64(14)}")')
 
+cp ${director_deployment_input}/director-manifest-state.json $deployment_dir
+cp ${director_deployment_input}/director_ca $deployment_dir
+cp ${director_deployment_input}/bosh.pem $deployment_dir
+cp ${director_deployment_input}/credentials.yml $deployment_dir
+
 echo "setting up artifacts used in $manifest_filename"
-mkdir -p ${deployment_dir}
 cp ./bosh-cpi-release/*.tgz ${deployment_dir}/bosh-openstack-cpi.tgz
 cp ./stemcell/stemcell.tgz ${deployment_dir}/stemcell.tgz
 prepare_bosh_release
@@ -52,7 +57,9 @@ chmod go-r ${private_key}
 eval $(ssh-agent)
 ssh-add ${private_key}
 
-cat > "${deployment_dir}/${manifest_filename}"<<EOF
+cd ${deployment_dir}
+
+cat > "${manifest_filename}"<<EOF
 ---
 name: bosh
 
@@ -156,10 +163,13 @@ jobs:
           local:
             users:
               - {name: admin, password: ${bosh_admin_password}}
+        ssl:
+          key: ((director_ssl.private_key))
+          cert: ((director_ssl.certificate))
 
       hm:
         http: {user: hm, password: ${bosh_admin_password}}
-        director_account: {user: admin, password: ${bosh_admin_password}}
+        director_account: {user: admin, password: ${bosh_admin_password}, ca_cert: ((default_ca.ca))}
 
       dns:
         address: 127.0.0.1
@@ -180,7 +190,7 @@ jobs:
         wait_resource_poll_interval: 5
         human_readable_vm_names: true
         connection_options:
-          ca_cert: $(if [ -z "$bosh_openstack_ca_cert" ]; then echo "~"; else echo "\"$(echo ${bosh_openstack_ca_cert} | sed -r  -e 's/ /\\n/g ' -e 's/\\nCERTIFICATE-----/ CERTIFICATE-----/g')\""; fi)
+          ca_cert: ((openstack_ca_cert))
           connect_timeout: ${v3_e2e_connection_timeout}
           read_timeout: ${v3_e2e_read_timeout}
           write_timeout: ${v3_e2e_write_timeout}
@@ -216,30 +226,38 @@ cloud_provider:
       path: /var/vcap/micro_bosh/data/cache
 
     ntp: *ntp
+
+variables:
+- name: default_ca
+  type: certificate
+- name: director_ssl
+  type: certificate
+  options:
+    ca: default_ca
+    common_name: ${director_public_ip}
+    alternative_names: [${director_public_ip}]
 EOF
 
-initver=$(cat bosh-init/version)
-bosh_init="${PWD}/bosh-init/bosh-init-${initver}-linux-amd64"
-chmod +x $bosh_init
+echo "validating new manifest and variables..."
+bosh-go int ${manifest_filename} \
+    --var-errs \
+    --var-errs-unused \
+    --vars-file credentials.yml
 
 echo "upgrading existing BOSH Director VM..."
-$bosh_init deploy ${deployment_dir}/${manifest_filename}
-
-# make available as output
-cp ${deployment_dir}/director-manifest* $upgrade_deployment_dir
-cp -r $HOME/.bosh_init $upgrade_deployment_dir
-
-cd ${deployment_dir}
+bosh-go create-env ${manifest_filename} \
+    --vars-file credentials.yml \
+    --state director-manifest-state.json
 
 export BOSH_ENVIRONMENT=${director_public_ip}
 export BOSH_CLIENT=admin
 export BOSH_CLIENT_SECRET=${bosh_admin_password}
 export BOSH_CA_CERT=director_ca
 
-echo "recreating existing BOSH Deployment..."
-bosh-go -n deploy --recreate -d dummy dummy-manifest.yml
+echo "recreating existing dummy deployment..."
+bosh-go -n deploy --recreate -d dummy ${dummy_deployment_input}/dummy-manifest.yml
 
-echo "deleting deployment..."
+echo "deleting dummy deployment..."
 bosh-go -n delete-deployment -d dummy
 
 echo "cleaning up director..."

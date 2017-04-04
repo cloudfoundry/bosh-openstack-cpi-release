@@ -43,7 +43,7 @@ export_terraform_variable "dns"
 
 export BOSH_INIT_LOG_LEVEL=DEBUG
 
-deployment_dir="${PWD}/deployment"
+deployment_dir="${PWD}/director-deployment"
 manifest_filename="e2e-director-manifest"
 private_key=${deployment_dir}/e2e.pem
 bosh_vcap_password_hash=$(ruby -e 'require "securerandom";puts ENV["bosh_admin_password"].crypt("$6$#{SecureRandom.base64(14)}")')
@@ -60,7 +60,6 @@ ssh-add ${private_key}
 
 cd ${deployment_dir}
 
-#create director manifest template as heredoc
 cat > "${manifest_filename}-template.yml"<<EOF
 ---
 name: bosh

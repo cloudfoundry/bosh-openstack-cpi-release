@@ -27,12 +27,12 @@ verify_image_in_openstack() {
 }
 
 stemcell_version=$(cat stemcell/version)
-image_id=$(cat deployment/e2e-director-manifest-state.json | jq --raw-output ".stemcells[0].cid")
-deployment_dir="${PWD}/deployment"
+deployment_dir="${PWD}/director-deployment"
 manifest_filename="dummy-light-stemcell-manifest.yml"
 dummy_release_name="dummy"
 deployment_name="dummy-light-stemcell"
 bosh_vcap_password_hash=$(ruby -e 'require "securerandom";puts ENV["bosh_admin_password"].crypt("$6$#{SecureRandom.base64(14)}")')
+image_id=$(cat ${deployment_dir}/e2e-director-manifest-state.json | jq --raw-output ".stemcells[0].cid")
 
 verify_image_in_openstack
 

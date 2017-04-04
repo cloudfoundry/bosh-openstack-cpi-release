@@ -24,7 +24,7 @@ export_terraform_variable "network_no_dhcp_2_range"
 export_terraform_variable "network_no_dhcp_2_gateway"
 export_terraform_variable "network_no_dhcp_2_ip"
 
-deployment_dir="${PWD}/deployment"
+deployment_dir="${PWD}/director-deployment"
 manifest_filename="dummy-multiple-manual-networks-manifest.yml"
 dummy_release_name="dummy"
 deployment_name="dummy-multiple-manual-networks"

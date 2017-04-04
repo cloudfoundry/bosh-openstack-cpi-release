@@ -12,7 +12,7 @@ inputs:
   - name: stemcell
   - name: terraform
 outputs:
-  - name: deployment
+  - name: director-deployment
 run:
   path: bosh-cpi-src-in/ci/pipelines/certify-stemcell/tasks/deploy-director.sh
 params:

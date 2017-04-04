@@ -15,12 +15,13 @@ export_terraform_variable "dns"
 export_terraform_variable "v3_e2e_security_group"
 export_terraform_variable "v3_e2e_net_id"
 
-deployment_dir="${PWD}/deployment"
+director_deployment_input="${PWD}/director-deployment"
+dummy_deployment_output="${PWD}/dummy-deployment"
 manifest_filename="dummy-manifest.yml"
 dummy_release_name="dummy"
 bosh_vcap_password_hash=$(ruby -e 'require "securerandom";puts ENV["bosh_admin_password"].crypt("$6$#{SecureRandom.base64(14)}")')
 
-cd ${deployment_dir}
+cd ${director_deployment_input}
 
 export BOSH_ENVIRONMENT=${director_public_ip}
 export BOSH_CLIENT=admin
@@ -40,7 +41,7 @@ echo "uploading release to director..."
 bosh-go -n upload-release --dir ../dummy-release
 
 #create dummy release manifest as heredoc
-cat > "${manifest_filename}"<<EOF
+cat > "${dummy_deployment_output}/${manifest_filename}"<<EOF
 ---
 name: dummy
 
@@ -94,7 +95,7 @@ update:
 EOF
 
 echo "deploying dummy release..."
-bosh-go -n deploy -d dummy ${manifest_filename}
+bosh-go -n deploy -d dummy ${dummy_deployment_output}/${manifest_filename}
 if [ "${delete_deployment_when_done}" = "true" ]; then
     bosh-go -n delete-deployment -d dummy
     bosh-go -n clean-up --all

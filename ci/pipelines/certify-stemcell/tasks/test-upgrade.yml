@@ -10,7 +10,8 @@ inputs:
   - name: bosh-init
   - name: bosh-release
   - name: stemcell
-  - name: deployment
+  - name: director-deployment
+  - name: dummy-deployment
   - name: terraform
 outputs:
   - name: upgrade-deployment

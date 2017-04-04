@@ -25,14 +25,13 @@ export_terraform_variable "v3_e2e_security_group" "ci_"
 
 export BOSH_INIT_LOG_LEVEL=DEBUG
 
-deployment_dir="${PWD}/deployment"
+deployment_dir="${PWD}/director-deployment"
 manifest_template_filename="director-manifest-template.yml"
 manifest_filename="director-manifest.yml"
 export ci_private_key=${deployment_dir}/bosh.pem
 export ci_bosh_vcap_password_hash=$(ruby -e 'require "securerandom";puts ENV["ci_bosh_admin_password"].crypt("$6$#{SecureRandom.base64(14)}")')
 
 echo "setting up artifacts used in $manifest_filename"
-mkdir -p ${deployment_dir}
 prepare_bosh_release $distro $old_bosh_release_version $ci_old_bosh_stemcell_version
 export ci_bosh_release_tgz=${deployment_dir}/bosh-release.tgz
 
