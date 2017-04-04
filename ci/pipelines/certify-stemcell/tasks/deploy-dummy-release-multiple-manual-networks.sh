@@ -25,37 +25,34 @@ export_terraform_variable "network_no_dhcp_2_gateway"
 export_terraform_variable "network_no_dhcp_2_ip"
 
 deployment_dir="${PWD}/deployment"
-manifest_filename="dummy-manifest.yml"
+manifest_filename="dummy-multiple-manual-networks-manifest.yml"
 dummy_release_name="dummy"
+deployment_name="dummy-multiple-manual-networks"
 bosh_vcap_password_hash=$(ruby -e 'require "securerandom";puts ENV["bosh_admin_password"].crypt("$6$#{SecureRandom.base64(14)}")')
 
-echo "setting up artifacts used in $manifest_filename"
-mkdir -p ${deployment_dir}
+cd ${deployment_dir}
+
+export BOSH_ENVIRONMENT=${director_public_ip}
+export BOSH_CLIENT=admin
+export BOSH_CLIENT_SECRET=${bosh_admin_password}
+export BOSH_CA_CERT=director_ca
 
 echo "using bosh CLI version..."
-bosh version
-
-echo "targeting bosh director at ${director_public_ip}"
-bosh -n target ${director_public_ip}
-bosh login admin ${bosh_admin_password}
+bosh-go --version
 
 echo "uploading stemcell to director..."
-bosh -n upload stemcell --skip-if-exists ./stemcell/stemcell.tgz
+bosh-go -n upload-stemcell ../stemcell/stemcell.tgz
 
-pushd dummy-release
-  echo "creating release..."
-  bosh -n create release --name ${dummy_release_name}
+echo "creating release..."
+bosh-go -n create-release --dir ../dummy-release --name ${dummy_release_name}
 
-  echo "uploading release to director..."
-  bosh -n upload release --skip-if-exists
-popd
-
+echo "uploading release to director..."
+bosh-go -n upload-release --dir ../dummy-release
 
 #create dummy release manifest as heredoc
-cat > "${deployment_dir}/${manifest_filename}"<<EOF
+cat > "${manifest_filename}"<<EOF
 ---
-name: dummy
-director_uuid: $(bosh status --uuid)
+name: ${deployment_name}
 
 releases:
   - name: ${dummy_release_name}
@@ -131,29 +128,26 @@ update:
   max_in_flight: 3
 EOF
 
-pushd ${deployment_dir}
-  echo "deploying dummy release..."
-  bosh deployment ${manifest_filename}
-  bosh -n deploy
-  echo "checking network interfaces..."
-  echo "${v3_e2e_private_key_data}" > bosh.pem
-  chmod go-r bosh.pem
-  bosh ssh --gateway_host ${director_public_ip} --gateway_user vcap --gateway_identity_file bosh.pem dummy 0 "PATH=/usr/sbin:/sbin ifconfig" > network_config
+echo "deploying dummy release..."
+bosh-go -n deploy -d ${deployment_name} ${manifest_filename}
+echo "checking network interfaces..."
+echo "${v3_e2e_private_key_data}" > bosh.pem
+chmod go-r bosh.pem
+bosh-go ssh --gw-host ${director_public_ip} --gw-user vcap --gw-private-key bosh.pem dummy/0 "PATH=/usr/sbin:/sbin ifconfig" > network_config
 
-  cat network_config | grep ${network_no_dhcp_1_ip} || failed_exit_code_1=$?
-  if [ $failed_exit_code_1 ]; then
+cat network_config | grep ${network_no_dhcp_1_ip} || failed_exit_code_1=$?
+if [ $failed_exit_code_1 ]; then
     echo "failed to find network interface with ip: " ${network_no_dhcp_1_ip}
     exit 1
-  fi
+fi
 
-  cat network_config | grep ${network_no_dhcp_2_ip} || failed_exit_code_2=$?
-  if [ $failed_exit_code_2 ]; then
+cat network_config | grep ${network_no_dhcp_2_ip} || failed_exit_code_2=$?
+if [ $failed_exit_code_2 ]; then
     echo "failed to find network interface with ip: " ${network_no_dhcp_2_ip}
     exit 1
-  fi
+fi
 
-  if [ "${delete_deployment_when_done}" = "true" ]; then
-    bosh -n delete deployment dummy
-    bosh -n cleanup --all
-  fi
-popd
+if [ "${delete_deployment_when_done}" = "true" ]; then
+    bosh-go -n delete-deployment ${deployment_name}
+    bosh-go -n clean-up --all
+fi

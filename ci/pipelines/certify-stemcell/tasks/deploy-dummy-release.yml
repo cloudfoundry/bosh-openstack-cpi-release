@@ -13,7 +13,7 @@ inputs:
 run:
   path: bosh-cpi-src-in/ci/pipelines/certify-stemcell/tasks/deploy-dummy-release.sh
 params:
-  bosh_admin_password:         replace-me
-  stemcell_name:               replace-me
-  instance_flavor:             replace-me
-  delete_deployment_when_done: replace-me
+  bosh_admin_password:         ""
+  stemcell_name:               ""
+  instance_flavor:             ""
+  delete_deployment_when_done: "true"

@@ -52,7 +52,6 @@ chmod go-r ${private_key}
 eval $(ssh-agent)
 ssh-add ${private_key}
 
-#create director manifest as heredoc
 cat > "${deployment_dir}/${manifest_filename}"<<EOF
 ---
 name: bosh
@@ -224,22 +223,24 @@ bosh_init="${PWD}/bosh-init/bosh-init-${initver}-linux-amd64"
 chmod +x $bosh_init
 
 echo "upgrading existing BOSH Director VM..."
-time $bosh_init deploy ${deployment_dir}/${manifest_filename}
+$bosh_init deploy ${deployment_dir}/${manifest_filename}
 
 # make available as output
-time cp ${deployment_dir}/director-manifest* $upgrade_deployment_dir
-time cp -r $HOME/.bosh_init $upgrade_deployment_dir
+cp ${deployment_dir}/director-manifest* $upgrade_deployment_dir
+cp -r $HOME/.bosh_init $upgrade_deployment_dir
 
-time bosh -n target ${director_public_ip}
-time bosh login admin ${bosh_admin_password}
-time bosh download manifest dummy dummy-manifest
-time bosh deployment dummy-manifest
+cd ${deployment_dir}
+
+export BOSH_ENVIRONMENT=${director_public_ip}
+export BOSH_CLIENT=admin
+export BOSH_CLIENT_SECRET=${bosh_admin_password}
+export BOSH_CA_CERT=director_ca
 
 echo "recreating existing BOSH Deployment..."
-time bosh -n deploy --recreate
+bosh-go -n deploy --recreate -d dummy dummy-manifest.yml
 
 echo "deleting deployment..."
-time bosh -n delete deployment dummy
+bosh-go -n delete-deployment -d dummy
 
 echo "cleaning up director..."
-time bosh -n cleanup --all
+bosh-go -n clean-up --all

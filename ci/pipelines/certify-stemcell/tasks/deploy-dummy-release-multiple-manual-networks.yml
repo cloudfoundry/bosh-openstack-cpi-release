@@ -9,11 +9,12 @@ inputs:
   - name: dummy-release
   - name: stemcell
   - name: terraform
+  - name: deployment
 run:
   path: bosh-cpi-src-in/ci/pipelines/certify-stemcell/tasks/deploy-dummy-release-multiple-manual-networks.sh
 params:
-  bosh_admin_password:         replace-me
-  v3_e2e_private_key_data:     replace-me
-  stemcell_name:               replace-me
-  instance_flavor:             replace-me
+  bosh_admin_password:         ""
+  v3_e2e_private_key_data:     ""
+  stemcell_name:               ""
+  instance_flavor:             ""
   delete_deployment_when_done: "true"

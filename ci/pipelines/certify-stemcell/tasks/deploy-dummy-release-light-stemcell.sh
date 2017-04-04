@@ -28,45 +28,42 @@ verify_image_in_openstack() {
 
 stemcell_version=$(cat stemcell/version)
 image_id=$(cat deployment/e2e-director-manifest-state.json | jq --raw-output ".stemcells[0].cid")
-deployment_dir="${PWD}/dummy-deployment"
-manifest_filename="dummy-manifest.yml"
+deployment_dir="${PWD}/deployment"
+manifest_filename="dummy-light-stemcell-manifest.yml"
 dummy_release_name="dummy"
+deployment_name="dummy-light-stemcell"
 bosh_vcap_password_hash=$(ruby -e 'require "securerandom";puts ENV["bosh_admin_password"].crypt("$6$#{SecureRandom.base64(14)}")')
 
 verify_image_in_openstack
 
-echo "setting up artifacts used in $manifest_filename"
-mkdir -p ${deployment_dir}
+cd ${deployment_dir}
 
 echo "using bosh CLI version..."
-bosh version
+bosh-go --version
 
-echo "targeting bosh director at ${director_public_ip}"
-bosh -n target ${director_public_ip}
-bosh login admin ${bosh_admin_password}
+export BOSH_ENVIRONMENT=${director_public_ip}
+export BOSH_CLIENT=admin
+export BOSH_CLIENT_SECRET=${bosh_admin_password}
+export BOSH_CA_CERT=director_ca
 
 echo "generating light stemcell ..."
-create_light_stemcell_command="./bosh-cpi-src-in/scripts/create_light_stemcell --version $stemcell_version --os $os_name --image-id $image_id"
+create_light_stemcell_command="../bosh-cpi-src-in/scripts/create_light_stemcell --version $stemcell_version --os $os_name --image-id $image_id"
 echo $create_light_stemcell_command
 $create_light_stemcell_command
 
 echo "uploading stemcell to director..."
-bosh -n upload stemcell "light-bosh-stemcell-${stemcell_version}-openstack-kvm-${os_name}-go_agent.tgz"
+bosh-go -n upload-stemcell "light-bosh-stemcell-${stemcell_version}-openstack-kvm-${os_name}-go_agent.tgz"
 
-pushd dummy-release
-  echo "creating release..."
-  bosh -n create release --name ${dummy_release_name}
+echo "creating dummy release..."
+bosh-go -n create-release --dir ../dummy-release --name ${dummy_release_name}
 
-  echo "uploading release to director..."
-  bosh -n upload release --skip-if-exists
-popd
-
+echo "uploading release to director..."
+bosh-go -n upload-release --dir ../dummy-release
 
 #create dummy release manifest as heredoc
-cat > "${deployment_dir}/${manifest_filename}"<<EOF
+cat > "${manifest_filename}"<<EOF
 ---
-name: dummy
-director_uuid: $(bosh status --uuid)
+name: ${deployment_name}
 
 releases:
   - name: ${dummy_release_name}
@@ -117,16 +114,16 @@ update:
   max_in_flight: 3
 EOF
 
-pushd ${deployment_dir}
-  echo "deploying dummy release..."
-  bosh deployment ${manifest_filename}
-  bosh -n deploy
-  bosh -n delete deployment dummy
-  bosh -n cleanup --all
-  bosh -n stemcells 2>&1 | grep "No stemcells" || stemcells_found=$?
-  if [ $stemcells_found ]; then
+echo "deploying dummy release..."
+bosh-go -n deploy -d ${deployment_name} ${manifest_filename}
+
+echo "deleting dummy deployment and light stemcell..."
+bosh-go -n delete-deployment -d ${deployment_name}
+bosh-go -n clean-up --all
+bosh-go -n stemcells 2>&1 | grep "No stemcells" || stemcells_found=$?
+if [ $stemcells_found ]; then
     echo "failed to delete stemcell"
     exit 1
-  fi
-  verify_image_in_openstack
-popd
+fi
+
+verify_image_in_openstack
