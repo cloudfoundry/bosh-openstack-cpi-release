@@ -153,6 +153,6 @@ if [ $failed_exit_code_2 ]; then
 fi
 
 if [ "${delete_deployment_when_done}" = "true" ]; then
-    bosh-go -n delete-deployment ${deployment_name}
+    bosh-go -n delete-deployment -d ${deployment_name}
     bosh-go -n clean-up --all
 fi
