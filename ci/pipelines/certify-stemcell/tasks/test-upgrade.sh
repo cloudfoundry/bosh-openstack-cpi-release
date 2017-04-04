@@ -19,8 +19,8 @@ source bosh-cpi-src-in/ci/tasks/utils.sh
 : ${v3_e2e_private_key_data:?}
 : ${time_server_1:?}
 : ${time_server_2:?}
+: ${distro:?}
 optional_value bosh_openstack_ca_cert
-optional_value distro
 
 metadata=terraform/metadata
 

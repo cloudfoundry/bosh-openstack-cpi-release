@@ -10,6 +10,8 @@ inputs:
   - name: stemcell
   - name: terraform
   - name: deployment
+outputs:
+  - name: deployment
 run:
   path: bosh-cpi-src-in/ci/pipelines/certify-stemcell/tasks/deploy-dummy-release-multiple-manual-networks.sh
 params:

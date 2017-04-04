@@ -120,7 +120,7 @@ bosh-go -n deploy -d ${deployment_name} ${manifest_filename}
 echo "deleting dummy deployment and light stemcell..."
 bosh-go -n delete-deployment -d ${deployment_name}
 bosh-go -n clean-up --all
-bosh-go -n stemcells 2>&1 | grep "No stemcells" || stemcells_found=$?
+bosh-go -n stemcells 2>&1 | grep "0 stemcells" || stemcells_found=$?
 if [ $stemcells_found ]; then
     echo "failed to delete stemcell"
     exit 1

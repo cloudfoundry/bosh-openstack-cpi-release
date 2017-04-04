@@ -10,6 +10,8 @@ inputs:
   - name: stemcell
   - name: deployment
   - name: terraform
+outputs:
+  - name: deployment
 run:
   path: bosh-cpi-src-in/ci/pipelines/certify-stemcell/tasks/deploy-dummy-release-light-stemcell.sh
 params:
@@ -17,3 +19,9 @@ params:
   os_name:                             ""
   instance_flavor:                     ""
   delete_deployment_when_done:         "true"
+  BOSH_OPENSTACK_DOMAIN_NAME:          ""
+  BOSH_OPENSTACK_AUTH_URL:             ""
+  BOSH_OPENSTACK_USERNAME:             ""
+  BOSH_OPENSTACK_API_KEY:              ""
+  BOSH_OPENSTACK_PROJECT:              ""
+  BOSH_OPENSTACK_CA_CERT:              ""
