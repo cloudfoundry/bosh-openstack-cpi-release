@@ -47,8 +47,10 @@ export_terraform_variable "security_group"
 working_dir=$PWD
 # checked by BATs environment helper (bosh-acceptance-tests.git/lib/bat/env.rb)
 export BAT_STEMCELL="${working_dir}/stemcell/stemcell.tgz"
-export BAT_VCAP_PRIVATE_KEY="$working_dir/keys/bats.pem"
+export BAT_PRIVATE_KEY="$working_dir/keys/bats.pem"
+export BAT_PRIVATE_KEY_USER='vcap'
 export BAT_DIRECTOR=${director_public_ip}
+export BAT_DIRECTOR_USER='admin'
 export BAT_DIRECTOR_PASSWORD=${bosh_admin_password}
 export BAT_DIRECTOR_CA=${director_ca}
 export BAT_BOSH_CLI='bosh-go'

@@ -37,7 +37,10 @@ bosh_vcap_password_hash=$(ruby -e 'require "securerandom";puts ENV["bosh_admin_p
 
 # checked by BATs environment helper (bosh-acceptance-tests.git/lib/bat/env.rb)
 export BAT_STEMCELL="${working_dir}/stemcell/stemcell.tgz"
+export BAT_PRIVATE_KEY="$working_dir/keys/bats.pem"
+export BAT_PRIVATE_KEY_USER='vcap'
 export BAT_DIRECTOR=${director_public_ip}
+export BAT_DIRECTOR_USER='admin'
 export BAT_DIRECTOR_PASSWORD=${bosh_admin_password}
 export BAT_DIRECTOR_CA=${director_ca}
 export BAT_BOSH_CLI='bosh-go'
