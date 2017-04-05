@@ -28,10 +28,10 @@ EOF
 set -x
 
 echo "using bosh CLI version..."
-bosh version
+bosh-go --version
 
 echo "finalizing CPI release..."
-bosh finalize release ../../bosh-cpi-dev-artifacts/*.tgz --version $integer_version
+bosh-go finalize-release --version $integer_version ../../bosh-cpi-dev-artifacts/*.tgz
 
 rm config/private.yml
 

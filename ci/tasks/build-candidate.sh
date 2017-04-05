@@ -14,11 +14,9 @@ pushd src/bosh_openstack_cpi
 popd
 
 echo "using bosh CLI version..."
-bosh version
+bosh-go --version
 
 cpi_release_name="bosh-openstack-cpi"
 
 echo "building CPI release..."
-bosh create release --name $cpi_release_name --version $semver --with-tarball
-
-mv dev_releases/$cpi_release_name/$cpi_release_name-$semver.tgz ../candidate/
+bosh-go -n create-release --name $cpi_release_name --version $semver --tarball ../candidate/$cpi_release_name-$semver.tgz

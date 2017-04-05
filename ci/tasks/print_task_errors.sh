@@ -13,6 +13,8 @@ export_terraform_variable "director_public_ip"
 echo 'Printing debug output of tasks in state error'
 
 cd bosh-cpi-src-in/ci/ruby_scripts
-bosh -n target ${director_public_ip}
-bosh -n login admin ${bosh_admin_password}
-bosh -n tasks recent --no-filter 100 | ./print_task_debug_output.sh
+
+bosh-go -n -e ${director_public_ip} \
+  --client admin \
+  --client-secret ${bosh_admin_password} \
+  tasks --all --recent 100 | ./print_task_debug_output.sh

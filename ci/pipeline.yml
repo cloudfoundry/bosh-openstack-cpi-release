@@ -257,6 +257,8 @@ jobs:
         file: bosh-cpi-src-in/ci/tasks/deploy-manual-networking.yml
         params:
           bosh_admin_password:                  {{bosh_admin_password}}
+          director_ca:                          {{director_ca}}
+          director_ca_private_key:              {{director_ca_private_key}}
           openstack_flavor:                     "m1.small"
           openstack_connection_timeout:         "600"
           openstack_read_timeout:               "180"
@@ -356,6 +358,8 @@ jobs:
         file: bosh-cpi-src-in/ci/tasks/deploy-dynamic-networking.yml
         params:
           bosh_admin_password:                  {{bosh_admin_password}}
+          director_ca:                          {{director_ca}}
+          director_ca_private_key:              {{director_ca_private_key}}
           openstack_flavor:                     "m1.small"
           openstack_connection_timeout:         "600"
           openstack_read_timeout:               "180"
@@ -459,6 +463,8 @@ jobs:
         file: bosh-cpi-src-in/ci/tasks/deploy-manual-networking.yml
         params:
           bosh_admin_password:                  {{bosh_admin_password}}
+          director_ca:                          {{director_ca}}
+          director_ca_private_key:              {{director_ca_private_key}}
           openstack_flavor:                     "m1.small"
           openstack_connection_timeout:         "600"
           openstack_read_timeout:               "180"
@@ -558,6 +564,8 @@ jobs:
         file: bosh-cpi-src-in/ci/tasks/deploy-dynamic-networking.yml
         params:
           bosh_admin_password:                  {{bosh_admin_password}}
+          director_ca:                          {{director_ca}}
+          director_ca_private_key:              {{director_ca_private_key}}
           openstack_flavor:                     "m1.small"
           openstack_connection_timeout:         "600"
           openstack_read_timeout:               "180"

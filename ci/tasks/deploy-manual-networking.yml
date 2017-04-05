@@ -6,7 +6,6 @@ image_resource:
     repository: boshcpi/openstack-cpi-release
 inputs:
   - name: bosh-cpi-src-in
-  - name: bosh-init
   - name: bosh-release
   - name: bosh-cpi-dev-artifacts
   - name: version-semver
@@ -19,6 +18,8 @@ run:
   path: bosh-cpi-src-in/ci/tasks/deploy-manual-networking.sh
 params:
   bosh_admin_password:                 ""
+  director_ca:                         ""
+  director_ca_private_key:             ""
   openstack_flavor:                    ""
   openstack_connection_timeout:        ""
   openstack_read_timeout:              ""
