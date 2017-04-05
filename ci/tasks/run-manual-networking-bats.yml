@@ -18,5 +18,6 @@ params:
   openstack_flavor_with_ephemeral_disk:     replace-me
   openstack_flavor_with_no_ephemeral_disk:  replace-me
   bosh_admin_password:                      replace-me
+  director_ca:                              ""
   private_key_data:                         replace-me
   availability_zone:                        replace-me

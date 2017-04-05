@@ -8,6 +8,7 @@ source bosh-cpi-src-in/ci/tasks/utils.sh
 : ${openstack_flavor_with_ephemeral_disk:?}
 : ${openstack_flavor_with_no_ephemeral_disk:?}
 : ${bosh_admin_password:?}
+: ${director_ca:?}
 : ${private_key_data:?}
 
 optional_value availability_zone
@@ -49,6 +50,8 @@ export BAT_STEMCELL="${working_dir}/stemcell/stemcell.tgz"
 export BAT_VCAP_PRIVATE_KEY="$working_dir/keys/bats.pem"
 export BAT_DIRECTOR=${director_public_ip}
 export BAT_DIRECTOR_PASSWORD=${bosh_admin_password}
+export BAT_DIRECTOR_CA=${director_ca}
+export BAT_BOSH_CLI='bosh-go'
 export BAT_VCAP_PASSWORD=${bosh_admin_password}
 export BAT_DNS_HOST=${director_public_ip}
 export BAT_INFRASTRUCTURE='openstack'
@@ -65,9 +68,7 @@ chmod go-r $working_dir/keys/bats.pem
 ssh-add $working_dir/keys/bats.pem
 
 echo "using bosh CLI version..."
-bosh version
-
-bosh -n target ${director_public_ip}
+bosh-go --version
 
 export BAT_DEPLOYMENT_SPEC="${working_dir}/bats-config.yml"
 cat > $BAT_DEPLOYMENT_SPEC <<EOF
@@ -76,7 +77,6 @@ cpi: openstack
 properties:
   pool_size: 1
   instances: 1
-  uuid: $(bosh status --uuid)
   vip: ${floating_ip}
   second_static_ip: ${primary_net_second_manual_ip}
   instance_type: ${openstack_flavor_with_ephemeral_disk}
