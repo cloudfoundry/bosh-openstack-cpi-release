@@ -17,11 +17,12 @@ cp -r bosh-cpi-src-in promote/repo
 cd promote/repo
 
 set +x
-echo creating config/private.yml with blobstore secrets
+echo "creating config/private.yml with blobstore secrets"
 cat > config/private.yml << EOF
 ---
 blobstore:
-  s3:
+  provider: s3
+  options:
     access_key_id: $aws_access_key_id
     secret_access_key: $aws_secret_access_key
 EOF
