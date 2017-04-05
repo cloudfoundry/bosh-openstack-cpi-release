@@ -252,6 +252,8 @@ bosh-go int ${manifest_filename}-template.yml \
     --var-errs-unused \
     --vars-store credentials.yml > ${manifest_filename}.yml
 
+cat ${manifest_filename}.yml
+
 echo "deploying BOSH..."
 bosh-go create-env ${manifest_filename}-template.yml \
     --vars-store credentials.yml \
