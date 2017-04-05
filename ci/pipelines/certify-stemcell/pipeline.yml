@@ -55,7 +55,6 @@ jobs:
       - aggregate:
         - {trigger: false, get: bosh-cpi-src-in,  passed: [cleanup], tags: *tags, timeout: *timeouts-long}
         - {trigger: false, get: dummy-release,                       tags: *tags, timeout: *timeouts-long}
-        - {trigger: true,  get: bosh-init,        passed: [cleanup], tags: *tags, timeout: *timeouts-long}
         - {trigger: true,  get: bosh-cpi-release, passed: [cleanup], tags: *tags, timeout: *timeouts-long, resource: bosh-cpi-dev-artifacts}
         - {trigger: true,  get: bosh-release,     passed: [cleanup], tags: *tags, timeout: *timeouts-long}
         - {trigger: true,  get: stemcell,         passed: [cleanup], tags: *tags, timeout: *timeouts-long, resource: centos-stemcell}
@@ -151,7 +150,6 @@ jobs:
       - aggregate:
         - {trigger: false, get: bosh-cpi-src-in,  passed: [cleanup], tags: *tags, timeout: *timeouts-long}
         - {trigger: false, get: dummy-release,                       tags: *tags, timeout: *timeouts-long}
-        - {trigger: true,  get: bosh-init,        passed: [cleanup], tags: *tags, timeout: *timeouts-long}
         - {trigger: true,  get: bosh-cpi-release, passed: [cleanup], tags: *tags, timeout: *timeouts-long, resource: bosh-cpi-dev-artifacts}
         - {trigger: true,  get: bosh-release,     passed: [cleanup], tags: *tags, timeout: *timeouts-long}
         - {trigger: true,  get: stemcell,         passed: [cleanup], tags: *tags, timeout: *timeouts-long, resource: ubuntu-stemcell}
@@ -226,7 +224,6 @@ jobs:
       - aggregate:
         - {trigger: false, get: bosh-cpi-src-in,  passed: [cleanup], tags: *tags, timeout: *timeouts-long}
         - {trigger: false, get: dummy-release,                       tags: *tags, timeout: *timeouts-long}
-        - {trigger: true,  get: bosh-init,        passed: [cleanup], tags: *tags, timeout: *timeouts-long}
         - {trigger: true,  get: bosh-cpi-release, passed: [cleanup], tags: *tags, timeout: *timeouts-long, resource: bosh-cpi-dev-artifacts}
         - {trigger: true,  get: bosh-release,     passed: [cleanup], tags: *tags, timeout: *timeouts-long}
         - {trigger: true,  get: stemcell,         passed: [cleanup], tags: *tags, timeout: *timeouts-long, resource: centos-stemcell}
@@ -309,7 +306,6 @@ jobs:
       - aggregate:
         - {trigger: false, get: bosh-cpi-src-in,  passed: [cleanup], tags: *tags, timeout: *timeouts-long}
         - {trigger: false, get: dummy-release,                       tags: *tags, timeout: *timeouts-long}
-        - {trigger: true,  get: bosh-init,        passed: [cleanup], tags: *tags, timeout: *timeouts-long}
         - {trigger: true,  get: bosh-cpi-release, passed: [cleanup], tags: *tags, timeout: *timeouts-long, resource: bosh-cpi-dev-artifacts}
         - {trigger: true,  get: bosh-release,     passed: [cleanup], tags: *tags, timeout: *timeouts-long}
         - {trigger: true,  get: stemcell,         passed: [cleanup], tags: *tags, timeout: *timeouts-long, resource: ubuntu-stemcell}
@@ -369,7 +365,6 @@ jobs:
       - aggregate:
         - {trigger: false, get: bosh-cpi-src-in,  passed: [cleanup], tags: *tags, timeout: *timeouts-long}
         - {trigger: false, get: dummy-release,                       tags: *tags, timeout: *timeouts-long}
-        - {trigger: true,  get: bosh-init,        passed: [cleanup], tags: *tags, timeout: *timeouts-long}
         - {trigger: true,  get: bosh-cpi-release, passed: [cleanup], tags: *tags, timeout: *timeouts-long, resource: bosh-cpi-dev-artifacts}
         - {trigger: true,  get: bosh-release,     passed: [cleanup], tags: *tags, timeout: *timeouts-long}
         - {trigger: true,  get: stemcell,         passed: [cleanup], tags: *tags, timeout: *timeouts-long, resource: centos-stemcell}
@@ -473,7 +468,6 @@ jobs:
       - aggregate:
         - {trigger: false, get: bosh-cpi-src-in,  passed: [cleanup], tags: *tags, timeout: *timeouts-long}
         - {trigger: false, get: dummy-release,                       tags: *tags, timeout: *timeouts-long}
-        - {trigger: true,  get: bosh-init,        passed: [cleanup], tags: *tags, timeout: *timeouts-long}
         - {trigger: true,  get: bosh-cpi-release, passed: [cleanup], tags: *tags, timeout: *timeouts-long, resource: bosh-cpi-dev-artifacts}
         - {trigger: true,  get: bosh-release,     passed: [cleanup], tags: *tags, timeout: *timeouts-long}
         - {trigger: true,  get: stemcell,         passed: [cleanup], tags: *tags, timeout: *timeouts-long, resource: ubuntu-stemcell}
@@ -539,7 +533,6 @@ jobs:
     plan:
       - aggregate:
         - {trigger: false, get: bosh-cpi-src-in,   tags: *tags, timeout: *timeouts-long}
-        - {trigger: true,  get: bosh-init,         tags: *tags, timeout: *timeouts-long}
         - {trigger: true,  get: bosh-cpi-release,  tags: *tags, timeout: *timeouts-long, resource: bosh-cpi-dev-artifacts}
         - {trigger: true,  get: bosh-release,      tags: *tags, timeout: *timeouts-long}
         - {trigger: true,  get: centos-stemcell,   tags: *tags, timeout: *timeouts-long}
@@ -672,14 +665,6 @@ resources:
     tags: *tags
     source:
       name: bosh-openstack-kvm-ubuntu-trusty-go_agent
-
-  - name: bosh-init
-    type: s3
-    tags: *tags
-    source:
-      regexp: bosh-init-([0-9.]+)-linux-amd64
-      bucket: bosh-init-artifacts
-      region_name: us-east-1
 
   - name: bosh-cpi-src-in
     type: git

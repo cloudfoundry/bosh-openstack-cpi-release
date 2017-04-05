@@ -7,7 +7,6 @@ image_resource:
 inputs:
   - name: bosh-cpi-src-in
   - name: bosh-cpi-release
-  - name: bosh-init
   - name: bosh-release
   - name: stemcell
   - name: director-deployment
