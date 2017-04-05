@@ -39,7 +39,7 @@ deployment_dir="${PWD}/upgrade-deployment"
 dummy_deployment_input="${PWD}/dummy-deployment"
 director_deployment_input="${PWD}/director-deployment"
 manifest_filename="director-manifest.yml"
-private_key=${deployment_dir}/bosh.pem
+private_key=bosh.pem
 bosh_vcap_password_hash=$(ruby -e 'require "securerandom";puts ENV["bosh_admin_password"].crypt("$6$#{SecureRandom.base64(14)}")')
 
 cp ${director_deployment_input}/director-manifest-state.json $deployment_dir
@@ -52,12 +52,12 @@ cp ./bosh-cpi-release/*.tgz ${deployment_dir}/bosh-openstack-cpi.tgz
 cp ./stemcell/stemcell.tgz ${deployment_dir}/stemcell.tgz
 prepare_bosh_release
 
+cd ${deployment_dir}
+
 echo "${v3_e2e_private_key_data}" > ${private_key}
 chmod go-r ${private_key}
 eval $(ssh-agent)
 ssh-add ${private_key}
-
-cd ${deployment_dir}
 
 cat > "${manifest_filename}"<<EOF
 ---

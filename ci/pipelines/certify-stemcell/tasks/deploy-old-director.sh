@@ -28,19 +28,19 @@ export BOSH_INIT_LOG_LEVEL=DEBUG
 deployment_dir="${PWD}/director-deployment"
 manifest_template_filename="director-manifest-template.yml"
 manifest_filename="director-manifest.yml"
-export ci_private_key=${deployment_dir}/bosh.pem
+export ci_private_key=bosh.pem
 export ci_bosh_vcap_password_hash=$(ruby -e 'require "securerandom";puts ENV["ci_bosh_admin_password"].crypt("$6$#{SecureRandom.base64(14)}")')
 
 echo "setting up artifacts used in $manifest_filename"
 prepare_bosh_release $distro $old_bosh_release_version $ci_old_bosh_stemcell_version
 export ci_bosh_release_tgz=${deployment_dir}/bosh-release.tgz
 
+cd ${deployment_dir}
+
 echo "${v3_e2e_private_key_data}" > ${ci_private_key}
 chmod go-r ${ci_private_key}
 eval $(ssh-agent)
 ssh-add ${ci_private_key}
-
-cd ${deployment_dir}
 
 echo -e "${director_ca}" > director_ca
 echo -e "${director_ca_private_key}" > director_ca_private_key

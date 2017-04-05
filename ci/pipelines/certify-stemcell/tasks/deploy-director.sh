@@ -45,7 +45,7 @@ export BOSH_INIT_LOG_LEVEL=DEBUG
 
 deployment_dir="${PWD}/director-deployment"
 manifest_filename="e2e-director-manifest"
-private_key=${deployment_dir}/e2e.pem
+private_key=e2e.pem
 bosh_vcap_password_hash=$(ruby -e 'require "securerandom";puts ENV["bosh_admin_password"].crypt("$6$#{SecureRandom.base64(14)}")')
 
 echo "setting up artifacts used in ${manifest_filename}-template.yml"
@@ -53,12 +53,12 @@ cp ./bosh-cpi-release/*.tgz ${deployment_dir}/bosh-openstack-cpi.tgz
 cp ./stemcell/stemcell.tgz ${deployment_dir}/stemcell.tgz
 prepare_bosh_release
 
+cd ${deployment_dir}
+
 echo "${v3_e2e_private_key_data}" > ${private_key}
 chmod go-r ${private_key}
 eval $(ssh-agent)
 ssh-add ${private_key}
-
-cd ${deployment_dir}
 
 cat > "${manifest_filename}-template.yml"<<EOF
 ---
