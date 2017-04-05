@@ -34,6 +34,7 @@ export ci_bosh_vcap_password_hash=$(ruby -e 'require "securerandom";puts ENV["ci
 echo "setting up artifacts used in $manifest_filename"
 prepare_bosh_release $distro $old_bosh_release_version $ci_old_bosh_stemcell_version
 export ci_bosh_release_tgz=${deployment_dir}/bosh-release.tgz
+cp bosh-cpi-src-in/ci/pipelines/certify-stemcell/assets/old-director-manifest-template.yml ${deployment_dir}
 
 cd ${deployment_dir}
 
@@ -51,14 +52,14 @@ echo "using bosh CLI version..."
 bosh-go --version
 
 echo "validating manifest and variables..."
-bosh-go int ../bosh-cpi-src-in/ci/pipelines/certify-stemcell/assets/old-director-manifest-template.yml \
+bosh-go int old-director-manifest-template.yml \
     --var-errs \
     --var-errs-unused \
     --vars-env=ci \
     --vars-store credentials.yml
 
 echo "deploying BOSH..."
-bosh-go create-env ../bosh-cpi-src-in/ci/pipelines/certify-stemcell/assets/old-director-manifest-template.yml \
+bosh-go create-env old-director-manifest-template.yml \
     --vars-env=ci \
     --vars-store credentials.yml \
     --state director-manifest-state.json
