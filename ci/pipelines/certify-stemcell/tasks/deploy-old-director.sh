@@ -23,8 +23,6 @@ export_terraform_variable "v3_e2e_net_gateway" "ci_"
 export_terraform_variable "v3_e2e_net_id" "ci_"
 export_terraform_variable "v3_e2e_security_group" "ci_"
 
-export BOSH_INIT_LOG_LEVEL=DEBUG
-
 deployment_dir="${PWD}/director-deployment"
 manifest_template_filename="director-manifest-template.yml"
 manifest_filename="director-manifest.yml"

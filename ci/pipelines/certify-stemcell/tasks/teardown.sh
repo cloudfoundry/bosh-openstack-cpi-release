@@ -2,8 +2,6 @@
 
 set -e
 
-export BOSH_INIT_LOG_LEVEL=DEBUG
-
 working_dir=$PWD
 deployment_dir=$PWD/upgrade-deployment
 

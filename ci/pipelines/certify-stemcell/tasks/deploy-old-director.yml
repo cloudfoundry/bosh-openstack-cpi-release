@@ -12,7 +12,6 @@ outputs:
 run:
   path: bosh-cpi-src-in/ci/pipelines/certify-stemcell/tasks/deploy-old-director.sh
 params:
-  BOSH_INIT_LOG_LEVEL:                    warn
   distro:                                 ""
   director_ca:                            ""
   director_ca_private_key:                ""

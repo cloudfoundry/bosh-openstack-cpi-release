@@ -41,8 +41,6 @@ export_terraform_variable "v3_e2e_net_id"
 export_terraform_variable "v3_e2e_security_group"
 export_terraform_variable "dns"
 
-export BOSH_INIT_LOG_LEVEL=DEBUG
-
 deployment_dir="${PWD}/director-deployment"
 manifest_filename="e2e-director-manifest"
 private_key=e2e.pem

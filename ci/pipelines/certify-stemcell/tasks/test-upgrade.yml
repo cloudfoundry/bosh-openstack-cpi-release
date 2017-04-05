@@ -17,7 +17,6 @@ outputs:
 run:
   path: bosh-cpi-src-in/ci/pipelines/certify-stemcell/tasks/test-upgrade.sh
 params:
-  BOSH_INIT_LOG_LEVEL:                 warn
   bosh_admin_password:                 ""
   v3_e2e_flavor:                       ""
   v3_e2e_connection_timeout:           ""

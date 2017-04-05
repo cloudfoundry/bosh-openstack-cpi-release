@@ -33,8 +33,6 @@ export_terraform_variable "v3_e2e_net_gateway"
 export_terraform_variable "v3_e2e_net_id"
 export_terraform_variable "v3_e2e_security_group"
 
-export BOSH_INIT_LOG_LEVEL=DEBUG
-
 deployment_dir="${PWD}/upgrade-deployment"
 dummy_deployment_input="${PWD}/dummy-deployment"
 director_deployment_input="${PWD}/director-deployment"
