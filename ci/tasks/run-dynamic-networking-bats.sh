@@ -19,6 +19,9 @@ mkdir -p $working_dir/keys
 export BAT_VCAP_PRIVATE_KEY="$working_dir/keys/bats.pem"
 echo "$private_key_data" > $BAT_VCAP_PRIVATE_KEY
 
+export BAT_DIRECTOR_CA="${working_dir}/keys/director_ca.pem"
+echo "${director_ca}" > $BAT_DIRECTOR_CA
+
 eval $(ssh-agent)
 chmod go-r $BAT_VCAP_PRIVATE_KEY
 ssh-add $BAT_VCAP_PRIVATE_KEY
@@ -42,7 +45,6 @@ export BAT_PRIVATE_KEY_USER='vcap'
 export BAT_DIRECTOR=${director_public_ip}
 export BAT_DIRECTOR_USER='admin'
 export BAT_DIRECTOR_PASSWORD=${bosh_admin_password}
-export BAT_DIRECTOR_CA=${director_ca}
 export BAT_BOSH_CLI='bosh-go'
 export BAT_VCAP_PASSWORD=${bosh_admin_password}
 export BAT_DNS_HOST=${director_public_ip}
