@@ -7,7 +7,7 @@ resource_types:
 
 resources:
 - name: pull-request
-  tags: [suse-newton]
+  tags: [blue-box]
   type: pull-request
   source:
     repo: cloudfoundry-incubator/bosh-openstack-cpi-release
@@ -16,17 +16,17 @@ resources:
 jobs:
 - name: unit-test
   public: true
-  tags: [suse-newton]
+  tags: [blue-box]
   plan:
   - get: pull-request
-    tags: [suse-newton]
+    tags: [blue-box]
     trigger: true
     version: every
   - put: pull-request
-    tags: [suse-newton]
+    tags: [blue-box]
     params: {path: pull-request, status: pending}
   - task: test
-    tags: [suse-newton]
+    tags: [blue-box]
     config:
       platform: linux
       image_resource:
@@ -42,9 +42,9 @@ jobs:
         - "cd pull-request/src/bosh_openstack_cpi && bundle install && bundle exec rspec spec/unit/*"
     on_failure:
       put: pull-request
-      tags: [suse-newton]
+      tags: [blue-box]
       params: {path: pull-request, status: failure}
     on_success:
       put: pull-request
-      tags: [suse-newton]
+      tags: [blue-box]
       params: {path: pull-request, status: success}
