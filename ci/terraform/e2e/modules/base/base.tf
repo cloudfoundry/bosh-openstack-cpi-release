@@ -196,12 +196,6 @@ resource "openstack_networking_secgroup_rule_v2" "secgroup_rule_8" {
   security_group_id = "${openstack_networking_secgroup_v2.secgroup.id}"
 }
 
-resource "openstack_networking_secgroup_rule_v2" "secgroup_rule_9" {
-  direction = "egress"
-  ethertype = "IPv4"
-  security_group_id = "${openstack_networking_secgroup_v2.secgroup.id}"
-}
-
 output "v3_e2e_security_group" {
   value = "${openstack_networking_secgroup_v2.secgroup.name}"
 }
