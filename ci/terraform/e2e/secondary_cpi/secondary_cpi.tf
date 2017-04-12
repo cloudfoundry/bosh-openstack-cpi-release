@@ -50,21 +50,22 @@ resource "openstack_compute_keypair_v2" "default_key" {
   public_key = "${var.default_public_key}"
 }
 
-resource "openstack_compute_secgroup_v2" "secgroup" {
+resource "openstack_networking_secgroup_v2" "secgroup" {
   region      = "${var.region_name}"
   name        = "${var.prefix}"
   description = "e2e security group"
+}
 
-  rule {
-    ip_protocol = "tcp"
-    from_port   = "1"
-    to_port     = "65535"
-    cidr        = "0.0.0.0/0"
-  }
+resource "openstack_networking_secgroup_rule_v2" "secgroup_rule_1" {
+  direction = "ingress"
+  ethertype = "IPv4"
+  protocol = "tcp"
+  remote_ip_prefix = "0.0.0.0/0"
+  security_group_id = "${openstack_networking_secgroup_v2.secgroup.id}"
 }
 
 output "secondary_openstack_security_group_name" {
-  value = "${openstack_compute_secgroup_v2.secgroup.name}"
+  value = "${openstack_networking_secgroup_v2.secgroup.name}"
 }
 
 output "secondary_openstack_default_key_name" {
