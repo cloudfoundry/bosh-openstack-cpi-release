@@ -1,4 +1,5 @@
 require 'spec_helper'
+require 'fog/compute/openstack/models/server'
 
 describe Bosh::OpenStackCloud::NetworkConfigurator do
 
@@ -411,12 +412,75 @@ describe Bosh::OpenStackCloud::NetworkConfigurator do
         expect(Bosh::OpenStackCloud::NetworkConfigurator.get_gateway_network_id(network_spec)).to eq('net_id_b')
       end
     end
+  end
 
+  describe '.gateway_ip' do
+    let(:server) { instance_double(Fog::Compute::OpenStack::Server) }
+
+    context 'when gateway network is a manual network' do
+      let(:network_spec) {
+        {
+          'network_a' => manual_network_spec(net_id: 'net_id_a', ip: '10.10.10.10', defaults: ['gateway']),
+          'vip_network' => vip_network_spec
+        }
+      }
+
+      it 'returns the IP address from the gateway network' do
+        expect(Bosh::OpenStackCloud::NetworkConfigurator.gateway_ip(network_spec, openstack, server)).to eq('10.10.10.10')
+      end
+
+      context 'when other private networks exist' do
+        let(:network_spec) {
+          {
+            'network_a' => manual_network_spec(net_id: 'net_id_a', ip: '10.10.10.10', defaults: ['gateway']),
+            'network_b' => manual_network_spec(net_id: 'net_id_b', ip: '20.20.20.20'),
+            'network_c' => dynamic_network_with_netid_spec,
+            'vip_network' => vip_network_spec
+          }
+        }
+
+        it 'returns the IP address from the gateway network' do
+          expect(Bosh::OpenStackCloud::NetworkConfigurator.gateway_ip(network_spec, openstack, server)).to eq('10.10.10.10')
+        end
+      end
+    end
+
+    context 'when gateway network is a dynamic network' do
+      let(:network_spec) {
+        {
+          'network_a' => dynamic_network_with_netid_spec.merge('defaults' => ['gateway']),
+          'vip_network' => vip_network_spec
+        }
+      }
+
+      before(:each) do
+        allow(server).to receive(:addresses).and_return({'network_a' => [{'addr' => '10.20.20.20'}]})
+      end
+
+      it 'returns the IP address from the gateway network by calling OpenStack' do
+        expect(Bosh::OpenStackCloud::NetworkConfigurator.gateway_ip(network_spec, openstack, server)).to eq('10.20.20.20')
+        expect(server).to have_received(:addresses)
+      end
+
+      context 'when other private networks exist' do
+        let(:network_spec) {
+          {
+            'network_a' => dynamic_network_with_netid_spec.merge('defaults' => ['gateway']),
+            'network_b' => manual_network_spec(net_id: 'net_id_b', ip: '10.10.10.10'),
+            'vip_network' => vip_network_spec
+          }
+        }
+
+        it 'raises an error' do
+          expect{
+            Bosh::OpenStackCloud::NetworkConfigurator.gateway_ip(network_spec, openstack, server)
+          }.to raise_error(Bosh::Clouds::VMCreationFailed, 'Gateway IP address could not be determined. Gateway network is dynamic, but additional private networks exist.')
+        end
+      end
+    end
   end
 
   describe '#check_preconditions' do
-
-
     context 'when multiple manual networks' do
       subject do
         network_spec = {

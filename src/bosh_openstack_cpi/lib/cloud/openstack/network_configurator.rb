@@ -101,8 +101,8 @@ module Bosh::OpenStackCloud
       @security_groups.uniq!
     end
 
-    def self.get_gateway_network_id(network_spec)
-      private_network_specs = network_spec.values.select { |spec| spec['type'] != 'vip' }
+    def self.get_gateway_network(network_spec)
+      private_network_specs = private_network_specs(network_spec)
       spec = if private_network_specs.size == 1
         private_network_specs.first
       else
@@ -110,7 +110,28 @@ module Bosh::OpenStackCloud
           spec['defaults'] && spec['defaults'].include?('gateway')
         end.first
       end
-      extract_net_id(spec)
+      spec
+    end
+
+    def self.get_gateway_network_id(network_spec)
+      network = get_gateway_network(network_spec)
+      extract_net_id(network)
+    end
+
+    def self.gateway_ip(network_spec, openstack, server)
+      network = get_gateway_network(network_spec)
+
+      if network['type'] == 'manual'
+        network['ip']
+      elsif network['type'] == 'dynamic'
+        if private_network_specs(network_spec).size > 1
+          raise Bosh::Clouds::VMCreationFailed.new(false), 'Gateway IP address could not be determined. Gateway network is dynamic, but additional private networks exist.'
+        end
+
+        openstack.with_openstack {
+          return server.addresses.values.first.dig(0,'addr')
+        }
+      end
     end
 
     ##
@@ -171,6 +192,10 @@ module Bosh::OpenStackCloud
     end
 
     private
+
+    def self.private_network_specs(network_spec)
+      network_spec.values.select { |spec| spec['type'] != 'vip' }
+    end
 
     def multiple_private_networks?
       @networks.length > 1

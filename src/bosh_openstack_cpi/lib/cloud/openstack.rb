@@ -26,6 +26,7 @@ require "cloud/openstack/openstack"
 require "cloud/openstack/tag_manager"
 
 require "cloud/openstack/network_configurator"
+require "cloud/openstack/loadbalancer_configurator"
 require "cloud/openstack/resource_pool"
 require "cloud/openstack/security_groups"
 require "cloud/openstack/floating_ip"

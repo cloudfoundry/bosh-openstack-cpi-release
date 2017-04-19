@@ -274,6 +274,13 @@ module Bosh::OpenStackCloud
             raise Bosh::Clouds::VMCreationFailed.new(false), e.message
           end
 
+          unless resource_pool.fetch('loadbalancer_pools',[]).empty?
+            loadbalancer_configurator = LoadbalancerConfigurator.new(network_spec, @openstack)
+            resource_pool['loadbalancer_pools'].each do |pool|
+              loadbalancer_configurator.add_vm_to_pool(server, pool)
+            end
+          end
+
           server.id.to_s
 
         rescue => e
