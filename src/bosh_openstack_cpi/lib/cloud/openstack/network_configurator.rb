@@ -68,7 +68,7 @@ module Bosh::OpenStackCloud
     # @param [Hash] network spec
     #   configure
     def initialize_network(name, network_spec)
-      network_type = network_spec["type"] || "manual"
+      network_type = NetworkConfigurator.network_type(network_spec)
 
       case network_type
         when "dynamic"
@@ -118,12 +118,21 @@ module Bosh::OpenStackCloud
       extract_net_id(network)
     end
 
+    def self.matching_gateway_subnet_ids_for_ip(network_spec, openstack, ip)
+      network_id = get_gateway_network_id(network_spec)
+      network_subnets = openstack.network.list_subnets({ 'network_id' => network_id }).body['subnets']
+      network_subnets.select do |subnet|
+        NetAddr::CIDR.create(subnet['cidr']).matches?(ip)
+      end.map { |subnet| subnet['id'] }
+    end
+
     def self.gateway_ip(network_spec, openstack, server)
       network = get_gateway_network(network_spec)
+      network_type = network_type(network)
 
-      if network['type'] == 'manual'
+      if network_type == 'manual'
         network['ip']
-      elsif network['type'] == 'dynamic'
+      elsif network_type == 'dynamic'
         if private_network_specs(network_spec).size > 1
           raise Bosh::Clouds::VMCreationFailed.new(false), 'Gateway IP address could not be determined. Gateway network is dynamic, but additional private networks exist.'
         end
@@ -192,6 +201,11 @@ module Bosh::OpenStackCloud
     end
 
     private
+
+    def self.network_type(network)
+      # in case of a manual network bosh doesn't provide a type.
+      network.fetch('type', 'manual')
+    end
 
     def self.private_network_specs(network_spec)
       network_spec.values.select { |spec| spec['type'] != 'vip' }

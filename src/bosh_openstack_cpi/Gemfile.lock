@@ -37,6 +37,7 @@ GEM
     membrane (1.1.0)
     minitar (0.5.4)
     multi_json (1.12.1)
+    netaddr (1.5.1)
     public_suffix (2.0.5)
     rake (10.3.2)
     rspec (3.3.0)
@@ -74,6 +75,7 @@ DEPENDENCIES
   httpclient (= 2.7.1)
   membrane (~> 1.1.0)
   minitar (~> 0.5.4)
+  netaddr (~> 1.5.0)
   rake (~> 10.3.2)
   rspec (~> 3.3.0)
   rspec-its (~> 1.0.1)
@@ -81,4 +83,4 @@ DEPENDENCIES
   webmock (~> 2.3.2)
 
 BUNDLED WITH
-   1.13.7
+   1.14.3

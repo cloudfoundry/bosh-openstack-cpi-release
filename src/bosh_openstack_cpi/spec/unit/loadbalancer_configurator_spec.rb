@@ -82,6 +82,8 @@ describe Bosh::OpenStackCloud::LoadbalancerConfigurator do
       }
 
       it 'adds the VM as a member of the specified pool' do
+        allow(Bosh::OpenStackCloud::NetworkConfigurator).to receive(:matching_gateway_subnet_ids_for_ip).and_return(['sub-net-id'])
+
         subject.add_vm_to_pool(server, pool)
 
         expect(network).to have_received(:create_lbaas_pool_member).with('pool-id', '10.10.10.10', 8080, { subnet_id: 'sub-net-id' })
@@ -97,6 +99,36 @@ describe Bosh::OpenStackCloud::LoadbalancerConfigurator do
         expect {
           subject.add_vm_to_pool(server, pool)
         }.to raise_error(Bosh::Clouds::VMCreationFailed, "VM with id '1234' cannot be attached to load balancer pool 'my-lb-pool'. Reason: Original message.")
+      end
+    end
+
+    context 'when multiple subnet ids match' do
+      let(:network_spec) {
+        {
+          'network_a' => manual_network_spec(net_id: 'net-id', ip: '10.10.10.10')
+        }
+      }
+
+      it 'errors' do
+        allow(Bosh::OpenStackCloud::NetworkConfigurator).to receive(:matching_gateway_subnet_ids_for_ip).and_return(['subnet-id', 'other-subnet-id'])
+        expect{
+          subject.add_vm_to_pool(server, pool)
+        }.to raise_error(Bosh::Clouds::VMCreationFailed, /Reason: In network 'net-id' more than one subnet CIDRs match the IP '10\.10\.10\.10'/)
+      end
+    end
+
+    context 'when no subnet id match or no subnet exists' do
+      let(:network_spec) {
+        {
+          'network_a' => manual_network_spec(net_id: 'net-id', ip: '10.10.10.10')
+        }
+      }
+
+      it 'errors' do
+        allow(Bosh::OpenStackCloud::NetworkConfigurator).to receive(:matching_gateway_subnet_ids_for_ip).and_return([])
+        expect{
+          subject.add_vm_to_pool(server, pool)
+        }.to raise_error(Bosh::Clouds::VMCreationFailed, /Network 'net-id' does not contain any subnet to match the IP '10\.10\.10\.10'/)
       end
     end
   end

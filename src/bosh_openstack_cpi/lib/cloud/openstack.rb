@@ -11,6 +11,7 @@ require "tmpdir"
 require "securerandom"
 require "json"
 require 'membrane'
+require 'netaddr'
 
 require 'common/common'
 require "common/exec"

@@ -152,7 +152,6 @@ end
 
 def manual_network_spec(net_id: 'net', ip: '0.0.0.0', defaults: nil, overwrites: {})
   {
-    'type' => 'manual',
     'ip' => ip,
     'defaults' => defaults,
     'cloud_properties' => {
@@ -165,7 +164,6 @@ end
 
 def manual_network_without_netid_spec
   {
-    'type' => 'manual',
     'cloud_properties' => {
       'security_groups' => %w[default],
     }

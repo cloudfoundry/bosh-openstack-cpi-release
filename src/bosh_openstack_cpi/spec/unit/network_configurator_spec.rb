@@ -480,6 +480,62 @@ describe Bosh::OpenStackCloud::NetworkConfigurator do
     end
   end
 
+  describe '.matching_gateway_subnet_ids_for_ip' do
+    let(:neutron) { double(Fog::Network::OpenStack) }
+    let(:list_subnets_response) { double('list_subnets', body: {'subnets' => subnets}) }
+
+    before(:each) do
+      allow(openstack).to receive(:network).and_return(neutron)
+      allow(neutron).to receive(:list_subnets).and_return(list_subnets_response)
+    end
+
+    context 'when no sub-networks exist' do
+      let(:network_spec) { {'network_a' => manual_network_spec(net_id: 'net_id_a', ip: '10.10.10.10', defaults: ['gateway']) } }
+      let(:subnets) { [] }
+
+      it 'returns an empty list' do
+         subnet_ids = Bosh::OpenStackCloud::NetworkConfigurator.matching_gateway_subnet_ids_for_ip(network_spec, openstack, '10.0.0.4')
+
+         expect(subnet_ids.empty?).to be_truthy
+      end
+    end
+
+    context 'when only one sub-network exists' do
+      let(:network_spec) { {'network_a' => manual_network_spec(net_id: 'net_id_a', ip: '10.10.10.10', defaults: ['gateway']) } }
+      let(:subnets) { [{'id' => 'subnet_id', 'cidr' => '10.0.0.0/24'}] }
+
+      it 'returns the gateway sub-network id' do
+        subnet_ids = Bosh::OpenStackCloud::NetworkConfigurator.matching_gateway_subnet_ids_for_ip(network_spec, openstack, '10.0.0.2')
+
+        expect(subnet_ids).to eq(['subnet_id'])
+      end
+    end
+
+    context 'when more than one sub-network exist' do
+      let(:network_spec) {
+        {
+          'network_a' => manual_network_spec(net_id: 'net_id_a', ip: '10.10.10.10', defaults: ['gateway']),
+        }
+      }
+      let(:subnets) { [{'id' => 'subnet_id', 'cidr' => '10.0.0.0/24'}, {'id' => 'second_subnet_id', 'cidr' => '20.20.20.0/24'}] }
+      it 'returns the sub-network id that matches the ip' do
+        subnet_ids = Bosh::OpenStackCloud::NetworkConfigurator.matching_gateway_subnet_ids_for_ip(network_spec, openstack, '20.20.20.2')
+
+        expect(subnet_ids).to eq(['second_subnet_id'])
+      end
+
+      context 'when sub-networks are with overlapping ranges' do
+        let(:subnets) { [{'id' => 'subnet_id', 'cidr' => '10.0.0.0/16'}, {'id' => 'second_subnet_id', 'cidr' => '10.0.0.0/24'}] }
+
+        it 'returns a list of matching subnets' do
+          subnet_ids = Bosh::OpenStackCloud::NetworkConfigurator.matching_gateway_subnet_ids_for_ip(network_spec, openstack, '10.0.0.4')
+
+          expect(subnet_ids).to eq(['subnet_id', 'second_subnet_id'])
+        end
+      end
+    end
+  end
+
   describe '#check_preconditions' do
     context 'when multiple manual networks' do
       subject do

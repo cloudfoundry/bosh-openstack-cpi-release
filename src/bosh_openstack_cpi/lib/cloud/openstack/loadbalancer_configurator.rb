@@ -10,8 +10,8 @@ module Bosh::OpenStackCloud
       begin
         pool = LoadbalancerPool.new(pool_spec)
         openstack_pool_id = openstack_pool_id(pool.name)
-        subnet_id = NetworkConfigurator.get_gateway_network_id(@network_spec)
         ip = NetworkConfigurator.gateway_ip(@network_spec, @openstack, server)
+        subnet_id = matching_subnet_id(ip)
 
         @openstack.with_openstack {
           @openstack.network.create_lbaas_pool_member(openstack_pool_id, ip, pool.port, { subnet_id: subnet_id })
@@ -23,6 +23,17 @@ module Bosh::OpenStackCloud
     end
 
     private
+
+    def matching_subnet_id(ip)
+      subnet_ids = NetworkConfigurator.matching_gateway_subnet_ids_for_ip(@network_spec, @openstack, ip)
+      if subnet_ids.size > 1
+        raise Bosh::Clouds::VMCreationFailed.new(false), "In network '#{NetworkConfigurator.get_gateway_network_id(@network_spec)}' more than one subnet CIDRs match the IP '#{ip}'"
+      end
+      if subnet_ids.empty?
+        raise Bosh::Clouds::VMCreationFailed.new(false), "Network '#{NetworkConfigurator.get_gateway_network_id(@network_spec)}' does not contain any subnet to match the IP '#{ip}'"
+      end
+      subnet_ids.first
+    end
 
     class LoadbalancerPool
       attr_reader :name, :port
