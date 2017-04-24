@@ -789,12 +789,12 @@ resources:
     source:
       interval: {{pipeline-time-trigger-interval}}
 
-  - name: send-an-email
-    type: email
-    tags: *tags
-    source:
-      smtp:
-        host: {{email_host}}
-        port: {{email_port}}
-      from: {{email_from}}
-      to: [ {{email_to}} ]
+#  - name: send-an-email
+#    type: email
+#    tags: *tags
+#    source:
+#      smtp:
+#        host: {{email_host}}
+#        port: {{email_port}}
+#      from: {{email_from}}
+#      to: [ {{email_to}} ]
