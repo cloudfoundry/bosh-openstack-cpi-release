@@ -1199,4 +1199,38 @@ describe Bosh::OpenStackCloud::Cloud, "create_vm" do
       expect(cloud.compute.servers).to have_received(:create).with(openstack_params)
     end
   end
+
+  describe 'with loadbalancer pool' do
+    let(:cloud) do
+      mock_cloud do |fog|
+        allow(fog.compute.servers).to receive(:create).and_return(server)
+        allow(fog.image.images).to receive(:find_by_id).with('sc-id').and_return(image)
+        stub_compute(fog.compute)
+      end
+    end
+
+    let(:resource_pool_spec_with_lbaas_pools) do
+      resource_pool_spec.merge({
+        'loadbalancer_pools' => [
+          { 'name' => 'my-pool-1', 'port' => 443 },
+          { 'name' => 'my-pool-2', 'port' => 8080 }
+        ]
+      })
+    end
+
+    before(:each) do
+      allow(cloud.openstack).to receive(:wait_resource).with(server, :active, :state)
+      allow(@registry).to receive(:update_settings)
+    end
+
+    it 'creates as many loadbalancers as are listed in the manifest' do
+      expect_any_instance_of(Bosh::OpenStackCloud::LoadbalancerConfigurator).to receive(:add_vm_to_pool).with(server, { 'name' => 'my-pool-1', 'port' => 443 })
+      expect_any_instance_of(Bosh::OpenStackCloud::LoadbalancerConfigurator).to receive(:add_vm_to_pool).with(server, { 'name' => 'my-pool-2', 'port' => 8080 })
+
+      cloud.create_vm('agent-id', 'sc-id light',
+        resource_pool_spec_with_lbaas_pools,
+        { 'network_a' => dynamic_network_spec },
+        nil, { 'test_env' => 'value'})
+    end
+  end
 end
