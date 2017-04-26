@@ -71,8 +71,10 @@ describe Bosh::OpenStackCloud::LoadbalancerConfigurator do
 
     context 'when load balancer pool name exist exactly once' do
       before(:each) do
-        allow(network).to receive(:create_lbaas_pool_member)
+        allow(network).to receive(:create_lbaas_pool_member).and_return(lb_member)
       end
+
+      let(:lb_member) { double('lb_member', id: 'id') }
 
       let(:network_spec) {
         {
@@ -84,9 +86,13 @@ describe Bosh::OpenStackCloud::LoadbalancerConfigurator do
       it 'adds the VM as a member of the specified pool' do
         allow(Bosh::OpenStackCloud::NetworkConfigurator).to receive(:matching_gateway_subnet_ids_for_ip).and_return(['sub-net-id'])
 
-        subject.add_vm_to_pool(server, pool)
+        loadbalancer_membership = subject.add_vm_to_pool(server, pool)
 
         expect(network).to have_received(:create_lbaas_pool_member).with('pool-id', '10.10.10.10', 8080, { subnet_id: 'sub-net-id' })
+        expect(loadbalancer_membership.membership_id).to eq('id')
+        expect(loadbalancer_membership.port).to eq(8080)
+        expect(loadbalancer_membership.name).to eq('my-lb-pool')
+        expect(loadbalancer_membership.pool_id).to eq('pool-id')
       end
     end
 

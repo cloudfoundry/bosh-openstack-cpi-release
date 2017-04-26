@@ -8,14 +8,15 @@ module Bosh::OpenStackCloud
 
     def add_vm_to_pool(server, pool_spec)
       begin
-        pool = LoadbalancerPool.new(pool_spec)
-        openstack_pool_id = openstack_pool_id(pool.name)
+        validate_configuration(pool_spec)
+        openstack_pool_id = openstack_pool_id(pool_spec['name'])
         ip = NetworkConfigurator.gateway_ip(@network_spec, @openstack, server)
         subnet_id = matching_subnet_id(ip)
 
-        @openstack.with_openstack {
-          @openstack.network.create_lbaas_pool_member(openstack_pool_id, ip, pool.port, { subnet_id: subnet_id })
+        lb_member = @openstack.with_openstack {
+          @openstack.network.create_lbaas_pool_member(openstack_pool_id, ip, pool_spec['port'], { subnet_id: subnet_id })
         }
+        LoadbalancerPoolMembership.new(pool_spec['name'], pool_spec['port'], openstack_pool_id, lb_member.id)
       rescue Bosh::Clouds::VMCreationFailed => e
         message = "VM with id '#{server.id}' cannot be attached to load balancer pool '#{pool_spec['name']}'. Reason: #{e.message}"
         raise Bosh::Clouds::VMCreationFailed.new(false), message
@@ -35,20 +36,24 @@ module Bosh::OpenStackCloud
       subnet_ids.first
     end
 
-    class LoadbalancerPool
-      attr_reader :name, :port
+    def validate_configuration(pool_spec)
+      unless pool_spec['name']
+        raise Bosh::Clouds::VMCreationFailed.new(false), 'Load balancer pool defined without a name'
+      end
 
-      def initialize(pool)
-        @name = pool['name']
-        @port = pool['port']
+      unless pool_spec['port']
+        raise Bosh::Clouds::VMCreationFailed.new(false), "Load balancer pool '#{pool_spec['name']}' has no port definition"
+      end
+    end
 
-        unless @name
-          raise Bosh::Clouds::VMCreationFailed.new(false), 'Load balancer pool defined without a name'
-        end
+    class LoadbalancerPoolMembership
+      attr_reader :name, :port, :membership_id, :pool_id
 
-        unless @port
-          raise Bosh::Clouds::VMCreationFailed.new(false), "Load balancer pool '#{@name}' has no port definition"
-        end
+      def initialize(name, port, pool_id, membership_id)
+        @name = name
+        @port = port
+        @pool_id = pool_id
+        @membership_id = membership_id
       end
     end
 

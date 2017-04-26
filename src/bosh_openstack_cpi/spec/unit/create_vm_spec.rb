@@ -1099,30 +1099,6 @@ describe Bosh::OpenStackCloud::Cloud, "create_vm" do
         options
       end
 
-      it 'tags registry_key with "vm-<uuid>"' do
-        allow(@registry).to receive(:update_settings)
-
-        expect(Bosh::OpenStackCloud::TagManager).to receive(:tag_server).with(server, registry_key: "vm-#{unique_name}")
-
-        cloud.create_vm("agent-id", "sc-id",
-                        resource_pool_spec,
-                        { "network_a" => dynamic_network_spec },
-                        nil, { "test_env" => "value" })
-
-      end
-
-      it 'raises an exception, if tagging fails' do
-        allow(Bosh::OpenStackCloud::TagManager).to receive(:tag_server).and_raise(StandardError)
-
-        expect(server).to receive(:destroy)
-        expect {
-          cloud.create_vm("agent-id", "sc-id",
-                          resource_pool_spec,
-                          { "network_a" => dynamic_network_spec },
-                          nil, { "test_env" => "value" })
-        }.to raise_error(Bosh::Clouds::CloudError)
-      end
-
       it 'logs human_readable_vm_names enabled' do
         allow(@registry).to receive(:update_settings)
 
@@ -1136,7 +1112,7 @@ describe Bosh::OpenStackCloud::Cloud, "create_vm" do
                         nil, { "test_env" => "value" })
 
         expect(Bosh::Clouds::Config.logger).to have_received(:debug).with("'human_readable_vm_names' enabled")
-        expect(Bosh::Clouds::Config.logger).to have_received(:debug).with("Tagged VM 'i-test' with tag 'registry_key': vm-#{unique_name}")
+        expect(Bosh::Clouds::Config.logger).to have_received(:debug).with("Tagged VM 'i-test' with tags '{:registry_key=>\"vm-#{unique_name}\"}")
       end
     end
 
@@ -1224,13 +1200,109 @@ describe Bosh::OpenStackCloud::Cloud, "create_vm" do
     end
 
     it 'creates as many loadbalancers as are listed in the manifest' do
-      expect_any_instance_of(Bosh::OpenStackCloud::LoadbalancerConfigurator).to receive(:add_vm_to_pool).with(server, { 'name' => 'my-pool-1', 'port' => 443 })
-      expect_any_instance_of(Bosh::OpenStackCloud::LoadbalancerConfigurator).to receive(:add_vm_to_pool).with(server, { 'name' => 'my-pool-2', 'port' => 8080 })
+      pool_membership = Bosh::OpenStackCloud::LoadbalancerConfigurator::LoadbalancerPoolMembership.new('name', 'port', 'pool_id', 'membership_id')
+      expect_any_instance_of(Bosh::OpenStackCloud::LoadbalancerConfigurator).to receive(:add_vm_to_pool).with(server, { 'name' => 'my-pool-1', 'port' => 443 }).and_return(pool_membership)
+      expect_any_instance_of(Bosh::OpenStackCloud::LoadbalancerConfigurator).to receive(:add_vm_to_pool).with(server, { 'name' => 'my-pool-2', 'port' => 8080 }).and_return(pool_membership)
 
       cloud.create_vm('agent-id', 'sc-id light',
         resource_pool_spec_with_lbaas_pools,
         { 'network_a' => dynamic_network_spec },
         nil, { 'test_env' => 'value'})
+    end
+  end
+
+  describe 'setting VM metadata' do
+
+    before(:each) do
+      allow(cloud).to receive(:generate_unique_name).and_return(unique_name)
+      allow(cloud.openstack).to receive(:wait_resource)
+      allow(@registry).to receive(:update_settings)
+    end
+
+    let(:cloud) do
+      mock_cloud(options) do |fog|
+        allow(fog.image.images).to receive(:find_by_id).and_return(image)
+        allow(fog.compute.servers).to receive(:create).and_return(server)
+        stub_compute(fog.compute)
+      end
+    end
+
+    let(:options) { mock_cloud_options['properties'] }
+
+    context 'when human_readable_vm_names are enabled' do
+
+      let(:options) do
+        options = mock_cloud_options['properties']
+        options['openstack']['human_readable_vm_names'] = true
+        options
+      end
+
+      it 'tags registry_key with "vm-<uuid>"' do
+        allow(Bosh::OpenStackCloud::TagManager).to receive(:tag_server)
+
+        cloud.create_vm("agent-id", "sc-id",
+          resource_pool_spec,
+          { "network_a" => dynamic_network_spec },
+          nil, { "test_env" => "value" })
+
+        expect(Bosh::OpenStackCloud::TagManager).to have_received(:tag_server).with(server, registry_key: "vm-#{unique_name}")
+      end
+
+      it 'raises an exception, if tagging fails' do
+        allow(Bosh::OpenStackCloud::TagManager).to receive(:tag_server).and_raise(StandardError)
+
+        expect(server).to receive(:destroy)
+        expect {
+          cloud.create_vm("agent-id", "sc-id",
+            resource_pool_spec,
+            { "network_a" => dynamic_network_spec },
+            nil, { "test_env" => "value" })
+        }.to raise_error(Bosh::Clouds::CloudError)
+      end
+
+    end
+
+    context 'when loadbalancer_pools are present' do
+      let(:resource_pool_spec_with_lbaas_pools) do
+        resource_pool_spec.merge({
+          'loadbalancer_pools' => [
+            { 'name' => 'my-pool-1', 'port' => 443 },
+            { 'name' => 'my-pool-2', 'port' => 8080 }
+          ]
+        })
+      end
+
+      before(:each) do
+        loadbalancer_configurator = instance_double(Bosh::OpenStackCloud::LoadbalancerConfigurator)
+        loadbalancer_pool_membership = Bosh::OpenStackCloud::LoadbalancerConfigurator::LoadbalancerPoolMembership.new('name', 'port', 'pool_id', 'membership_id')
+        allow(Bosh::OpenStackCloud::LoadbalancerConfigurator).to receive(:new).and_return(loadbalancer_configurator)
+        allow(loadbalancer_configurator).to receive(:add_vm_to_pool).and_return(loadbalancer_pool_membership)
+        allow(Bosh::OpenStackCloud::TagManager).to receive(:tag_server)
+      end
+
+      it 'tags the vm with the lbaas pool and membership' do
+        cloud.create_vm("agent-id", "sc-id",
+          resource_pool_spec_with_lbaas_pools,
+          { "network_a" => dynamic_network_spec },
+          nil, { "test_env" => "value" })
+
+        expect(Bosh::OpenStackCloud::TagManager).to have_received(:tag_server).with(server, {
+          'lbaas_pool_1' => 'pool_id/membership_id',
+          'lbaas_pool_2' => 'pool_id/membership_id'
+        })
+      end
+
+      it 'raises an exception, if tagging fails' do
+        allow(Bosh::OpenStackCloud::TagManager).to receive(:tag_server).and_raise(StandardError)
+
+        expect(server).to receive(:destroy)
+        expect {
+          cloud.create_vm("agent-id", "sc-id",
+            resource_pool_spec_with_lbaas_pools,
+            { "network_a" => dynamic_network_spec },
+            nil, { "test_env" => "value" })
+        }.to raise_error(Bosh::Clouds::CloudError)
+      end
     end
   end
 end

@@ -251,17 +251,35 @@ module Bosh::OpenStackCloud
             raise Bosh::Clouds::VMCreationFailed.new(true), e.message
           end
 
+          server_tags = {}
+
           if @human_readable_vm_names
             @logger.debug("'human_readable_vm_names' enabled")
-            begin
-              TagManager.tag_server(server, REGISTRY_KEY_TAG => registry_key)
-              @logger.debug("Tagged VM '#{server.id}' with tag '#{REGISTRY_KEY_TAG}': #{registry_key}")
-            rescue => e
-              @logger.warn("Unable to tag server with '#{REGISTRY_KEY_TAG}': #{e.message}")
-              raise Bosh::Clouds::VMCreationFailed.new(true), e.message
-            end
+
+            server_tags.merge!(REGISTRY_KEY_TAG => registry_key)
           else
             @logger.debug("'human_readable_vm_names' disabled")
+          end
+
+          unless resource_pool.fetch('loadbalancer_pools',[]).empty?
+            loadbalancer_configurator = LoadbalancerConfigurator.new(network_spec, @openstack)
+            memberships = resource_pool['loadbalancer_pools'].map do |pool|
+              loadbalancer_configurator.add_vm_to_pool(server, pool)
+            end
+
+            memberships.each_with_index do |membership, index|
+              server_tags["lbaas_pool_#{index+1}"] = "#{membership.pool_id}/#{membership.membership_id}"
+            end
+          end
+
+          begin
+            unless server_tags.empty?
+              TagManager.tag_server(server, server_tags)
+              @logger.debug("Tagged VM '#{server.id}' with tags '#{server_tags}")
+            end
+          rescue => e
+            @logger.warn("Unable to tag server with tags '#{server_tags}")
+            raise Bosh::Clouds::VMCreationFailed.new(true), e.message
           end
 
           begin
@@ -272,13 +290,6 @@ module Bosh::OpenStackCloud
           rescue => e
             @logger.warn("Failed to register server: #{e.message}")
             raise Bosh::Clouds::VMCreationFailed.new(false), e.message
-          end
-
-          unless resource_pool.fetch('loadbalancer_pools',[]).empty?
-            loadbalancer_configurator = LoadbalancerConfigurator.new(network_spec, @openstack)
-            resource_pool['loadbalancer_pools'].each do |pool|
-              loadbalancer_configurator.add_vm_to_pool(server, pool)
-            end
           end
 
           server.id.to_s
