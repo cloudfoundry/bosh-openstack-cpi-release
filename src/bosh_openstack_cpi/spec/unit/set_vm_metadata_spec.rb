@@ -1,7 +1,7 @@
 require 'spec_helper'
 
 describe Bosh::OpenStackCloud::Cloud do
-  before(:each) { allow(Bosh::OpenStackCloud::TagManager).to receive(:tag) }
+  before(:each) { allow(Bosh::OpenStackCloud::TagManager).to receive(:tag_server) }
 
   let(:server) { double('server', :id => 'i-foobar', :metadata => double('metadata')) }
 
@@ -16,8 +16,7 @@ describe Bosh::OpenStackCloud::Cloud do
     it 'should only tag with metadata' do
       metadata = {:job => 'job', :index => 'index'}
 
-      expect(Bosh::OpenStackCloud::TagManager).to receive(:tag).with(server, :job, 'job')
-      expect(Bosh::OpenStackCloud::TagManager).to receive(:tag).with(server, :index, 'index')
+      expect(Bosh::OpenStackCloud::TagManager).to receive(:tag_server).with(server, job: 'job', index: 'index')
 
       @cloud.set_vm_metadata('i-foobar', metadata)
     end

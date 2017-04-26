@@ -16,11 +16,6 @@ describe Bosh::OpenStackCloud::Cloud do
       @cloud.set_disk_metadata('i-foobar', metadata)
       expect(@cloud.volume).to have_received(:update_metadata).with('i-foobar', {'deployment' => 'deployment-x'})
     end
-
-    it 'trims metadata keys and values' do
-      expect(Bosh::OpenStackCloud::TagManager).to receive(:trim).with('deployment', 'deployment-x')
-      @cloud.set_disk_metadata('i-foobar', metadata)
-    end
   end
 
   context 'when disk does not exist' do

@@ -254,7 +254,7 @@ module Bosh::OpenStackCloud
           if @human_readable_vm_names
             @logger.debug("'human_readable_vm_names' enabled")
             begin
-              TagManager.tag(server, REGISTRY_KEY_TAG, registry_key)
+              TagManager.tag_server(server, REGISTRY_KEY_TAG => registry_key)
               @logger.debug("Tagged VM '#{server.id}' with tag '#{REGISTRY_KEY_TAG}': #{registry_key}")
             rescue => e
               @logger.warn("Unable to tag server with '#{REGISTRY_KEY_TAG}': #{e.message}")
@@ -468,8 +468,7 @@ module Bosh::OpenStackCloud
 
         device_name = attach_volume(server, volume)
 
-        set_disk_metadata_on_object(volume, disk_metadata(server.metadata))
-
+        @openstack.with_openstack { TagManager.tag_volume(@openstack.volume, volume.id, to_disk_tags(server.metadata)) }
         update_agent_settings(server) do |settings|
           settings['disks'] ||= {}
           settings['disks']['persistent'] ||= {}
@@ -583,9 +582,7 @@ module Bosh::OpenStackCloud
           server = @openstack.compute.servers.get(server_id)
           cloud_error("Server `#{server_id}' not found") unless server
 
-          metadata.each do |name, value|
-            TagManager.tag(server, name, value)
-          end
+          TagManager.tag_server(server, metadata)
 
           if server.metadata.get(REGISTRY_KEY_TAG)
             name = metadata['name']
@@ -621,14 +618,7 @@ module Bosh::OpenStackCloud
         @openstack.with_openstack do
           disk = @openstack.volume.volumes.get(disk_id)
           cloud_error("Disk `#{disk_id}' not found") unless disk
-
-          metadata_hash = {}
-          metadata.each do |key, value|
-            key, value = TagManager.trim(key, value)
-            metadata_hash[key] = value
-          end
-
-          @openstack.volume.update_metadata(disk.id, metadata_hash)
+          TagManager.tag_volume(@openstack.volume, disk_id, metadata)
         end
       end
     end
@@ -1020,22 +1010,9 @@ module Bosh::OpenStackCloud
       @logger.debug("Using key-pair: `#{keypair.name}' (#{keypair.fingerprint})")
     end
 
-    def disk_metadata(server_metadata)
-      server_metadata.select{ |metadata| ['deployment','job','index','id'].include?(metadata.key) }
-    end
-
-    def set_disk_metadata_on_object(disk, metadata)
-      with_thread_name("set_disk_metadata_on_object(#{disk.id}, ...)") do
-        @openstack.with_openstack do
-          metadata_hash = {}
-          metadata.each do |metadatum|
-            key, value = TagManager.trim(metadatum.key, metadatum.value)
-            metadata_hash[key] = value
-          end
-
-          @openstack.volume.update_metadata(disk.id, metadata_hash)
-        end
-      end
+    def to_disk_tags(server_metadata)
+      server_tags = server_metadata.map { |metadatum| [metadatum.key, metadatum.value] }.to_h
+      server_tags.select{ |key, _| ['deployment','job','index','id'].include?(key) }
     end
   end
 end

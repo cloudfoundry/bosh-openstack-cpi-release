@@ -81,7 +81,7 @@ describe Bosh::OpenStackCloud::Cloud, "create_vm" do
 
   before(:each) do
     @registry = mock_registry
-    allow(Bosh::OpenStackCloud::TagManager).to receive(:tag)
+    allow(Bosh::OpenStackCloud::TagManager).to receive(:tag_server)
   end
 
   def stub_compute(compute)
@@ -1102,7 +1102,7 @@ describe Bosh::OpenStackCloud::Cloud, "create_vm" do
       it 'tags registry_key with "vm-<uuid>"' do
         allow(@registry).to receive(:update_settings)
 
-        expect(Bosh::OpenStackCloud::TagManager).to receive(:tag).with(server, :registry_key, "vm-#{unique_name}")
+        expect(Bosh::OpenStackCloud::TagManager).to receive(:tag_server).with(server, registry_key: "vm-#{unique_name}")
 
         cloud.create_vm("agent-id", "sc-id",
                         resource_pool_spec,
@@ -1112,7 +1112,7 @@ describe Bosh::OpenStackCloud::Cloud, "create_vm" do
       end
 
       it 'raises an exception, if tagging fails' do
-        allow(Bosh::OpenStackCloud::TagManager).to receive(:tag).and_raise(StandardError)
+        allow(Bosh::OpenStackCloud::TagManager).to receive(:tag_server).and_raise(StandardError)
 
         expect(server).to receive(:destroy)
         expect {
@@ -1126,7 +1126,7 @@ describe Bosh::OpenStackCloud::Cloud, "create_vm" do
       it 'logs human_readable_vm_names enabled' do
         allow(@registry).to receive(:update_settings)
 
-        allow(Bosh::OpenStackCloud::TagManager).to receive(:tag)
+        allow(Bosh::OpenStackCloud::TagManager).to receive(:tag_server)
         # Bosh.retryable requires us to return a non-nil value from debug
         allow(Bosh::Clouds::Config.logger).to receive(:debug).and_return('logged')
 
@@ -1148,7 +1148,7 @@ describe Bosh::OpenStackCloud::Cloud, "create_vm" do
       it 'does not tag server with registry tag' do
         allow(@registry).to receive(:update_settings)
 
-        expect(Bosh::OpenStackCloud::TagManager).to_not receive(:tag).with(server, :registry_key, "vm-#{unique_name}")
+        expect(Bosh::OpenStackCloud::TagManager).to_not receive(:tag).with(server, registry_key: "vm-#{unique_name}")
 
         cloud.create_vm("agent-id", "sc-id",
                         resource_pool_spec,
@@ -1160,7 +1160,7 @@ describe Bosh::OpenStackCloud::Cloud, "create_vm" do
       it 'logs human_readable_vm_names disabled' do
         allow(@registry).to receive(:update_settings)
 
-        allow(Bosh::OpenStackCloud::TagManager).to receive(:tag)
+        allow(Bosh::OpenStackCloud::TagManager).to receive(:tag_server)
         # Bosh.retryable requires us to return a non-nil value from debug
         allow(Bosh::Clouds::Config.logger).to receive(:debug).and_return('logged')
 
