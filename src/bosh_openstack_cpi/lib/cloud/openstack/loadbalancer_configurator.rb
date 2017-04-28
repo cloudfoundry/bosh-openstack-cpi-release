@@ -1,9 +1,10 @@
 module Bosh::OpenStackCloud
   class LoadbalancerConfigurator
 
-    def initialize(network_spec, openstack)
+    def initialize(network_spec, openstack, logger)
       @network_spec = network_spec
       @openstack = openstack
+      @logger = logger
     end
 
     def add_vm_to_pool(server, pool_spec)
@@ -16,10 +17,28 @@ module Bosh::OpenStackCloud
         lb_member = @openstack.with_openstack {
           @openstack.network.create_lbaas_pool_member(openstack_pool_id, ip, pool_spec['port'], { subnet_id: subnet_id })
         }
-        LoadbalancerPoolMembership.new(pool_spec['name'], pool_spec['port'], openstack_pool_id, lb_member.id)
+        LoadbalancerPoolMembership.new(pool_spec['name'], pool_spec['port'], openstack_pool_id, lb_member.body['member']['id'])
       rescue Bosh::Clouds::VMCreationFailed => e
         message = "VM with id '#{server.id}' cannot be attached to load balancer pool '#{pool_spec['name']}'. Reason: #{e.message}"
         raise Bosh::Clouds::VMCreationFailed.new(false), message
+      end
+    end
+
+    def cleanup_memberships(server_metadata)
+      server_metadata
+        .select { |key, _| key.start_with?('lbaas_pool_') }
+        .map { |_, value| value.split('/') }
+        .each { |pool_id, membership_id| remove_vm_from_pool(pool_id, membership_id) }
+    end
+
+
+    def remove_vm_from_pool(pool_id, membership_id)
+      begin
+        @openstack.with_openstack{ @openstack.network.delete_lbaas_pool_member(pool_id, membership_id) }
+      rescue Fog::Network::OpenStack::NotFound
+        @logger.debug("Skipping deletion of lbaas pool member. Member with pool_id '#{pool_id}' and membership_id '#{membership_id}' does not exist.")
+      rescue => e
+        raise Bosh::Clouds::CloudError, "Deleting LBaaS member with pool_id '#{pool_id}' and membership_id '#{membership_id}' failed. Reason: #{e.class.to_s} #{e.message}"
       end
     end
 

@@ -262,7 +262,7 @@ module Bosh::OpenStackCloud
           end
 
           unless resource_pool.fetch('loadbalancer_pools',[]).empty?
-            loadbalancer_configurator = LoadbalancerConfigurator.new(network_spec, @openstack)
+            loadbalancer_configurator = LoadbalancerConfigurator.new(network_spec, @openstack, @logger)
             memberships = resource_pool['loadbalancer_pools'].map do |pool|
               loadbalancer_configurator.add_vm_to_pool(server, pool)
             end
@@ -325,9 +325,12 @@ module Bosh::OpenStackCloud
         if server
           server_port_ids = NetworkConfigurator.port_ids(@openstack, server_id)
           @logger.debug("Network ports: `#{server_port_ids.join(', ')}' found for server #{server_id}")
+          server_tags = metadata_to_tags(server.metadata)
+          @logger.debug("Server tags: `#{server_tags}' found for server #{server_id}")
           @openstack.with_openstack { server.destroy }
           @openstack.wait_resource(server, [:terminated, :deleted], :state, true)
           NetworkConfigurator.cleanup_ports(@openstack, server_port_ids)
+          Bosh::OpenStackCloud::LoadbalancerConfigurator.cleanup_memberships(server_tags)
 
           @logger.info("Deleting settings for server `#{server.id}'...")
           @registry.delete_settings(server.name)
@@ -1022,8 +1025,11 @@ module Bosh::OpenStackCloud
     end
 
     def to_disk_tags(server_metadata)
-      server_tags = server_metadata.map { |metadatum| [metadatum.key, metadatum.value] }.to_h
-      server_tags.select{ |key, _| ['deployment','job','index','id'].include?(key) }
+      metadata_to_tags(server_metadata).select{ |key, _| ['deployment','job','index','id'].include?(key) }
+    end
+
+    def metadata_to_tags(server_metadata)
+      server_metadata.map { |metadatum| [metadatum.key, metadatum.value] }.to_h
     end
   end
 end
