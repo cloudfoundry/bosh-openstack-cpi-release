@@ -1292,16 +1292,25 @@ describe Bosh::OpenStackCloud::Cloud, "create_vm" do
         })
       end
 
-      it 'raises an exception, if tagging fails' do
-        allow(Bosh::OpenStackCloud::TagManager).to receive(:tag_server).and_raise(StandardError)
+      context 'when tagging fails' do
+        it 'cleans up the membership and raises an exception' do
+          allow(Bosh::OpenStackCloud::TagManager).to receive(:tag_server).and_raise(StandardError)
+          allow(Bosh::OpenStackCloud::LoadbalancerConfigurator).to receive(:cleanup_memberships)
+          allow(server).to receive(:destroy)
 
-        expect(server).to receive(:destroy)
-        expect {
-          cloud.create_vm("agent-id", "sc-id",
-            resource_pool_spec_with_lbaas_pools,
-            { "network_a" => dynamic_network_spec },
-            nil, { "test_env" => "value" })
-        }.to raise_error(Bosh::Clouds::CloudError)
+          expect {
+            cloud.create_vm("agent-id", "sc-id",
+              resource_pool_spec_with_lbaas_pools,
+              { "network_a" => dynamic_network_spec },
+              nil, { "test_env" => "value" })
+          }.to raise_error(Bosh::Clouds::CloudError)
+
+          expect(server).to have_received(:destroy)
+          expect(Bosh::OpenStackCloud::LoadbalancerConfigurator).to have_received(:cleanup_memberships).with({
+            'lbaas_pool_1' => 'pool_id/membership_id',
+            'lbaas_pool_2' => 'pool_id/membership_id'
+          })
+        end
       end
     end
   end

@@ -296,7 +296,7 @@ module Bosh::OpenStackCloud
 
         rescue => e
           begin
-            destroy_server(server) if server
+            destroy_server(server, server_tags) if server
           rescue => destroy_err
             @logger.warn("Failed to destroy server: #{destroy_err.message}")
           end
@@ -331,7 +331,7 @@ module Bosh::OpenStackCloud
           @openstack.wait_resource(server, [:terminated, :deleted], :state, true)
           fail_on_error([
             catch_error { NetworkConfigurator.cleanup_ports(@openstack, server_port_ids) },
-            catch_error { Bosh::OpenStackCloud::LoadbalancerConfigurator.cleanup_memberships(server_tags) },
+            catch_error { LoadbalancerConfigurator.cleanup_memberships(server_tags) },
             catch_error {
               @logger.info("Deleting settings for server `#{server.id}'...")
               @registry.delete_settings(server.name)
@@ -1011,7 +1011,7 @@ module Bosh::OpenStackCloud
     end
 
     # Destroy server and wait until the server is really terminated/deleted
-    def destroy_server(server)
+    def destroy_server(server, server_tags)
       @openstack.with_openstack { server.destroy }
 
       begin
@@ -1019,6 +1019,8 @@ module Bosh::OpenStackCloud
       rescue Bosh::Clouds::CloudError => delete_server_error
         @logger.warn("Failed to destroy server: #{delete_server_error.inspect}\n#{delete_server_error.backtrace.join('\n')}")
       end
+
+       LoadbalancerConfigurator.cleanup_memberships(server_tags)
     end
 
     def validate_key_exists(keyname)
