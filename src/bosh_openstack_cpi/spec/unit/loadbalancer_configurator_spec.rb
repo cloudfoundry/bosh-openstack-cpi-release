@@ -2,7 +2,8 @@ require 'spec_helper'
 require 'fog/compute/openstack/models/server'
 
 describe Bosh::OpenStackCloud::LoadbalancerConfigurator do
-  subject(:subject) { Bosh::OpenStackCloud::LoadbalancerConfigurator.new(network_spec, openstack) }
+  subject(:subject) { Bosh::OpenStackCloud::LoadbalancerConfigurator.new(openstack, logger) }
+  let(:logger) { instance_double(Logger, debug: nil) }
   let(:network_spec) { {} }
   let(:openstack) { instance_double(Bosh::OpenStackCloud::Openstack) }
   let(:network) { double('network', list_lbaas_pools: loadbalancer_pools_response) }
@@ -32,11 +33,11 @@ describe Bosh::OpenStackCloud::LoadbalancerConfigurator do
     context 'when pool input invalid' do
       it 'raises an error' do
         expect{
-          subject.add_vm_to_pool(server, {'name' => 'foo'})
+          subject.add_vm_to_pool(server, network_spec, {'name' => 'foo'})
         }.to raise_error(Bosh::Clouds::VMCreationFailed, "VM with id '1234' cannot be attached to load balancer pool 'foo'. Reason: Load balancer pool 'foo' has no port definition")
 
         expect{
-          subject.add_vm_to_pool(server, {'port' => 8080})
+          subject.add_vm_to_pool(server, network_spec, {'port' => 8080})
         }.to raise_error(Bosh::Clouds::VMCreationFailed, "VM with id '1234' cannot be attached to load balancer pool ''. Reason: Load balancer pool defined without a name")
       end
     end
@@ -47,7 +48,7 @@ describe Bosh::OpenStackCloud::LoadbalancerConfigurator do
 
         it 'raises an error' do
           expect {
-            subject.add_vm_to_pool(server, pool)
+            subject.add_vm_to_pool(server, network_spec, pool)
           }.to raise_error(Bosh::Clouds::VMCreationFailed, "VM with id '1234' cannot be attached to load balancer pool 'my-lb-pool'. Reason: Load balancer pool 'my-lb-pool' does not exist")
         end
       end
@@ -63,7 +64,7 @@ describe Bosh::OpenStackCloud::LoadbalancerConfigurator do
         }
         it 'raises an error' do
           expect {
-            subject.add_vm_to_pool(server, pool)
+            subject.add_vm_to_pool(server, network_spec, pool)
           }.to raise_error(Bosh::Clouds::VMCreationFailed, "VM with id '1234' cannot be attached to load balancer pool 'my-lb-pool'. Reason: Load balancer pool 'my-lb-pool' exists multiple times. Make sure to use unique naming.")
         end
       end
@@ -74,7 +75,7 @@ describe Bosh::OpenStackCloud::LoadbalancerConfigurator do
         allow(network).to receive(:create_lbaas_pool_member).and_return(lb_member)
       end
 
-      let(:lb_member) { double('lb_member', id: 'id') }
+      let(:lb_member) { double('lb_member', body: {'member' => {'id' => 'id'}}) }
 
       let(:network_spec) {
         {
@@ -86,7 +87,7 @@ describe Bosh::OpenStackCloud::LoadbalancerConfigurator do
       it 'adds the VM as a member of the specified pool' do
         allow(Bosh::OpenStackCloud::NetworkConfigurator).to receive(:matching_gateway_subnet_ids_for_ip).and_return(['sub-net-id'])
 
-        loadbalancer_membership = subject.add_vm_to_pool(server, pool)
+        loadbalancer_membership = subject.add_vm_to_pool(server, network_spec, pool)
 
         expect(network).to have_received(:create_lbaas_pool_member).with('pool-id', '10.10.10.10', 8080, { subnet_id: 'sub-net-id' })
         expect(loadbalancer_membership.membership_id).to eq('id')
@@ -103,7 +104,7 @@ describe Bosh::OpenStackCloud::LoadbalancerConfigurator do
 
       it 'raises an error' do
         expect {
-          subject.add_vm_to_pool(server, pool)
+          subject.add_vm_to_pool(server, network_spec, pool)
         }.to raise_error(Bosh::Clouds::VMCreationFailed, "VM with id '1234' cannot be attached to load balancer pool 'my-lb-pool'. Reason: Original message.")
       end
     end
@@ -118,7 +119,7 @@ describe Bosh::OpenStackCloud::LoadbalancerConfigurator do
       it 'errors' do
         allow(Bosh::OpenStackCloud::NetworkConfigurator).to receive(:matching_gateway_subnet_ids_for_ip).and_return(['subnet-id', 'other-subnet-id'])
         expect{
-          subject.add_vm_to_pool(server, pool)
+          subject.add_vm_to_pool(server, network_spec, pool)
         }.to raise_error(Bosh::Clouds::VMCreationFailed, /Reason: In network 'net-id' more than one subnet CIDRs match the IP '10\.10\.10\.10'/)
       end
     end
@@ -133,9 +134,83 @@ describe Bosh::OpenStackCloud::LoadbalancerConfigurator do
       it 'errors' do
         allow(Bosh::OpenStackCloud::NetworkConfigurator).to receive(:matching_gateway_subnet_ids_for_ip).and_return([])
         expect{
-          subject.add_vm_to_pool(server, pool)
+          subject.add_vm_to_pool(server, network_spec, pool)
         }.to raise_error(Bosh::Clouds::VMCreationFailed, /Network 'net-id' does not contain any subnet to match the IP '10\.10\.10\.10'/)
       end
+    end
+  end
+
+  describe '#remove_vm_from_pool' do
+    let(:pool_id) { 'pool-id' }
+    let(:membership_id) { 'membership-id' }
+
+    it 'deletes lbaas pool membership' do
+      allow(network).to receive(:delete_lbaas_pool_member)
+
+      subject.remove_vm_from_pool(pool_id, membership_id)
+
+      expect(network).to have_received(:delete_lbaas_pool_member).with(pool_id, membership_id)
+    end
+
+    context 'when membership not found' do
+      it 'does not raise' do
+        allow(network).to receive(:delete_lbaas_pool_member).and_raise(Fog::Network::OpenStack::NotFound)
+
+        expect{
+          subject.remove_vm_from_pool(pool_id, membership_id)
+        }.to_not raise_error
+      end
+
+      it 'logs error' do
+        allow(network).to receive(:delete_lbaas_pool_member).and_raise(Fog::Network::OpenStack::NotFound)
+
+        expect{
+          subject.remove_vm_from_pool(pool_id, membership_id)
+        }.to_not raise_error
+
+        expect(logger).to have_received(:debug).with("Skipping deletion of lbaas pool member. Member with pool_id 'pool-id' and membership_id 'membership-id' does not exist.")
+      end
+    end
+
+    context 'when membership deletion fails' do
+      it 're-raises as CloudError' do
+        allow(network).to receive(:delete_lbaas_pool_member).and_raise(Fog::Network::OpenStack::Error.new('BOOM!!!'))
+
+        expect{
+          subject.remove_vm_from_pool(pool_id, membership_id)
+        }.to raise_error(Bosh::Clouds::CloudError, "Deleting LBaaS member with pool_id 'pool-id' and membership_id 'membership-id' failed. Reason: Fog::Network::OpenStack::Error BOOM!!!")
+      end
+    end
+
+
+  end
+
+  describe '#cleanup_memberships' do
+    let(:server_metadata) {
+      {
+        'lbaas_pool_0' => 'pool-id-0/membership-id-0',
+        'lbaas_pool_1' => 'pool-id-1/membership-id-1',
+        'index' => 0,
+        'job' => 'bosh'
+      }
+    }
+
+    it "removes all memberships found in server metadata" do
+      allow(network).to receive(:delete_lbaas_pool_member).with('pool-id-0', 'membership-id-0')
+      allow(network).to receive(:delete_lbaas_pool_member).with('pool-id-1', 'membership-id-1')
+
+      subject.cleanup_memberships(server_metadata)
+
+      expect(network).to have_received(:delete_lbaas_pool_member).with('pool-id-0', 'membership-id-0')
+      expect(network).to have_received(:delete_lbaas_pool_member).with('pool-id-1', 'membership-id-1')
+    end
+
+    it 're-raises the exception' do
+      allow(network).to receive(:delete_lbaas_pool_member).and_raise(Fog::Network::OpenStack::Error.new('BOOM!!!'))
+
+      expect{
+        subject.cleanup_memberships(server_metadata)
+      }.to raise_error(Bosh::Clouds::CloudError)
     end
   end
 end

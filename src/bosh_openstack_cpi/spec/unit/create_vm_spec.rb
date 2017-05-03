@@ -1200,13 +1200,20 @@ describe Bosh::OpenStackCloud::Cloud, "create_vm" do
     end
 
     it 'creates as many loadbalancers as are listed in the manifest' do
+      network_spec = { 'network_a' => dynamic_network_spec }
       pool_membership = Bosh::OpenStackCloud::LoadbalancerConfigurator::LoadbalancerPoolMembership.new('name', 'port', 'pool_id', 'membership_id')
-      expect_any_instance_of(Bosh::OpenStackCloud::LoadbalancerConfigurator).to receive(:add_vm_to_pool).with(server, { 'name' => 'my-pool-1', 'port' => 443 }).and_return(pool_membership)
-      expect_any_instance_of(Bosh::OpenStackCloud::LoadbalancerConfigurator).to receive(:add_vm_to_pool).with(server, { 'name' => 'my-pool-2', 'port' => 8080 }).and_return(pool_membership)
+      expect_any_instance_of(Bosh::OpenStackCloud::LoadbalancerConfigurator)
+        .to receive(:add_vm_to_pool)
+        .with(server, network_spec, { 'name' => 'my-pool-1', 'port' => 443 })
+        .and_return(pool_membership)
+      expect_any_instance_of(Bosh::OpenStackCloud::LoadbalancerConfigurator)
+        .to receive(:add_vm_to_pool)
+        .with(server, network_spec, { 'name' => 'my-pool-2', 'port' => 8080 })
+        .and_return(pool_membership)
 
       cloud.create_vm('agent-id', 'sc-id light',
         resource_pool_spec_with_lbaas_pools,
-        { 'network_a' => dynamic_network_spec },
+        network_spec,
         nil, { 'test_env' => 'value'})
     end
   end
@@ -1272,8 +1279,9 @@ describe Bosh::OpenStackCloud::Cloud, "create_vm" do
         })
       end
 
+      let(:loadbalancer_configurator) { instance_double(Bosh::OpenStackCloud::LoadbalancerConfigurator) }
+
       before(:each) do
-        loadbalancer_configurator = instance_double(Bosh::OpenStackCloud::LoadbalancerConfigurator)
         loadbalancer_pool_membership = Bosh::OpenStackCloud::LoadbalancerConfigurator::LoadbalancerPoolMembership.new('name', 'port', 'pool_id', 'membership_id')
         allow(Bosh::OpenStackCloud::LoadbalancerConfigurator).to receive(:new).and_return(loadbalancer_configurator)
         allow(loadbalancer_configurator).to receive(:add_vm_to_pool).and_return(loadbalancer_pool_membership)
@@ -1292,16 +1300,25 @@ describe Bosh::OpenStackCloud::Cloud, "create_vm" do
         })
       end
 
-      it 'raises an exception, if tagging fails' do
-        allow(Bosh::OpenStackCloud::TagManager).to receive(:tag_server).and_raise(StandardError)
+      context 'when tagging fails' do
+        it 'cleans up the membership and raises an exception' do
+          allow(Bosh::OpenStackCloud::TagManager).to receive(:tag_server).and_raise(StandardError)
+          allow(loadbalancer_configurator).to receive(:cleanup_memberships)
+          allow(server).to receive(:destroy)
 
-        expect(server).to receive(:destroy)
-        expect {
-          cloud.create_vm("agent-id", "sc-id",
-            resource_pool_spec_with_lbaas_pools,
-            { "network_a" => dynamic_network_spec },
-            nil, { "test_env" => "value" })
-        }.to raise_error(Bosh::Clouds::CloudError)
+          expect {
+            cloud.create_vm("agent-id", "sc-id",
+              resource_pool_spec_with_lbaas_pools,
+              { "network_a" => dynamic_network_spec },
+              nil, { "test_env" => "value" })
+          }.to raise_error(Bosh::Clouds::CloudError)
+
+          expect(server).to have_received(:destroy)
+          expect(loadbalancer_configurator).to have_received(:cleanup_memberships).with({
+            'lbaas_pool_1' => 'pool_id/membership_id',
+            'lbaas_pool_2' => 'pool_id/membership_id'
+          })
+        end
       end
     end
   end
