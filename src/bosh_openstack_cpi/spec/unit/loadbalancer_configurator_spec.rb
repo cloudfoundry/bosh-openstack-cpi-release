@@ -28,6 +28,46 @@ describe Bosh::OpenStackCloud::LoadbalancerConfigurator do
     allow(openstack).to receive(:network).and_return(network)
   end
 
+  describe '#create_pool_memberships' do
+    context 'when a list of loadbalancer_pools is given' do
+
+      let(:load_balancer_pools) { [
+        { 'name' => 'my-pool-1', 'port' => 443 },
+        { 'name' => 'my-pool-2', 'port' => 8080 }
+      ] }
+
+      let(:network_spec) { {
+          'network_a' => manual_network_spec(net_id: 'sub-net-id', ip: '10.10.10.10'),
+          'vip_network' => vip_network_spec
+      } }
+
+      let(:lb_member) { double('lb_member', body: {'member' => {'id' => 'membership-id'}}) }
+
+      it 'creates the memberships and returns the corresponding server_tags' do
+        allow(Bosh::OpenStackCloud::NetworkConfigurator).to receive(:matching_gateway_subnet_ids_for_ip).and_return(['sub-net-id'])
+        allow(network).to receive(:create_lbaas_pool_member).and_return(lb_member)
+
+        server_tags = subject.create_pool_memberships(server, network_spec, load_balancer_pools)
+
+        expect(server_tags).to eq({
+          'lbaas_pool_1' => 'pool-id/membership-id',
+          'lbaas_pool_2' => 'pool-id/membership-id'
+        })
+      end
+    end
+
+    context 'when the given list is empty' do
+      it 'does nothing' do
+        allow(network).to receive(:create_lbaas_pool_member)
+
+        server_tags = subject.create_pool_memberships(server, network_spec, [])
+
+        expect(server_tags).to eq({})
+        expect(network).to_not have_received(:create_lbaas_pool_member)
+      end
+    end
+  end
+
   describe '#add_vm_to_pool' do
 
     context 'when pool input invalid' do
@@ -181,8 +221,6 @@ describe Bosh::OpenStackCloud::LoadbalancerConfigurator do
         }.to raise_error(Bosh::Clouds::CloudError, "Deleting LBaaS member with pool_id 'pool-id' and membership_id 'membership-id' failed. Reason: Fog::Network::OpenStack::Error BOOM!!!")
       end
     end
-
-
   end
 
   describe '#cleanup_memberships' do

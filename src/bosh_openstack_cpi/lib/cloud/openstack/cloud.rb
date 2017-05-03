@@ -261,16 +261,11 @@ module Bosh::OpenStackCloud
             @logger.debug("'human_readable_vm_names' disabled")
           end
 
-          unless resource_pool.fetch('loadbalancer_pools',[]).empty?
-            loadbalancer_configurator = LoadbalancerConfigurator.new(@openstack, @logger)
-            memberships = resource_pool['loadbalancer_pools'].map do |pool|
-              loadbalancer_configurator.add_vm_to_pool(server, network_spec, pool)
-            end
-
-            memberships.each_with_index do |membership, index|
-              server_tags["lbaas_pool_#{index+1}"] = "#{membership.pool_id}/#{membership.membership_id}"
-            end
-          end
+          server_tags.merge!(
+            LoadbalancerConfigurator
+              .new(@openstack, @logger)
+              .create_pool_memberships(server, network_spec, resource_pool.fetch('loadbalancer_pools',[]))
+          )
 
           begin
             unless server_tags.empty?

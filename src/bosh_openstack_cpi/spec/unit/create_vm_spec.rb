@@ -1282,9 +1282,11 @@ describe Bosh::OpenStackCloud::Cloud, "create_vm" do
       let(:loadbalancer_configurator) { instance_double(Bosh::OpenStackCloud::LoadbalancerConfigurator) }
 
       before(:each) do
-        loadbalancer_pool_membership = Bosh::OpenStackCloud::LoadbalancerConfigurator::LoadbalancerPoolMembership.new('name', 'port', 'pool_id', 'membership_id')
         allow(Bosh::OpenStackCloud::LoadbalancerConfigurator).to receive(:new).and_return(loadbalancer_configurator)
-        allow(loadbalancer_configurator).to receive(:add_vm_to_pool).and_return(loadbalancer_pool_membership)
+        allow(loadbalancer_configurator).to receive(:create_pool_memberships).and_return({
+          'lbaas_pool_1' => 'pool_id/membership_id',
+          'lbaas_pool_2' => 'pool_id/membership_id'
+        })
         allow(Bosh::OpenStackCloud::TagManager).to receive(:tag_server)
       end
 

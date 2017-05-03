@@ -6,6 +6,16 @@ module Bosh::OpenStackCloud
       @logger = logger
     end
 
+    def create_pool_memberships(server, network_spec, pools)
+      pools
+        .map { |pool| add_vm_to_pool(server, network_spec, pool)}
+        .each_with_index
+        .map do |membership, index|
+          ["lbaas_pool_#{index+1}", "#{membership.pool_id}/#{membership.membership_id}"]
+        end
+        .to_h
+    end
+
     def add_vm_to_pool(server, network_spec, pool_spec)
       begin
         validate_configuration(pool_spec)
