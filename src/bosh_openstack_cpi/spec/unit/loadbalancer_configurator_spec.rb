@@ -68,6 +68,43 @@ describe Bosh::OpenStackCloud::LoadbalancerConfigurator do
     end
   end
 
+  describe '#create_membership' do
+    let(:members) { double('lb_member', body: {
+      'members' => [
+        { 'id' => 'member-id-1', 'subnet_id' => 'subnet-id', 'address' => '10.0.0.2', 'protocol_port' => '8080' },
+        { 'id' => 'member-id-2', 'subnet_id' => 'subnet-id', 'address' => '10.0.0.1', 'protocol_port' => '8080' }
+      ]
+    }) }
+
+    before(:each) do
+      allow(logger).to receive(:info)
+      allow(network).to receive(:create_lbaas_pool_member).and_raise(Excon::Errors::Conflict.new('BAM!'))
+      allow(network).to receive(:list_lbaas_pool_members).with('pool-id').and_return(members)
+    end
+
+    context 'when the membership already exists' do
+      it 'returns the id of the existing membership' do
+        membership_id = subject.create_membership('pool-id', '10.0.0.1', '8080', 'subnet-id')
+
+        expect(membership_id).to eq('member-id-2')
+      end
+
+      it 'logs the fact' do
+        subject.create_membership('pool-id', '10.0.0.1', '8080', 'subnet-id')
+
+        expect(logger).to have_received(:info).with("Load balancer pool membership with pool id 'pool-id', ip '10.0.0.1', and port '8080' already exists. The membership has the id 'member-id-2'.")
+      end
+    end
+
+    context 'when the membership supposedly exists, but cannot be matched' do
+      it 'returns an error' do
+        expect {
+          subject.create_membership('pool-id', 'wrong-ip', '8080', 'subnet-id')
+        }.to raise_error(Bosh::Clouds::CloudError, "Load balancer pool membership with pool id 'pool-id', ip 'wrong-ip', and port '8080' supposedly exists, but cannot be found.")
+      end
+    end
+  end
+
   describe '#add_vm_to_pool' do
 
     context 'when pool input invalid' do
@@ -233,7 +270,7 @@ describe Bosh::OpenStackCloud::LoadbalancerConfigurator do
       }
     }
 
-    it "removes all memberships found in server metadata" do
+    it 'removes all memberships found in server metadata' do
       allow(network).to receive(:delete_lbaas_pool_member).with('pool-id-0', 'membership-id-0')
       allow(network).to receive(:delete_lbaas_pool_member).with('pool-id-1', 'membership-id-1')
 

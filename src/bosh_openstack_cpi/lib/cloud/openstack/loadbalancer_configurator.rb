@@ -22,15 +22,46 @@ module Bosh::OpenStackCloud
         openstack_pool_id = openstack_pool_id(pool_spec['name'])
         ip = NetworkConfigurator.gateway_ip(network_spec, @openstack, server)
         subnet_id = matching_subnet_id(network_spec, ip)
-
-        lb_member = @openstack.with_openstack {
-          @openstack.network.create_lbaas_pool_member(openstack_pool_id, ip, pool_spec['port'], { subnet_id: subnet_id })
-        }
-        LoadbalancerPoolMembership.new(pool_spec['name'], pool_spec['port'], openstack_pool_id, lb_member.body['member']['id'])
+        membership_id = create_membership(openstack_pool_id, ip, pool_spec['port'], subnet_id)
+        LoadbalancerPoolMembership.new(pool_spec['name'], pool_spec['port'], openstack_pool_id, membership_id)
       rescue Bosh::Clouds::VMCreationFailed => e
         message = "VM with id '#{server.id}' cannot be attached to load balancer pool '#{pool_spec['name']}'. Reason: #{e.message}"
         raise Bosh::Clouds::VMCreationFailed.new(false), message
       end
+    end
+
+    def create_membership(pool_id, ip, port, subnet_id)
+      @openstack.with_openstack do
+        begin
+          @openstack
+            .network
+            .create_lbaas_pool_member(pool_id, ip, port, { subnet_id: subnet_id })
+            .body['member']['id']
+        rescue Excon::Errors::Conflict
+          membership_id = @openstack
+            .network
+            .list_lbaas_pool_members(pool_id)
+            .body
+            .fetch('members', [])
+            .detect(
+              raise_if_not_found(pool_id, ip, port),
+              &matching_member(ip, port, subnet_id)
+            )
+            .fetch('id')
+
+          @logger.info("Load balancer pool membership with pool id '#{pool_id}', ip '#{ip}', and port '#{port}' already exists. The membership has the id '#{membership_id}'.")
+
+          membership_id
+        end
+      end
+    end
+
+    def raise_if_not_found(pool_id, ip, port)
+      lambda { raise Bosh::Clouds::CloudError, "Load balancer pool membership with pool id '#{pool_id}', ip '#{ip}', and port '#{port}' supposedly exists, but cannot be found." }
+    end
+
+    def matching_member(ip, port, subnet_id)
+      lambda { |member| member['address'] == ip && member['protocol_port'] == port && member['subnet_id'] == subnet_id }
     end
 
     def cleanup_memberships(server_metadata)
@@ -39,7 +70,6 @@ module Bosh::OpenStackCloud
         .map { |_, value| value.split('/') }
         .each { |pool_id, membership_id| remove_vm_from_pool(pool_id, membership_id) }
     end
-
 
     def remove_vm_from_pool(pool_id, membership_id)
       begin
