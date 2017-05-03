@@ -17,29 +17,5 @@ module Bosh::OpenStackCloud
       raise Bosh::Clouds::CloudError, message
     end
 
-    def fail_on_error(errors)
-      return if errors.nil? || errors.empty?
-
-      errors.each { |error| @logger.error(error) }
-
-      message = errors.map { |error| error.message }.join("\n")
-      prefix = errors.size > 1 ? "Multiple Cloud Errors occurred:\n" : ''
-
-      raise Bosh::Clouds::CloudError.new(prefix + message)
-    end
-
-    def catch_error
-      result = nil
-
-      if block_given?
-        begin
-          yield
-        rescue => e
-          result = e
-        end
-      end
-
-      result
-    end
   end
 end

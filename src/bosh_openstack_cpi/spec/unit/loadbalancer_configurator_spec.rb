@@ -2,8 +2,7 @@ require 'spec_helper'
 require 'fog/compute/openstack/models/server'
 
 describe Bosh::OpenStackCloud::LoadbalancerConfigurator do
-  subject(:subject) { Bosh::OpenStackCloud::LoadbalancerConfigurator.new(network_spec, openstack, logger) }
-  let(:logger) { instance_double(Logger, debug: nil) }
+  subject(:subject) { Bosh::OpenStackCloud::LoadbalancerConfigurator.new(network_spec, openstack) }
   let(:network_spec) { {} }
   let(:openstack) { instance_double(Bosh::OpenStackCloud::Openstack) }
   let(:network) { double('network', list_lbaas_pools: loadbalancer_pools_response) }
@@ -75,7 +74,7 @@ describe Bosh::OpenStackCloud::LoadbalancerConfigurator do
         allow(network).to receive(:create_lbaas_pool_member).and_return(lb_member)
       end
 
-      let(:lb_member) { double('lb_member', body: {'member' => {'id' => 'id'}}) }
+      let(:lb_member) { double('lb_member', id: 'id') }
 
       let(:network_spec) {
         {
@@ -137,80 +136,6 @@ describe Bosh::OpenStackCloud::LoadbalancerConfigurator do
           subject.add_vm_to_pool(server, pool)
         }.to raise_error(Bosh::Clouds::VMCreationFailed, /Network 'net-id' does not contain any subnet to match the IP '10\.10\.10\.10'/)
       end
-    end
-  end
-
-  describe '#remove_vm_from_pool' do
-    let(:pool_id) { 'pool-id' }
-    let(:membership_id) { 'membership-id' }
-
-    it 'deletes lbaas pool membership' do
-      allow(network).to receive(:delete_lbaas_pool_member)
-
-      subject.remove_vm_from_pool(pool_id, membership_id)
-
-      expect(network).to have_received(:delete_lbaas_pool_member).with(pool_id, membership_id)
-    end
-
-    context 'when membership not found' do
-      it 'does not raise' do
-        allow(network).to receive(:delete_lbaas_pool_member).and_raise(Fog::Network::OpenStack::NotFound)
-
-        expect{
-          subject.remove_vm_from_pool(pool_id, membership_id)
-        }.to_not raise_error
-      end
-
-      it 'logs error' do
-        allow(network).to receive(:delete_lbaas_pool_member).and_raise(Fog::Network::OpenStack::NotFound)
-
-        expect{
-          subject.remove_vm_from_pool(pool_id, membership_id)
-        }.to_not raise_error
-
-        expect(logger).to have_received(:debug).with("Skipping deletion of lbaas pool member. Member with pool_id 'pool-id' and membership_id 'membership-id' does not exist.")
-      end
-    end
-
-    context 'when membership deletion fails' do
-      it 're-raises as CloudError' do
-        allow(network).to receive(:delete_lbaas_pool_member).and_raise(Fog::Network::OpenStack::Error.new('BOOM!!!'))
-
-        expect{
-          subject.remove_vm_from_pool(pool_id, membership_id)
-        }.to raise_error(Bosh::Clouds::CloudError, "Deleting LBaaS member with pool_id 'pool-id' and membership_id 'membership-id' failed. Reason: Fog::Network::OpenStack::Error BOOM!!!")
-      end
-    end
-
-
-  end
-
-  describe '#cleanup_memberships' do
-    let(:server_metadata) {
-      {
-        'lbaas_pool_0' => 'pool-id-0/membership-id-0',
-        'lbaas_pool_1' => 'pool-id-1/membership-id-1',
-        'index' => 0,
-        'job' => 'bosh'
-      }
-    }
-
-    it "removes all memberships found in server metadata" do
-      allow(network).to receive(:delete_lbaas_pool_member).with('pool-id-0', 'membership-id-0')
-      allow(network).to receive(:delete_lbaas_pool_member).with('pool-id-1', 'membership-id-1')
-
-      subject.cleanup_memberships(server_metadata)
-
-      expect(network).to have_received(:delete_lbaas_pool_member).with('pool-id-0', 'membership-id-0')
-      expect(network).to have_received(:delete_lbaas_pool_member).with('pool-id-1', 'membership-id-1')
-    end
-
-    it 're-raises the exception' do
-      allow(network).to receive(:delete_lbaas_pool_member).and_raise(Fog::Network::OpenStack::Error.new('BOOM!!!'))
-
-      expect{
-        subject.cleanup_memberships(server_metadata)
-      }.to raise_error(Bosh::Clouds::CloudError)
     end
   end
 end
