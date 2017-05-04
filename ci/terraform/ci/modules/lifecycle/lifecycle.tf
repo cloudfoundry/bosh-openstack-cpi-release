@@ -2,14 +2,17 @@ variable "dns_nameservers" {
   description = "DNS server IPs"
 }
 
-variable "region_name" {
-  description = "OpenStack region name"
-}
+variable "region_name" {}
 
 variable "default_router_id" {}
 
 variable "ext_net_name" {
   description = "OpenStack external network name to register floating IP"
+}
+
+variable "use_lbaas" {
+  default = "false"
+  description = "When set to 'true', all necessary LBaaS V2 resources are created."
 }
 
 output "lifecycle_openstack_net_id" {
@@ -38,6 +41,10 @@ output "lifecycle_no_dhcp_manual_ip_2" {
 
 output "lifecycle_floating_ip" {
   value = "${openstack_networking_floatingip_v2.lifecycle_floating_ip.address}"
+}
+
+output "lifecycle_lb_pool_name" {
+  value = "${openstack_lb_pool_v2.lifecycle_pool.name}"
 }
 
 resource "openstack_networking_network_v2" "lifecycle_net" {
@@ -106,4 +113,28 @@ resource "openstack_networking_router_interface_v2" "lifecycle_port" {
 resource "openstack_networking_floatingip_v2" "lifecycle_floating_ip" {
   region = "${var.region_name}"
   pool   = "${var.ext_net_name}"
+}
+
+# lbaas
+
+resource "openstack_lb_loadbalancer_v2" "lifecycle_loadbalancer" {
+  vip_subnet_id = "${openstack_networking_subnet_v2.lifecycle_subnet.id}"
+  name = "Lifecycle Load Balancer"
+  count = "${var.use_lbaas == "true" ? 1 : 0}"
+}
+
+resource "openstack_lb_listener_v2" "lifecycle_listener" {
+  protocol        = "TCP"
+  protocol_port   = 4444
+  name = "Lifecycle Listener"
+  loadbalancer_id = "${openstack_lb_loadbalancer_v2.lifecycle_loadbalancer.id}"
+  count = "${var.use_lbaas == "true" ? 1 : 0}"
+}
+
+resource "openstack_lb_pool_v2" "lifecycle_pool" {
+  protocol    = "TCP"
+  lb_method   = "ROUND_ROBIN"
+  name = "Lifecycle Pool"
+  listener_id = "${openstack_lb_listener_v2.lifecycle_listener.id}"
+  count = "${var.use_lbaas == "true" ? 1 : 0}"
 }

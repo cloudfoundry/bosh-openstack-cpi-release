@@ -26,6 +26,7 @@ module "lifecycle" {
   dns_nameservers = "${var.dns_nameservers}"
   default_router_id = "${module.base.default_router_id}"
   ext_net_name = "${var.ext_net_name}"
+  use_lbaas = "${var.use_lbaas}"
 }
 
 variable "auth_url" {
@@ -79,6 +80,11 @@ variable "openstack_default_key_public_key" {
   description = "This is the actual public key which is uploaded"
 }
 
+variable "use_lbaas" {
+  default = "false"
+  description = "When set to 'true', all necessary LBaaS V2 resources are created."
+}
+
 output "net_id" {
   value = "${module.lifecycle.lifecycle_openstack_net_id}"
 }
@@ -121,4 +127,8 @@ output "default_key_name" {
 
 output "floating_ip" {
   value = "${module.lifecycle.lifecycle_floating_ip}"
+}
+
+output "loadbalancer_pool_name" {
+  value = "${module.lifecycle.lifecycle_lb_pool_name}"
 }
