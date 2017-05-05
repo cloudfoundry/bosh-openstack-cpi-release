@@ -152,6 +152,7 @@ jobs:
             region_name: {{tf_region_name}}
             openstack_default_key_public_key: {{tf_default_public_key}}
             dns_nameservers: {{tf_dns_nameservers}}
+            use_lbaas: {{lifecycle_use_lbaas}}
 
       - task: test
         tags: *tags
