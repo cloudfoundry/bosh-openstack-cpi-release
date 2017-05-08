@@ -53,7 +53,7 @@ describe Bosh::OpenStackCloud::Cloud do
       end
 
       before { @vm_with_assigned_floating_ip = create_vm(@stemcell_id, network_spec_with_vip_network, []) }
-      after { clean_up_vm(@vm_with_assigned_floating_ip, network_spec) if @vm_with_assigned_floating_ip }
+      after { clean_up_vm(@vm_with_assigned_floating_ip) if @vm_with_assigned_floating_ip }
 
       it 'exercises the vm lifecycle and reassigns the floating ip' do
         vm_lifecycle(@stemcell_id, network_spec_with_vip_network)
@@ -78,7 +78,7 @@ describe Bosh::OpenStackCloud::Cloud do
     describe 'set_vm_metadata' do
       let(:human_readable_vm_names) { true }
       before { @human_readable_vm_name_id = create_vm(@stemcell_id, network_spec, []) }
-      after { clean_up_vm(@human_readable_vm_name_id, network_spec) if @human_readable_vm_name_id }
+      after { clean_up_vm(@human_readable_vm_name_id) if @human_readable_vm_name_id }
 
       it 'sets the vm name according to the metadata' do
         vm = openstack.compute.servers.get(@human_readable_vm_name_id)
@@ -104,7 +104,7 @@ describe Bosh::OpenStackCloud::Cloud do
       after do
         cpi.detach_disk(@vm_id, @metadata_disk_id) if @metadata_disk_id && @vm_id
         clean_up_disk(@metadata_disk_id) if @metadata_disk_id
-        clean_up_vm(@vm_id, network_spec) if @vm_id
+        clean_up_vm(@vm_id) if @vm_id
       end
 
       it 'copies the vm metadata into the disk and keeps original metadata' do
@@ -149,7 +149,7 @@ describe Bosh::OpenStackCloud::Cloud do
       before do
         @temp_vm_cid = create_vm(@stemcell_id, network_spec, [])
         @existing_volume_id = cpi.create_disk(2048, {}, @temp_vm_cid)
-        clean_up_vm(@temp_vm_cid, network_spec)
+        clean_up_vm(@temp_vm_cid)
       end
 
       after { cpi.delete_disk(@existing_volume_id) if @existing_volume_id }
@@ -186,7 +186,7 @@ describe Bosh::OpenStackCloud::Cloud do
       let(:config_drive) { 'cdrom' }
       let(:use_dhcp) { false }
 
-      after { clean_up_vm(@multiple_nics_vm_id, network_spec) if @multiple_nics_vm_id }
+      after { clean_up_vm(@multiple_nics_vm_id) if @multiple_nics_vm_id }
 
       it 'creates writes the mac addresses of the two networks to the registry' do
         registry = double('registry')
@@ -208,7 +208,7 @@ describe Bosh::OpenStackCloud::Cloud do
         expect(network_interface_2['OS-EXT-IPS-MAC:mac_addr']).to eq(registry_settings['networks']['network_2']['mac'])
 
         ports = openstack.network.ports.all(:device_id => @multiple_nics_vm_id)
-        clean_up_vm(@multiple_nics_vm_id, network_spec) if @multiple_nics_vm_id
+        clean_up_vm(@multiple_nics_vm_id) if @multiple_nics_vm_id
         expect(ports.find { |port| openstack.network.ports.get port.id }).to be_nil
       end
 
@@ -239,7 +239,7 @@ describe Bosh::OpenStackCloud::Cloud do
       expect(volumes.first['device']).to eq('/dev/vda')
     end
 
-    after(:each) { clean_up_vm(@vm_id, network_spec) if @vm_id }
+    after(:each) { clean_up_vm(@vm_id) if @vm_id }
 
     it 'creates a vm with boot_volume on /dev/vda' do
       test_boot_volume
@@ -384,7 +384,7 @@ describe Bosh::OpenStackCloud::Cloud do
         cpi.detach_disk(vm_id, "non-existing-disk")
       }.to_not raise_error
 
-      clean_up_vm(vm_id, network_spec)
+      clean_up_vm(vm_id)
     end
   end
 
@@ -401,7 +401,7 @@ describe Bosh::OpenStackCloud::Cloud do
     end
 
     let(:use_nova_networking) { true }
-    after { clean_up_vm(@vm_id_for_nova_compatibility, network_spec) if @vm_id_for_nova_compatibility }
+    after { clean_up_vm(@vm_id_for_nova_compatibility) if @vm_id_for_nova_compatibility }
 
     it 'create vm does not use neutron for security groups' do
       stub_request(:any, /.*\/v2\.0\/security-groups/)
@@ -480,6 +480,50 @@ describe Bosh::OpenStackCloud::Cloud do
     end
   end
 
+  describe 'when using load balancer pool' do
+    before(:all) do
+      unless @config.lbaas_pool_name
+        skip('No lbaas pool configured')
+      end
+    end
+
+    let(:network_spec) do
+      {
+        'default' => {
+          'type' => 'dynamic',
+          'cloud_properties' => {
+            'net_id' => @config.net_id
+          }
+        }
+      }
+    end
+
+    let(:resource_pool_spec_with_lbaas_pools) do
+      {
+        'loadbalancer_pools' => [
+          { 'name' => @config.lbaas_pool_name, 'port' => 4443 }
+        ],
+        'key_name' => @config.default_key_name,
+        'availability_zone' => @config.availability_zone,
+        'instance_type' => @config.instance_type
+      }
+    end
+
+    it 'exercises vm lifecycle' do
+      vm_id = nil
+
+      expect{
+        vm_id = create_vm(@stemcell_id, network_spec, [], resource_pool_spec_with_lbaas_pools)
+      }.to_not raise_error
+
+      expect(vm_id).not_to be_nil
+
+      expect {
+        clean_up_vm(vm_id)
+      }.to_not raise_error
+    end
+  end
+
   def volumes(vm_id)
     openstack.compute.servers.get(vm_id).volume_attachments
   end
@@ -509,7 +553,7 @@ describe Bosh::OpenStackCloud::Cloud do
   ensure
     funcs = [
       lambda { clean_up_disk(disk_id) },
-      lambda { clean_up_vm(vm_id, network_spec) },
+      lambda { clean_up_vm(vm_id) },
     ]
     funcs.unshift(lambda { clean_up_disk_snapshot(disk_snapshot_id) }) unless @config.disable_snapshots
     run_all_and_raise_any_errors(create_error, funcs)
@@ -541,7 +585,7 @@ describe Bosh::OpenStackCloud::Cloud do
     vm_id
   end
 
-  def clean_up_vm(vm_id, network_spec)
+  def clean_up_vm(vm_id)
     if vm_id
       @config.logger.info("Deleting VM vm_id=#{vm_id}")
       cpi.delete_vm(vm_id)

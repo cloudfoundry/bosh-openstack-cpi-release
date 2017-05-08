@@ -25,7 +25,8 @@ class IntegrationConfig
               :region,
               :floating_ip,
               :ca_cert_path,
-              :insecure
+              :insecure,
+              :lbaas_pool_name
 
   def initialize(identity_version=:v3)
     if identity_version == :v3
@@ -73,6 +74,7 @@ class IntegrationConfig
     @instance_type_with_no_root_disk = LifecycleHelper.get_config(:flavor_with_no_root_disk)
     @availability_zone               = LifecycleHelper.get_config(:availability_zone, nil)
     @floating_ip                     = LifecycleHelper.get_config(:floating_ip)
+    @lbaas_pool_name                 = LifecycleHelper.get_config(:lbaas_pool_name, nil)
     # some environments may not have this set, and it isn't strictly necessary so don't raise if it isn't set
     @region                          = LifecycleHelper.get_config(:region, nil)
     Bosh::Clouds::Config.configure(OpenStruct.new(:logger => @logger, :cpi_task_log => nil))
