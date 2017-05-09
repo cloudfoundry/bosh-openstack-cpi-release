@@ -1,11 +1,11 @@
-#OpenStack CPI Implementation #
+# OpenStack CPI Implementation #
 OpenStack CPI is an implementation of BOSH CPI. It allows BOSH to interface with various services in OpenStack like glance, controller and registry. 
 
 The OpenStack CPI is configured in the BOSH deployment manifest. Read the [OpenStack CPI Config docs](bosh_openstack_cpi/cpi_config.md) for more details.
 
 In the sections below we outline the implementation details for each of the method in CPI interface.
 
-##Initialize ##
+## Initialize ##
 
 Implementation of `def initialize(options)` method. 
 
@@ -33,7 +33,7 @@ Implementation of `def initialize(options)` method.
 ![openstack_cpi_createstemcell](images/openstack_cpi_initialize.png)	
 
 
-##Create Stemcell ##
+## Create Stemcell ##
 
 Implementation of method `create_stemcell(image_path, cloud_properties)`
 Steps outlined below are the flow control implemented to extract and upload kernel image, ramdisk and stem cell image.
@@ -51,11 +51,11 @@ Figure below shows the flow control for the method `create_stemcell(image_path, 
 
 ![openstack_cpi_createstemcell](images/openstack_cpi_createstemcell.png)
 
-##Delete Stemcell
+## Delete Stemcell ##
 
 ![openstack_cpi_deletestemcell](images/openstack_cpi_deletestemcell.png)
 
-##Create VM ##
+## Create VM ##
 
 Implementation of
 `def create_vm(agent_id, stemcell_id, resource_pool, network_spec = nil, disk_locality = nil, environment = nil)` method.
@@ -70,7 +70,7 @@ Implementation of
 
 ![openstack_cpi_create_vm](images/openstack_cpi_create_vm.png)
 
-##Delete VM ##
+## Delete VM ##
 
 Implementation of `delete_vm(server_id)`. This method deletes the VM created in Nova Compute.
 
@@ -85,7 +85,7 @@ Figure below shows the flow control for `delete_vm` method
 
 ![openstack_cpi_delete_vm](images/openstack_cpi_delete_vm.png)
 
-##Create Disk ##
+## Create Disk ##
 
 1. Check if size passed is integer, is greater than 1024 and less than 1024*1000, else throw an error
 2. Create `volume_params`
@@ -97,7 +97,7 @@ Figure below shows the flow control of `create_disk` method
 
 ![openstack_cpi_create_disk](images/openstack_cpi_create_disk.png)
 
-##Delete Disk##
+## Delete Disk ##
 
 This method deletes the volume created in OpenStack Nova Volume 
 ![openstack_cpi_delete_disk](images/openstack_cpi_delete_disk.png)
