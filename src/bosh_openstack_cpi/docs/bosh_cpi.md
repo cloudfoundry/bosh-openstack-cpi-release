@@ -61,12 +61,13 @@ Implementation of
 `def create_vm(agent_id, stemcell_id, resource_pool, network_spec = nil, disk_locality = nil, environment = nil)` method.
 
 1. Retrieve `security_groups` available on OpenStack and validate them against configured.
-2. If option `config_drive`  and multiple manual networks are set, create network ports for manual networks.
+2. If option `config_drive` and multiple manual networks are set, create network ports for manual networks.
 3. Find stemcell image for passed `stemcell_id`.
-4. Find OpenStack flavour for configured `instance_type`.
+4. Find OpenStack flavor for configured `instance_type`.
 5. Create VM.
-6. If option `human_readable_vm_names` is provided, tag the created VM with it's BOSH registry key.
-7. Update BOSH registry settings for the new VM
+6. If `loadbalancer_pools` are specified, add VM as member to each pool and tag VM with pool and membership ID.
+7. If option `human_readable_vm_names` is provided, tag the created VM with it's BOSH registry key.
+8. Update BOSH registry settings for the new VM.
 
 ![openstack_cpi_create_vm](images/openstack_cpi_create_vm.png)
 
