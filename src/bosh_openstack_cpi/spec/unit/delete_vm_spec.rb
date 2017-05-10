@@ -2,10 +2,13 @@ require 'spec_helper'
 
 describe Bosh::OpenStackCloud::Cloud do
 
+  let(:registry_key) { 'vm-registry-key' }
+
   let(:server_metadata) do
     [
       double('metadatum', :key => 'lbaas_pool_0', :value => 'pool-id-0/membership-id-0'),
-      double('metadatum', :key => 'job', :value => 'bosh')
+      double('metadatum', :key => 'job', :value => 'bosh'),
+      double('metadatum', key: :registry_key, value: registry_key)
     ]
   end
 
@@ -26,6 +29,9 @@ describe Bosh::OpenStackCloud::Cloud do
      allow(server).to receive(:destroy)
      allow(cloud.openstack).to receive(:wait_resource)
      allow(@registry).to receive(:delete_settings)
+     allow(server_metadata).to receive(:get) { |param|
+       server_metadata.find { |metadatum| metadatum.key == param}
+     }
      allow(Bosh::OpenStackCloud::LoadbalancerConfigurator).to receive(:new).and_return(loadbalancer_configurator)
      allow(loadbalancer_configurator).to receive(:cleanup_memberships)
    end
@@ -68,11 +74,12 @@ describe Bosh::OpenStackCloud::Cloud do
     expect(server).to have_received(:destroy)
     expect(cloud.openstack).to have_received(:wait_resource).with(server, [:terminated, :deleted], :state, true)
     expect(Bosh::OpenStackCloud::NetworkConfigurator).to have_received(:cleanup_ports).with(any_args, ['port_id'])
-    expect(@registry).to have_received(:delete_settings).with('i-foobar')
+    expect(@registry).to have_received(:delete_settings).with(registry_key)
     expect(loadbalancer_configurator).to have_received(:cleanup_memberships).with(
       {
         'lbaas_pool_0' => 'pool-id-0/membership-id-0',
-        'job' => 'bosh'
+        'job' => 'bosh',
+        :registry_key => 'vm-registry-key'
       }
     )
   end
@@ -105,11 +112,12 @@ describe Bosh::OpenStackCloud::Cloud do
         cloud.delete_vm('i-foobar')
       }.to raise_error(/BOOM!/)
 
-      expect(@registry).to have_received(:delete_settings).with('i-foobar')
+      expect(@registry).to have_received(:delete_settings).with(registry_key)
       expect(loadbalancer_configurator).to have_received(:cleanup_memberships).with(
         {
           'lbaas_pool_0' => 'pool-id-0/membership-id-0',
-          'job' => 'bosh'
+          'job' => 'bosh',
+          :registry_key => 'vm-registry-key'
         }
       )
     end
@@ -125,7 +133,7 @@ describe Bosh::OpenStackCloud::Cloud do
 
 
       expect(Bosh::OpenStackCloud::NetworkConfigurator).to have_received(:cleanup_ports).with(any_args, ['port_id'])
-      expect(@registry).to have_received(:delete_settings).with('i-foobar')
+      expect(@registry).to have_received(:delete_settings).with(registry_key)
     end
   end
 
@@ -143,10 +151,11 @@ describe Bosh::OpenStackCloud::Cloud do
       expect(loadbalancer_configurator).to have_received(:cleanup_memberships).with(
         {
           'lbaas_pool_0' => 'pool-id-0/membership-id-0',
-          'job' => 'bosh'
+          'job' => 'bosh',
+          :registry_key => 'vm-registry-key'
         }
       )
-      expect(@registry).to have_received(:delete_settings).with('i-foobar')
+      expect(@registry).to have_received(:delete_settings).with(registry_key)
     end
   end
 

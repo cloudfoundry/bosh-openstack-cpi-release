@@ -328,8 +328,9 @@ module Bosh::OpenStackCloud
             catch_error('Removing ports') { NetworkConfigurator.cleanup_ports(@openstack, server_port_ids) },
             catch_error('Removing lbaas pool memberships') { LoadbalancerConfigurator.new(@openstack, @logger).cleanup_memberships(server_tags) },
             catch_error('Deleting registry settings') {
-              @logger.info("Deleting settings for server `#{server.id}'...")
-              @registry.delete_settings(server.name)
+              registry_key = registry_key_for(server)
+              @logger.info("Deleting settings for server `#{server.id}' with registry_key `#{registry_key}' ...")
+              @registry.delete_settings(registry_key)
             })
         else
           @logger.info("Server `#{server_id}' not found. Skipping.")
@@ -677,8 +678,7 @@ module Bosh::OpenStackCloud
     # @param [Fog::Compute::OpenStack::Server] server OpenStack server
     def update_agent_settings(server)
       raise ArgumentError, 'Block is not provided' unless block_given?
-      registry_key_metadatum = server.metadata.get(REGISTRY_KEY_TAG)
-      registry_key = registry_key_metadatum ? registry_key_metadatum.value : server.name
+      registry_key = registry_key_for(server)
       @logger.info("Updating settings for server `#{server.id}' with registry key `#{registry_key}'...")
       settings = @registry.read_settings(registry_key)
       yield settings
@@ -692,6 +692,11 @@ module Bosh::OpenStackCloud
     end
 
     private
+
+    def registry_key_for(server)
+      registry_key_metadatum = server.metadata.get(REGISTRY_KEY_TAG)
+      registry_key_metadatum ? registry_key_metadatum.value : server.name
+    end
 
     def not_existing_net_ids(nics)
       result = []
