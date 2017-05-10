@@ -76,11 +76,11 @@ Implementation of
 Implementation of `delete_vm(server_id)`. This method deletes the VM created in Nova Compute.
 
 1. Get the `server` of the VM to be deleted
-If `server` object returned is not null
 2. If Neutron exists, get network port ids for server.
 3. Call `server.destroy`. This will send `delete_server` request to Nova Compute.
 4. If Neutron exists, delete network ports
-5. Delete the settings from Registry by calling `delete_settings` method.
+5. If VM was tagged with LBaaS pools, remove VM membership from load balancer pools
+6. Delete the settings from Registry by calling `delete_settings` method.
 
 Figure below shows the flow control for `delete_vm` method
 
