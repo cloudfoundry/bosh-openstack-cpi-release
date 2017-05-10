@@ -103,7 +103,7 @@ describe Bosh::OpenStackCloud::Cloud do
 
       expect {
         cloud.delete_vm('i-foobar')
-      }.to raise_error('BOOM!')
+      }.to raise_error(/BOOM!/)
 
       expect(@registry).to have_received(:delete_settings).with('i-foobar')
       expect(loadbalancer_configurator).to have_received(:cleanup_memberships).with(
@@ -121,7 +121,7 @@ describe Bosh::OpenStackCloud::Cloud do
 
       expect{
         cloud.delete_vm('i-foobar')
-      }.to raise_error('BOOM!')
+      }.to raise_error(/BOOM!/)
 
 
       expect(Bosh::OpenStackCloud::NetworkConfigurator).to have_received(:cleanup_ports).with(any_args, ['port_id'])
@@ -137,7 +137,7 @@ describe Bosh::OpenStackCloud::Cloud do
 
       expect{
         cloud.delete_vm('i-foobar')
-      }.to raise_error(Bosh::Clouds::CloudError, "Multiple Cloud Errors occurred:\nBOOM!\nBOOM!")
+      }.to raise_error(Bosh::Clouds::CloudError)
 
       expect(Bosh::OpenStackCloud::NetworkConfigurator).to have_received(:cleanup_ports).with(any_args, ['port_id'])
       expect(loadbalancer_configurator).to have_received(:cleanup_memberships).with(
@@ -147,6 +147,25 @@ describe Bosh::OpenStackCloud::Cloud do
         }
       )
       expect(@registry).to have_received(:delete_settings).with('i-foobar')
+    end
+  end
+
+  context 'when port cleanup, LBaaS membership cleanup and deleting settings from registry fails' do
+    it 'fails with all errors and an aggregated error message containing the right prefixes' do
+      allow(Bosh::OpenStackCloud::NetworkConfigurator).to receive(:cleanup_ports).and_raise('BOOM1!')
+      allow(loadbalancer_configurator).to receive(:cleanup_memberships).and_raise('BOOM2!')
+      allow(@registry).to receive(:delete_settings).and_raise('BOOM3!')
+
+      expected_error_msg = <<~EOF
+        Multiple cloud errors occurred:
+        Removing ports: BOOM1!
+        Removing lbaas pool memberships: BOOM2!
+        Deleting registry settings: BOOM3!
+      EOF
+
+      expect{
+        cloud.delete_vm('i-foobar')
+      }.to raise_error(Bosh::Clouds::CloudError, expected_error_msg.chomp)
     end
   end
 end
