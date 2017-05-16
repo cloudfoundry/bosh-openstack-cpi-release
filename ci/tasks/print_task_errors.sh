@@ -17,4 +17,4 @@ cd bosh-cpi-src-in/ci/ruby_scripts
 bosh-go -n -e ${director_public_ip} \
   --client admin \
   --client-secret ${bosh_admin_password} \
-  tasks --all --recent 100 | ./print_task_debug_output.sh
+  tasks --all --recent=100 | ./print_task_debug_output.sh
