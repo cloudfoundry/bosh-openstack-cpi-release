@@ -10,4 +10,5 @@ inputs:
 run:
   path: bosh-cpi-src-in/ci/tasks/print_task_errors.sh
 params:
-  bosh_admin_password:     ''
+  bosh_admin_password: ""
+  director_ca:         ""

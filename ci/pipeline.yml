@@ -299,6 +299,7 @@ jobs:
           file: bosh-cpi-src-in/ci/tasks/print_task_errors.yml
           params:
             bosh_admin_password: {{bosh_admin_password}}
+            director_ca:         {{director_ca}}
 
       - task: teardown-director
         tags: *tags
@@ -400,6 +401,7 @@ jobs:
           file: bosh-cpi-src-in/ci/tasks/print_task_errors.yml
           params:
             bosh_admin_password: {{bosh_admin_password}}
+            director_ca:         {{director_ca}}
 
       - task: teardown-director
         tags: *tags
@@ -505,6 +507,7 @@ jobs:
           file: bosh-cpi-src-in/ci/tasks/print_task_errors.yml
           params:
             bosh_admin_password: {{bosh_admin_password}}
+            director_ca:         {{director_ca}}
 
       - task: teardown-director
         tags: *tags
@@ -606,6 +609,7 @@ jobs:
           file: bosh-cpi-src-in/ci/tasks/print_task_errors.yml
           params:
             bosh_admin_password: {{bosh_admin_password}}
+            director_ca:         {{director_ca}}
 
       - task: teardown-director
         tags: *tags
