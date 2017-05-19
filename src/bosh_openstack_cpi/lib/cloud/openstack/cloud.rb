@@ -328,7 +328,7 @@ module Bosh::OpenStackCloud
             catch_error('Removing ports') { NetworkConfigurator.cleanup_ports(@openstack, server_port_ids) },
             catch_error('Removing lbaas pool memberships') { LoadbalancerConfigurator.new(@openstack, @logger).cleanup_memberships(server_tags) },
             catch_error('Deleting registry settings') {
-              registry_key = registry_key_for(server)
+              registry_key = server_tags.fetch(REGISTRY_KEY_TAG.to_s, server.name)
               @logger.info("Deleting settings for server `#{server.id}' with registry_key `#{registry_key}' ...")
               @registry.delete_settings(registry_key)
             })
@@ -694,7 +694,7 @@ module Bosh::OpenStackCloud
     private
 
     def registry_key_for(server)
-      registry_key_metadatum = server.metadata.get(REGISTRY_KEY_TAG)
+      registry_key_metadatum = @openstack.with_openstack { server.metadata.get(REGISTRY_KEY_TAG) }
       registry_key_metadatum ? registry_key_metadatum.value : server.name
     end
 

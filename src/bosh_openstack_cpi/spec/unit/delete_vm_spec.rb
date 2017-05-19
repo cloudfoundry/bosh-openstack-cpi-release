@@ -8,7 +8,7 @@ describe Bosh::OpenStackCloud::Cloud do
     [
       double('metadatum', :key => 'lbaas_pool_0', :value => 'pool-id-0/membership-id-0'),
       double('metadatum', :key => 'job', :value => 'bosh'),
-      double('metadatum', key: :registry_key, value: registry_key)
+      double('metadatum', key: 'registry_key', value: registry_key)
     ]
   end
 
@@ -29,9 +29,6 @@ describe Bosh::OpenStackCloud::Cloud do
      allow(server).to receive(:destroy)
      allow(cloud.openstack).to receive(:wait_resource)
      allow(@registry).to receive(:delete_settings)
-     allow(server_metadata).to receive(:get) { |param|
-       server_metadata.find { |metadatum| metadatum.key == param}
-     }
      allow(Bosh::OpenStackCloud::LoadbalancerConfigurator).to receive(:new).and_return(loadbalancer_configurator)
      allow(loadbalancer_configurator).to receive(:cleanup_memberships)
    end
@@ -79,7 +76,7 @@ describe Bosh::OpenStackCloud::Cloud do
       {
         'lbaas_pool_0' => 'pool-id-0/membership-id-0',
         'job' => 'bosh',
-        :registry_key => 'vm-registry-key'
+        'registry_key' => 'vm-registry-key'
       }
     )
   end
@@ -117,7 +114,7 @@ describe Bosh::OpenStackCloud::Cloud do
         {
           'lbaas_pool_0' => 'pool-id-0/membership-id-0',
           'job' => 'bosh',
-          :registry_key => 'vm-registry-key'
+          'registry_key' => 'vm-registry-key'
         }
       )
     end
@@ -152,7 +149,7 @@ describe Bosh::OpenStackCloud::Cloud do
         {
           'lbaas_pool_0' => 'pool-id-0/membership-id-0',
           'job' => 'bosh',
-          :registry_key => 'vm-registry-key'
+          'registry_key' => 'vm-registry-key'
         }
       )
       expect(@registry).to have_received(:delete_settings).with(registry_key)
@@ -175,6 +172,22 @@ describe Bosh::OpenStackCloud::Cloud do
       expect{
         cloud.delete_vm('i-foobar')
       }.to raise_error(Bosh::Clouds::CloudError, expected_error_msg.chomp)
+    end
+  end
+
+  context 'when server is not tagged with `registry_key`' do
+
+    let(:server_metadata) do
+      [
+          double('metadatum', :key => 'lbaas_pool_0', :value => 'pool-id-0/membership-id-0'),
+          double('metadatum', :key => 'job', :value => 'bosh'),
+      ]
+    end
+
+    it 'uses the server name to delete registry settings' do
+      cloud.delete_vm('i-foobar')
+
+      expect(@registry).to have_received(:delete_settings).with(server.name)
     end
   end
 end
