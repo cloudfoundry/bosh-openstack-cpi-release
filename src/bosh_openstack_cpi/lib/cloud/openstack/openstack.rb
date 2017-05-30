@@ -74,14 +74,13 @@ module Bosh::OpenStackCloud
         cloud_error('OpenStack API Service Unavailable error. Check task debug log for details.', e)
 
       rescue Excon::Errors::BadRequest => e
-        body = parse_openstack_response_body(e.response.body)
-        message = determine_message(body)
-        cloud_error("OpenStack API Bad Request#{message}. Check task debug log for details.", e)
+        cloud_error("OpenStack API Bad Request#{error_response_message(e)}. Check task debug log for details.", e)
 
       rescue Excon::Errors::Conflict => e
-        body = parse_openstack_response_body(e.response.body)
-        message = determine_message(body)
-        cloud_error("OpenStack API Conflict#{message}. Check task debug log for details.", e)
+        cloud_error("OpenStack API Conflict#{error_response_message(e)}. Check task debug log for details.", e)
+
+      rescue Excon::Errors::Forbidden => e
+        cloud_error("OpenStack API Forbidden#{error_response_message(e)}. Check task debug log for details.", e)
 
       rescue Excon::Errors::InternalServerError => e
         unless retries >= MAX_RETRIES
@@ -246,6 +245,11 @@ module Bosh::OpenStackCloud
     end
 
     private
+
+    def error_response_message(e)
+      body = parse_openstack_response_body(e.response.body)
+      determine_message(body)
+    end
 
     def openstack_params(options)
       {

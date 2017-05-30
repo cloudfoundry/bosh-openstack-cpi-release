@@ -665,6 +665,55 @@ describe Bosh::OpenStackCloud::Openstack do
           "OpenStack API service not found error: #{openstack_error_message}\nCheck task debug log for details.")
       end
     end
+
+    context 'when openstack raises Forbidden' do
+
+      before do
+        response = Excon::Response.new(body: body)
+        expect(subject).to receive(:servers).and_raise(Excon::Errors::Forbidden.new('', '', response))
+      end
+
+      let(:body) { JSON.dump({}) }
+
+      context 'when the error includes a `message` property on 2nd level of body' do
+        let(:body) { JSON.dump('Forbidden' => {'message' => 'some-message'}) }
+
+        it 'should raise a CloudError exception with OpenStack API message' do
+          expect {
+            subject.with_openstack do
+              subject.servers
+            end
+          }.to raise_error(Bosh::Clouds::CloudError,
+              'OpenStack API Forbidden (some-message). Check task debug log for details.')
+        end
+      end
+
+      context 'when the error does not include a message' do
+        let(:body) { JSON.dump('SomeError' => {'some_key' => 'some_val'}) }
+
+        it 'should raise a CloudError exception with OpenStack API message without anything from body' do
+          expect {
+            subject.with_openstack do
+              subject.servers
+            end
+          }.to raise_error(Bosh::Clouds::CloudError,
+              'OpenStack API Forbidden. Check task debug log for details.')
+        end
+      end
+
+      context 'when the response has an empty body' do
+        let(:body) { '' }
+
+        it 'should raise a CloudError exception with OpenStack API message without anything from body' do
+          expect {
+            subject.with_openstack do
+              subject.servers
+            end
+          }.to raise_error(Bosh::Clouds::CloudError,
+              'OpenStack API Forbidden. Check task debug log for details.')
+        end
+      end
+    end
   end
 
   describe 'parse_openstack_response' do
