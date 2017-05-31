@@ -115,7 +115,6 @@ describe 'cpi.json.erb' do
               'use_ssl' => true,
               'ssl_verify_peer' => true,
               'port' => 443,
-              's3_force_path_style' => false,
             }
           }
         )
@@ -133,9 +132,7 @@ describe 'cpi.json.erb' do
           'use_ssl' => false,
           's3_port' => 21,
           'host' => 'blobstore-host',
-          's3_force_path_style' => true,
           'ssl_verify_peer' => true,
-          's3_multipart_threshold' => 123,
           's3_signature_version' => '11'
         })
       end
@@ -152,9 +149,7 @@ describe 'cpi.json.erb' do
               'use_ssl' => false,
               'host' => 'blobstore-host',
               'port' => 21,
-              's3_force_path_style' => true,
               'ssl_verify_peer' => true,
-              's3_multipart_threshold' => 123,
               'signature_version' => '11',
             }
           }
@@ -170,9 +165,7 @@ describe 'cpi.json.erb' do
             'use_ssl' => true,
             's3_port' => 42,
             'host' => 'agent-host',
-            's3_force_path_style' => true,
             'ssl_verify_peer' => true,
-            's3_multipart_threshold' => 33,
             's3_signature_version' => '99',
           }
         }
@@ -184,9 +177,7 @@ describe 'cpi.json.erb' do
           'use_ssl' => false,
           's3_port' => 21,
           'host' => 'blobstore-host',
-          's3_force_path_style' => false,
           'ssl_verify_peer' => false,
-          's3_multipart_threshold' => 22,
           's3_signature_version' => '11',
         })
 
@@ -196,9 +187,7 @@ describe 'cpi.json.erb' do
         expect(rendered_blobstore['options']['use_ssl']).to be true
         expect(rendered_blobstore['options']['port']).to eq(42)
         expect(rendered_blobstore['options']['host']).to eq('agent-host')
-        expect(rendered_blobstore['options']['s3_force_path_style']).to be true
         expect(rendered_blobstore['options']['ssl_verify_peer']).to be true
-        expect(rendered_blobstore['options']['s3_multipart_threshold']).to eq(33)
         expect(rendered_blobstore['options']['signature_version']).to eq('99')
       end
     end

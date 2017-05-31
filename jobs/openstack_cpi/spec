@@ -117,52 +117,43 @@ properties:
   agent.blobstore.s3_port:
     description: Port of agent blobstore server used by s3 blobstore plugin
   agent.blobstore.host:
-    description: Host of agent blobstore server used by simple blobstore plugin
-  agent.blobstore.s3_force_path_style:
-    description: Whether the agent blobstore plugin will always use path style for bucket access
+    description: Host of agent blobstore server used by s3 blobstore plugin
   agent.blobstore.ssl_verify_peer:
     description: Whether the agent blobstore plugin should verify its peer when using SSL
-  agent.blobstore.s3_multipart_threshold:
-    description: Agent blobstore threshold for multipart uploads
   agent.blobstore.s3_signature_version:
     description: Signature version used to connect to an s3 blobstore
 
   blobstore.address:
-    description: Address for agent to connect to blobstore server used by 'simple' blobstore plugin
+    description: Address for agent to connect to blobstore server used by 'dav' blobstore plugin
   blobstore.port:
-    description: Port for agent to connect to blobstore server used by 'simple' blobstore plugin
+    description: Port for agent to connect to blobstore server used by 'dav' blobstore plugin
   blobstore.agent.user:
-    description: Username agent uses to connect to blobstore used by 'simple' blobstore plugin
+    description: Username agent uses to connect to blobstore used by 'dav' blobstore plugin
   blobstore.agent.password:
-    description: Password agent uses to connect to blobstore used by 'simple' blobstore plugin
+    description: Password agent uses to connect to blobstore used by 'dav' blobstore plugin
   blobstore.provider:
-    description: Provider of the blobstore used by director and agent (simple|local)
+    description: Provider of the blobstore used by director and agent (dav|local|s3)
   blobstore.path:
-    description: Path used by 'local' blobstore plugin
+    description: local blobstore path
   blobstore.bucket_name:
     description: S3 Bucket used by s3 blobstore plugin
   blobstore.access_key_id:
-    description: access_key_id used by s3 blobstore plugin
+    description: AWS access_key_id used by s3 blobstore plugin
   blobstore.secret_access_key:
-    description: secret_access_key used by s3 blobstore plugin
+    description: AWS secret_access_key used by s3 blobstore plugin
   blobstore.host:
-    description: Host of blobstore server used by simple blobstore plugin
+    description: Host of blobstore server used by s3 blobstore plugin
   blobstore.s3_region:
     description: AWS region used by s3 blobstore plugin
   blobstore.s3_port:
     description: Port of blobstore server used by s3 blobstore plugin
     default: 443
   blobstore.use_ssl:
-    description: Whether the simple blobstore plugin should use SSL to connect to the blobstore server
+    description: Whether the s3 blobstore plugin should use SSL to connect to the blobstore server
     default: true
   blobstore.ssl_verify_peer:
-    description: Verify the SSL certificate used on the blobstore?
+    description: Whether the s3 blobstore plugin should verify its peer when using SSL
     default: true
-  blobstore.s3_force_path_style:
-    description: Whether s3 blobstore plugin will always use path style for bucket access
-    default: false
-  blobstore.s3_multipart_threshold:
-    description: Simple blobstore threshold for multipart uploads
   blobstore.s3_signature_version:
     description: Signature version used to connect to an s3 blobstore
 
