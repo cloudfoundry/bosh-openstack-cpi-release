@@ -400,7 +400,7 @@ module Bosh::OpenStackCloud
           # cinder v2 does not require prefix
           :name => "volume-#{unique_name}",
           :description => '',
-          :size => (size / 1024.0).ceil
+          :size => mib_to_gib(size)
         }
 
         if cloud_properties.has_key?('type')
@@ -691,7 +691,41 @@ module Bosh::OpenStackCloud
       {'stemcell_formats' => ['openstack-raw', 'openstack-qcow2', 'openstack-light']}
     end
 
+    ##
+    # Resizes an existing OpenStack volume
+    #
+    # @param [String] disk_id volume Cloud ID
+    # @param [Integer] new_size disk size in MiB
+    def resize_disk(disk_id, new_size)
+      new_size_gib = mib_to_gib(new_size)
+
+      with_thread_name("resize_disk(#{disk_id}, #{new_size_gib})") do
+        @logger.info("Resizing volume `#{disk_id}'...")
+        @openstack.with_openstack do
+          volume = @openstack.volume.volumes.get(disk_id)
+          cloud_error("Cannot resize volume because volume with #{disk_id} not found") unless volume
+          actual_size_gib = volume.size
+          if actual_size_gib == new_size_gib
+            @logger.info("Skipping resize of disk #{disk_id} because current value #{actual_size_gib} GiB is equal new value #{new_size_gib} GiB")
+          elsif actual_size_gib > new_size_gib
+            cloud_error("Cannot resize volume to a smaller size from #{actual_size_gib} GiB to #{new_size_gib} GiB") if actual_size_gib > new_size_gib
+          else
+            attachments = volume.attachments
+            cloud_error("Cannot resize volume '#{disk_id}' it still has #{attachments.size} attachment(s)") unless attachments.empty?
+            volume.extend(new_size_gib)
+            @logger.info("Disk #{disk_id} resized from #{actual_size_gib} GiB to #{new_size_gib} GiB")
+          end
+        end
+      end
+
+      nil
+    end
+    
     private
+
+    def mib_to_gib(size)
+      (size / 1024.0).ceil
+    end
 
     def registry_key_for(server)
       registry_key_metadatum = @openstack.with_openstack { server.metadata.get(REGISTRY_KEY_TAG) }
@@ -1032,8 +1066,8 @@ module Bosh::OpenStackCloud
       metadata_to_tags(server_metadata).select{ |key, _| ['deployment','job','index','id'].include?(key) }
     end
 
-    def metadata_to_tags(server_metadata)
-      server_metadata.map { |metadatum| [metadatum.key, metadatum.value] }.to_h
+    def metadata_to_tags(fog_metadata)
+      fog_metadata.map { |metadatum| [metadatum.key, metadatum.value] }.to_h
     end
   end
 end
