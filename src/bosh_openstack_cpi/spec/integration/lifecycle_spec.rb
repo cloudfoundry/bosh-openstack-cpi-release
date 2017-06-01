@@ -480,6 +480,18 @@ describe Bosh::OpenStackCloud::Cloud do
     end
   end
 
+  describe 'resize_disk' do
+    before { @disk_id = cpi.create_disk(2048, {}, nil) }
+    after { clean_up_disk(@disk_id) if @disk_id }
+
+    it 'resizes the disk' do
+      cpi.resize_disk(@disk_id, 4096)
+
+      disk = openstack.volume.volumes.get(@disk_id)
+      expect(disk.size).to eq(4)
+    end
+  end
+
   describe 'when using load balancer pool' do
     before(:all) do
       unless @config.lbaas_pool_name
