@@ -70,7 +70,7 @@ describe Bosh::OpenStackCloud::Cloud, "resize_disk" do
     it 'fails' do
       expect {
         cloud.resize_disk('disk-id', 1024)
-      }.to raise_error(Bosh::Clouds::CloudError, 'Cannot resize volume to a smaller size from 2 GiB to 1 GiB')
+      }.to raise_error(Bosh::Clouds::NotSupported, 'Cannot resize volume to a smaller size from 2 GiB to 1 GiB')
     end
   end
 

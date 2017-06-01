@@ -708,7 +708,7 @@ module Bosh::OpenStackCloud
           if actual_size_gib == new_size_gib
             @logger.info("Skipping resize of disk #{disk_id} because current value #{actual_size_gib} GiB is equal new value #{new_size_gib} GiB")
           elsif actual_size_gib > new_size_gib
-            cloud_error("Cannot resize volume to a smaller size from #{actual_size_gib} GiB to #{new_size_gib} GiB") if actual_size_gib > new_size_gib
+            not_supported_error("Cannot resize volume to a smaller size from #{actual_size_gib} GiB to #{new_size_gib} GiB") if actual_size_gib > new_size_gib
           else
             attachments = volume.attachments
             cloud_error("Cannot resize volume '#{disk_id}' it still has #{attachments.size} attachment(s)") unless attachments.empty?

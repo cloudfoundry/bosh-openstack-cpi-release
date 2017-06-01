@@ -12,9 +12,11 @@ module Bosh::OpenStackCloud
     # @param [String] message Message about what went wrong
     # @param [Exception] exception Exception to be logged (optional)
     def cloud_error(message, exception = nil)
-      @logger.error(message) if @logger
-      @logger.error(exception) if @logger && exception
-      raise Bosh::Clouds::CloudError, message
+      raise_error(Bosh::Clouds::CloudError, exception, message)
+    end
+
+    def not_supported_error(message, exception = nil)
+      raise_error(Bosh::Clouds::NotSupported, exception, message)
     end
 
     def fail_on_error(*errors)
@@ -50,6 +52,12 @@ module Bosh::OpenStackCloud
     end
 
     private
+
+    def raise_error(error_class, exception, message)
+      @logger.error(message) if @logger
+      @logger.error(exception) if @logger && exception
+      raise error_class, message
+    end
 
     def wrap_error(error, prefix)
       wrapped_error = error.class.new("#{prefix}: #{error.message}")
