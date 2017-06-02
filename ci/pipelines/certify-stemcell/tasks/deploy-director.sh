@@ -101,7 +101,7 @@ jobs:
   - name: bosh
     templates:
       - {name: nats, release: bosh}
-      - {name: postgres, release: bosh}
+      - {name: postgres-9.4, release: bosh}
       - {name: director, release: bosh}
       - {name: health_monitor, release: bosh}
       - {name: powerdns, release: bosh}
@@ -125,7 +125,7 @@ jobs:
         user: nats
         password: ${bosh_admin_password}
 
-      postgres: &db
+      postgres-9.4: &db
         host: 127.0.0.1
         user: postgres
         password: ${bosh_admin_password}
