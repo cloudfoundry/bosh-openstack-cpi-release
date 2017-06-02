@@ -123,7 +123,7 @@ jobs:
         user: nats
         password: ${bosh_admin_password}
 
-      postgres-9.4: &db
+      postgres: &db
         host: 127.0.0.1
         user: postgres
         password: ${bosh_admin_password}
