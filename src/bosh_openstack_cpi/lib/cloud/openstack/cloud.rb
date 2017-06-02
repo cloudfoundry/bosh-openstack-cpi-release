@@ -713,6 +713,8 @@ module Bosh::OpenStackCloud
             attachments = volume.attachments
             cloud_error("Cannot resize volume '#{disk_id}' it still has #{attachments.size} attachment(s)") unless attachments.empty?
             volume.extend(new_size_gib)
+            @logger.info("Resizing #{disk_id} from #{actual_size_gib} GiB to #{new_size_gib} GiB")
+            @openstack.wait_resource(volume, :'available')
             @logger.info("Disk #{disk_id} resized from #{actual_size_gib} GiB to #{new_size_gib} GiB")
           end
         end
