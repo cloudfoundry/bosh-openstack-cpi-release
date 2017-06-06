@@ -1,18 +1,13 @@
-def errors_to_bosh_tasks_cmds(cli_output)
-  rows_with_error = -> (row) { row[2] != 'done' }
-  to_task_number = -> (row) { row[1] }
-  to_stripped_columns = -> (row) { row.split('|').map(&:strip) }
-  to_bosh_command = -> (task) { "bosh task #{task} --debug" }
-  table_rows = -> (line) { line.start_with?('|') }
-  table_header = 1
+def errors_to_bosh_tasks_cmds(cli_output_json)
+  tasks_in_error = -> (row) { row.fetch('state') == 'error' }
+  to_task_id = -> (row) { row.fetch('id') }
+  to_bosh_command = -> (task) { "bosh-go task #{task} --debug" }
 
-  cli_output
-    .split("\n")
-    .select(&table_rows)
-    .drop(table_header)
-    .map(&to_stripped_columns)
-    .select(&rows_with_error)
-    .map(&to_task_number)
-    .sort
+  cli_output_json
+    .fetch('Tables')
+    .first
+    .fetch('Rows')
+    .select(&tasks_in_error)
+    .map(&to_task_id)
     .map(&to_bosh_command)
 end

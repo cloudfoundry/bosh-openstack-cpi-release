@@ -1,11 +1,8 @@
 #!/usr/bin/env ruby
+require 'json'
 require_relative 'failed_tasks_parser'
 
-tasks = ARGF.read
+tasks = JSON.parse(ARGF.read)
 
-puts tasks
-
-cmds = errors_to_bosh_tasks_cmds(tasks)
-cmds.each do |cmd|
-  puts `#{cmd}`
-end
+errors_to_bosh_tasks_cmds(tasks)
+  .each { |cmd| puts `#{cmd}` }
