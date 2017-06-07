@@ -121,7 +121,7 @@ echo "deleting dummy deployment and light stemcell..."
 bosh-go -n delete-deployment -d ${deployment_name}
 bosh-go -n clean-up --all
 stemcells=$(bosh-go -n stemcells --json | jq --raw-output ".Tables[0].Rows")
-if [ "${stemcells}" != "null" ]; then
+if [ "${stemcells}" != "[]" ]; then
     echo "failed to delete stemcell"
     exit 1
 fi
