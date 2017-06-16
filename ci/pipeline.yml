@@ -216,6 +216,7 @@ jobs:
         - {trigger: false,                    get: bosh-release, tags: *tags, timeout: *timeouts-long}
         - {trigger: false,                    get: stemcell, resource: openstack-ubuntu-stemcell, tags: *tags, timeout: *timeouts-long}
         - {trigger: false,                    get: bats, tags: *tags, timeout: *timeouts-long}
+        - {trigger: false,                    get: bosh-deployment, tags: *tags, timeout: *timeouts-long}
 
       - task: write_ca_file
         tags: *tags
@@ -257,7 +258,7 @@ jobs:
         timeout: *timeouts-long
         file: bosh-cpi-src-in/ci/tasks/deploy-manual-networking.yml
         params:
-          bosh_admin_password:                  {{bosh_admin_password}}
+          bosh_vcap_password:                   {{bosh_vcap_password}}
           director_ca:                          {{director_ca}}
           director_ca_private_key:              {{director_ca_private_key}}
           openstack_flavor:                     "m1.small"
@@ -274,7 +275,6 @@ jobs:
           openstack_domain:                     {{openstack_domain}}
           time_server_1:                        {{time_server_1}}
           time_server_2:                        {{time_server_2}}
-          distro:                               "ubuntu"
           availability_zone:                    {{availability_zone}}
           DEBUG_BATS:                           *debug_bats
         <<: *send-failure-email
@@ -288,7 +288,7 @@ jobs:
           private_key_data:                         {{bosh_private_key}}
           openstack_flavor_with_ephemeral_disk:     {{openstack_flavor_with_ephemeral_disk}}
           openstack_flavor_with_no_ephemeral_disk:  {{openstack_flavor_with_no_ephemeral_disk}}
-          bosh_admin_password:                      {{bosh_admin_password}}
+          bosh_vcap_password:                       {{bosh_vcap_password}}
           availability_zone:                        {{availability_zone}}
           DEBUG_BATS:                               *debug_bats
         <<: *send-failure-email
@@ -298,7 +298,6 @@ jobs:
           timeout: *timeouts-long
           file: bosh-cpi-src-in/ci/tasks/print_task_errors.yml
           params:
-            bosh_admin_password: {{bosh_admin_password}}
             director_ca:         {{director_ca}}
 
       - task: teardown-director
@@ -306,7 +305,7 @@ jobs:
         timeout: *timeouts-long
         file: bosh-cpi-src-in/ci/tasks/teardown-director.yml
         params:
-          bosh_admin_password: {{bosh_admin_password}}
+          bosh_vcap_password: {{bosh_vcap_password}}
         <<: *send-failure-email
 
   - name: bats-ubuntu-dynamic
@@ -322,6 +321,7 @@ jobs:
         - {trigger: false,                    get: bosh-release, tags: *tags, timeout: *timeouts-long}
         - {trigger: false,                    get: stemcell, resource: openstack-ubuntu-stemcell, tags: *tags, timeout: *timeouts-long}
         - {trigger: false,                    get: bats, tags: *tags, timeout: *timeouts-long}
+        - {trigger: false,                    get: bosh-deployment, tags: *tags, timeout: *timeouts-long}
 
       - task: write_ca_file
         tags: *tags
@@ -359,7 +359,7 @@ jobs:
         timeout: *timeouts-long
         file: bosh-cpi-src-in/ci/tasks/deploy-dynamic-networking.yml
         params:
-          bosh_admin_password:                  {{bosh_admin_password}}
+          bosh_vcap_password:                   {{bosh_vcap_password}}
           director_ca:                          {{director_ca}}
           director_ca_private_key:              {{director_ca_private_key}}
           openstack_flavor:                     "m1.small"
@@ -376,7 +376,6 @@ jobs:
           time_server_1:                        {{time_server_1}}
           time_server_2:                        {{time_server_2}}
           private_key_data:                     {{bosh_private_key}}
-          distro:                               "ubuntu"
           availability_zone:                    {{availability_zone}}
           DEBUG_BATS:                           *debug_bats
         <<: *send-failure-email
@@ -387,7 +386,7 @@ jobs:
         file: bosh-cpi-src-in/ci/tasks/run-dynamic-networking-bats.yml
         params:
           stemcell_name:                            "bosh-openstack-kvm-ubuntu-trusty-go_agent"
-          bosh_admin_password:                      {{bosh_admin_password}}
+          bosh_vcap_password:                       {{bosh_vcap_password}}
           openstack_flavor_with_ephemeral_disk:     {{openstack_flavor_with_ephemeral_disk}}
           openstack_flavor_with_no_ephemeral_disk:  {{openstack_flavor_with_no_ephemeral_disk}}
           private_key_data:                         {{bosh_private_key}}
@@ -400,7 +399,6 @@ jobs:
           timeout: *timeouts-long
           file: bosh-cpi-src-in/ci/tasks/print_task_errors.yml
           params:
-            bosh_admin_password: {{bosh_admin_password}}
             director_ca:         {{director_ca}}
 
       - task: teardown-director
@@ -408,7 +406,6 @@ jobs:
         timeout: *timeouts-long
         file: bosh-cpi-src-in/ci/tasks/teardown-director.yml
         params:
-          bosh_admin_password: {{bosh_admin_password}}
         <<: *send-failure-email
 
   - name: bats-centos-manual
@@ -424,6 +421,7 @@ jobs:
         - {trigger: false,                    get: bosh-release, tags: *tags, timeout: *timeouts-long}
         - {trigger: false,                    get: stemcell, resource: openstack-centos-stemcell, tags: *tags, timeout: *timeouts-long}
         - {trigger: false,                    get: bats, tags: *tags, timeout: *timeouts-long}
+        - {trigger: false,                    get: bosh-deployment, tags: *tags, timeout: *timeouts-long}
 
       - task: write_ca_file
         tags: *tags
@@ -465,7 +463,7 @@ jobs:
         timeout: *timeouts-long
         file: bosh-cpi-src-in/ci/tasks/deploy-manual-networking.yml
         params:
-          bosh_admin_password:                  {{bosh_admin_password}}
+          bosh_vcap_password:                   {{bosh_vcap_password}}
           director_ca:                          {{director_ca}}
           director_ca_private_key:              {{director_ca_private_key}}
           openstack_flavor:                     "m1.small"
@@ -482,7 +480,6 @@ jobs:
           time_server_1:                        {{time_server_1}}
           time_server_2:                        {{time_server_2}}
           private_key_data:                     {{bosh_private_key}}
-          distro:                               "centos"
           availability_zone:                    {{availability_zone}}
           DEBUG_BATS:                           *debug_bats
         <<: *send-failure-email
@@ -496,7 +493,7 @@ jobs:
           private_key_data:                         {{bosh_private_key}}
           openstack_flavor_with_ephemeral_disk:     {{openstack_flavor_with_ephemeral_disk}}
           openstack_flavor_with_no_ephemeral_disk:  {{openstack_flavor_with_no_ephemeral_disk}}
-          bosh_admin_password:                      {{bosh_admin_password}}
+          bosh_vcap_password:                       {{bosh_vcap_password}}
           availability_zone:                        {{availability_zone}}
           DEBUG_BATS:                               *debug_bats
         <<: *send-failure-email
@@ -506,7 +503,6 @@ jobs:
           timeout: *timeouts-long
           file: bosh-cpi-src-in/ci/tasks/print_task_errors.yml
           params:
-            bosh_admin_password: {{bosh_admin_password}}
             director_ca:         {{director_ca}}
 
       - task: teardown-director
@@ -514,7 +510,6 @@ jobs:
         timeout: *timeouts-long
         file: bosh-cpi-src-in/ci/tasks/teardown-director.yml
         params:
-          bosh_admin_password: {{bosh_admin_password}}
         <<: *send-failure-email
 
   - name: bats-centos-dynamic
@@ -530,6 +525,7 @@ jobs:
         - {trigger: false,                    get: bosh-release, tags: *tags, timeout: *timeouts-long}
         - {trigger: false,                    get: stemcell, resource: openstack-centos-stemcell, tags: *tags, timeout: *timeouts-long}
         - {trigger: false,                    get: bats, tags: *tags, timeout: *timeouts-long}
+        - {trigger: false,                    get: bosh-deployment, tags: *tags, timeout: *timeouts-long}
 
       - task: write_ca_file
         tags: *tags
@@ -567,7 +563,7 @@ jobs:
         timeout: *timeouts-long
         file: bosh-cpi-src-in/ci/tasks/deploy-dynamic-networking.yml
         params:
-          bosh_admin_password:                  {{bosh_admin_password}}
+          bosh_vcap_password:                   {{bosh_vcap_password}}
           director_ca:                          {{director_ca}}
           director_ca_private_key:              {{director_ca_private_key}}
           openstack_flavor:                     "m1.small"
@@ -584,7 +580,6 @@ jobs:
           time_server_1:                        {{time_server_1}}
           time_server_2:                        {{time_server_2}}
           private_key_data:                     {{bosh_private_key}}
-          distro:                               "centos"
           availability_zone:                    {{availability_zone}}
           DEBUG_BATS:                           *debug_bats
         <<: *send-failure-email
@@ -595,7 +590,7 @@ jobs:
         file: bosh-cpi-src-in/ci/tasks/run-dynamic-networking-bats.yml
         params:
           stemcell_name:                            "bosh-openstack-kvm-centos-7-go_agent"
-          bosh_admin_password:                      {{bosh_admin_password}}
+          bosh_vcap_password:                       {{bosh_vcap_password}}
           openstack_flavor_with_ephemeral_disk:     {{openstack_flavor_with_ephemeral_disk}}
           openstack_flavor_with_no_ephemeral_disk:  {{openstack_flavor_with_no_ephemeral_disk}}
           private_key_data:                         {{bosh_private_key}}
@@ -608,7 +603,6 @@ jobs:
           timeout: *timeouts-long
           file: bosh-cpi-src-in/ci/tasks/print_task_errors.yml
           params:
-            bosh_admin_password: {{bosh_admin_password}}
             director_ca:         {{director_ca}}
 
       - task: teardown-director
@@ -616,7 +610,6 @@ jobs:
         timeout: *timeouts-long
         file: bosh-cpi-src-in/ci/tasks/teardown-director.yml
         params:
-          bosh_admin_password: {{bosh_admin_password}}
         <<: *send-failure-email
 
   - name: promote-candidate
@@ -793,6 +786,13 @@ resources:
     tags: *tags
     source:
       interval: {{pipeline-time-trigger-interval}}
+
+  - name: bosh-deployment
+    type: git
+    tags: *tags
+    source:
+      uri: https://github.com/cloudfoundry/bosh-deployment.git
+      branch: master
 
 #  - name: send-an-email
 #    type: email

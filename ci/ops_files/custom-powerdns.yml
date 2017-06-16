@@ -1,0 +1,8 @@
+---
+- type: replace
+  path: /instance_groups/name=bosh/properties/dns/db/database?
+  value: bosh
+
+- type: replace
+  path: /instance_groups/name=bosh/properties/dns/db/adapter?
+  value: postgres

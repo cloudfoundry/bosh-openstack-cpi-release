@@ -5,7 +5,7 @@ set -x
 source bosh-cpi-src-in/ci/tasks/utils.sh
 
 : ${stemcell_name:?}
-: ${bosh_admin_password:?}
+: ${bosh_vcap_password:?}
 : ${openstack_flavor_with_ephemeral_disk:?}
 : ${openstack_flavor_with_no_ephemeral_disk:?}
 : ${private_key_data:?}
@@ -32,13 +32,13 @@ export_terraform_variable "director_public_ip"
 export_terraform_variable "primary_net_id"
 export_terraform_variable "security_group"
 
-bosh_vcap_password_hash=$(ruby -e 'require "securerandom";puts ENV["bosh_admin_password"].crypt("$6$#{SecureRandom.base64(14)}")')
+bosh_vcap_password_hash=$(ruby -rsecurerandom -e 'puts ENV["bosh_vcap_password"].crypt("$6$#{SecureRandom.base64(14)}")')
 
 # checked by BATs environment helper (bosh-acceptance-tests.git/lib/bat/env.rb)
 export BAT_STEMCELL="${working_dir}/stemcell/stemcell.tgz"
 export BAT_DIRECTOR=${director_public_ip}
-export BAT_DIRECTOR_PASSWORD=${bosh_admin_password}
-export BAT_VCAP_PASSWORD=${bosh_admin_password}
+export BAT_DIRECTOR_PASSWORD=$(bosh-go int bosh-director-deployment/credentials.yml  --path /admin_password)
+export BAT_VCAP_PASSWORD=${bosh_vcap_password}
 export BAT_DNS_HOST=${director_public_ip}
 export BAT_INFRASTRUCTURE='openstack'
 export BAT_NETWORKING='dynamic'

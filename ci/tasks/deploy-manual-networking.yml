@@ -11,13 +11,14 @@ inputs:
   - name: version-semver
   - name: stemcell
   - name: terraform-bats-manual
+  - name: bosh-deployment
 outputs:
   - name: bosh-director-deployment
   - name: terraform-bats-manual-deploy
 run:
   path: bosh-cpi-src-in/ci/tasks/deploy-manual-networking.sh
 params:
-  bosh_admin_password:                 ""
+  bosh_vcap_password:                  ""
   director_ca:                         ""
   director_ca_private_key:             ""
   openstack_flavor:                    ""
@@ -34,6 +35,5 @@ params:
   openstack_domain:                    ""
   time_server_1:                       ""
   time_server_2:                       ""
-  distro:                              ""
   DEBUG_BATS:                          ""
   availability_zone:                   replace-me

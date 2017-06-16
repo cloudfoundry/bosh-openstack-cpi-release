@@ -1,0 +1,28 @@
+- type: replace
+  path: /instance_groups/name=bosh/properties/openstack/state_timeout?
+  value: ((openstack_state_timeout))
+
+- type: replace
+  path: /instance_groups/name=bosh/properties/openstack/wait_resource_poll_interval?
+  value: 5
+
+- type: replace
+  path: /instance_groups/name=bosh/properties/openstack/connection_options?
+  value: &connection_options
+    connect_timeout: ((openstack_connection_timeout))
+    read_timeout: ((openstack_read_timeout))
+    write_timeout: ((openstack_write_timeout))
+    ca_cert: ((openstack_ca_cert))
+
+- type: replace
+  path: /cloud_provider/properties/openstack/connection_options?
+  value: *connection_options
+
+- type: replace
+  path: /cloud_provider/properties/openstack/state_timeout?
+  value: ((openstack_state_timeout))
+
+- type: replace
+  path: /cloud_provider/properties/openstack/wait_resource_poll_interval?
+  value: 5
+

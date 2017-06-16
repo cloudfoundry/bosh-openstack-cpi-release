@@ -1,0 +1,13 @@
+---
+- type: replace
+  path: /networks/name=default
+  value:
+    name: default
+    type: dynamic
+    dns: [((dns))]
+    cloud_properties:
+      net_id: ((primary_net_id))
+      security_groups: ((default_security_groups))
+
+- type: remove
+  path: /instance_groups/name=bosh/networks/name=default/static_ips?

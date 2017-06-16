@@ -226,7 +226,7 @@ output "openstack_project" {
   value = "${var.project_name}"
 }
 
-output "key_name" {
+output "default_key_name" {
   value = "${module.base.key_name}"
 }
 

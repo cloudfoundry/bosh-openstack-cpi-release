@@ -9,6 +9,7 @@ inputs:
   - name: stemcell
   - name: bats
   - name: terraform-bats-manual-deploy
+  - name: bosh-director-deployment
 outputs:
   - name: terraform-bats
 run:
@@ -17,6 +18,6 @@ params:
   stemcell_name:                            replace-me
   openstack_flavor_with_ephemeral_disk:     replace-me
   openstack_flavor_with_no_ephemeral_disk:  replace-me
-  bosh_admin_password:                      replace-me
+  bosh_vcap_password:                       replace-me
   private_key_data:                         replace-me
   availability_zone:                        replace-me

@@ -5,9 +5,9 @@ set -e -x
 source bosh-cpi-src-in/ci/tasks/utils.sh
 
 : ${stemcell_name:?}
+: ${bosh_vcap_password:?}
 : ${openstack_flavor_with_ephemeral_disk:?}
 : ${openstack_flavor_with_no_ephemeral_disk:?}
-: ${bosh_admin_password:?}
 : ${private_key_data:?}
 
 optional_value availability_zone
@@ -48,13 +48,13 @@ working_dir=$PWD
 export BAT_STEMCELL="${working_dir}/stemcell/stemcell.tgz"
 export BAT_VCAP_PRIVATE_KEY="$working_dir/keys/bats.pem"
 export BAT_DIRECTOR=${director_public_ip}
-export BAT_DIRECTOR_PASSWORD=${bosh_admin_password}
-export BAT_VCAP_PASSWORD=${bosh_admin_password}
+export BAT_DIRECTOR_PASSWORD=$(bosh-go int bosh-director-deployment/credentials.yml  --path /admin_password)
+export BAT_VCAP_PASSWORD=${bosh_vcap_password}
 export BAT_DNS_HOST=${director_public_ip}
 export BAT_INFRASTRUCTURE='openstack'
 export BAT_NETWORKING='manual'
 
-bosh_vcap_password_hash=$(ruby -e 'require "securerandom";puts ENV["bosh_admin_password"].crypt("$6$#{SecureRandom.base64(14)}")')
+bosh_vcap_password_hash=$(ruby -e 'require "securerandom";puts ENV["bosh_vcap_password"].crypt("$6$#{SecureRandom.base64(14)}")')
 
 mkdir -p $working_dir/keys
 export BAT_VCAP_PRIVATE_KEY="$working_dir/keys/bats.pem"
