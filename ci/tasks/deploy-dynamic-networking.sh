@@ -29,7 +29,7 @@ cp terraform-bats-dynamic/metadata terraform-bats-dynamic-deploy
 metadata=terraform-bats-dynamic/metadata
 
 # Variables from TF
-export_terraform_variable "key_name"
+export_terraform_variable "default_key_name"
 export_terraform_variable "openstack_project"
 export_terraform_variable "security_group"
 export_terraform_variable "director_public_ip"
@@ -86,7 +86,7 @@ bosh-go int ../bosh-deployment/bosh.yml \
     -v availability_zone=${availability_zone:-'~'} \
     -v bosh_vcap_password_hash=${bosh_vcap_password_hash} \
     -v default_security_groups=[${security_group}] \
-    -v default_key_name=${key_name} \
+    -v default_key_name=${default_key_name} \
     -v director_name='bosh' \
     -v dns=${dns} \
     -v dns_recursor_ip=${dns} \
