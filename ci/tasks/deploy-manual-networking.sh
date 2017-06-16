@@ -91,7 +91,6 @@ bosh-go int ../bosh-deployment/bosh.yml \
     -v default_key_name=${default_key_name} \
     -v director_name='bosh' \
     -v dns=${dns} \
-    -v dns_recursor_ip=${dns} \
     -v internal_ip=${director_private_ip} \
     -v external_ip=${director_public_ip} \
     -v primary_net_id=${primary_net_id} \
