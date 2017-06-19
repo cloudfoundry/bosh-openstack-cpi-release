@@ -4,7 +4,7 @@
   value:
     name: default
     type: dynamic
-    dns: [((dns))]
+    dns: ((dns))
     cloud_properties:
       net_id: ((primary_net_id))
       security_groups: ((default_security_groups))

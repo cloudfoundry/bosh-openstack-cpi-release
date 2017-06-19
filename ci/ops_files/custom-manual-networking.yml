@@ -2,7 +2,7 @@
 
 - type: replace
   path: /networks/name=default/subnets/0/dns
-  value: [((dns))]
+  value: ((dns))
 
 - type: replace
   path: /networks/name=default/subnets/0/cloud_properties?
