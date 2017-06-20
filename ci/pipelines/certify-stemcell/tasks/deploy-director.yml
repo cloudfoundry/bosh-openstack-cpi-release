@@ -10,12 +10,13 @@ inputs:
   - name: bosh-release
   - name: stemcell
   - name: terraform
+  - name: bosh-deployment
 outputs:
   - name: director-deployment
 run:
   path: bosh-cpi-src-in/ci/pipelines/certify-stemcell/tasks/deploy-director.sh
 params:
-  bosh_admin_password:                 ""
+  bosh_vcap_password:                  ""
   v3_e2e_config_drive:                 replace-me
   v3_e2e_use_dhcp:                     replace-me
   v3_e2e_flavor:                       ""
@@ -39,4 +40,3 @@ params:
   time_server_2:                       ""
   director_ca:                         ""
   director_ca_private_key:             ""
-  distro:                              ""

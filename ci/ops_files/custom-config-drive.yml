@@ -1,0 +1,9 @@
+---
+
+- type: replace
+  path: /instance_groups/name=bosh/properties/openstack/config_drive?
+  value: ((v3_e2e_config_drive))
+
+- type: replace
+  path: /instance_groups/name=bosh/properties/openstack/use_dhcp?
+  value: ((v3_e2e_use_dhcp))

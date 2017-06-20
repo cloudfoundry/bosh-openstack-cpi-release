@@ -11,4 +11,3 @@ inputs:
 run:
   path: bosh-cpi-src-in/ci/pipelines/certify-stemcell/tasks/teardown-director.sh
 params:
-  bosh_admin_password: ""

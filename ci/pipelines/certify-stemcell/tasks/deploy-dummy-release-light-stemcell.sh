@@ -4,7 +4,7 @@ set -e
 
 source bosh-cpi-src-in/ci/tasks/utils.sh
 
-: ${bosh_admin_password:?}
+: ${bosh_vcap_password:?}
 : ${os_name:?}
 : ${instance_flavor:?}
 
@@ -31,7 +31,7 @@ deployment_dir="${PWD}/director-deployment"
 manifest_filename="dummy-light-stemcell-manifest.yml"
 dummy_release_name="dummy"
 deployment_name="dummy-light-stemcell"
-bosh_vcap_password_hash=$(ruby -e 'require "securerandom";puts ENV["bosh_admin_password"].crypt("$6$#{SecureRandom.base64(14)}")')
+bosh_vcap_password_hash=$(ruby -e 'require "securerandom";puts ENV["bosh_vcap_password"].crypt("$6$#{SecureRandom.base64(14)}")')
 image_id=$(cat ${deployment_dir}/e2e-director-manifest-state.json | jq --raw-output ".stemcells[0].cid")
 
 verify_image_in_openstack
@@ -43,7 +43,7 @@ bosh-go --version
 
 export BOSH_ENVIRONMENT=${director_public_ip}
 export BOSH_CLIENT=admin
-export BOSH_CLIENT_SECRET=${bosh_admin_password}
+export BOSH_CLIENT_SECRET=$(bosh-go int credentials.yml  --path /admin_password)
 export BOSH_CA_CERT=director_ca
 
 echo "generating light stemcell ..."

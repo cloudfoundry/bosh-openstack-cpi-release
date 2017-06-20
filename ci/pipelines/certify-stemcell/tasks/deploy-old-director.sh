@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
 
-set -e
+set -e -x
 
 source bosh-cpi-src-in/ci/tasks/utils.sh
 
+: ${bosh_vcap_password:?}
 : ${v3_e2e_private_key_data:?}
 : ${old_bosh_release_version:?}
 : ${old_bosh_release_sha1:?}
@@ -27,7 +28,7 @@ deployment_dir="${PWD}/director-deployment"
 manifest_template_filename="director-manifest-template.yml"
 manifest_filename="director-manifest.yml"
 export ci_private_key=bosh.pem
-export ci_bosh_vcap_password_hash=$(ruby -e 'require "securerandom";puts ENV["ci_bosh_admin_password"].crypt("$6$#{SecureRandom.base64(14)}")')
+export ci_bosh_vcap_password_hash=$(ruby -e 'require "securerandom";puts ENV["bosh_vcap_password"].crypt("$6$#{SecureRandom.base64(14)}")')
 
 echo "setting up artifacts used in $manifest_filename"
 prepare_bosh_release $distro $old_bosh_release_version $ci_old_bosh_stemcell_version
@@ -44,7 +45,7 @@ ssh-add ${ci_private_key}
 echo -e "${director_ca}" > director_ca
 echo -e "${director_ca_private_key}" > director_ca_private_key
 echo -e "${bosh_openstack_ca_cert}" > bosh_openstack_ca_cert
-../bosh-cpi-src-in/ci/ruby_scripts/render_credentials > credentials.yml
+../bosh-cpi-src-in/ci/ruby_scripts/render_credentials > custom-ca.yml
 
 echo "using bosh CLI version..."
 bosh-go --version
@@ -54,10 +55,10 @@ bosh-go int old-director-manifest-template.yml \
     --var-errs \
     --var-errs-unused \
     --vars-env=ci \
-    --vars-store credentials.yml
+    --vars-file ./custom-ca.yml \
+    --vars-store credentials.yml | tee old-director-manifest.yml
 
 echo "deploying BOSH..."
-bosh-go create-env old-director-manifest-template.yml \
-    --vars-env=ci \
+bosh-go create-env old-director-manifest.yml \
     --vars-store credentials.yml \
     --state director-manifest-state.json

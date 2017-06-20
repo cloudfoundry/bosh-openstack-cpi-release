@@ -9,7 +9,7 @@ releases:
     sha1: ((old_openstack_cpi_release_sha1))
 
 networks:
-  - name: private
+  - name: default
     type: manual
     subnets:
       - range:    ((v3_e2e_net_cidr))
@@ -23,8 +23,8 @@ networks:
     type: vip
 
 resource_pools:
-  - name: default
-    network: private
+  - name: vms
+    network: default
     stemcell:
       url: https://bosh.io/d/stemcells/((old_bosh_stemcell_name))?v=((old_bosh_stemcell_version))
       sha1: ((old_bosh_stemcell_sha1))
@@ -35,7 +35,7 @@ resource_pools:
         password: ((bosh_vcap_password_hash))
 
 disk_pools:
-  - name: default
+  - name: disks
     disk_size: 25_000
 
 jobs:
@@ -52,11 +52,11 @@ jobs:
       - {name: openstack_cpi, release: bosh-openstack-cpi}
 
     instances: 1
-    resource_pool: default
-    persistent_disk_pool: default
+    resource_pool: vms
+    persistent_disk_pool: disks
 
     networks:
-      - name: private
+      - name: default
         static_ips: [((director_private_ip))]
         default: [dns, gateway]
       - name: public
@@ -66,17 +66,17 @@ jobs:
       nats:
         address: 127.0.0.1
         user: nats
-        password: ((bosh_admin_password))
+        password: ((nats_password))
 
       redis:
         listen_addresss: 127.0.0.1
         address: 127.0.0.1
-        password: ((bosh_admin_password))
+        password: ((admin_password))
 
       postgres: &db
         host: 127.0.0.1
         user: postgres
-        password: ((bosh_admin_password))
+        password: ((postgres_password))
         database: bosh
         adapter: postgres
 
@@ -85,19 +85,19 @@ jobs:
         address: ((director_private_ip))
         host: ((director_private_ip))
         db: *db
-        http: {user: admin, password: ((bosh_admin_password)), port: ((v3_e2e_bosh_registry_port))}
-        username: admin
-        password: ((bosh_admin_password))
+        http: {user: registry, password: ((registry_password)), port: ((v3_e2e_bosh_registry_port))}
+        username: registry
+        password: ((registry_password))
         port: ((v3_e2e_bosh_registry_port))
-        endpoint: http://admin:((bosh_admin_password))@((director_private_ip)):((v3_e2e_bosh_registry_port))
+        endpoint: http://registry:((registry_password))@((director_private_ip)):((v3_e2e_bosh_registry_port))
 
       # Tells the Director/agents how to contact blobstore
       blobstore:
         address: ((director_private_ip))
         port: 25250
         provider: dav
-        director: {user: director, password: ((bosh_admin_password))}
-        agent: {user: agent, password: ((bosh_admin_password))}
+        director: {user: director, password: ((blobstore_director_password))}
+        agent: {user: agent, password: ((blobstore_agent_password))}
 
       director:
         address: 127.0.0.1
@@ -108,14 +108,15 @@ jobs:
           provider: local
           local:
             users:
-              - {name: admin, password: ((bosh_admin_password))}
+              - {name: admin, password: ((admin_password))}
+              - {name: hm, password: ((hm_password))}
         ssl:
           key: ((director_ssl.private_key))
           cert: ((director_ssl.certificate))
 
       hm:
-        http: {user: hm, password: ((bosh_admin_password))}
-        director_account: {user: admin, password: ((bosh_admin_password)), ca_cert: ((default_ca.ca))}
+        http: {user: hm, password: ((hm_password))}
+        director_account: {user: admin, password: ((admin_password)), ca_cert: ((default_ca.ca))}
 
       dns:
         address: 127.0.0.1
@@ -143,7 +144,7 @@ jobs:
           write_timeout: ((v3_e2e_write_timeout))
 
       # Tells agents how to contact nats
-      agent: {mbus: "nats://nats:((bosh_admin_password))@((director_private_ip)):4222"}
+      agent: {mbus: "nats://nats:((nats_password))@((director_private_ip)):4222"}
 
       ntp: &ntp
         - ((time_server_1))
@@ -160,13 +161,13 @@ cloud_provider:
     private_key: ((private_key))
 
   # Tells bosh-micro how to contact remote agent
-  mbus: https://mbus-user:((bosh_admin_password))@((director_public_ip)):6868
+  mbus: https://mbus:((mbus_bootstrap_password))@((director_public_ip)):6868
 
   properties:
     openstack: *openstack
 
     # Tells CPI how agent should listen for requests
-    agent: {mbus: "https://mbus-user:((bosh_admin_password))@0.0.0.0:6868"}
+    agent: {mbus: "https://mbus:((mbus_bootstrap_password))@0.0.0.0:6868"}
 
     blobstore:
       provider: local
@@ -175,6 +176,22 @@ cloud_provider:
     ntp: *ntp
 
 variables:
+- name: admin_password
+  type: password
+- name: blobstore_director_password
+  type: password
+- name: blobstore_agent_password
+  type: password
+- name: hm_password
+  type: password
+- name: mbus_bootstrap_password
+  type: password
+- name: nats_password
+  type: password
+- name: postgres_password
+  type: password
+- name: registry_password
+  type: password
 - name: default_ca
   type: certificate
 - name: director_ssl

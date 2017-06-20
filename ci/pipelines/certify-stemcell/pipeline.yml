@@ -17,7 +17,7 @@ custom:
     default: &tags []
     suse-liberty: ['suse-liberty']
     suse-mitaka: ['suse-mitaka']
-    suse-newton: ['suse-newton']
+    suse-newton: &tags ['suse-newton']
     blue-box: ['blue-box']
   timeouts:
     long: &timeouts-long 2h
@@ -58,6 +58,7 @@ jobs:
         - {trigger: true,  get: bosh-cpi-release, passed: [cleanup], tags: *tags, timeout: *timeouts-long, resource: bosh-cpi-dev-artifacts}
         - {trigger: true,  get: bosh-release,     passed: [cleanup], tags: *tags, timeout: *timeouts-long}
         - {trigger: true,  get: stemcell,         passed: [cleanup], tags: *tags, timeout: *timeouts-long, resource: centos-stemcell}
+        - {trigger: false, get: bosh-deployment,                     tags: *tags, timeout: *timeouts-long}
 
       - task: write_ca_file
         tags: *tags
@@ -86,7 +87,7 @@ jobs:
           v3_e2e_read_timeout:                  "180"
           v3_e2e_state_timeout:                 "900"
           v3_e2e_write_timeout:                 "180"
-          bosh_admin_password:                  {{bosh_admin_password}}
+          bosh_vcap_password:                   {{bosh_vcap_password}}
           bosh_openstack_ca_cert:               {{bosh_openstack_ca_cert}}
           v3_e2e_bosh_registry_port:            {{v3_e2e_bosh_registry_port}}
           v3_e2e_api_key:                       {{v3_e2e_api_key}}
@@ -101,7 +102,6 @@ jobs:
           v3_e2e_blobstore_secret_key:          {{v3_e2e_blobstore_secret_key}}
           time_server_1:                        {{time_server_1}}
           time_server_2:                        {{time_server_2}}
-          distro:                               "centos"
           director_ca:                          {{director_ca}}
           director_ca_private_key:              {{director_ca_private_key}}
         <<: *send-failure-email
@@ -112,7 +112,7 @@ jobs:
         file: bosh-cpi-src-in/ci/pipelines/certify-stemcell/tasks/deploy-dummy-release.yml
         params:
           instance_flavor:             "m1.medium"
-          bosh_admin_password:         {{bosh_admin_password}}
+          bosh_vcap_password:          {{bosh_vcap_password}}
           stemcell_name:               "bosh-openstack-kvm-centos-7-go_agent"
           delete_deployment_when_done: "true"
         <<: *send-failure-email
@@ -123,7 +123,7 @@ jobs:
         file: bosh-cpi-src-in/ci/pipelines/certify-stemcell/tasks/deploy-dummy-release-light-stemcell.yml
         params:
           instance_flavor:                     "m1.medium"
-          bosh_admin_password:                 {{bosh_admin_password}}
+          bosh_vcap_password:                  {{bosh_vcap_password}}
           os_name:                             "centos-7"
           delete_deployment_when_done:         "true"
           BOSH_OPENSTACK_DOMAIN_NAME:          {{v3_e2e_domain}}
@@ -139,7 +139,6 @@ jobs:
         timeout: *timeouts-long
         file: bosh-cpi-src-in/ci/pipelines/certify-stemcell/tasks/teardown-director.yml
         params:
-          bosh_admin_password: {{bosh_admin_password}}
         <<: *send-failure-email
 
   - name: e2e-ubuntu
@@ -153,6 +152,7 @@ jobs:
         - {trigger: true,  get: bosh-cpi-release, passed: [cleanup], tags: *tags, timeout: *timeouts-long, resource: bosh-cpi-dev-artifacts}
         - {trigger: true,  get: bosh-release,     passed: [cleanup], tags: *tags, timeout: *timeouts-long}
         - {trigger: true,  get: stemcell,         passed: [cleanup], tags: *tags, timeout: *timeouts-long, resource: ubuntu-stemcell}
+        - {trigger: false, get: bosh-deployment,                     tags: *tags, timeout: *timeouts-long}
 
       - task: write_ca_file
         tags: *tags
@@ -177,7 +177,6 @@ jobs:
         file: bosh-cpi-src-in/ci/pipelines/certify-stemcell/tasks/deploy-director.yml
         params:
           <<:                    *centos-deploy-director-params
-          distro:                "ubuntu"
         <<: *send-failure-email
 
       - task: deploy-dummy-release
@@ -186,7 +185,7 @@ jobs:
         file: bosh-cpi-src-in/ci/pipelines/certify-stemcell/tasks/deploy-dummy-release.yml
         params:
           instance_flavor:                     "m1.medium"
-          bosh_admin_password:                 {{bosh_admin_password}}
+          bosh_vcap_password:                  {{bosh_vcap_password}}
           stemcell_name:                       "bosh-openstack-kvm-ubuntu-trusty-go_agent"
           delete_deployment_when_done:         "true"
         <<: *send-failure-email
@@ -197,7 +196,7 @@ jobs:
         file: bosh-cpi-src-in/ci/pipelines/certify-stemcell/tasks/deploy-dummy-release-light-stemcell.yml
         params:
           instance_flavor:             "m1.medium"
-          bosh_admin_password:         {{bosh_admin_password}}
+          bosh_vcap_password:          {{bosh_vcap_password}}
           os_name:                     "ubuntu-trusty"
           delete_deployment_when_done: "true"
           BOSH_OPENSTACK_DOMAIN_NAME:  {{v3_e2e_domain}}
@@ -213,7 +212,6 @@ jobs:
         timeout: *timeouts-long
         file: bosh-cpi-src-in/ci/pipelines/certify-stemcell/tasks/teardown-director.yml
         params:
-          bosh_admin_password: {{bosh_admin_password}}
         <<: *send-failure-email
 
   - name: e2e-centos-config-drive
@@ -227,6 +225,7 @@ jobs:
         - {trigger: true,  get: bosh-cpi-release, passed: [cleanup], tags: *tags, timeout: *timeouts-long, resource: bosh-cpi-dev-artifacts}
         - {trigger: true,  get: bosh-release,     passed: [cleanup], tags: *tags, timeout: *timeouts-long}
         - {trigger: true,  get: stemcell,         passed: [cleanup], tags: *tags, timeout: *timeouts-long, resource: centos-stemcell}
+        - {trigger: false, get: bosh-deployment,                     tags: *tags, timeout: *timeouts-long}
 
       - task: write_ca_file
         tags: *tags
@@ -259,7 +258,7 @@ jobs:
           v3_e2e_write_timeout:                 "180"
           v3_e2e_config_drive:                  "disk"
           v3_e2e_use_dhcp:                      false
-          bosh_admin_password:                  {{bosh_admin_password}}
+          bosh_vcap_password:                   {{bosh_vcap_password}}
           bosh_openstack_ca_cert:               {{bosh_openstack_ca_cert}}
           v3_e2e_bosh_registry_port:            {{v3_e2e_bosh_registry_port}}
           v3_e2e_api_key:                       {{v3_e2e_api_key}}
@@ -274,7 +273,6 @@ jobs:
           v3_e2e_blobstore_secret_key:          {{v3_e2e_blobstore_secret_key}}
           time_server_1:                        {{time_server_1}}
           time_server_2:                        {{time_server_2}}
-          distro:                               "centos"
           director_ca:                          {{director_ca}}
           director_ca_private_key:              {{director_ca_private_key}}
         <<: *send-failure-email
@@ -285,7 +283,7 @@ jobs:
         file: bosh-cpi-src-in/ci/pipelines/certify-stemcell/tasks/deploy-dummy-release-multiple-manual-networks.yml
         params:
           instance_flavor:           "m1.medium"
-          bosh_admin_password:       {{bosh_admin_password}}
+          bosh_vcap_password:        {{bosh_vcap_password}}
           v3_e2e_private_key_data:   {{v3_e2e_private_key_data}}
           stemcell_name:             "bosh-openstack-kvm-centos-7-go_agent"
         <<: *send-failure-email
@@ -295,7 +293,6 @@ jobs:
         timeout: *timeouts-long
         file: bosh-cpi-src-in/ci/pipelines/certify-stemcell/tasks/teardown-director.yml
         params:
-          bosh_admin_password: {{bosh_admin_password}}
         <<: *send-failure-email
 
   - name: e2e-ubuntu-config-drive
@@ -309,6 +306,7 @@ jobs:
         - {trigger: true,  get: bosh-cpi-release, passed: [cleanup], tags: *tags, timeout: *timeouts-long, resource: bosh-cpi-dev-artifacts}
         - {trigger: true,  get: bosh-release,     passed: [cleanup], tags: *tags, timeout: *timeouts-long}
         - {trigger: true,  get: stemcell,         passed: [cleanup], tags: *tags, timeout: *timeouts-long, resource: ubuntu-stemcell}
+        - {trigger: false, get: bosh-deployment,                     tags: *tags, timeout: *timeouts-long}
 
       - task: write_ca_file
         tags: *tags
@@ -335,7 +333,6 @@ jobs:
         file: bosh-cpi-src-in/ci/pipelines/certify-stemcell/tasks/deploy-director.yml
         params:
           <<:     *e2e-centos-config-drive-director-params
-          distro: "ubuntu"
         <<: *send-failure-email
 
       - task: deploy-dummy-release
@@ -344,7 +341,7 @@ jobs:
         file: bosh-cpi-src-in/ci/pipelines/certify-stemcell/tasks/deploy-dummy-release-multiple-manual-networks.yml
         params:
           instance_flavor:           "m1.medium"
-          bosh_admin_password:       {{bosh_admin_password}}
+          bosh_vcap_password:        {{bosh_vcap_password}}
           v3_e2e_private_key_data:   {{v3_e2e_private_key_data}}
           stemcell_name:             "bosh-openstack-kvm-ubuntu-trusty-go_agent"
         <<: *send-failure-email
@@ -354,7 +351,6 @@ jobs:
         timeout: *timeouts-long
         file: bosh-cpi-src-in/ci/pipelines/certify-stemcell/tasks/teardown-director.yml
         params:
-          bosh_admin_password: {{bosh_admin_password}}
         <<: *send-failure-email
 
   - name: test-upgrade-centos
@@ -368,6 +364,7 @@ jobs:
         - {trigger: true,  get: bosh-cpi-release, passed: [cleanup], tags: *tags, timeout: *timeouts-long, resource: bosh-cpi-dev-artifacts}
         - {trigger: true,  get: bosh-release,     passed: [cleanup], tags: *tags, timeout: *timeouts-long}
         - {trigger: true,  get: stemcell,         passed: [cleanup], tags: *tags, timeout: *timeouts-long, resource: centos-stemcell}
+        - {trigger: false, get: bosh-deployment,                     tags: *tags, timeout: *timeouts-long}
 
       - task: write_ca_file
         tags: *tags
@@ -391,14 +388,13 @@ jobs:
         timeout: *timeouts-long
         file: bosh-cpi-src-in/ci/pipelines/certify-stemcell/tasks/deploy-old-director.yml
         params: &centos-deploy-old-director-params
-          distro:                               "centos"
           director_ca:                          {{director_ca}}
           director_ca_private_key:              {{director_ca_private_key}}
           bosh_openstack_ca_cert:               {{bosh_openstack_ca_cert}}
           v3_e2e_private_key_data:              {{v3_e2e_private_key_data}}
           old_bosh_release_version:             255.5
           old_bosh_release_sha1:                ffc41db255450cb72b74190c8b9c2a1fe9846ad7
-          ci_bosh_admin_password:               {{bosh_admin_password}}
+          ci_bosh_admin_password:               {{bosh_vcap_password}}
           ci_v3_e2e_flavor:                     "m1.medium"
           ci_v3_e2e_connection_timeout:         "600"
           ci_v3_e2e_read_timeout:               "180"
@@ -412,6 +408,7 @@ jobs:
           ci_v3_e2e_username:                   {{v3_e2e_username}}
           ci_time_server_1:                     {{time_server_1}}
           ci_time_server_2:                     {{time_server_2}}
+          distro:                               "centos"
           ci_old_openstack_cpi_release_version: 26
           ci_old_openstack_cpi_release_sha1:    09c18a410aca8a15c11fcbe028f3eac39bef31b5
           ci_old_bosh_stemcell_name:            bosh-openstack-kvm-centos-7-go_agent
@@ -425,7 +422,7 @@ jobs:
         file: bosh-cpi-src-in/ci/pipelines/certify-stemcell/tasks/deploy-dummy-release.yml
         params:
           instance_flavor:             "m1.medium"
-          bosh_admin_password:         {{bosh_admin_password}}
+          bosh_vcap_password:          {{bosh_vcap_password}}
           stemcell_name:               "bosh-openstack-kvm-centos-7-go_agent"
           delete_deployment_when_done: "false"
         <<: *send-failure-email
@@ -440,7 +437,7 @@ jobs:
           v3_e2e_read_timeout:                  "180"
           v3_e2e_state_timeout:                 "900"
           v3_e2e_write_timeout:                 "180"
-          bosh_admin_password:                  {{bosh_admin_password}}
+          bosh_vcap_password:                   {{bosh_vcap_password}}
           bosh_openstack_ca_cert:               {{bosh_openstack_ca_cert}}
           v3_e2e_bosh_registry_port:            {{v3_e2e_bosh_registry_port}}
           v3_e2e_api_key:                       {{v3_e2e_api_key}}
@@ -451,7 +448,6 @@ jobs:
           v3_e2e_private_key_data:              {{v3_e2e_private_key_data}}
           time_server_1:                        {{time_server_1}}
           time_server_2:                        {{time_server_2}}
-          distro:                               "centos"
         <<: *send-failure-email
 
       - task: teardown-director
@@ -471,6 +467,7 @@ jobs:
         - {trigger: true,  get: bosh-cpi-release, passed: [cleanup], tags: *tags, timeout: *timeouts-long, resource: bosh-cpi-dev-artifacts}
         - {trigger: true,  get: bosh-release,     passed: [cleanup], tags: *tags, timeout: *timeouts-long}
         - {trigger: true,  get: stemcell,         passed: [cleanup], tags: *tags, timeout: *timeouts-long, resource: ubuntu-stemcell}
+        - {trigger: false, get: bosh-deployment,                     tags: *tags, timeout: *timeouts-long}
 
       - task: write_ca_file
         tags: *tags
@@ -495,9 +492,9 @@ jobs:
         file: bosh-cpi-src-in/ci/pipelines/certify-stemcell/tasks/deploy-old-director.yml
         params:
           <<:                         *centos-deploy-old-director-params
+          distro:                     "ubuntu"
           ci_old_bosh_stemcell_name:  bosh-openstack-kvm-ubuntu-trusty-go_agent
           ci_old_bosh_stemcell_sha1:  6e103aab1c4aa22e48743eb3a5d8c51410fd172f
-          distro:                     "ubuntu"
         <<: *send-failure-email
 
       - task: deploy-dummy-release-with-old-cpi
@@ -506,7 +503,7 @@ jobs:
         file: bosh-cpi-src-in/ci/pipelines/certify-stemcell/tasks/deploy-dummy-release.yml
         params:
           instance_flavor:             "m1.medium"
-          bosh_admin_password:         {{bosh_admin_password}}
+          bosh_vcap_password:          {{bosh_vcap_password}}
           stemcell_name:               "bosh-openstack-kvm-ubuntu-trusty-go_agent"
           delete_deployment_when_done: "false"
         <<: *send-failure-email
@@ -517,7 +514,6 @@ jobs:
         file: bosh-cpi-src-in/ci/pipelines/certify-stemcell/tasks/test-upgrade.yml
         params:
           <<:     *centos-test-upgrade-params
-          distro: "ubuntu"
         <<: *send-failure-email
 
       - task: teardown-director
@@ -671,7 +667,7 @@ resources:
     tags: *tags
     source:
       uri: https://github.com/cloudfoundry-incubator/bosh-openstack-cpi-release.git
-      branch: master
+      branch: wip-bosh-deployment
       ignore_paths:
         - releases/bosh-openstack-cpi/**
         - .final_builds/**
@@ -687,6 +683,13 @@ resources:
       bucket: {{s3_openstack_cpi_receipts_bucket_name}}
       regexp: .*-(\d+)-receipt\.json
       region_name: us-east-1
+
+  - name: bosh-deployment
+    type: git
+    tags: *tags
+    source:
+      uri: https://github.com/cloudfoundry/bosh-deployment.git
+      branch: master
 
 #  - name: send-an-email
 #    type: email

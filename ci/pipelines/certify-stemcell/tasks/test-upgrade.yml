@@ -12,12 +12,13 @@ inputs:
   - name: director-deployment
   - name: dummy-deployment
   - name: terraform
+  - name: bosh-deployment
 outputs:
   - name: upgrade-deployment
 run:
   path: bosh-cpi-src-in/ci/pipelines/certify-stemcell/tasks/test-upgrade.sh
 params:
-  bosh_admin_password:                 ""
+  bosh_vcap_password:                 ""
   v3_e2e_flavor:                       ""
   v3_e2e_connection_timeout:           ""
   v3_e2e_read_timeout:                 ""
@@ -32,5 +33,4 @@ params:
   v3_e2e_private_key_data:             ""
   time_server_1:                       ""
   time_server_2:                       ""
-  distro:                              ""
   bosh_openstack_ca_cert:              replace-me
