@@ -7,6 +7,7 @@ image_resource:
 inputs:
   - name: bosh-cpi-src-in
   - name: terraform
+  - name: bosh-deployment
 outputs:
   - name: director-deployment
 run:
@@ -20,21 +21,21 @@ params:
   old_bosh_release_version:               ""
   old_bosh_release_sha1:                  ""
   bosh_vcap_password:                     ""
-  ci_v3_e2e_flavor:                       ""
-  ci_v3_e2e_connection_timeout:           ""
-  ci_v3_e2e_read_timeout:                 ""
-  ci_v3_e2e_state_timeout:                ""
-  ci_v3_e2e_write_timeout:                ""
-  ci_v3_e2e_bosh_registry_port:           ""
-  ci_v3_e2e_api_key:                      ""
-  ci_v3_e2e_auth_url:                     ""
-  ci_v3_e2e_project:                      ""
-  ci_v3_e2e_domain:                       ""
-  ci_v3_e2e_username:                     ""
-  ci_time_server_1:                       ""
-  ci_time_server_2:                       ""
-  ci_old_openstack_cpi_release_version:   ""
-  ci_old_openstack_cpi_release_sha1:      ""
-  ci_old_bosh_stemcell_name:              ""
-  ci_old_bosh_stemcell_version:           ""
-  ci_old_bosh_stemcell_sha1:              ""
+  v3_e2e_flavor:                          ""
+  v3_e2e_connection_timeout:              ""
+  v3_e2e_read_timeout:                    ""
+  v3_e2e_state_timeout:                   ""
+  v3_e2e_write_timeout:                   ""
+  v3_e2e_bosh_registry_port:              ""
+  v3_e2e_api_key:                         ""
+  v3_e2e_auth_url:                        ""
+  v3_e2e_project:                         ""
+  v3_e2e_domain:                          ""
+  v3_e2e_username:                        ""
+  time_server_1:                          ""
+  time_server_2:                          ""
+  old_openstack_cpi_release_version:      ""
+  old_openstack_cpi_release_sha1:         ""
+  old_bosh_stemcell_name:                 ""
+  old_bosh_stemcell_version:              ""
+  old_bosh_stemcell_sha1:                 ""
