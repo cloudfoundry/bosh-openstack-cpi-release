@@ -79,6 +79,7 @@ bosh-go int ../bosh-deployment/bosh.yml \
     -o ../bosh-cpi-src-in/ci/ops_files/ntp.yml \
     -o ../bosh-cpi-src-in/ci/ops_files/custom-powerdns.yml \
     -o ../bosh-cpi-src-in/ci/ops_files/custom-config-drive.yml \
+    -o ../bosh-cpi-src-in/ci/ops_files/custom-blobstore.yml \
     -v auth_url=${v3_e2e_auth_url} \
     -v availability_zone=${availability_zone:-'~'} \
     -v bosh_vcap_password_hash=${bosh_vcap_password_hash} \
@@ -101,7 +102,11 @@ bosh-go int ../bosh-deployment/bosh.yml \
     -v openstack_username=${v3_e2e_username} \
     -v openstack_write_timeout=${v3_e2e_write_timeout} \
     -v v3_e2e_config_drive=${v3_e2e_config_drive:-'~'} \
-    -v v3_e2e_use_dhcp=${v3_e2e_use_dhcp:-'true'} \
+    -v v3_e2e_use_dhcp=${v3_e2e_use_dhcp:-'~'} \
+    -v v3_e2e_blobstore_access_key=${v3_e2e_blobstore_access_key} \
+    -v v3_e2e_blobstore_secret_key=${v3_e2e_blobstore_secret_key} \
+    -v v3_e2e_blobstore_bucket=${v3_e2e_blobstore_bucket} \
+    -v v3_e2e_blobstore_host=${v3_e2e_blobstore_host} \
     --var-file=private_key=${private_key} \
     -v region=null \
     -v time_server_1=${time_server_1} \

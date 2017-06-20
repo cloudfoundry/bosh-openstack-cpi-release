@@ -1,0 +1,10 @@
+---
+
+- type: replace
+  path: /instance_groups/name=bosh/properties/blobstore?
+  value:
+    provider: s3
+    access_key_id: ((v3_e2e_blobstore_access_key))
+    secret_access_key: ((v3_e2e_blobstore_secret_key))
+    bucket_name: ((v3_e2e_blobstore_bucket))
+    host: ((v3_e2e_blobstore_host))
