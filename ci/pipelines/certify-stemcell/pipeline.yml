@@ -102,6 +102,7 @@ jobs:
           v3_e2e_blobstore_secret_key:          {{v3_e2e_blobstore_secret_key}}
           time_server_1:                        {{time_server_1}}
           time_server_2:                        {{time_server_2}}
+          distro:                               "centos"
           director_ca:                          {{director_ca}}
           director_ca_private_key:              {{director_ca_private_key}}
         <<: *send-failure-email
@@ -177,6 +178,7 @@ jobs:
         file: bosh-cpi-src-in/ci/pipelines/certify-stemcell/tasks/deploy-director.yml
         params:
           <<:                    *centos-deploy-director-params
+          distro:                "ubuntu"
         <<: *send-failure-email
 
       - task: deploy-dummy-release
@@ -273,6 +275,7 @@ jobs:
           v3_e2e_blobstore_secret_key:          {{v3_e2e_blobstore_secret_key}}
           time_server_1:                        {{time_server_1}}
           time_server_2:                        {{time_server_2}}
+          distro:                               "centos"
           director_ca:                          {{director_ca}}
           director_ca_private_key:              {{director_ca_private_key}}
         <<: *send-failure-email
@@ -333,6 +336,7 @@ jobs:
         file: bosh-cpi-src-in/ci/pipelines/certify-stemcell/tasks/deploy-director.yml
         params:
           <<:     *e2e-centos-config-drive-director-params
+          distro: "ubuntu"
         <<: *send-failure-email
 
       - task: deploy-dummy-release
@@ -448,6 +452,7 @@ jobs:
           v3_e2e_private_key_data:              {{v3_e2e_private_key_data}}
           time_server_1:                        {{time_server_1}}
           time_server_2:                        {{time_server_2}}
+          distro:                               "centos"
         <<: *send-failure-email
 
       - task: teardown-director
@@ -514,6 +519,7 @@ jobs:
         file: bosh-cpi-src-in/ci/pipelines/certify-stemcell/tasks/test-upgrade.yml
         params:
           <<:     *centos-test-upgrade-params
+          distro: "ubuntu"
         <<: *send-failure-email
 
       - task: teardown-director

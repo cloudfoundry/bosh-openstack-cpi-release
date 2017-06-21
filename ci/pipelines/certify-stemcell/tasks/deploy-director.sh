@@ -25,6 +25,7 @@ source bosh-cpi-src-in/ci/tasks/utils.sh
 : ${time_server_2:?}
 : ${director_ca:?}
 : ${director_ca_private_key:?}
+: ${distro:?}
 optional_value bosh_openstack_ca_cert
 optional_value v3_e2e_use_dhcp
 optional_value v3_e2e_config_drive
@@ -48,7 +49,7 @@ bosh_vcap_password_hash=$(ruby -e 'require "securerandom";puts ENV["bosh_vcap_pa
 echo "setting up artifacts used in ${manifest_filename}-template.yml"
 cp ./bosh-cpi-release/*.tgz ${deployment_dir}/bosh-openstack-cpi.tgz
 cp ./stemcell/stemcell.tgz ${deployment_dir}/stemcell.tgz
-prepare_bosh_release
+prepare_bosh_release $distro
 
 cd ${deployment_dir}
 

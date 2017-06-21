@@ -40,3 +40,4 @@ params:
   time_server_2:                       ""
   director_ca:                         ""
   director_ca_private_key:             ""
+  distro:                              ""

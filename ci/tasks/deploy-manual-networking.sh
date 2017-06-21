@@ -22,6 +22,7 @@ source bosh-cpi-src-in/ci/tasks/utils.sh
 : ${time_server_1:?}
 : ${time_server_2:?}
 : ${DEBUG_BATS:?}
+: ${distro:?}
 optional_value bosh_openstack_ca_cert
 optional_value availability_zone
 
@@ -50,7 +51,7 @@ private_ssh_key_file="bats.key"
 echo "setting up artifacts used in bosh.yml"
 cp ./bosh-cpi-dev-artifacts/${cpi_release_name}-${semver}.tgz ${deployment_dir}/${cpi_release_name}.tgz
 cp ./stemcell/stemcell.tgz ${deployment_dir}/stemcell.tgz
-prepare_bosh_release
+prepare_bosh_release ${distro}
 
 echo "Calculating MD5 of original stemcell:"
 echo $(md5sum stemcell/stemcell.tgz)

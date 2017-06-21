@@ -37,9 +37,9 @@ init_openstack_cli_env(){
 }
 
 prepare_bosh_release() {
-    local distribution=${1:-$distro}
-    local bosh_release_version=${2:-$old_bosh_release_version}
-    local stemcell_version=${3:-$old_bosh_stemcell_version}
+    local distribution=${1}
+    local bosh_release_version=${2}
+    local stemcell_version=${3}
 
     use_compiled_release=true
 

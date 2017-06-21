@@ -275,6 +275,7 @@ jobs:
           openstack_domain:                     {{openstack_domain}}
           time_server_1:                        {{time_server_1}}
           time_server_2:                        {{time_server_2}}
+          distro:                               "ubuntu"
           availability_zone:                    {{availability_zone}}
           DEBUG_BATS:                           *debug_bats
         <<: *send-failure-email
@@ -376,6 +377,7 @@ jobs:
           time_server_1:                        {{time_server_1}}
           time_server_2:                        {{time_server_2}}
           private_key_data:                     {{bosh_private_key}}
+          distro:                               "ubuntu"
           availability_zone:                    {{availability_zone}}
           DEBUG_BATS:                           *debug_bats
         <<: *send-failure-email
@@ -480,6 +482,7 @@ jobs:
           time_server_1:                        {{time_server_1}}
           time_server_2:                        {{time_server_2}}
           private_key_data:                     {{bosh_private_key}}
+          distro:                               "centos"
           availability_zone:                    {{availability_zone}}
           DEBUG_BATS:                           *debug_bats
         <<: *send-failure-email
@@ -580,6 +583,7 @@ jobs:
           time_server_1:                        {{time_server_1}}
           time_server_2:                        {{time_server_2}}
           private_key_data:                     {{bosh_private_key}}
+          distro:                               "centos"
           availability_zone:                    {{availability_zone}}
           DEBUG_BATS:                           *debug_bats
         <<: *send-failure-email

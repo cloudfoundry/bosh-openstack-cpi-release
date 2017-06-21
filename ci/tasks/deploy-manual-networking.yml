@@ -36,4 +36,5 @@ params:
   time_server_1:                       ""
   time_server_2:                       ""
   DEBUG_BATS:                          ""
+  distro:                              ""
   availability_zone:                   replace-me
