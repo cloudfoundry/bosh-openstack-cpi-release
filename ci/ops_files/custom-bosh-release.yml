@@ -18,3 +18,10 @@
   value:
     url: https://bosh.io/d/stemcells/((old_bosh_stemcell_name))?v=((old_bosh_stemcell_version))
     sha1: ((old_bosh_stemcell_sha1))
+
+- type: replace
+  path: /instance_groups/name=bosh/properties/registry/http?
+  value:
+    user: registry
+    password: ((registry_password))
+    port: 25777
