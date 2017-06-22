@@ -48,11 +48,20 @@ working_dir=$PWD
 export BAT_STEMCELL="${working_dir}/stemcell/stemcell.tgz"
 export BAT_VCAP_PRIVATE_KEY="$working_dir/keys/bats.pem"
 export BAT_DIRECTOR=${director_public_ip}
-export BAT_DIRECTOR_PASSWORD=$(bosh-go int bosh-director-deployment/credentials.yml  --path /admin_password)
+export BAT_DIRECTOR_PASSWORD=$( creds_path /admin_password)
 export BAT_VCAP_PASSWORD=${bosh_vcap_password}
 export BAT_DNS_HOST=${director_public_ip}
 export BAT_INFRASTRUCTURE='openstack'
 export BAT_NETWORKING='manual'
+export BAT_BOSH_CLI='bosh-go'
+export BAT_PRIVATE_KEY="$( manifest_path /cloud_provider/ssh_tunnel/private_key)"
+export BAT_PRIVATE_KEY_USER='vcap'
+export BAT_DIRECTOR_USER='admin'
+
+export BOSH_ENVIRONMENT="$( manifest_path /instance_groups/name=bosh/networks/name=public/static_ips/0 2>/dev/null )"
+export BOSH_CLIENT="admin"
+export BOSH_CLIENT_SECRET="$( creds_path /admin_password )"
+export BOSH_CA_CERT="$( creds_path /director_ssl/ca )"
 
 bosh_vcap_password_hash=$(ruby -e 'require "securerandom";puts ENV["bosh_vcap_password"].crypt("$6$#{SecureRandom.base64(14)}")')
 
@@ -65,9 +74,7 @@ chmod go-r $working_dir/keys/bats.pem
 ssh-add $working_dir/keys/bats.pem
 
 echo "using bosh CLI version..."
-bosh version
-
-bosh -n target ${director_public_ip}
+bosh-go --version
 
 export BAT_DEPLOYMENT_SPEC="${working_dir}/bats-config.yml"
 cat > $BAT_DEPLOYMENT_SPEC <<EOF
@@ -76,7 +83,6 @@ cpi: openstack
 properties:
   pool_size: 1
   instances: 1
-  uuid: $(bosh status --uuid)
   vip: ${floating_ip}
   second_static_ip: ${primary_net_second_manual_ip}
   instance_type: ${openstack_flavor_with_ephemeral_disk}
@@ -110,7 +116,5 @@ properties:
 EOF
 
 cd bats
-./write_gemfile
-
-bundle install
+bundle install -j4
 bundle exec rspec --tag ~raw_ephemeral_storage --tag ~multiple_manual_networks spec
