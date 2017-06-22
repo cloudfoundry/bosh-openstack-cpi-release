@@ -19,6 +19,7 @@ source bosh-cpi-src-in/ci/tasks/utils.sh
 : ${v3_e2e_private_key_data:?}
 : ${time_server_1:?}
 : ${time_server_2:?}
+: ${distro:?}
 optional_value bosh_openstack_ca_cert
 
 metadata=terraform/metadata
@@ -48,7 +49,7 @@ cp ${director_deployment_input}/custom-ca.yml $deployment_dir
 echo "setting up artifacts used in $manifest_filename"
 cp ./bosh-cpi-release/*.tgz ${deployment_dir}/bosh-openstack-cpi.tgz
 cp ./stemcell/stemcell.tgz ${deployment_dir}/stemcell.tgz
-prepare_bosh_release
+prepare_bosh_release $distro
 
 cd ${deployment_dir}
 

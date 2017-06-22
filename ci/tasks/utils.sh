@@ -43,7 +43,7 @@ prepare_bosh_release() {
 
     use_compiled_release=true
 
-    local s3_path_to_bosh_release=$(find_bosh_compiled_release ${distro} ${bosh_release_version} ${stemcell_version})
+    local s3_path_to_bosh_release=$(find_bosh_compiled_release ${distribution} ${bosh_release_version} ${stemcell_version})
 
     if [ ! -z ${s3_path_to_bosh_release} ];then
         echo "Using compiled BOSH release: s3://bosh-compiled-release-tarballs/$s3_path_to_bosh_release"

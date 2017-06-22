@@ -33,4 +33,5 @@ params:
   v3_e2e_private_key_data:             ""
   time_server_1:                       ""
   time_server_2:                       ""
+  distro:                              ""
   bosh_openstack_ca_cert:              replace-me
