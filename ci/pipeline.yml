@@ -34,7 +34,7 @@ groups:
 
 custom:
   tags:
-    default: &tags []
+    default: &tags ['suse-newton']
     suse-liberty: ['suse-liberty']
     suse-mitaka: ['suse-mitaka']
     suse-newton: ['suse-newton']
@@ -60,7 +60,7 @@ jobs:
       - aggregate:
         - {trigger: true,  get: bosh-cpi-src-in, tags: *tags, timeout: *timeouts-long}
         - {trigger: false, get: version-semver, params: {bump: patch}, tags: *tags, timeout: *timeouts-long}
-        - {trigger: true,  get: pipeline-time-trigger, tags: *tags, timeout: *timeouts-long}
+        - {trigger: false,  get: pipeline-time-trigger, tags: *tags, timeout: *timeouts-long}
 
       - put: version-semver
         tags: *tags
@@ -125,7 +125,7 @@ jobs:
     build_logs_to_retain: *build_logs_to_retain
     plan:
       - aggregate:
-        - {trigger: true,  passed: [cleanup], get: bosh-cpi-dev-artifacts, tags: *tags, timeout: *timeouts-long} # used for job chaining only not for tasks
+        - {trigger: false,  passed: [cleanup], get: bosh-cpi-dev-artifacts, tags: *tags, timeout: *timeouts-long} # used for job chaining only not for tasks
         - {trigger: false, passed: [cleanup], get: bosh-cpi-src-in, tags: *tags, timeout: *timeouts-long}
         - {trigger: false,                    get: openstack-lifecycle-stemcell, tags: *tags, timeout: *timeouts-long}
 
@@ -188,7 +188,7 @@ jobs:
     build_logs_to_retain: *build_logs_to_retain
     plan:
       - aggregate:
-        - {trigger: true, passed: [lifecycle], get: lifecycle-log, tags: *tags, timeout: *timeouts-long}
+        - {trigger: false, passed: [lifecycle], get: lifecycle-log, tags: *tags, timeout: *timeouts-long}
         - {trigger: false, passed: [lifecycle], get: bosh-cpi-src-in, tags: *tags, timeout: *timeouts-long}
 
       - task: publish
@@ -209,7 +209,7 @@ jobs:
     build_logs_to_retain: *build_logs_to_retain
     plan:
       - aggregate:
-        - {trigger: true,  passed: [cleanup], get: bosh-cpi-dev-artifacts, tags: *tags, timeout: *timeouts-long}
+        - {trigger: false,  passed: [cleanup], get: bosh-cpi-dev-artifacts, tags: *tags, timeout: *timeouts-long}
         - {trigger: false, passed: [cleanup], get: version-semver, tags: *tags, timeout: *timeouts-long}
         - {trigger: false, passed: [cleanup], get: bosh-cpi-src-in, tags: *tags, timeout: *timeouts-long}
         - {trigger: false,                    get: bosh-release, tags: *tags, timeout: *timeouts-long}
@@ -414,7 +414,7 @@ jobs:
     build_logs_to_retain: *build_logs_to_retain
     plan:
       - aggregate:
-        - {trigger: true,  passed: [cleanup], get: bosh-cpi-dev-artifacts, tags: *tags, timeout: *timeouts-long}
+        - {trigger: false,  passed: [cleanup], get: bosh-cpi-dev-artifacts, tags: *tags, timeout: *timeouts-long}
         - {trigger: false, passed: [cleanup], get: version-semver, tags: *tags, timeout: *timeouts-long}
         - {trigger: false, passed: [cleanup], get: bosh-cpi-src-in, tags: *tags, timeout: *timeouts-long}
         - {trigger: false,                    get: bosh-release, tags: *tags, timeout: *timeouts-long}
@@ -518,7 +518,7 @@ jobs:
     build_logs_to_retain: *build_logs_to_retain
     plan:
       - aggregate:
-        - {trigger: true,  passed: [cleanup], get: bosh-cpi-dev-artifacts, tags: *tags, timeout: *timeouts-long}
+        - {trigger: false,  passed: [cleanup], get: bosh-cpi-dev-artifacts, tags: *tags, timeout: *timeouts-long}
         - {trigger: false, passed: [cleanup], get: version-semver, tags: *tags, timeout: *timeouts-long}
         - {trigger: false, passed: [cleanup], get: bosh-cpi-src-in, tags: *tags, timeout: *timeouts-long}
         - {trigger: false,                    get: bosh-release, tags: *tags, timeout: *timeouts-long}
@@ -709,7 +709,7 @@ resources:
     tags: *tags
     source:
       uri: https://github.com/cloudfoundry-incubator/bosh-openstack-cpi-release.git
-      branch: master
+      branch: bats-go-cli
       ignore_paths:
         - releases/bosh-openstack-cpi/**
         - .final_builds/**
@@ -721,7 +721,7 @@ resources:
     tags: *tags
     source:
       uri: git@github.com:cloudfoundry-incubator/bosh-openstack-cpi-release.git
-      branch: master
+      branch: bats-go-cli
       private_key: {{github_deployment_key__bosh-openstack-cpi-release}}
 
   - name: version-semver
