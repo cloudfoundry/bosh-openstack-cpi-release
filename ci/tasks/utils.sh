@@ -1,5 +1,13 @@
 #!/usr/bin/env bash
 
+manifest_path() {
+  bosh-go int bosh-director-deployment/bosh.yml --path="$1"
+}
+
+creds_path() {
+  bosh-go int bosh-director-deployment/credentials.yml --path="$1"
+}
+
 optional_value() {
   local name=$1
   local value=$(eval echo '$'$name)
