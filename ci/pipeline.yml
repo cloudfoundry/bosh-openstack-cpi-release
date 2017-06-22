@@ -212,7 +212,6 @@ jobs:
         - {trigger: true,  passed: [cleanup], get: bosh-cpi-dev-artifacts, tags: *tags, timeout: *timeouts-long}
         - {trigger: false, passed: [cleanup], get: version-semver, tags: *tags, timeout: *timeouts-long}
         - {trigger: false, passed: [cleanup], get: bosh-cpi-src-in, tags: *tags, timeout: *timeouts-long}
-        - {trigger: false,                    get: bosh-init, tags: *tags, timeout: *timeouts-long}
         - {trigger: false,                    get: bosh-release, tags: *tags, timeout: *timeouts-long}
         - {trigger: false,                    get: stemcell, resource: openstack-ubuntu-stemcell, tags: *tags, timeout: *timeouts-long}
         - {trigger: false,                    get: bats, tags: *tags, timeout: *timeouts-long}
@@ -318,7 +317,6 @@ jobs:
         - {trigger: true,  passed: [cleanup], get: bosh-cpi-dev-artifacts, tags: *tags, timeout: *timeouts-long}
         - {trigger: false, passed: [cleanup], get: version-semver, tags: *tags, timeout: *timeouts-long}
         - {trigger: false, passed: [cleanup], get: bosh-cpi-src-in, tags: *tags, timeout: *timeouts-long}
-        - {trigger: false,                    get: bosh-init, tags: *tags, timeout: *timeouts-long}
         - {trigger: false,                    get: bosh-release, tags: *tags, timeout: *timeouts-long}
         - {trigger: false,                    get: stemcell, resource: openstack-ubuntu-stemcell, tags: *tags, timeout: *timeouts-long}
         - {trigger: false,                    get: bats, tags: *tags, timeout: *timeouts-long}
@@ -419,7 +417,6 @@ jobs:
         - {trigger: true,  passed: [cleanup], get: bosh-cpi-dev-artifacts, tags: *tags, timeout: *timeouts-long}
         - {trigger: false, passed: [cleanup], get: version-semver, tags: *tags, timeout: *timeouts-long}
         - {trigger: false, passed: [cleanup], get: bosh-cpi-src-in, tags: *tags, timeout: *timeouts-long}
-        - {trigger: false,                    get: bosh-init, tags: *tags, timeout: *timeouts-long}
         - {trigger: false,                    get: bosh-release, tags: *tags, timeout: *timeouts-long}
         - {trigger: false,                    get: stemcell, resource: openstack-centos-stemcell, tags: *tags, timeout: *timeouts-long}
         - {trigger: false,                    get: bats, tags: *tags, timeout: *timeouts-long}
@@ -524,7 +521,6 @@ jobs:
         - {trigger: true,  passed: [cleanup], get: bosh-cpi-dev-artifacts, tags: *tags, timeout: *timeouts-long}
         - {trigger: false, passed: [cleanup], get: version-semver, tags: *tags, timeout: *timeouts-long}
         - {trigger: false, passed: [cleanup], get: bosh-cpi-src-in, tags: *tags, timeout: *timeouts-long}
-        - {trigger: false,                    get: bosh-init, tags: *tags, timeout: *timeouts-long}
         - {trigger: false,                    get: bosh-release, tags: *tags, timeout: *timeouts-long}
         - {trigger: false,                    get: stemcell, resource: openstack-centos-stemcell, tags: *tags, timeout: *timeouts-long}
         - {trigger: false,                    get: bats, tags: *tags, timeout: *timeouts-long}
@@ -746,20 +742,12 @@ resources:
       access_key_id:      {{s3_openstack_cpi_pipeline_access_key}}
       secret_access_key:  {{s3_openstack_cpi_pipeline_secret_key}}
 
-  - name: bosh-init
-    type: s3
-    tags: *tags
-    source:
-      regexp: bosh-init-([0-9.]+)-linux-amd64
-      bucket: bosh-init-artifacts
-      region_name: us-east-1
-
   - name: bats
     type: git
     tags: *tags
     source:
       uri: https://github.com/cloudfoundry/bosh-acceptance-tests.git
-      branch: master
+      branch: gocli-bats
 
   - name: bosh-release
     type: bosh-io-release
