@@ -36,15 +36,11 @@ bosh_vcap_password_hash=$(ruby -rsecurerandom -e 'puts ENV["bosh_vcap_password"]
 
 export BAT_STEMCELL="${working_dir}/stemcell/stemcell.tgz"
 export BAT_DIRECTOR=${director_public_ip}
-export BAT_DIRECTOR_PASSWORD=$( creds_path /admin_password)
-export BAT_VCAP_PASSWORD=${bosh_vcap_password}
 export BAT_DNS_HOST=${director_public_ip}
 export BAT_INFRASTRUCTURE='openstack'
 export BAT_NETWORKING='dynamic'
 export BAT_BOSH_CLI='bosh-go'
-export BAT_PRIVATE_KEY="$( manifest_path /cloud_provider/ssh_tunnel/private_key)"
-export BAT_PRIVATE_KEY_USER='vcap'
-export BAT_DIRECTOR_USER='admin'
+export BAT_PRIVATE_KEY="not-needed-key"
 
 export BOSH_ENVIRONMENT="$( manifest_path /instance_groups/name=bosh/networks/name=public/static_ips/0 2>/dev/null )"
 export BOSH_CLIENT="admin"

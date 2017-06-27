@@ -46,16 +46,12 @@ export_terraform_variable "security_group"
 working_dir=$PWD
 # checked by BATs environment helper (bosh-acceptance-tests.git/lib/bat/env.rb)
 export BAT_STEMCELL="${working_dir}/stemcell/stemcell.tgz"
-export BAT_VCAP_PRIVATE_KEY="$working_dir/keys/bats.pem"
 export BAT_DIRECTOR=${director_public_ip}
-export BAT_DIRECTOR_PASSWORD=$( creds_path /admin_password)
-export BAT_VCAP_PASSWORD=${bosh_vcap_password}
 export BAT_DNS_HOST=${director_public_ip}
 export BAT_INFRASTRUCTURE='openstack'
 export BAT_NETWORKING='manual'
 export BAT_BOSH_CLI='bosh-go'
-export BAT_PRIVATE_KEY="$( manifest_path /cloud_provider/ssh_tunnel/private_key)"
-export BAT_PRIVATE_KEY_USER='vcap'
+export BAT_PRIVATE_KEY="not-needed-key"
 export BAT_DIRECTOR_USER='admin'
 
 export BOSH_ENVIRONMENT="$( manifest_path /instance_groups/name=bosh/networks/name=public/static_ips/0 2>/dev/null )"
@@ -63,7 +59,7 @@ export BOSH_CLIENT="admin"
 export BOSH_CLIENT_SECRET="$( creds_path /admin_password )"
 export BOSH_CA_CERT="$( creds_path /director_ssl/ca )"
 
-bosh_vcap_password_hash=$(ruby -e 'require "securerandom";puts ENV["bosh_vcap_password"].crypt("$6$#{SecureRandom.base64(14)}")')
+bosh_vcap_password_hash=$(ruby -rsecurerandom -e 'puts ENV["bosh_vcap_password"].crypt("$6$#{SecureRandom.base64(14)}")')
 
 mkdir -p $working_dir/keys
 export BAT_VCAP_PRIVATE_KEY="$working_dir/keys/bats.pem"
