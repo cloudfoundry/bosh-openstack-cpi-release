@@ -97,6 +97,7 @@ describe Bosh::OpenStackCloud::LoadbalancerConfigurator do
         expect{
           subject.create_membership('pool-id', '10.0.0.1', '8080', 'subnet-id')
         }.to raise_error(Bosh::Clouds::CloudError, "No loadbalancers associated with LBaaS pool 'pool-id'")
+        expect(network).to_not have_received(:create_lbaas_pool_member)
       end
     end
 
@@ -107,6 +108,7 @@ describe Bosh::OpenStackCloud::LoadbalancerConfigurator do
         expect{
           subject.create_membership('pool-id', '10.0.0.1', '8080', 'subnet-id')
         }.to raise_error(Bosh::Clouds::CloudError, "More than one loadbalancer is associated with LBaaS pool 'pool-id'. It is not possible to verify the status of the loadbalancer responsible for the pool membership.")
+        expect(network).to_not have_received(:create_lbaas_pool_member)
       end
     end
 
@@ -263,12 +265,42 @@ describe Bosh::OpenStackCloud::LoadbalancerConfigurator do
     let(:pool_id) { 'pool-id' }
     let(:membership_id) { 'membership-id' }
 
-    it 'deletes lbaas pool membership' do
+    before do
       allow(network).to receive(:delete_lbaas_pool_member)
+    end
+
+    it 'deletes lbaas pool membership' do
+      loadbalancer = instance_double(Bosh::OpenStackCloud::LoadbalancerConfigurator::LoadBalancerResource, 'loadbalancer', provisioning_status: 'ACTIVE')
+      allow(Bosh::OpenStackCloud::LoadbalancerConfigurator::LoadBalancerResource).to receive(:new).and_return(loadbalancer)
 
       subject.remove_vm_from_pool(pool_id, membership_id)
 
       expect(network).to have_received(:delete_lbaas_pool_member).with(pool_id, membership_id)
+      expect(network).to have_received(:get_lbaas_pool).with('pool-id')
+      expect(Bosh::OpenStackCloud::LoadbalancerConfigurator::LoadBalancerResource).to have_received(:new).with('loadbalancer-id', openstack)
+      expect(openstack).to have_received(:wait_resource).with(loadbalancer, :active, :provisioning_status)
+    end
+
+    context 'when pool has no loadbalancer associated' do
+      let(:lb_pool) { double('lb_pool', body: {'pool' => { 'loadbalancers' => []}}) }
+
+      it 'raises an error' do
+        expect{
+          subject.remove_vm_from_pool(pool_id, membership_id)
+        }.to raise_error(Bosh::Clouds::CloudError, /No loadbalancers associated with LBaaS pool 'pool-id'/)
+        expect(network).to_not have_received(:delete_lbaas_pool_member)
+      end
+    end
+
+    context 'when pool has more than one loadbalancer associated' do
+      let(:lb_pool) { double('lb_pool', body: {'pool' => { 'loadbalancers' => [{'id' => 'loadbalancer-id-1'}, {'id' => 'loadbalancer-id-2'}]}}) }
+
+      it 'raises an error' do
+        expect{
+          subject.remove_vm_from_pool(pool_id, membership_id)
+        }.to raise_error(Bosh::Clouds::CloudError, /More than one loadbalancer is associated with LBaaS pool 'pool-id'. It is not possible to verify the status of the loadbalancer responsible for the pool membership./)
+        expect(network).to_not have_received(:delete_lbaas_pool_member)
+      end
     end
 
     context 'when membership not found' do
