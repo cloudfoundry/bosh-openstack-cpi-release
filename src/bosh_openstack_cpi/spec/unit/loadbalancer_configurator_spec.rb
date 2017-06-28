@@ -6,7 +6,8 @@ describe Bosh::OpenStackCloud::LoadbalancerConfigurator do
   let(:logger) { instance_double(Logger, debug: nil) }
   let(:network_spec) { {} }
   let(:openstack) { instance_double(Bosh::OpenStackCloud::Openstack) }
-  let(:network) { double('network', list_lbaas_pools: loadbalancer_pools_response) }
+  let(:network) { double('network', list_lbaas_pools: loadbalancer_pools_response, get_lbaas_pool: lb_pool) }
+  let(:lb_pool) { double('lb_pool', body: {'pool' => { 'loadbalancers' => [{'id' => 'loadbalancer-id'}]}}) }
   let(:loadbalancer_pools_response) { double('response', :body => body) }
   let(:body) {
     {
@@ -26,6 +27,7 @@ describe Bosh::OpenStackCloud::LoadbalancerConfigurator do
   before(:each) do
     allow(openstack).to receive(:with_openstack) { |&block| block.call }
     allow(openstack).to receive(:network).and_return(network)
+    allow(openstack).to receive(:wait_resource)
   end
 
   describe '#create_pool_memberships' do
@@ -69,38 +71,78 @@ describe Bosh::OpenStackCloud::LoadbalancerConfigurator do
   end
 
   describe '#create_membership' do
-    let(:members) { double('lb_member', body: {
-      'members' => [
-        { 'id' => 'member-id-1', 'subnet_id' => 'subnet-id', 'address' => '10.0.0.2', 'protocol_port' => '8080' },
-        { 'id' => 'member-id-2', 'subnet_id' => 'subnet-id', 'address' => '10.0.0.1', 'protocol_port' => '8080' }
-      ]
-    }) }
+    let(:lb_member) { double('lb_member', body: {'member' => {'id' => 'member-id'}}) }
 
     before(:each) do
       allow(logger).to receive(:info)
-      allow(network).to receive(:create_lbaas_pool_member).and_raise(Excon::Errors::Conflict.new('BAM!'))
-      allow(network).to receive(:list_lbaas_pool_members).with('pool-id').and_return(members)
+      allow(network).to receive(:create_lbaas_pool_member).and_return(lb_member)
     end
 
-    context 'when the membership already exists' do
-      it 'returns the id of the existing membership' do
-        membership_id = subject.create_membership('pool-id', '10.0.0.1', '8080', 'subnet-id')
+    it 'waits for loadbalancer to be active and returns the id of the existing membership' do
+      loadbalancer = instance_double(Bosh::OpenStackCloud::LoadbalancerConfigurator::LoadBalancerResource, 'loadbalancer', provisioning_status: 'ACTIVE')
+      allow(Bosh::OpenStackCloud::LoadbalancerConfigurator::LoadBalancerResource).to receive(:new).and_return(loadbalancer)
 
-        expect(membership_id).to eq('member-id-2')
-      end
+      membership_id = subject.create_membership('pool-id', '10.0.0.1', '8080', 'subnet-id')
 
-      it 'logs the fact' do
-        subject.create_membership('pool-id', '10.0.0.1', '8080', 'subnet-id')
+      expect(membership_id).to eq('member-id')
+      expect(network).to have_received(:get_lbaas_pool).with('pool-id')
+      expect(Bosh::OpenStackCloud::LoadbalancerConfigurator::LoadBalancerResource).to have_received(:new).with('loadbalancer-id', openstack)
+      expect(openstack).to have_received(:wait_resource).with(loadbalancer, :active, :provisioning_status)
+    end
 
-        expect(logger).to have_received(:info).with("Load balancer pool membership with pool id 'pool-id', ip '10.0.0.1', and port '8080' already exists. The membership has the id 'member-id-2'.")
+    context 'when pool has no loadbalancer associated' do
+      let(:lb_pool) { double('lb_pool', body: {'pool' => { 'loadbalancers' => []}}) }
+
+      it 'raises an error' do
+        expect{
+          subject.create_membership('pool-id', '10.0.0.1', '8080', 'subnet-id')
+        }.to raise_error(Bosh::Clouds::CloudError, "No loadbalancers associated with LBaaS pool 'pool-id'")
       end
     end
 
-    context 'when the membership supposedly exists, but cannot be matched' do
-      it 'returns an error' do
-        expect {
-          subject.create_membership('pool-id', 'wrong-ip', '8080', 'subnet-id')
-        }.to raise_error(Bosh::Clouds::CloudError, "Load balancer pool membership with pool id 'pool-id', ip 'wrong-ip', and port '8080' supposedly exists, but cannot be found.")
+    context 'when pool has more than one loadbalancer associated' do
+      let(:lb_pool) { double('lb_pool', body: {'pool' => { 'loadbalancers' => [{'id' => 'loadbalancer-id-1'}, {'id' => 'loadbalancer-id-2'}]}}) }
+
+      it 'raises an error' do
+        expect{
+          subject.create_membership('pool-id', '10.0.0.1', '8080', 'subnet-id')
+        }.to raise_error(Bosh::Clouds::CloudError, "More than one loadbalancer is associated with LBaaS pool 'pool-id'. It is not possible to verify the status of the loadbalancer responsible for the pool membership.")
+      end
+    end
+
+    context 'when pool membership cannot be created' do
+      let(:members) { double('lb_member', body: {
+          'members' => [
+              { 'id' => 'member-id-1', 'subnet_id' => 'subnet-id', 'address' => '10.0.0.2', 'protocol_port' => '8080' },
+              { 'id' => 'member-id-2', 'subnet_id' => 'subnet-id', 'address' => '10.0.0.1', 'protocol_port' => '8080' }
+          ]
+      }) }
+
+      before(:each) do
+        allow(network).to receive(:create_lbaas_pool_member).and_raise(Excon::Errors::Conflict.new('BAM!'))
+        allow(network).to receive(:list_lbaas_pool_members).with('pool-id').and_return(members)
+      end
+
+      context 'when the membership already exists' do
+        it 'returns the id of the existing membership' do
+          membership_id = subject.create_membership('pool-id', '10.0.0.1', '8080', 'subnet-id')
+
+          expect(membership_id).to eq('member-id-2')
+        end
+
+        it 'logs the fact' do
+          subject.create_membership('pool-id', '10.0.0.1', '8080', 'subnet-id')
+
+          expect(logger).to have_received(:info).with("Load balancer pool membership with pool id 'pool-id', ip '10.0.0.1', and port '8080' already exists. The membership has the id 'member-id-2'.")
+        end
+      end
+
+      context 'when the membership supposedly exists, but cannot be matched' do
+        it 'returns an error' do
+          expect {
+            subject.create_membership('pool-id', 'wrong-ip', '8080', 'subnet-id')
+          }.to raise_error(Bosh::Clouds::CloudError, "Load balancer pool membership with pool id 'pool-id', ip 'wrong-ip', and port '8080' supposedly exists, but cannot be found.")
+        end
       end
     end
   end
@@ -286,6 +328,22 @@ describe Bosh::OpenStackCloud::LoadbalancerConfigurator do
       expect{
         subject.cleanup_memberships(server_metadata)
       }.to raise_error(Bosh::Clouds::CloudError)
+    end
+  end
+
+  describe Bosh::OpenStackCloud::LoadbalancerConfigurator::LoadBalancerResource do
+    let(:subject) { Bosh::OpenStackCloud::LoadbalancerConfigurator::LoadBalancerResource.new('loadbalancer-id', openstack) }
+    let(:loadbalancer) { double('loadbalancer', body: {'loadbalancer' => {'id' => 'loadbalancer-id', 'provisioning_status' => 'ACTIVE'}}) }
+
+    describe '#provisioning_status' do
+      it 'returns the status of the loadbalancer' do
+        allow(network).to receive(:get_lbaas_loadbalancer).and_return(loadbalancer)
+
+        provisioning_status = subject.provisioning_status
+
+        expect(provisioning_status).to eq('ACTIVE')
+        expect(network).to have_received(:get_lbaas_loadbalancer).with('loadbalancer-id')
+      end
     end
   end
 end

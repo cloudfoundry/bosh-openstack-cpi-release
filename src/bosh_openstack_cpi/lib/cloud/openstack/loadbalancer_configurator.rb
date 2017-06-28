@@ -33,10 +33,10 @@ module Bosh::OpenStackCloud
     def create_membership(pool_id, ip, port, subnet_id)
       @openstack.with_openstack do
         begin
-          @openstack
-            .network
-            .create_lbaas_pool_member(pool_id, ip, port, { subnet_id: subnet_id })
-            .body['member']['id']
+          pool_member_response = @openstack.network.create_lbaas_pool_member(pool_id, ip, port, {subnet_id: subnet_id})
+          loadbalancer_resource = LoadBalancerResource.new(loadbalancer_id(pool_id), @openstack)
+          @openstack.wait_resource(loadbalancer_resource, :active, :provisioning_status)
+          pool_member_response.body['member']['id']
         rescue Excon::Errors::Conflict
           membership_id = @openstack
             .network
@@ -83,6 +83,17 @@ module Bosh::OpenStackCloud
 
     private
 
+    def loadbalancer_id(pool_id)
+      pool_response = @openstack.with_openstack{ @openstack.network.get_lbaas_pool(pool_id) }
+
+      loadbalancers = pool_response.body['pool']['loadbalancers']
+      if loadbalancers.size == 1
+        return loadbalancers[0]['id']
+      end
+      error_message = loadbalancers.empty? ? "No loadbalancers associated with LBaaS pool '#{pool_id}'" : "More than one loadbalancer is associated with LBaaS pool '#{pool_id}'. It is not possible to verify the status of the loadbalancer responsible for the pool membership."
+      raise Bosh::Clouds::CloudError, error_message
+    end
+
     def matching_subnet_id(network_spec, ip)
       subnet_ids = NetworkConfigurator.matching_gateway_subnet_ids_for_ip(network_spec, @openstack, ip)
       if subnet_ids.size > 1
@@ -126,6 +137,17 @@ module Bosh::OpenStackCloud
         raise Bosh::Clouds::VMCreationFailed.new(false), "Load balancer pool '#{pool_name}' exists multiple times. Make sure to use unique naming."
       end
       pools.first['id']
+    end
+
+    class LoadBalancerResource
+      def initialize(loadbalancer_id, openstack)
+        @loadbalancer_id = loadbalancer_id
+        @openstack = openstack
+      end
+
+      def provisioning_status
+        @openstack.network.get_lbaas_loadbalancer(@loadbalancer_id).body['loadbalancer']['provisioning_status']
+      end
     end
   end
 end
