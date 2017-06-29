@@ -377,5 +377,17 @@ describe Bosh::OpenStackCloud::LoadbalancerConfigurator do
         expect(network).to have_received(:get_lbaas_loadbalancer).with('loadbalancer-id')
       end
     end
+
+    describe '#id' do
+      it 'returns the id of the loadbalancer' do
+        expect(subject.id).to eq('loadbalancer-id')
+      end
+    end
+
+    describe '#reload' do
+      it 'returns the id of the loadbalancer' do
+        expect(subject.reload).to eq(true)
+      end
+    end
   end
 end

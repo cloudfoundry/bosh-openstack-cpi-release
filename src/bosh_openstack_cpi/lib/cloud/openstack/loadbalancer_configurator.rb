@@ -142,13 +142,19 @@ module Bosh::OpenStackCloud
     end
 
     class LoadBalancerResource
+      attr_reader :id
+
       def initialize(loadbalancer_id, openstack)
-        @loadbalancer_id = loadbalancer_id
+        @id = loadbalancer_id
         @openstack = openstack
       end
 
+      def reload
+        true
+      end
+
       def provisioning_status
-        @openstack.network.get_lbaas_loadbalancer(@loadbalancer_id).body['loadbalancer']['provisioning_status']
+        @openstack.network.get_lbaas_loadbalancer(@id).body['loadbalancer']['provisioning_status']
       end
     end
   end
