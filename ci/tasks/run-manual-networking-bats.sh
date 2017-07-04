@@ -113,4 +113,4 @@ EOF
 
 cd bats
 bundle install -j4
-bundle exec rspec --tag ~raw_ephemeral_storage --tag ~multiple_manual_networks --tag ~root_partition spec
+bundle exec rspec --tag ~raw_ephemeral_storage --tag ~multiple_manual_networks spec
