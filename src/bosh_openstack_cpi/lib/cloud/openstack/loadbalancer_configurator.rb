@@ -88,10 +88,30 @@ module Bosh::OpenStackCloud
     def loadbalancer_id(pool_id)
       pool_response = @openstack.with_openstack{ @openstack.network.get_lbaas_pool(pool_id) }
 
-      loadbalancers = pool_response.body['pool']['loadbalancers']
-      if loadbalancers.size == 1
-        return loadbalancers[0]['id']
+      loadbalancers = pool_response.body['pool']['loadbalancers'] ||
+                      retrieve_loadbalancers_via_listener(
+                          pool_response.body['pool']['listeners'],
+                          pool_id
+                      )
+
+      extract_loadbalancer_id(loadbalancers, pool_id)
+    end
+
+    def retrieve_loadbalancers_via_listener(listeners, pool_id)
+      if listeners.size != 1
+        error_message = if listeners.empty?
+                          "No listeners associated with LBaaS pool '#{pool_id}'"
+                        else
+                          "More than one listener is associated with LBaaS pool '#{pool_id}'. It is not possible to verify the status of the loadbalancer responsible for the pool membership."
+                        end
+        raise Bosh::Clouds::CloudError, error_message
       end
+      listener_response = @openstack.with_openstack{ @openstack.network.get_lbaas_listener(listeners[0]['id']) }
+      listener_response.body['listener']['loadbalancers']
+    end
+
+    def extract_loadbalancer_id(loadbalancers, pool_id)
+      return loadbalancers[0]['id'] if loadbalancers.size == 1
       error_message = loadbalancers.empty? ? "No loadbalancers associated with LBaaS pool '#{pool_id}'" : "More than one loadbalancer is associated with LBaaS pool '#{pool_id}'. It is not possible to verify the status of the loadbalancer responsible for the pool membership."
       raise Bosh::Clouds::CloudError, error_message
     end
