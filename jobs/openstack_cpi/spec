@@ -109,7 +109,7 @@ properties:
     description: Message bus endpoint for the agent to start accepting agent requests
     example: https://user:password@192.168.0.1:5000
   agent.blobstore.address:
-    description: Address for agent to connect to blobstore server used by s3 blobstore plugin
+    description: Address for agent to connect to blobstore server used by 'dav' blobstore plugin
   agent.blobstore.use_ssl:
     description: Whether the agent blobstore plugin should use SSL to connect to the blobstore server
   agent.blobstore.s3_region:
