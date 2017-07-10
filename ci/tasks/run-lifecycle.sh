@@ -48,8 +48,8 @@ cd bosh-cpi-src-in/src/bosh_openstack_cpi
 bundle install
 
 if [ -n "${BOSH_OPENSTACK_AUTH_URL_V2}" ]; then
-  bundle exec rspec spec/integration 2>&1 | tee ../../../output/lifecycle.log
+  bundle exec rspec -f d spec/integration 2>&1 | tee ../../../output/lifecycle.log
 else
   echo "Excluding Keystone V2 tests."
-  bundle exec rspec spec/integration --exclude-pattern spec/integration/lifecycle_v2_spec.rb 2>&1 | tee ../../../output/lifecycle.log
+  bundle exec rspec -f d spec/integration --exclude-pattern spec/integration/lifecycle_v2_spec.rb 2>&1 | tee ../../../output/lifecycle.log
 fi
