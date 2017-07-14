@@ -85,42 +85,6 @@ describe Bosh::OpenStackCloud::Cloud do
         expect(vm.name).to eq 'openstack_cpi_spec/instance_id'
       end
     end
-
-    describe 'attach_disk' do
-      before do
-        @vm_id = create_vm(@stemcell_id, network_spec, [])
-
-        cpi.set_vm_metadata(@vm_id, {
-          'id' => 'my-id',
-          'deployment' => 'my-deployment',
-          'job' => 'my-job',
-          'index' => 'my-index',
-          'some_key' => 'some_value'
-        })
-
-        @metadata_disk_id = cpi.create_disk(2048, {}, @vm_id)
-      end
-
-      after do
-        cpi.detach_disk(@vm_id, @metadata_disk_id) if @metadata_disk_id && @vm_id
-        clean_up_disk(@metadata_disk_id) if @metadata_disk_id
-        clean_up_vm(@vm_id) if @vm_id
-      end
-
-      it 'copies the vm metadata into the disk and keeps original metadata' do
-        disk = openstack.volume.volumes.get(@metadata_disk_id)
-        original_metadata = disk.metadata
-        cpi.attach_disk(@vm_id, @metadata_disk_id)
-
-        disk = openstack.volume.volumes.get(@metadata_disk_id)
-        expect(disk.metadata).to include(original_metadata)
-        expect(disk.metadata).to include('id' => 'my-id',
-                                         'deployment' => 'my-deployment',
-                                         'job' => 'my-job',
-                                         'index' => 'my-index')
-        expect(disk.metadata).not_to include('some_key' => 'some_value')
-      end
-    end
   end
 
   describe 'manual network' do

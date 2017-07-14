@@ -480,7 +480,6 @@ module Bosh::OpenStackCloud
 
         device_name = attach_volume(server, volume)
 
-        @openstack.with_openstack { TagManager.tag_volume(@openstack.volume, volume.id, to_disk_tags(server.metadata)) }
         update_agent_settings(server) do |settings|
           settings['disks'] ||= {}
           settings['disks']['persistent'] ||= {}
@@ -1062,10 +1061,6 @@ module Bosh::OpenStackCloud
       keypair = @openstack.with_openstack { @openstack.compute.key_pairs.find { |k| k.name == keyname } }
       cloud_error("Key-pair `#{keyname}' not found") if keypair.nil?
       @logger.debug("Using key-pair: `#{keypair.name}' (#{keypair.fingerprint})")
-    end
-
-    def to_disk_tags(server_metadata)
-      metadata_to_tags(server_metadata).select{ |key, _| ['deployment','job','index','id'].include?(key) }
     end
 
     def metadata_to_tags(fog_metadata)

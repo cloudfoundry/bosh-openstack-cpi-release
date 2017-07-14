@@ -10,7 +10,6 @@ describe Bosh::OpenStackCloud::Cloud do
       expect(fog.compute.servers).to receive(:get).with('i-test').and_return(server)
       expect(fog.volume.volumes).to receive(:get).with('v-foobar').and_return(volume)
       expect(fog.compute.flavors).to receive(:find).and_return(flavor)
-      allow(fog.volume).to receive(:update_metadata)
     end
   end
   let(:cloud_options) { mock_cloud_options }
@@ -42,28 +41,6 @@ describe Bosh::OpenStackCloud::Cloud do
     expect(@registry).to receive(:update_settings).with('i-test', new_settings)
 
     cloud.attach_disk('i-test', 'v-foobar')
-  end
-
-  context 'setting disk metadata' do
-    let(:deployment_md) { double('metadatum', {'key' => 'deployment', 'value' => 'deployment-1'}) }
-    let(:job_md) { double('metadatum', {'key' => 'job', 'value' => 'job-1'}) }
-    let(:index_md) { double('metadatum', {'key' => 'index', 'value' => 'index-1'}) }
-    let(:id_md) { double('metadatum', {'key' => 'id', 'value' => 'id-1'}) }
-    let(:some_other_server_metadatum) { double('metadatum', {'key' => 'foo', 'value' => 'bar'}) }
-    let(:server_metadata) { [deployment_md, job_md, index_md, id_md, some_other_server_metadatum] }
-
-    before(:each) do
-      allow(server).to receive(:volume_attachments).and_return([])
-      allow(server).to receive(:attach_volume)
-      allow(cloud.openstack).to receive(:wait_resource)
-      allow(cloud).to receive(:update_agent_settings)
-    end
-
-    it 'copies the relevant server metadata to the disk' do
-      cloud.attach_disk('i-test', 'v-foobar')
-
-      expect(cloud.volume).to have_received(:update_metadata).with('v-foobar', {'deployment' => 'deployment-1', 'job' => 'job-1', 'index' => 'index-1', 'id' => 'id-1'})
-    end
   end
 
   it 'picks available device name' do
@@ -110,7 +87,6 @@ describe Bosh::OpenStackCloud::Cloud do
     cloud = mock_cloud do |fog|
       expect(fog.compute.servers).to receive(:get).with('i-test').and_return(server)
       expect(fog.volume.volumes).to receive(:get).with('v-foobar').and_return(volume)
-      allow(fog.volume).to receive(:update_metadata)
     end
 
     expect(server).to receive(:volume_attachments).and_return(volume_attachments)
