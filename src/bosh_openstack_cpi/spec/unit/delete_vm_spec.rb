@@ -65,20 +65,20 @@ describe Bosh::OpenStackCloud::Cloud do
     end
   end
 
-  it 'deletes an OpenStack server' do
+  it 'deletes an OpenStack server after removing the lbaas pool membership' do
     cloud.delete_vm('i-foobar')
 
-    expect(server).to have_received(:destroy)
-    expect(cloud.openstack).to have_received(:wait_resource).with(server, [:terminated, :deleted], :state, true)
-    expect(Bosh::OpenStackCloud::NetworkConfigurator).to have_received(:cleanup_ports).with(any_args, ['port_id'])
-    expect(@registry).to have_received(:delete_settings).with(registry_key)
     expect(loadbalancer_configurator).to have_received(:cleanup_memberships).with(
       {
         'lbaas_pool_0' => 'pool-id-0/membership-id-0',
         'job' => 'bosh',
         'registry_key' => 'vm-registry-key'
       }
-    )
+    ).ordered
+    expect(server).to have_received(:destroy).ordered
+    expect(cloud.openstack).to have_received(:wait_resource).with(server, [:terminated, :deleted], :state, true).ordered
+    expect(Bosh::OpenStackCloud::NetworkConfigurator).to have_received(:cleanup_ports).with(any_args, ['port_id']).ordered
+    expect(@registry).to have_received(:delete_settings).with(registry_key)
   end
 
   context 'when server destroy fails' do

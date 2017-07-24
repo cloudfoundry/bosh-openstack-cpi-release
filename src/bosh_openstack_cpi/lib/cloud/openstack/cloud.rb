@@ -322,11 +322,13 @@ module Bosh::OpenStackCloud
           @logger.debug("Network ports: `#{server_port_ids.join(', ')}' found for server #{server_id}")
           server_tags = metadata_to_tags(server.metadata)
           @logger.debug("Server tags: `#{server_tags}' found for server #{server_id}")
+
+          lbaas_error = catch_error('Removing lbaas pool memberships') { LoadbalancerConfigurator.new(@openstack, @logger).cleanup_memberships(server_tags) }
           @openstack.with_openstack { server.destroy }
           @openstack.wait_resource(server, [:terminated, :deleted], :state, true)
           fail_on_error(
             catch_error('Removing ports') { NetworkConfigurator.cleanup_ports(@openstack, server_port_ids) },
-            catch_error('Removing lbaas pool memberships') { LoadbalancerConfigurator.new(@openstack, @logger).cleanup_memberships(server_tags) },
+            lbaas_error,
             catch_error('Deleting registry settings') {
               registry_key = server_tags.fetch(REGISTRY_KEY_TAG.to_s, server.name)
               @logger.info("Deleting settings for server `#{server.id}' with registry_key `#{registry_key}' ...")
