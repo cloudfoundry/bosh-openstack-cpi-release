@@ -34,8 +34,10 @@ module Bosh::OpenStackCloud
       @openstack.with_openstack do
         begin
           loadbalancer_id = loadbalancer_id(pool_id)
+          resource = LoadBalancerResource.new(loadbalancer_id, @openstack)
+          @openstack.wait_resource(resource, :active, :provisioning_status)
           pool_member_response = @openstack.network.create_lbaas_pool_member(pool_id, ip, port, {subnet_id: subnet_id})
-          @openstack.wait_resource(LoadBalancerResource.new(loadbalancer_id, @openstack), :active, :provisioning_status)
+          @openstack.wait_resource(resource, :active, :provisioning_status)
           pool_member_response.body['member']['id']
         rescue Excon::Errors::Conflict
           membership_id = @openstack
@@ -74,8 +76,10 @@ module Bosh::OpenStackCloud
     def remove_vm_from_pool(pool_id, membership_id)
       begin
         loadbalancer_id = loadbalancer_id(pool_id)
+        resource = LoadBalancerResource.new(loadbalancer_id, @openstack)
+        @openstack.wait_resource(resource, :active, :provisioning_status)
         @openstack.with_openstack{ @openstack.network.delete_lbaas_pool_member(pool_id, membership_id) }
-        @openstack.wait_resource(LoadBalancerResource.new(loadbalancer_id, @openstack), :active, :provisioning_status)
+        @openstack.wait_resource(resource, :active, :provisioning_status)
       rescue Fog::Network::OpenStack::NotFound
         @logger.debug("Skipping deletion of lbaas pool member. Member with pool_id '#{pool_id}' and membership_id '#{membership_id}' does not exist.")
       rescue => e

@@ -88,7 +88,21 @@ describe Bosh::OpenStackCloud::LoadbalancerConfigurator do
       expect(membership_id).to eq('member-id')
       expect(network).to have_received(:get_lbaas_pool).with('pool-id')
       expect(Bosh::OpenStackCloud::LoadbalancerConfigurator::LoadBalancerResource).to have_received(:new).with('loadbalancer-id', openstack)
-      expect(openstack).to have_received(:wait_resource).with(loadbalancer, :active, :provisioning_status)
+      expect(openstack).to have_received(:wait_resource).with(loadbalancer, :active, :provisioning_status).twice
+    end
+
+    it 'runs into time out while waiting for load balancer to be active before creating pool member' do
+      loadbalancer = instance_double(Bosh::OpenStackCloud::LoadbalancerConfigurator::LoadBalancerResource, 'loadbalancer', provisioning_status: 'PENDING_UPDATE')
+      allow(Bosh::OpenStackCloud::LoadbalancerConfigurator::LoadBalancerResource).to receive(:new).and_return(loadbalancer)
+      allow(openstack).to receive(:wait_resource).with(loadbalancer, :active, :provisioning_status).and_raise(Bosh::Clouds::CloudError.new("Timed out waiting for load balancer to be ACTIVE"))
+
+      expect {
+        subject.create_membership('pool-id', '10.0.0.1', '8080', 'subnet-id')
+      }.to raise_error(Bosh::Clouds::CloudError, "Timed out waiting for load balancer to be ACTIVE")
+
+      expect(network).to have_received(:get_lbaas_pool).with('pool-id')
+      expect(network).to_not have_received(:create_lbaas_pool_member)
+      expect(openstack).to have_received(:wait_resource).with(loadbalancer, :active, :provisioning_status).once
     end
 
     context 'when pool does not have loadbalancers property (before Newton)' do
@@ -322,6 +336,21 @@ describe Bosh::OpenStackCloud::LoadbalancerConfigurator do
       subject.remove_vm_from_pool(pool_id, membership_id)
 
       expect(network).to have_received(:delete_lbaas_pool_member).with(pool_id, membership_id)
+      expect(network).to have_received(:get_lbaas_pool).with('pool-id')
+      expect(Bosh::OpenStackCloud::LoadbalancerConfigurator::LoadBalancerResource).to have_received(:new).with('loadbalancer-id', openstack)
+      expect(openstack).to have_received(:wait_resource).with(loadbalancer, :active, :provisioning_status).twice
+    end
+
+    it 'runs into time out while waiting for load balancer to be active before deleting pool member' do
+      loadbalancer = instance_double(Bosh::OpenStackCloud::LoadbalancerConfigurator::LoadBalancerResource, 'loadbalancer', provisioning_status: 'PENDING_UPDATE')
+      allow(Bosh::OpenStackCloud::LoadbalancerConfigurator::LoadBalancerResource).to receive(:new).and_return(loadbalancer)
+      allow(openstack).to receive(:wait_resource).with(loadbalancer, :active, :provisioning_status).and_raise(Bosh::Clouds::CloudError.new("Timed out waiting for load balancer to be ACTIVE"))
+
+      expect {
+        subject.remove_vm_from_pool(pool_id, membership_id)
+      }.to raise_error(Bosh::Clouds::CloudError)
+
+      expect(network).to_not have_received(:delete_lbaas_pool_member)
       expect(network).to have_received(:get_lbaas_pool).with('pool-id')
       expect(Bosh::OpenStackCloud::LoadbalancerConfigurator::LoadBalancerResource).to have_received(:new).with('loadbalancer-id', openstack)
       expect(openstack).to have_received(:wait_resource).with(loadbalancer, :active, :provisioning_status)
