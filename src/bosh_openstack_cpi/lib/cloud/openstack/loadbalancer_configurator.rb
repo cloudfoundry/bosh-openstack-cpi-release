@@ -78,10 +78,14 @@ module Bosh::OpenStackCloud
         loadbalancer_id = loadbalancer_id(pool_id)
         resource = LoadBalancerResource.new(loadbalancer_id, @openstack)
         @openstack.wait_resource(resource, :active, :provisioning_status)
-        @openstack.with_openstack{ @openstack.network.delete_lbaas_pool_member(pool_id, membership_id) }
+        @openstack.with_openstack do
+          begin
+            @openstack.network.delete_lbaas_pool_member(pool_id, membership_id)
+          rescue Fog::Network::OpenStack::NotFound
+            @logger.debug("Skipping deletion of lbaas pool member. Member with pool_id '#{pool_id}' and membership_id '#{membership_id}' does not exist.")
+          end
+        end
         @openstack.wait_resource(resource, :active, :provisioning_status)
-      rescue Fog::Network::OpenStack::NotFound
-        @logger.debug("Skipping deletion of lbaas pool member. Member with pool_id '#{pool_id}' and membership_id '#{membership_id}' does not exist.")
       rescue => e
         raise Bosh::Clouds::CloudError, "Deleting LBaaS member with pool_id '#{pool_id}' and membership_id '#{membership_id}' failed. Reason: #{e.class.to_s} #{e.message}"
       end

@@ -5,7 +5,8 @@ describe Bosh::OpenStackCloud::LoadbalancerConfigurator do
   subject(:subject) { Bosh::OpenStackCloud::LoadbalancerConfigurator.new(openstack, logger) }
   let(:logger) { instance_double(Logger, debug: nil) }
   let(:network_spec) { {} }
-  let(:openstack) { instance_double(Bosh::OpenStackCloud::Openstack) }
+  let(:options) { { 'auth_url' => ''} }
+  let(:openstack) { Bosh::OpenStackCloud::Openstack.new(options) }
   let(:network) { double('network', list_lbaas_pools: loadbalancer_pools_response, get_lbaas_listener: lb_listener, get_lbaas_pool: lb_pool) }
   let(:lb_listener) { double('lb_listener', body: {'listener' => { 'loadbalancers' => [{'id' => 'loadbalancer-id'}]}}) }
   let(:lb_pool) { double('lb_pool', body: {'pool' => { 'loadbalancers' => [{'id' => 'loadbalancer-id'}]}}) }
@@ -26,7 +27,6 @@ describe Bosh::OpenStackCloud::LoadbalancerConfigurator do
   }
 
   before(:each) do
-    allow(openstack).to receive(:with_openstack) { |&block| block.call }
     allow(openstack).to receive(:network).and_return(network)
     allow(openstack).to receive(:wait_resource)
   end
@@ -379,17 +379,17 @@ describe Bosh::OpenStackCloud::LoadbalancerConfigurator do
     end
 
     context 'when membership not found' do
-      it 'does not raise' do
+      before do
         allow(network).to receive(:delete_lbaas_pool_member).and_raise(Fog::Network::OpenStack::NotFound)
+      end
 
+      it 'does not raise' do
         expect{
           subject.remove_vm_from_pool(pool_id, membership_id)
         }.to_not raise_error
       end
 
       it 'logs error' do
-        allow(network).to receive(:delete_lbaas_pool_member).and_raise(Fog::Network::OpenStack::NotFound)
-
         expect{
           subject.remove_vm_from_pool(pool_id, membership_id)
         }.to_not raise_error
