@@ -28,7 +28,7 @@ pushd src/bosh_openstack_cpi
       git config --global user.name CI
       git commit -m "Bump gems"
       git push origin HEAD:auto-update-test
-      hub pull-request -f -b origin:master -h origin:auto-update-test -m "Bump gems"
+      hub pull-request -f -b master -h auto-update-test -m "Bump gems"
   else
     echo "No new gem versions found"
   fi
