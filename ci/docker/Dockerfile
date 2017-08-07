@@ -32,9 +32,9 @@ RUN python -m ensurepip && pip install pytz && pip install python-openstackclien
 
 # ruby-install
 RUN mkdir /tmp/ruby-install && \
-    cd /tmp && \
+    cd /tmp/ruby-install && \
     curl https://codeload.github.com/postmodern/ruby-install/tar.gz/v0.6.1 | tar -xz && \
-    cd /tmp/ruby-install-0.6.1 && \
+    cd /tmp/ruby-install/ruby-install-0.6.1 && \
     sudo make install && \
     rm -rf /tmp/ruby-install
 
@@ -56,3 +56,10 @@ RUN cd /tmp && \
     curl -o certify-artifacts -L https://s3.amazonaws.com/bosh-certification-generator-releases/certify-artifacts-linux-amd64 && \
     chmod +x certify-artifacts && \
     mv certify-artifacts /bin/certify-artifacts
+
+#GitHub CLI
+RUN cd /tmp && \
+    curl -L https://github.com/github/hub/releases/download/v2.2.9/hub-linux-amd64-2.2.9.tgz | tar -xz && \
+    cp hub-linux-amd64-2.2.9/bin/hub /usr/local/bin && \
+    rm -rf /tmp/hub-linux-amd64-2.2.9 && \
+    rm -f /tmp/hub-linux-amd64-2.2.9.tgz
