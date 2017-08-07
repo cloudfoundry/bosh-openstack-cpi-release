@@ -13,9 +13,9 @@ pushd bosh-cpi-src-in
   fi
 popd
 
-cp -r bosh-cpi-src-in bosh-cpi-src-out
+cp -r bosh-cpi-src-in bosh-cpi-src-out/repo
 
-cd bosh-cpi-src-out/src/bosh_openstack_cpi
+cd bosh-cpi-src-out/repo/src/bosh_openstack_cpi
 echo "Looking for new gem versions"
 rm Gemfile.lock
 ./vendor_gems
