@@ -5,6 +5,7 @@ set -x
 
 pushd bosh-cpi-src-in
   echo "Check if latest auto-update commit has already been merged to master"
+  git fetch origin auto-update:refs/remotes/origin/auto-update
   pr_open=$(git branch master --contains $(git rev-parse origin/auto-update))
   if [ -z ${pr_open} ]; then
     echo "PR is open. Merge first"
