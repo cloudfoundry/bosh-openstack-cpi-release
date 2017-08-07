@@ -12,6 +12,22 @@ jobs:
         timeout: 2h
         file: bosh-cpi-src-in/ci/pipelines/auto-update/tasks/auto-update-gems.yml
 
+      - put: bosh-cpi-src-out
+        tags: ['blue-box']
+        timeout: 2h
+        params: {repository: bosh-cpi-src-out, rebase: true}
+
+  - name: pull-request
+    serial: true
+    plan:
+      - aggregate:
+        - {trigger: true, get: bosh-cpi-src-out, passed: [auto-update], tags: ['blue-box'], timeout: 2h}
+
+      - task: pull-request
+        tags: ['blue-box']
+        timeout: 2h
+        file: bosh-cpi-src-in/ci/pipelines/auto-update/tasks/pull-request.yml
+
 resources:
   - name: bosh-cpi-src-in
     type: git
@@ -19,11 +35,14 @@ resources:
     source:
       uri: https://github.com/cloudfoundry-incubator/bosh-openstack-cpi-release.git
       branch: master
-      ignore_paths:
-        - releases/bosh-openstack-cpi/**
-        - .final_builds/**
-        - docs/**
-        - README.md
+
+  - name: bosh-cpi-src-out
+    type: git
+    tags: ['blue-box']
+    source:
+      uri: git@github.com:cloudfoundry-incubator/bosh-openstack-cpi-release.git
+      branch: auto-update
+      private_key: {{github_deployment_key__bosh-openstack-cpi-release}}
 
   - name: pipeline-time-trigger
     type: time

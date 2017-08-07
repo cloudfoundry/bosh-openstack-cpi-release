@@ -10,7 +10,9 @@ if [ -z ${pr_open} ]; then
   exit 1
 fi
 
-cd bosh-cpi-src-in
+cp -r bosh-cpi-src-in bosh-cpi-src-out
+
+cd bosh-cpi-src-out
 pushd src/bosh_openstack_cpi
   echo "Looking for new gem versions"
   rm Gemfile.lock
@@ -26,8 +28,6 @@ pushd src/bosh_openstack_cpi
       git config --global user.email cf-bosh-eng@pivotal.io
       git config --global user.name CI
       git commit -m "Bump gems"
-      git push origin HEAD:auto-update
-      hub pull-request -f -b master -h auto-update-m "Bump gems"
   else
     echo "No new gem versions found"
   fi
