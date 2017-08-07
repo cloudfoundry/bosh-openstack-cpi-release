@@ -6,7 +6,7 @@ image_resource:
     repository: boshcpi/openstack-cpi-release
 inputs:
   - name: bosh-cpi-src-in
-output:
+outputs:
   - name: bosh-cpi-src-out
 run:
   path: bosh-cpi-src-in/ci/pipelines/auto-update/tasks/auto-update-gems.sh
