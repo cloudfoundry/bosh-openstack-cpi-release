@@ -3,9 +3,9 @@
 set -e
 set -x
 
-export GITHUB_TOKEN=${bosh-openstack-cpi-release-github-token}
+export GITHUB_TOKEN=${bosh_openstack_cpi_release_github_token}
 export SSH_KEY="ssh.key"
-echo "${bosh-openstack-cpi-release-github-key}" > ${SSH_KEY}
+echo "${bosh_openstack_cpi_release_github_key}" > ${SSH_KEY}
 eval $(ssh-agent)
 chmod go-r ${SSH_KEY}
 ssh-add ${SSH_KEY}
