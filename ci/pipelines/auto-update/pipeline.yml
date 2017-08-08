@@ -27,6 +27,9 @@ jobs:
         tags: ['blue-box']
         timeout: 2h
         file: bosh-cpi-src-out/ci/pipelines/auto-update/tasks/pull-request.yml
+        params:
+          bosh-openstack-cpi-release-github-token: {{bosh-openstack-cpi-release-github-token}}
+          bosh-openstack-cpi-release-github-key: {{bosh-openstack-cpi-release-github-key}}
 
 resources:
   - name: bosh-cpi-src-in
@@ -42,7 +45,8 @@ resources:
     source:
       uri: git@github.com:cloudfoundry-incubator/bosh-openstack-cpi-release.git
       branch: auto-update
-      private_key: {{github_deployment_key__bosh-openstack-cpi-release}}
+      private_key: {{bosh-openstack-cpi-release-github-key}}
+      force: 'true'
 
   - name: pipeline-time-trigger
     type: time

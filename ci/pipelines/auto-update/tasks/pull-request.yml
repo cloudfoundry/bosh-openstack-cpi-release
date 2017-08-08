@@ -8,3 +8,6 @@ inputs:
   - name: bosh-cpi-src-out
 run:
   path: bosh-cpi-src-out/ci/pipelines/auto-update/tasks/pull-request.sh
+params:
+  bosh-openstack-cpi-release-github-token: ""
+  bosh-openstack-cpi-release-github-key:   ""
