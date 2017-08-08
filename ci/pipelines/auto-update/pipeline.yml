@@ -15,7 +15,7 @@ jobs:
       - put: bosh-cpi-src-out
         tags: ['blue-box']
         timeout: 2h
-        params: {repository: bosh-cpi-src-out, rebase: true}
+        params: {repository: bosh-cpi-src-out/repo, rebase: true}
 
   - name: pull-request
     serial: true
@@ -26,7 +26,7 @@ jobs:
       - task: pull-request
         tags: ['blue-box']
         timeout: 2h
-        file: bosh-cpi-src-in/ci/pipelines/auto-update/tasks/pull-request.yml
+        file: bosh-cpi-src-out/ci/pipelines/auto-update/tasks/pull-request.yml
 
 resources:
   - name: bosh-cpi-src-in

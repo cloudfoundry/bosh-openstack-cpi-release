@@ -7,4 +7,4 @@ image_resource:
 inputs:
   - name: bosh-cpi-src-out
 run:
-  path: bosh-cpi-src-in/ci/pipelines/auto-update/tasks/pull-request.sh
+  path: bosh-cpi-src-out/ci/pipelines/auto-update/tasks/pull-request.sh
