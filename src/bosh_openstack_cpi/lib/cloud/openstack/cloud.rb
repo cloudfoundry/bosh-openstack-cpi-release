@@ -212,7 +212,7 @@ module Bosh::OpenStackCloud
               user_data: JSON.dump(user_data(registry_key, network_configurator.network_spec))
           })
 
-          @logger.debug("Using boot parms: `#{Redactor.clone_and_redact(server_params, 'user_data').inspect}'")
+          @logger.debug("Using boot parms: `#{Bosh::Cpi::Redactor.clone_and_redact(server_params, 'user_data').inspect}'")
           server = @openstack.with_openstack do
             begin
               @openstack.compute.servers.create(server_params)
