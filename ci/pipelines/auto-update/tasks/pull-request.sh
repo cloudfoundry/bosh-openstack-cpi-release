@@ -10,6 +10,8 @@ eval $(ssh-agent)
 chmod go-r ${SSH_KEY}
 ssh-add ${SSH_KEY}
 
+ssh-keyscan github.com > ~/.ssh/known_hosts
+
 cd bosh-cpi-src-out
 echo "Check if latest auto-update commit has already been merged to master"
 git fetch origin master:refs/remotes/origin/master
@@ -18,6 +20,7 @@ pull_request=$(hub issue | grep "Bump gems") || no_pull_request=$?
 if [ -z ${new_commits_available} ]; then
   if [ -v no_pull_request ]; then
     echo "Creating pull-request"
+    git checkout auto-update
     hub pull-request -b master -h auto-update -m "Bump gems"
   else
     echo "Open pull-request found: ${pull_request}"
