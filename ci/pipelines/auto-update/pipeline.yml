@@ -15,7 +15,7 @@ jobs:
       - put: bosh-cpi-src-out
         tags: ['blue-box']
         timeout: 2h
-        params: {repository: bosh-cpi-src-out/repo, rebase: true}
+        params: {repository: bosh-cpi-src-out/repo, force: true}
 
   - name: pull-request
     serial: true
@@ -46,7 +46,6 @@ resources:
       uri: git@github.com:cloudfoundry-incubator/bosh-openstack-cpi-release.git
       branch:      auto-update
       private_key: {{bosh-openstack-cpi-release-github-key}}
-      force:       'true'
 
   - name: pipeline-time-trigger
     type: time
