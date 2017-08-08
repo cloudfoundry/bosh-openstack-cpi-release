@@ -10,6 +10,7 @@ eval $(ssh-agent)
 chmod go-r ${SSH_KEY}
 ssh-add ${SSH_KEY}
 
+mkdir -p ~/.ssh
 ssh-keyscan github.com > ~/.ssh/known_hosts
 
 cd bosh-cpi-src-out
