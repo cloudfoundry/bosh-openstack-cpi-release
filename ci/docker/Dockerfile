@@ -8,7 +8,7 @@ ENV LC_ALL en_US.UTF-8
 RUN apt-get update; \
     apt-get -y upgrade; \
     apt-get install -y \
-    git curl wget tar make uuid-runtime \
+    curl wget tar make uuid-runtime \
     sqlite3 libsqlite3-dev \
     mysql-client libmysqlclient-dev \
     postgresql-9.3 postgresql-client-9.3 libpq-dev \
@@ -29,6 +29,12 @@ RUN CURRENT=$PWD && \
 
 RUN python -m ensurepip && pip install pytz && pip install python-openstackclient==2.6.0 && \
     pip install python-neutronclient==6.0.0 && pip install awscli
+
+# install newest git CLI
+RUN apt-get install software-properties-common -y; \
+    add-apt-repository ppa:git-core/ppa -y; \
+    apt-get update; \
+    apt-get install git -y
 
 # ruby-install
 RUN mkdir /tmp/ruby-install && \
