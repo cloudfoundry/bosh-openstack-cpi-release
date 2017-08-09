@@ -1,6 +1,6 @@
 ---
 jobs:
-  - name: auto-update
+  - name: auto-update-gems
     serial: true
     plan:
       - aggregate:
@@ -16,12 +16,27 @@ jobs:
         tags: ['blue-box']
         timeout: 2h
         params: {repository: bosh-cpi-src-out/repo, force: true}
+  - name: auto-update-packages
+    serial: true
+    plan:
+      - aggregate:
+        - {trigger: true,  get: bosh-cpi-src-out, passed: [auto-update-gems], tags: ['blue-box'], timeout: 2h}
+
+      - task: auto-update-packages
+        tags: ['blue-box']
+        timeout: 2h
+        file: bosh-cpi-src-out/ci/pipelines/auto-update/tasks/auto-update-packages.yml
+
+      - put: bosh-cpi-src-out
+        tags: ['blue-box']
+        timeout: 2h
+        params: {repository: bosh-cpi-src-updated-packages-out/repo, force: true}
 
   - name: pull-request
     serial: true
     plan:
       - aggregate:
-        - {trigger: true, get: bosh-cpi-src-out, passed: [auto-update], tags: ['blue-box'], timeout: 2h}
+        - {trigger: true, get: bosh-cpi-src-out, passed: [auto-update-packages], tags: ['blue-box'], timeout: 2h}
 
       - task: pull-request
         tags: ['blue-box']
@@ -37,14 +52,14 @@ resources:
     tags: ['blue-box']
     source:
       uri: https://github.com/cloudfoundry-incubator/bosh-openstack-cpi-release.git
-      branch: master
+      branch: wip-auto-update
 
   - name: bosh-cpi-src-out
     type: git
     tags: ['blue-box']
     source:
       uri: git@github.com:cloudfoundry-incubator/bosh-openstack-cpi-release.git
-      branch:      auto-update
+      branch:      wip-ci-auto-update
       private_key: {{bosh-openstack-cpi-release-github-key}}
 
   - name: pipeline-time-trigger
