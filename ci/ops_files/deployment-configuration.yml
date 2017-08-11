@@ -46,10 +46,4 @@
   value: false
 
 - type: remove
-  path: /instance_groups/name=bosh/properties/director/db/listen_address?
-
-- type: remove
-  path: /instance_groups/name=bosh/properties/postgres/listen_address?
-
-- type: remove
-  path: /instance_groups/name=bosh/properties/postgres/additional_databases?
+  path: /instance_groups/name=bosh/properties/dns/recursor?

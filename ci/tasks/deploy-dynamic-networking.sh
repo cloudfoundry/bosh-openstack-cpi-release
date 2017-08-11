@@ -82,7 +82,6 @@ bosh-go int ../bosh-deployment/bosh.yml \
     -o ../bosh-cpi-src-in/ci/ops_files/custom-dynamic-networking.yml \
     -o ../bosh-cpi-src-in/ci/ops_files/timeouts.yml \
     -o ../bosh-cpi-src-in/ci/ops_files/ntp.yml \
-    -o ../bosh-cpi-src-in/ci/ops_files/custom-powerdns.yml \
     -v auth_url=${openstack_auth_url} \
     -v availability_zone=${availability_zone:-'~'} \
     -v bosh_vcap_password_hash=${bosh_vcap_password_hash} \
