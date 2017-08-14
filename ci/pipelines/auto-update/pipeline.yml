@@ -1,32 +1,91 @@
 ---
 jobs:
-  - name: auto-update
+  - name: update-gems
     serial: true
     plan:
       - aggregate:
         - {trigger: false,  get: bosh-cpi-src-in,       tags: ['blue-box'], timeout: 2h}
+        - {trigger: false,  get: gems-src-in,           tags: ['blue-box'], timeout: 2h}
         - {trigger: true,   get: pipeline-time-trigger, tags: ['blue-box'], timeout: 2h}
 
-      - task: auto-update-gems
+      - task: update-gems
         tags: ['blue-box']
         timeout: 2h
-        file: bosh-cpi-src-in/ci/pipelines/auto-update/tasks/auto-update-gems.yml
+        file: bosh-cpi-src-in/ci/pipelines/auto-update/tasks/update-gems.yml
 
-      - put: bosh-cpi-src-out
+      - put: gems-src-out
         tags: ['blue-box']
         timeout: 2h
-        params: {repository: bosh-cpi-src-out/repo, force: true}
+        params: {repository: gems-src-out, force: true}
 
-  - name: pull-request
+  - name: update-metalinks
     serial: true
     plan:
       - aggregate:
-        - {trigger: true, get: bosh-cpi-src-out, passed: [auto-update], tags: ['blue-box'], timeout: 2h}
+        - {trigger: true,   get: pipeline-time-trigger, tags: ['blue-box'], timeout: 2h}
+        - {trigger: false,  get: bosh-cpi-src-in,       tags: ['blue-box'], timeout: 2h}
+        - {trigger: false,  get: metalink-src-in,       tags: ['blue-box'], timeout: 2h}
+
+      - task: update-metalinks
+        tags: ['blue-box']
+        timeout: 2h
+        file: bosh-cpi-src-in/ci/pipelines/auto-update/tasks/update-metalinks.yml
+
+      - put: metalink-src-out
+        tags: ['blue-box']
+        timeout: 2h
+        params: { repository: metalink-src-out, force: true}
+
+  - name: update-packages
+    serial: true
+    plan:
+      - aggregate:
+        - {trigger: false, get: bosh-cpi-src-in, tags: ['blue-box'], timeout: 2h}
+        - {trigger: false, get: packages-src-in, tags: ['blue-box'], timeout: 2h}
+        - {trigger: true,  get: yaml-blob,       tags: ['blue-box'], timeout: 2h}
+        - {trigger: true,  get: ruby-blob,       tags: ['blue-box'], timeout: 2h}
+        - {trigger: true,  get: bundler-blob,    tags: ['blue-box'], timeout: 2h}
+        - {trigger: true,  get: rubygems-blob,   tags: ['blue-box'], timeout: 2h}
+
+      - task: update-packages
+        tags: ['blue-box']
+        timeout: 2h
+        file: bosh-cpi-src-in/ci/pipelines/auto-update/tasks/update-packages.yml
+        params:
+          aws_access_key_id: {{s3_openstack_cpi_blobs_access_key}}
+          aws_secret_access_key: {{s3_openstack_cpi_blobs_secret_key}}
+
+      - put: packages-src-out
+        tags: ['blue-box']
+        timeout: 2h
+        params: {repository: packages-src-out, force: true}
+
+  - name: gems-pull-request
+    serial: true
+    plan:
+      - aggregate:
+        - {trigger: true, get: bosh-cpi-src-in, passed: [update-gems], tags: ['blue-box'], timeout: 2h}
+        - {trigger: true, get: gems-src-out,    passed: [update-gems], tags: ['blue-box'], timeout: 2h}
 
       - task: pull-request
         tags: ['blue-box']
         timeout: 2h
-        file: bosh-cpi-src-out/ci/pipelines/auto-update/tasks/pull-request.yml
+        file: bosh-cpi-src-in/ci/pipelines/auto-update/tasks/gems-pull-request.yml
+        params:
+          bosh_openstack_cpi_release_github_token: {{bosh-openstack-cpi-release-github-token}}
+          bosh_openstack_cpi_release_github_key:   {{bosh-openstack-cpi-release-github-key}}
+
+  - name: packages-pull-request
+    serial: true
+    plan:
+      - aggregate:
+        - {trigger: true, get: bosh-cpi-src-in,  passed: [update-packages], tags: ['blue-box'], timeout: 2h}
+        - {trigger: true, get: packages-src-out, passed: [update-packages], tags: ['blue-box'], timeout: 2h}
+
+      - task: pull-request
+        tags: ['blue-box']
+        timeout: 2h
+        file: bosh-cpi-src-in/ci/pipelines/auto-update/tasks/packages-pull-request.yml
         params:
           bosh_openstack_cpi_release_github_token: {{bosh-openstack-cpi-release-github-token}}
           bosh_openstack_cpi_release_github_key:   {{bosh-openstack-cpi-release-github-key}}
@@ -39,16 +98,83 @@ resources:
       uri: https://github.com/cloudfoundry-incubator/bosh-openstack-cpi-release.git
       branch: master
 
-  - name: bosh-cpi-src-out
+  - name: packages-src-in
+    type: git
+    tags: ['blue-box']
+    source:
+      uri: https://github.com/cloudfoundry-incubator/bosh-openstack-cpi-release.git
+      branch: packages-auto-update
+
+  - name: packages-src-out
     type: git
     tags: ['blue-box']
     source:
       uri: git@github.com:cloudfoundry-incubator/bosh-openstack-cpi-release.git
-      branch:      auto-update
+      branch:      packages-auto-update
       private_key: {{bosh-openstack-cpi-release-github-key}}
+
+  - name: metalink-src-in
+    type: git
+    tags: ['blue-box']
+    source:
+      uri: https://github.com/cloudfoundry-incubator/bosh-openstack-cpi-release.git
+      branch:      metalink-update
+
+  - name: metalink-src-out
+    type: git
+    tags: ['blue-box']
+    source:
+      uri: git@github.com:cloudfoundry-incubator/bosh-openstack-cpi-release.git
+      branch:      metalink-update
+      private_key: {{bosh-openstack-cpi-release-github-key}}
+
+  - name: gems-src-out
+    type: git
+    tags: ['blue-box']
+    source:
+      uri: git@github.com:cloudfoundry-incubator/bosh-openstack-cpi-release.git
+      branch:      gems-auto-update
+      private_key: {{bosh-openstack-cpi-release-github-key}}
+
+  - name: gems-src-in
+    type: git
+    tags: ['blue-box']
+    source:
+      uri: https://github.com/cloudfoundry-incubator/bosh-openstack-cpi-release.git
+      branch: gems-auto-update
 
   - name: pipeline-time-trigger
     type: time
     tags: ['blue-box']
     source:
       interval: 24h
+
+  - name: rubygems-blob
+    type: metalink-repository
+    source:
+      uri: https://raw.githubusercontent.com/cloudfoundry-incubator/bosh-openstack-cpi-release/metalink-update/rubygems_metalink
+      version: ^2
+
+  - name: bundler-blob
+    type: metalink-repository
+    source:
+      uri: https://raw.githubusercontent.com/cloudfoundry-incubator/bosh-openstack-cpi-release/metalink-update/bundler_metalink
+      version: ^1
+
+  - name: ruby-blob
+    type: metalink-repository
+    source:
+      uri: https://raw.githubusercontent.com/cloudfoundry-incubator/bosh-openstack-cpi-release/metalink-update/ruby_metalink
+      version: ^2
+
+  - name: yaml-blob
+    type: metalink-repository
+    source:
+      uri: https://raw.githubusercontent.com/cloudfoundry-incubator/bosh-openstack-cpi-release/metalink-update/yaml_metalink
+      version: ^0
+
+resource_types:
+- name: metalink-repository
+  type: docker-image
+  source:
+    repository: dpb587/metalink-repository-resource

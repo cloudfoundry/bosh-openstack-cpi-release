@@ -1,0 +1,15 @@
+---
+platform: linux
+image_resource:
+  type: docker-image
+  source:
+    repository: boshcpi/openstack-cpi-release
+inputs:
+  - name: bosh-cpi-src-in
+  - name: packages-src-out
+run:
+  path: bosh-cpi-src-in/ci/pipelines/auto-update/tasks/pull-request.sh
+params:
+  bosh_openstack_cpi_release_github_token: ""
+  bosh_openstack_cpi_release_github_key:   ""
+  pr_type: "packages"

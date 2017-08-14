@@ -3,9 +3,13 @@
 set -e
 set -x
 
-cp -r bosh-cpi-src-in bosh-cpi-src-out/repo
+cp -r gems-src-in/. gems-src-out
+cd gems-src-out/src/bosh_openstack_cpi
+git config --global user.email cf-bosh-eng@pivotal.io
+git config --global user.name CI
+git fetch origin master:refs/remotes/origin/master
+git rebase origin/master
 
-cd bosh-cpi-src-out/repo/src/bosh_openstack_cpi
 echo "Looking for new gem versions"
 rm Gemfile.lock
 ./vendor_gems
@@ -17,8 +21,6 @@ bundle exec rspec spec/unit/*
 
 echo "Creating new pull request"
   git add .
-  git config --global user.email cf-bosh-eng@pivotal.io
-  git config --global user.name CI
   git commit -m "Bump gems"
 else
 echo "No new gem versions found"
