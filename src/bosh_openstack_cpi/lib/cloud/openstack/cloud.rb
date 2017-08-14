@@ -138,7 +138,7 @@ module Bosh::OpenStackCloud
         network_configurator = NetworkConfigurator.new(network_spec)
         network_configurator.check_preconditions(@openstack.use_nova_networking?, @use_config_drive, @use_dhcp)
 
-        picked_security_groups = SecurityGroups.validate_and_retrieve(
+        picked_security_groups = SecurityGroups.select_and_retrieve(
             @openstack,
             @default_security_groups,
             network_configurator.security_groups,

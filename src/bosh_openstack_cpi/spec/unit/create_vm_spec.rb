@@ -214,21 +214,30 @@ describe Bosh::OpenStackCloud::Cloud, "create_vm" do
       rps
     }
 
-    context "defined in both network or resource_pools spec" do
-      let(:configured_security_groups) { %w[security-group-1 security-group-2] }
+    context 'defined in both network and resource_pools spec' do
+      let(:openstack_security_groups) { [
+          double('net-group-1', id: 'net-group-1_id', name: 'net-group-1'),
+          double('net-group-2', id: 'net-group-2_id', name: 'net-group-2'),
+          double('pool-group-1', id: 'pool-group-1_id', name: 'pool-group-1'),
+          double('pool-group-2', id: 'pool-group-2_id', name: 'pool-group-2')
+      ] }
 
-      it "raises an error when attempting to create an OpenStack server" do
-        address = double("address", :id => "a-test", :ip => "10.0.0.1", :instance_id => nil)
+      it 'uses the resource pool security groups to create vm' do
+        cloud = mock_cloud do |fog|
+          allow(fog.network).to receive(:security_groups).and_return(openstack_security_groups)
+          allow(fog.image.images).to receive(:find_by_id).and_return(image)
+          allow(fog.compute.flavors).to receive(:find).and_return(flavor)
+          allow(fog.compute.key_pairs).to receive(:find).and_return(key_pair)
+        end
+        allow(cloud.openstack).to receive(:wait_resource).with(server, :active, :state)
+        allow(@registry).to receive(:update_settings)
 
-        cloud = mock_cloud
-        expect(cloud).to receive(:generate_unique_name).and_return(unique_name)
+        expect(cloud.compute.servers).to receive(:create).with(hash_including(:security_groups => %w[pool-group-1 pool-group-2])).and_return(server)
 
-        expect {
-          cloud.create_vm("agent-id", "sc-id",
-            resource_pool_with_security_group_spec,
-            { "network_a" => network_with_security_group_spec },
-            nil, { "test_env" => "value" })
-        }.to raise_error('Cannot define security groups in both network and resource pool.')
+        cloud.create_vm('agent-id', 'sc-id',
+          resource_pool_with_security_group_spec,
+          { 'network_a' => network_with_security_group_spec },
+          nil, { 'test_env' => 'value'})
       end
     end
 

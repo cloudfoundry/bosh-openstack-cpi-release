@@ -10,21 +10,6 @@ describe Bosh::OpenStackCloud::SecurityGroups do
   before { allow(openstack).to receive(:with_openstack) { |&block| block.call } }
 
   describe '.retrieve_and_validate_security_groups' do
-    context 'manifest validation' do
-      context 'when resources and network spec define security groups' do
-        it 'raises an error' do
-          expect {
-            Bosh::OpenStackCloud::SecurityGroups.validate_and_retrieve(
-                openstack,
-                ['default security group'],
-                ['network-spec-security-group'],
-                ['resource-pool-spec-security-group']
-            )
-          }.to raise_error Bosh::Clouds::CloudError, 'Cannot define security groups in both network and resource pool.'
-        end
-      end
-    end
-
     context 'security group picking' do
       let(:security_groups) {
         [
@@ -36,7 +21,7 @@ describe Bosh::OpenStackCloud::SecurityGroups do
 
       context 'when security groups specified in resource pool spec' do
         it 'picks those' do
-          picked_security_groups = Bosh::OpenStackCloud::SecurityGroups.validate_and_retrieve(
+          picked_security_groups = Bosh::OpenStackCloud::SecurityGroups.select_and_retrieve(
               openstack,
               ['default-security-group'],
               [],
@@ -49,7 +34,7 @@ describe Bosh::OpenStackCloud::SecurityGroups do
 
       context 'when security groups specified in network spec' do
         it 'picks those' do
-          picked_security_groups = Bosh::OpenStackCloud::SecurityGroups.validate_and_retrieve(
+          picked_security_groups = Bosh::OpenStackCloud::SecurityGroups.select_and_retrieve(
               openstack,
               ['default-security-group'],
               ['network-spec-security-group'],
@@ -60,9 +45,22 @@ describe Bosh::OpenStackCloud::SecurityGroups do
         end
       end
 
+      context 'when resource pool spec and network spec define security groups' do
+        it 'picks the resource pool security groups' do
+          picked_security_groups = Bosh::OpenStackCloud::SecurityGroups.select_and_retrieve(
+              openstack,
+              ['default security group'],
+              ['network-spec-security-group'],
+              ['resource-pool-spec-security-group']
+          )
+          expect(picked_security_groups.size).to eq(1)
+          expect(picked_security_groups.first.name).to eq('resource-pool-spec-security-group')
+        end
+      end
+
       context 'when security groups are neither specified in network spec nor resource pool spec' do
         it 'picks the default security group' do
-          picked_security_groups = Bosh::OpenStackCloud::SecurityGroups.validate_and_retrieve(
+          picked_security_groups = Bosh::OpenStackCloud::SecurityGroups.select_and_retrieve(
               openstack,
               ['default-security-group'],
               [],
@@ -80,7 +78,7 @@ describe Bosh::OpenStackCloud::SecurityGroups do
 
       it 'raises an error' do
         expect {
-          Bosh::OpenStackCloud::SecurityGroups.validate_and_retrieve(
+          Bosh::OpenStackCloud::SecurityGroups.select_and_retrieve(
               openstack,
               ['default-security-group'],
               [],
@@ -100,7 +98,7 @@ describe Bosh::OpenStackCloud::SecurityGroups do
       }
 
       it 'uses nova to retrieve the security groups' do
-        Bosh::OpenStackCloud::SecurityGroups.validate_and_retrieve(
+        Bosh::OpenStackCloud::SecurityGroups.select_and_retrieve(
             openstack,
             ['default-security-group'],
             [],
@@ -122,7 +120,7 @@ describe Bosh::OpenStackCloud::SecurityGroups do
       }
 
       it 'uses neutron to retrieve the security groups' do
-        Bosh::OpenStackCloud::SecurityGroups.validate_and_retrieve(
+        Bosh::OpenStackCloud::SecurityGroups.select_and_retrieve(
             openstack,
             ['default-security-group'],
             [],

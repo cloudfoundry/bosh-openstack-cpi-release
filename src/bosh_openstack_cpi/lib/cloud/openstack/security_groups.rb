@@ -2,9 +2,7 @@ module Bosh::OpenStackCloud
   class SecurityGroups
     include Helpers
 
-    def self.validate_and_retrieve(openstack, default_security_groups, network_spec_security_groups, resource_pool_spec_security_groups)
-      validate(network_spec_security_groups, resource_pool_spec_security_groups)
-
+    def self.select_and_retrieve(openstack, default_security_groups, network_spec_security_groups, resource_pool_spec_security_groups)
       picked_security_groups = pick_security_groups(
           default_security_groups,
           network_spec_security_groups,
@@ -25,12 +23,6 @@ module Bosh::OpenStackCloud
         openstack.compute.security_groups
       else
         openstack.network.security_groups
-      end
-    end
-
-    def self.validate(network_spec_security_groups, resource_pool_spec_security_groups)
-      if network_spec_security_groups.size > 0 && resource_pool_spec_security_groups.size > 0
-        cloud_error('Cannot define security groups in both network and resource pool.')
       end
     end
 
