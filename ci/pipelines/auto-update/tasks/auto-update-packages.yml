@@ -1,0 +1,12 @@
+---
+platform: linux
+image_resource:
+  type: docker-image
+  source:
+    repository: boshcpi/openstack-cpi-release
+inputs:
+  - name: bosh-cpi-src-out
+outputs:
+  - name: bosh-cpi-src-updated-packages-out
+run:
+  path: bosh-cpi-src-out/ci/pipelines/auto-update/tasks/auto-update-packages.sh
