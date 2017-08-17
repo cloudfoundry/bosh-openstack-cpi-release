@@ -304,12 +304,19 @@ describe Bosh::OpenStackCloud::Cloud do
       end
     end
 
+    def no_port_remaining?(net_id, ip)
+      openstack.network.ports
+        .select { |port| port.network_id == net_id }
+        .none? { |port| port.fixed_ips.detect { |ips| ips['ip_address'] == ip }}
+    end
+
     it 'cleans up vm' do
       expect {
         create_vm(@stemcell_id, network_spec_that_fails, [])
       }.to raise_error Bosh::Clouds::VMCreationFailed, /Floating IP '255.255.255.255' not allocated/
 
       expect(no_active_vm_with_ip?(@config.manual_ip)).to be
+      expect(no_port_remaining?(@config.net_id, @config.manual_ip)).to eq(true)
     end
 
     it 'better error message for wrong net ID' do
