@@ -32,7 +32,7 @@ module Bosh::OpenStackCloud
       rescue JSON::ParserError
         return
       end
-      json_content = Redactor.redact(json_content, json_path)
+      json_content = Bosh::Cpi::Redactor.redact!(json_content, json_path)
       params[:body] = JSON.dump(json_content)
     end
 
