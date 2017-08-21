@@ -127,4 +127,42 @@ describe Bosh::OpenStackCloud::Cloud do
     }.to raise_error(Bosh::Clouds::CloudError, "Volume `v-foobar' not found")
   end
 
+  it 'creates snapshot metadata' do
+    volume = double('volume', :id => 'v-foobar', :attachments => [])
+    snapshot = double('snapshot', :id => 'snap-foobar', :save => nil, :update_metadata => nil)
+    cloud = mock_cloud do |fog|
+      allow(fog.volume.volumes).to receive(:get).and_return(volume)
+      allow(fog.volume.snapshots).to receive(:new).and_return(snapshot)
+    end
+    allow(cloud.openstack).to receive(:wait_resource)
+
+    metadata = {
+      'deployment' => 'deployment',
+      'job' => 'job',
+      'index' => 0,
+      'director_name' => 'Test Director',
+      'director_uuid' => '1234',
+      'agent_id' => 'agent0',
+      'instance_id' => 1,
+      'custom_tags' => {
+        'tag1' => 'value1',
+        'tag2' => 'value2'
+      }
+    }
+
+    expected_snapshot_metadata = {
+      'director' => 'Test Director',
+      'deployment' => 'deployment',
+      'instance_id' => 1,
+      'instance_index' => 0,
+      'instance_name' => 'job/1',
+      'tag1' => 'value1',
+      'tag2' => 'value2'
+    }
+
+    cloud.snapshot_disk('v-foobar', metadata)
+
+    expect(snapshot).to have_received(:update_metadata).with(expected_snapshot_metadata)
+  end
+
 end
