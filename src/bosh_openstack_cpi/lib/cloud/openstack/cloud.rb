@@ -546,13 +546,15 @@ module Bosh::OpenStackCloud
           'director' => metadata['director_name'],
           'deployment' => metadata['deployment'],
           'instance_id' => metadata['instance_id'],
-          'instance_index' => metadata['index'],
-          'instance_name' => metadata['job'] + '/' + metadata['instance_id'].to_s
+          'instance_index' => metadata['index'].to_s,
+          'instance_name' => metadata['job'] + '/' + metadata['instance_id']
         }
-        snapshot_metadata.merge!(metadata['custom_tags'])
+        snapshot_metadata.merge!(metadata['custom_tags']) if metadata['custom_tags']
 
         @logger.info("Creating metadata for snapshot `#{snapshot.id}'...")
-        snapshot.update_metadata(snapshot_metadata)
+        @openstack.with_openstack {
+          snapshot.update_metadata(snapshot_metadata)
+        }
 
         snapshot.id.to_s
       end
