@@ -59,6 +59,7 @@ DELETE /v2/<tenant_id>/volumes/<resource_id>
 GET /v2/<tenant_id>/snapshots/<resource_id>
 GET /v2/<tenant_id>/volumes/<resource_id>
 POST /v2/<tenant_id>/snapshots body: {"snapshot":{"volume_id":"<resource_id>","name":"<name>","description":"<description>","force":true}}
+POST /v2/<tenant_id>/snapshots/<resource_id>/metadata body: {"metadata":"<metadata>"}
 POST /v2/<tenant_id>/volumes body: {"volume":{"name":"<name>","description":"<description>","size":"<size>","availability_zone":"<availability_zone>"}}
 POST /v2/<tenant_id>/volumes body: {"volume":{"name":"<name>","description":"<description>","size":"<size>","volume_type":"SSD","availability_zone":"<availability_zone>"}}
 POST /v2/<tenant_id>/volumes body: {"volume":{"name":"<name>","description":"<description>","size":"<size>"}}
