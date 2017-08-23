@@ -128,7 +128,7 @@ describe Bosh::OpenStackCloud::Cloud do
     }.to raise_error(Bosh::Clouds::CloudError, "Volume `v-foobar' not found")
   end
 
-  it 'creates specific snapshot metadata which only consists of strings' do
+  it 'creates snapshot metadata with converted metadata' do
     volume = double('volume', :id => 'v-foobar', :attachments => [])
     snapshot = double('snapshot', :id => 'snap-foobar', :save => nil, :update_metadata => nil)
     cloud = mock_cloud do |fog|

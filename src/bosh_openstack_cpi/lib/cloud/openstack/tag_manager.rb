@@ -5,25 +5,30 @@ module Bosh::OpenStackCloud
     MAX_TAG_VALUE_LENGTH = 255
 
     def self.tag_server(server, tags)
-      trimmed_tags = trim(reject_nil_tags(tags))
+      formatted_tags = format(tags)
 
-      server.metadata.update(trimmed_tags) unless trimmed_tags.empty?
+      server.metadata.update(formatted_tags) unless formatted_tags.empty?
     end
 
     def self.tag_volume(volume, volume_id, tags)
-      trimmed_tags = trim(reject_nil_tags(tags))
+      formatted_tags = format(tags)
 
-      volume.update_metadata(volume_id, trimmed_tags) unless trimmed_tags.empty?
+      volume.update_metadata(volume_id, formatted_tags) unless formatted_tags.empty?
     end
 
-    def self.reject_nil_tags(tags)
-      tags.reject { |key, value| key.nil? || value.nil? }
+    def self.tag_snapshot(snapshot, tags)
+      formatted_tags = format(tags)
+
+      snapshot.update_metadata(formatted_tags) unless formatted_tags.empty?
     end
 
-    def self.trim(tags)
-      tags.map do |key, value|
-        [key[0..(MAX_TAG_KEY_LENGTH - 1)], value[0..(MAX_TAG_VALUE_LENGTH - 1)]]
-      end.to_h
+    def self.format(tags)
+      tags
+        .reject { |key, value| key.nil? || value.nil? }
+        .map do |key, value|
+          [key.to_s[0..(MAX_TAG_KEY_LENGTH - 1)], value.to_s[0..(MAX_TAG_VALUE_LENGTH - 1)]]
+        end
+        .to_h
     end
   end
 end

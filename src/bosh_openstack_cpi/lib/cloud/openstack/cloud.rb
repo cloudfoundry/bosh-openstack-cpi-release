@@ -553,7 +553,7 @@ module Bosh::OpenStackCloud
 
         @logger.info("Creating metadata for snapshot `#{snapshot.id}'...")
         @openstack.with_openstack {
-          snapshot.update_metadata(snapshot_metadata)
+          TagManager.tag_snapshot(snapshot, snapshot_metadata)
         }
 
         snapshot.id.to_s
