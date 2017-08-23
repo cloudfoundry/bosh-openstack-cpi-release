@@ -15,15 +15,37 @@ describe Bosh::OpenStackCloud::Cloud do
 
   before { allow(Bosh::Cpi::RegistryClient).to receive(:new).and_return(double('registry').as_null_object) }
 
+  let(:disk_metadata) do
+    {
+      'director' => 'Director',
+      'deployment' => 'deployment',
+      'instance_id' => 'instance',
+      'job' => 'openstack_cpi_spec',
+      'instance_index' => '0',
+      'instance_name' => 'openstack_cpi_spec/instance',
+      'attached_at' => '2017-08-23T16:13:00Z'
+    }
+  end
+
   let(:disk_snapshot_metadata) do
     {
       :deployment => 'deployment',
       :job => 'openstack_cpi_spec',
-      :index => '0',
+      :index => 0,
       :instance_id => 'instance',
       :agent_id => 'agent',
       :director_name => 'Director',
       :director_uuid => '6d06b0cc-2c08-43c5-95be-f1b2dd247e18',
+    }
+  end
+
+  let(:expected_snapshot_metadata) do
+    {
+      'director' => 'Director',
+      'deployment' => 'deployment',
+      'instance_id' => 'instance',
+      'instance_index' => '0',
+      'instance_name' => 'openstack_cpi_spec/instance'
     }
   end
 
@@ -133,8 +155,12 @@ describe Bosh::OpenStackCloud::Cloud do
 
     cpi_for_volume.attach_disk(vm_id, disk_id)
 
+    cpi_for_volume.set_disk_metadata(disk_id, disk_metadata)
+    expect(cpi_for_volume.volume.volumes.get(disk_id).metadata).to include(disk_metadata)
+
     disk_snapshot_id = cpi_for_volume.snapshot_disk(disk_id, disk_snapshot_metadata)
     expect(disk_snapshot_id).to be
+    expect(cpi_for_volume.volume.snapshots.get(disk_snapshot_id).metadata).to eq(expected_snapshot_metadata)
 
     cpi_for_volume.delete_snapshot(disk_snapshot_id)
     cpi_for_volume.detach_disk(vm_id, disk_id)
