@@ -158,6 +158,14 @@ describe 'Get API calls script' do
       expect(requests.map &to_body_value('size')).to all (eq('<size>'))
     end
 
+    it 'scrubs \'new_size\' values from body' do
+      requests = requests_with_body '{"new_size":10}'
+
+      scrub_random_values!(requests)
+
+      expect(requests.map &to_body_value('new_size')).to all (eq('<new_size>'))
+    end
+
     it 'scrubs \'description\' values from body' do
       requests = requests_with_body '{"description":"deployment/some_deployment_spec/0"}'
 
