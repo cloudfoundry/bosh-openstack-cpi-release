@@ -63,7 +63,7 @@ POST /v2/<tenant_id>/snapshots/<resource_id>/metadata body: {"metadata":"<metada
 POST /v2/<tenant_id>/volumes body: {"volume":{"name":"<name>","description":"<description>","size":"<size>","availability_zone":"<availability_zone>"}}
 POST /v2/<tenant_id>/volumes body: {"volume":{"name":"<name>","description":"<description>","size":"<size>","volume_type":"SSD","availability_zone":"<availability_zone>"}}
 POST /v2/<tenant_id>/volumes body: {"volume":{"name":"<name>","description":"<description>","size":"<size>"}}
-POST /v2/<tenant_id>/volumes/<resource_id>/action body: {"os-extend":{"new_size":4}}
+POST /v2/<tenant_id>/volumes/<resource_id>/action body: {"os-extend":{"new_size":"<new_size>"}}
 POST /v2/<tenant_id>/volumes/<resource_id>/metadata body: {"metadata":"<metadata>"}
 ```
 ### All calls for API endpoint 'volumev3 (cinderv3)'
