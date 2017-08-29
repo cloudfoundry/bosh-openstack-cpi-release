@@ -151,11 +151,11 @@ describe 'Get API calls script' do
     end
 
     it 'scrubs \'size\' values from body' do
-      requests = requests_with_body '{"volume_size":10}'
+      requests = requests_with_body '{"size":10}'
 
       scrub_random_values!(requests)
 
-      expect(requests.map &to_body_value('volume_size')).to all (eq('<volume_size>'))
+      expect(requests.map &to_body_value('size')).to all (eq('<size>'))
     end
 
     it 'scrubs \'description\' values from body' do
