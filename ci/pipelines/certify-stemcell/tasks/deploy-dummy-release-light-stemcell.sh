@@ -28,6 +28,7 @@ verify_image_in_openstack() {
 
 stemcell_version=$(cat stemcell/version)
 deployment_dir="${PWD}/director-deployment"
+stemcell_dir="${PWD}/stemcell"
 manifest_filename="dummy-light-stemcell-manifest.yml"
 dummy_release_name="dummy"
 deployment_name="dummy-light-stemcell"
@@ -47,12 +48,14 @@ export BOSH_CLIENT_SECRET=$(bosh-go int credentials.yml  --path /admin_password)
 export BOSH_CA_CERT=director_ca
 
 echo "generating light stemcell ..."
-create_light_stemcell_command="../bosh-cpi-src-in/scripts/create_light_stemcell --version $stemcell_version --os $os_name --image-id $image_id"
-echo $create_light_stemcell_command
-$create_light_stemcell_command
+light_stemcell_path="light-bosh-stemcell-${stemcell_version}-openstack-kvm-${os_name}-go_agent.tgz"
+bosh-go repack-stemcell --version "$stemcell_version" \
+  --empty-image \
+  --cloud-properties="{\"image_id\": \"$image_id\"}" \
+  $stemcell_dir/stemcell.tgz "$light_stemcell_path"
 
 echo "uploading stemcell to director..."
-bosh-go -n upload-stemcell "light-bosh-stemcell-${stemcell_version}-openstack-kvm-${os_name}-go_agent.tgz"
+bosh-go -n upload-stemcell "$light_stemcell_path"
 
 echo "creating dummy release..."
 bosh-go -n create-release --dir ../dummy-release --name ${dummy_release_name}
