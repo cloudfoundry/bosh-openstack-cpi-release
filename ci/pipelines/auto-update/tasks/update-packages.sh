@@ -53,6 +53,7 @@ EOF
 
   bosh-go upload-blobs
   echo "Creating new commit request"
+  git add .
   git commit -m "Bump package blob versions"
 
 else

@@ -71,6 +71,7 @@ def scrub_random_values!(requests)
     end
     if request[:body]
       request[:body].gsub!(resource_id_regex, '<resource_id>')
+      request[:body].gsub!(/"new_size":\d+/, "\"new_size\":\"<new_size>\"")
       request[:body].gsub!(/"volume_size":\d+/, "\"volume_size\":\"<volume_size>\"")
       request[:body].gsub!(/"flavorRef":"\d+"/, "\"flavorRef\":\"<flavorRef_id>\"")
       request[:body].gsub!(/"size":\d+/, "\"size\":\"<size>\"")

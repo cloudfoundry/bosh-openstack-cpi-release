@@ -212,7 +212,7 @@ module Bosh::OpenStackCloud
               user_data: JSON.dump(user_data(registry_key, network_configurator.network_spec))
           })
 
-          @logger.debug("Using boot parms: `#{Redactor.clone_and_redact(server_params, 'user_data').inspect}'")
+          @logger.debug("Using boot parms: `#{Bosh::Cpi::Redactor.clone_and_redact(server_params, 'user_data').inspect}'")
           server = @openstack.with_openstack do
             begin
               @openstack.compute.servers.create(server_params)
@@ -318,22 +318,9 @@ module Bosh::OpenStackCloud
         @logger.info("Deleting server `#{server_id}'...")
         server = @openstack.with_openstack { @openstack.compute.servers.get(server_id) }
         if server
-          server_port_ids = NetworkConfigurator.port_ids(@openstack, server_id)
-          @logger.debug("Network ports: `#{server_port_ids.join(', ')}' found for server #{server_id}")
           server_tags = metadata_to_tags(server.metadata)
           @logger.debug("Server tags: `#{server_tags}' found for server #{server_id}")
-
-          lbaas_error = catch_error('Removing lbaas pool memberships') { LoadbalancerConfigurator.new(@openstack, @logger).cleanup_memberships(server_tags) }
-          @openstack.with_openstack { server.destroy }
-          @openstack.wait_resource(server, [:terminated, :deleted], :state, true)
-          fail_on_error(
-            catch_error('Removing ports') { NetworkConfigurator.cleanup_ports(@openstack, server_port_ids) },
-            lbaas_error,
-            catch_error('Deleting registry settings') {
-              registry_key = server_tags.fetch(REGISTRY_KEY_TAG.to_s, server.name)
-              @logger.info("Deleting settings for server `#{server.id}' with registry_key `#{registry_key}' ...")
-              @registry.delete_settings(registry_key)
-            })
+          destroy_server(server, server_tags)
         else
           @logger.info("Server `#{server_id}' not found. Skipping.")
         end
@@ -554,6 +541,20 @@ module Bosh::OpenStackCloud
 
         @logger.info("Creating new snapshot `#{snapshot.id}' for volume `#{disk_id}'...")
         @openstack.wait_resource(snapshot, :available)
+
+        snapshot_metadata = {
+          'director' => metadata['director_name'],
+          'deployment' => metadata['deployment'],
+          'instance_id' => metadata['instance_id'],
+          'instance_index' => metadata['index'].to_s,
+          'instance_name' => metadata['job'] + '/' + metadata['instance_id']
+        }
+        snapshot_metadata.merge!(metadata['custom_tags']) if metadata['custom_tags']
+
+        @logger.info("Creating metadata for snapshot `#{snapshot.id}'...")
+        @openstack.with_openstack {
+          TagManager.tag_snapshot(snapshot, snapshot_metadata)
+        }
 
         snapshot.id.to_s
       end
@@ -1046,17 +1047,23 @@ module Bosh::OpenStackCloud
       options
     end
 
-    # Destroy server and wait until the server is really terminated/deleted
     def destroy_server(server, server_tags)
+      server_tags ||= {}
+      server_port_ids = NetworkConfigurator.port_ids(@openstack, server.id)
+      @logger.debug("Network ports: `#{server_port_ids.join(', ')}' found for server #{server.id}")
+
+      lbaas_error = catch_error('Removing lbaas pool memberships') { LoadbalancerConfigurator.new(@openstack, @logger).cleanup_memberships(server_tags) }
       @openstack.with_openstack { server.destroy }
-
-      begin
-        @openstack.wait_resource(server, [:terminated, :deleted], :state, true)
-      rescue Bosh::Clouds::CloudError => delete_server_error
-        @logger.warn("Failed to destroy server: #{delete_server_error.inspect}\n#{delete_server_error.backtrace.join('\n')}")
-      end
-
-      LoadbalancerConfigurator.new(@openstack, @logger).cleanup_memberships(server_tags)
+      fail_on_error(
+        catch_error('Wait for server deletion') { @openstack.wait_resource(server, [:terminated, :deleted], :state, true) },
+        catch_error('Removing ports') { NetworkConfigurator.cleanup_ports(@openstack, server_port_ids) },
+        lbaas_error,
+        catch_error('Deleting registry settings') {
+          registry_key = server_tags.fetch(REGISTRY_KEY_TAG.to_s, server.name)
+          @logger.info("Deleting settings for server `#{server.id}' with registry_key `#{registry_key}' ...")
+          @registry.delete_settings(registry_key)
+        }
+      )
     end
 
     def validate_key_exists(keyname)
