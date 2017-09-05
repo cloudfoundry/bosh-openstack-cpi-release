@@ -35,6 +35,10 @@ for blob in $( bosh-go blobs --column=path | grep "^ruby_openstack_cpi/" | sed "
 
     sed -i "s/${blob_name_with_version}/${new_blob_name_with_version}/g" packages/ruby_openstack_cpi/packaging
     sed -i "s/${blob_name_with_version}/${new_blob_name_with_version}/g" packages/ruby_openstack_cpi/spec
+
+    #migrate rubygems from .tgz to .tar.gz
+    sed -i "s/\(rubygems.*\)\.tgz/\1\.tar\.gz/g" packages/ruby_openstack_cpi/packaging
+    sed -i "s/\(rubygems.*\)\.tgz/\1\.tar\.gz/g" packages/ruby_openstack_cpi/spec
   fi
 done
 
