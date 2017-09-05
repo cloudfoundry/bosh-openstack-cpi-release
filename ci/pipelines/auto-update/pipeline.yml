@@ -40,12 +40,13 @@ jobs:
     serial: true
     plan:
       - aggregate:
-        - {trigger: false, get: bosh-cpi-src-in, tags: ['blue-box'], timeout: 2h}
-        - {trigger: false, get: packages-src-in, tags: ['blue-box'], timeout: 2h}
-        - {trigger: true,  get: yaml-blob,       tags: ['blue-box'], timeout: 2h}
-        - {trigger: true,  get: ruby-blob,       tags: ['blue-box'], timeout: 2h}
-        - {trigger: true,  get: bundler-blob,    tags: ['blue-box'], timeout: 2h}
-        - {trigger: true,  get: rubygems-blob,   tags: ['blue-box'], timeout: 2h}
+        - {trigger: false, get: bosh-cpi-src-in,  tags: ['blue-box'], timeout: 2h}
+        - {trigger: false, get: packages-src-in,  tags: ['blue-box'], timeout: 2h}
+        - {trigger: false, get: validator-src-in, tags: ['blue-box'], timeout: 2h}
+        - {trigger: true,  get: yaml-blob,        tags: ['blue-box'], timeout: 2h}
+        - {trigger: true,  get: ruby-blob,        tags: ['blue-box'], timeout: 2h}
+        - {trigger: true,  get: bundler-blob,     tags: ['blue-box'], timeout: 2h}
+        - {trigger: true,  get: rubygems-blob,    tags: ['blue-box'], timeout: 2h}
 
       - task: update-packages
         tags: ['blue-box']
@@ -54,6 +55,11 @@ jobs:
         params:
           aws_access_key_id: {{s3_openstack_cpi_blobs_access_key}}
           aws_secret_access_key: {{s3_openstack_cpi_blobs_secret_key}}
+
+      - task: verify-cpi
+        tags: ['blue-box']
+        timeout: 2h
+        file: bosh-cpi-src-in/ci/pipelines/auto-update/tasks/verify-cpi.yml
 
       - put: packages-src-out
         tags: ['blue-box']
@@ -142,6 +148,13 @@ resources:
     source:
       uri: https://github.com/cloudfoundry-incubator/bosh-openstack-cpi-release.git
       branch: gems-auto-update
+
+  - name: validator-src-in
+    type: git
+    tags: ['blue-box']
+    source:
+      uri: https://github.com/cloudfoundry-incubator/cf-openstack-validator
+      branch: master
 
   - name: pipeline-time-trigger
     type: time
