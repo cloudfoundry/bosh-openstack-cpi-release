@@ -4,7 +4,6 @@ BASE_DIR="$PWD"
 
 mkdir $BASE_DIR/verify-cpi
 
-
 echo 'Creating CPI release...'
 bosh-go create-release --dir packages-src-out --tarball=$BASE_DIR/verify-cpi/cpi-release.tgz
 
@@ -47,8 +46,10 @@ EOF
 echo 'Installing validator dependencies...'
 bundle install
 
+useradd -m vali
+
 echo 'Running validator...'
-./validate --tag cpi_only --stemcell stemcell.tgz \
+sudo -H -u vali ./validate --tag cpi_only --stemcell stemcell.tgz \
     --config validator.yml \
     --cpi $BASE_DIR/verify-cpi/cpi-release.tgz \
     --verbose
