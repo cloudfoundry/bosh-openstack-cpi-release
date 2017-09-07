@@ -23,17 +23,17 @@ pushd yaml-0.1.7 > /dev/null
 popd > /dev/null
 
 echo "Installing ruby"
-tar xzf ruby_openstack_cpi/ruby-2.4.0.tar.gz
-pushd ruby-2.4.0 > /dev/null
+tar xzf ruby_openstack_cpi/ruby-2.4.1.tar.gz
+pushd ruby-2.4.1 > /dev/null
   LDFLAGS="-Wl,-rpath -Wl,${BOSH_INSTALL_TARGET}" CFLAGS='-fPIC' ./configure --prefix=${BOSH_INSTALL_TARGET} --disable-install-doc --with-opt-dir=/usr/local/opt/openssl:${BOSH_INSTALL_TARGET}
   make
   make install
 popd > /dev/null
 
 echo "Installing rubygems"
-tar zxvf ruby_openstack_cpi/rubygems-2.6.8.tgz
-pushd rubygems-2.6.8
+tar zxvf ruby_openstack_cpi/rubygems-2.6.13.tar.gz
+pushd rubygems-2.6.13
   ${BOSH_INSTALL_TARGET}/bin/ruby setup.rb
 popd > /dev/null
 
-${BOSH_INSTALL_TARGET}/bin/gem install ruby_openstack_cpi/bundler-1.13.7.gem --local --no-ri --no-rdoc
+${BOSH_INSTALL_TARGET}/bin/gem install ruby_openstack_cpi/bundler-1.15.4.gem --local --no-ri --no-rdoc

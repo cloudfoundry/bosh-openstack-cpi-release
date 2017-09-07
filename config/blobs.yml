@@ -1,15 +1,15 @@
-ruby_openstack_cpi/bundler-1.13.7.gem:
-  size: 307200
-  object_id: 6ae8b341-5ec9-44c7-4a64-9e38240181ab
-  sha: 77829d9c7b035fa0e3b5fd6515de0c9cea4a7687
-ruby_openstack_cpi/ruby-2.4.0.tar.gz:
-  size: 14104044
-  object_id: 1507fb4f-bbb9-4ce1-4c64-fdcc71c616d5
-  sha: d44a3c50a0e742341ed3033d5db79d865151a4f4
-ruby_openstack_cpi/rubygems-2.6.8.tgz:
-  size: 754300
-  object_id: d81644d6-0798-4d82-5126-4faadce84b7e
-  sha: d253fd1caca6103a9e2a69127ac158a3745fbb44
+ruby_openstack_cpi/bundler-1.15.4.gem:
+  size: 337408
+  object_id: dd00e974-bab1-4948-4843-64691f6375c2
+  sha: 313a6413486ac07c7a70e5eaf0ba11683b14cb5b
+ruby_openstack_cpi/ruby-2.4.1.tar.gz:
+  size: 14174752
+  object_id: b6b4ed67-def9-4bdd-6b46-d80bb1015959
+  sha: 47909a0f77ea900573f027d27746960ad6d07d15
+ruby_openstack_cpi/rubygems-2.6.13.tar.gz:
+  size: 768906
+  object_id: e87bab16-39ce-4223-7c2d-07baf5837511
+  sha: ebc88822f50656e84ec87687029e9baf5b895f63
 ruby_openstack_cpi/yaml-0.1.7.tar.gz:
   size: 527518
   object_id: b13b05ca-7f83-4dcb-535d-8881295c67b6
