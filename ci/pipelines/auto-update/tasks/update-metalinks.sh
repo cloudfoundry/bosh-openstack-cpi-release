@@ -132,7 +132,7 @@ cat > rubygems_metalink<<EOF
 </repository>
 EOF
 
-echo "Looking for new package versions of yaml"
+echo "Looking for new package versions of libyaml, bundler, rubygems, or ruby"
 git add .
 git diff --cached --exit-code || exit_code=$?
 if [ -v exit_code ]; then
@@ -140,7 +140,7 @@ echo "Creating new commit request"
   git add .
   git config --global user.email cf-bosh-eng@pivotal.io
   git config --global user.name CI
-  git commit -m "Bump yaml package version"
+  git commit -m "Bump package version"
 else
-echo "No new yaml version found"
+echo "No new libyaml, bundler, rubygems, or ruby version found"
 fi
