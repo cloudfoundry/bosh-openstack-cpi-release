@@ -79,7 +79,6 @@ bosh-go int ../bosh-deployment/bosh.yml \
     -o ../bosh-cpi-src-in/ci/ops_files/custom-manual-networking.yml \
     -o ../bosh-cpi-src-in/ci/ops_files/timeouts.yml \
     -o ../bosh-cpi-src-in/ci/ops_files/ntp.yml \
-    -o ../bosh-cpi-src-in/ci/ops_files/custom-powerdns.yml \
     -o ../bosh-cpi-src-in/ci/ops_files/custom-bosh-release.yml \
     -o ../bosh-cpi-src-in/ci/ops_files/custom-redis-release.yml \
     -v auth_url=${v3_e2e_auth_url} \
