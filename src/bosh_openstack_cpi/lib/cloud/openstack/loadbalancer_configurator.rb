@@ -39,6 +39,8 @@ module Bosh::OpenStackCloud
           pool_member_response = @openstack.network.create_lbaas_pool_member(pool_id, ip, port, {subnet_id: subnet_id})
           @openstack.wait_resource(resource, :active, :provisioning_status)
           pool_member_response.body['member']['id']
+        rescue LoadBalancerResource::NotFound, LoadBalancerResource::NotSupportedConfiguration => e
+          raise Bosh::Clouds::VMCreationFailed.new(false), e.message
         rescue Excon::Errors::Conflict
           membership_id = @openstack
             .network
@@ -86,42 +88,50 @@ module Bosh::OpenStackCloud
           end
         end
         @openstack.wait_resource(resource, :active, :provisioning_status)
+      rescue LoadBalancerResource::NotFound => e
+        @logger.debug("Skipping deletion of lbaas pool member because load balancer resource cannot be found. #{e.message}")
       rescue => e
         raise Bosh::Clouds::CloudError, "Deleting LBaaS member with pool_id '#{pool_id}' and membership_id '#{membership_id}' failed. Reason: #{e.class.to_s} #{e.message}"
       end
     end
 
-    private
-
     def loadbalancer_id(pool_id)
-      pool_response = @openstack.with_openstack{ @openstack.network.get_lbaas_pool(pool_id) }
-
-      loadbalancers = pool_response.body['pool']['loadbalancers'] ||
-                      retrieve_loadbalancers_via_listener(
-                          pool_response.body['pool']['listeners'],
-                          pool_id
-                      )
-
-      extract_loadbalancer_id(loadbalancers, pool_id)
+      @openstack.with_openstack do
+        begin
+          pool_response = @openstack.network.get_lbaas_pool(pool_id)
+          loadbalancers = pool_response.body['pool']['loadbalancers'] ||
+              retrieve_loadbalancers_via_listener(
+                  pool_response.body['pool']['listeners'],
+                  pool_id
+              )
+          extract_loadbalancer_id(loadbalancers, pool_id)
+        rescue Fog::Network::OpenStack::NotFound => e
+          raise LoadBalancerResource::NotFound, "Load balancer ID could not be determined because pool with ID '#{pool_id}' was not found. Reason: #{e.message}"
+        end
+      end
     end
 
+    private
+
     def retrieve_loadbalancers_via_listener(listeners, pool_id)
-      if listeners.size != 1
-        error_message = if listeners.empty?
-                          "No listeners associated with LBaaS pool '#{pool_id}'"
-                        else
-                          "More than one listener is associated with LBaaS pool '#{pool_id}'. It is not possible to verify the status of the loadbalancer responsible for the pool membership."
-                        end
-        raise Bosh::Clouds::CloudError, error_message
+      if listeners.empty?
+        raise LoadBalancerResource::NotFound, "No listeners associated with LBaaS pool '#{pool_id}'"
+      elsif listeners.size > 1
+        raise LoadBalancerResource::NotSupportedConfiguration, "More than one listener is associated with LBaaS pool '#{pool_id}'. It is not possible to verify the status of the loadbalancer responsible for the pool membership."
       end
+
       listener_response = @openstack.with_openstack{ @openstack.network.get_lbaas_listener(listeners[0]['id']) }
       listener_response.body['listener']['loadbalancers']
     end
 
     def extract_loadbalancer_id(loadbalancers, pool_id)
-      return loadbalancers[0]['id'] if loadbalancers.size == 1
-      error_message = loadbalancers.empty? ? "No loadbalancers associated with LBaaS pool '#{pool_id}'" : "More than one loadbalancer is associated with LBaaS pool '#{pool_id}'. It is not possible to verify the status of the loadbalancer responsible for the pool membership."
-      raise Bosh::Clouds::CloudError, error_message
+      if loadbalancers.empty?
+        raise LoadBalancerResource::NotFound, "No loadbalancers associated with LBaaS pool '#{pool_id}'"
+      elsif loadbalancers.size > 1
+        raise LoadBalancerResource::NotSupportedConfiguration, "More than one loadbalancer is associated with LBaaS pool '#{pool_id}'. It is not possible to verify the status of the loadbalancer responsible for the pool membership."
+      end
+
+      loadbalancers[0]['id']
     end
 
     def matching_subnet_id(network_spec, ip)
@@ -184,6 +194,9 @@ module Bosh::OpenStackCloud
       def provisioning_status
         @openstack.network.get_lbaas_loadbalancer(@id).body['loadbalancer']['provisioning_status']
       end
+
+      class NotFound < StandardError; end
+      class NotSupportedConfiguration < StandardError; end
     end
   end
 end
