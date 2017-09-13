@@ -196,8 +196,8 @@ describe Bosh::OpenStackCloud::Cloud do
       }
     end
 
-    def test_boot_volume
-      @vm_id = create_vm(@stemcell_id, network_spec, [])
+    def test_boot_volume(resource_pool = {})
+      @vm_id = create_vm(@stemcell_id, network_spec, [], resource_pool)
       volumes = volumes(@vm_id)
       expect(volumes.size).to eq(1)
       expect(volumes.first['device']).to eq('/dev/vda')
@@ -207,6 +207,14 @@ describe Bosh::OpenStackCloud::Cloud do
 
     it 'creates a vm with boot_volume on /dev/vda' do
       test_boot_volume
+    end
+
+    context 'when boot_from_volume defined in the cloud_properties' do
+      let(:boot_from_volume) { false }
+
+      it 'creates a vm with boot_volume on /dev/vda' do
+        test_boot_volume({'boot_from_volume' => true})
+      end
     end
 
     context 'and flavor has root disk size 0' do
