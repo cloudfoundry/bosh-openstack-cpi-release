@@ -184,9 +184,8 @@ module Bosh::OpenStackCloud
 
         availability_zone = @az_provider.select(disk_locality, resource_pool['availability_zone'])
         server_params[:availability_zone] = availability_zone if availability_zone
-
-        if @boot_from_volume
-          volume_configurator = Bosh::OpenStackCloud::VolumeConfigurator.new(@logger)
+        volume_configurator = Bosh::OpenStackCloud::VolumeConfigurator.new(@logger)
+        if volume_configurator.boot_from_volume?(@boot_from_volume, resource_pool)
           boot_vol_size = volume_configurator.select_boot_volume_size(flavor, resource_pool)
           server_params[:block_device_mapping_v2] = [{
                                                    :uuid => stemcell.image_id,

@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-describe 'boot_from_volume' do
+describe Bosh::OpenStackCloud::VolumeConfigurator do
   let (:logger) do
     logger = double('logger')
     allow(logger).to receive(:debug)
@@ -8,9 +8,9 @@ describe 'boot_from_volume' do
     logger
   end
   subject { Bosh::OpenStackCloud::VolumeConfigurator.new(logger) }
-  context 'when it is true' do
+  describe 'select_boot_volume_size' do
 
-    context 'and the flavor has no disk' do
+    context 'when the flavor has no disk' do
       let (:flavor) { double("flavor", :disk => 0, :name => 'mock_flavor_without_disk') }
 
 
@@ -63,7 +63,7 @@ describe 'boot_from_volume' do
       end
     end
 
-    context 'and the flavor has disk' do
+    context 'when the flavor has disk' do
       let (:flavor) { double("flavor", :disk => 10) }
 
 
@@ -112,6 +112,72 @@ describe 'boot_from_volume' do
           expect{
             subject.select_boot_volume_size(flavor, resource_pool)
           }.to raise_error(ArgumentError, 'Minimum root_disk size is 1 GiB')
+        end
+      end
+    end
+  end
+
+  describe 'boot_from_volume?' do
+    context 'when global setting for boot_from_volume is false'  do
+      context 'when boot_from_volume set for vm type' do
+        let (:resource_pool) { {'boot_from_volume' => true} }
+
+        it 'returns true' do
+          boot_from_volume = subject.boot_from_volume?(false, resource_pool)
+
+          expect(boot_from_volume).to be(true)
+        end
+      end
+
+      context 'when boot_from_volume set to false for vm type' do
+        let (:resource_pool) { {'boot_from_volume' => false} }
+
+        it 'returns false' do
+          boot_from_volume = subject.boot_from_volume?(false, resource_pool)
+
+          expect(boot_from_volume).to be(false)
+        end
+      end
+
+      context 'when boot_from_volume is not set for vm type' do
+        let (:resource_pool) { {} }
+
+        it 'returns false' do
+          boot_from_volume = subject.boot_from_volume?(false, resource_pool)
+
+          expect(boot_from_volume).to be(false)
+        end
+      end
+    end
+
+    context 'when global setting for boot_from_volume is true'  do
+      context 'when boot_from_volume is not set for vm type' do
+        let (:resource_pool) { {} }
+
+        it 'it returns true' do
+          boot_from_volume = subject.boot_from_volume?(true, resource_pool)
+
+          expect(boot_from_volume).to be(true)
+        end
+      end
+
+      context 'when boot_from_volume is set to false for vm type' do
+        let (:resource_pool) { {'boot_from_volume' => false} }
+
+        it 'it returns true' do
+          boot_from_volume = subject.boot_from_volume?(true, resource_pool)
+
+          expect(boot_from_volume).to be(false)
+        end
+      end
+
+      context 'when boot_from_volume is set to true for vm type' do
+        let (:resource_pool) { {'boot_from_volume' => true} }
+
+        it 'it returns true' do
+          boot_from_volume = subject.boot_from_volume?(true, resource_pool)
+
+          expect(boot_from_volume).to be(true)
         end
       end
     end

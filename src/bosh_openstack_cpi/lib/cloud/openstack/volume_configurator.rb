@@ -25,5 +25,13 @@ module Bosh::OpenStackCloud
       end
     end
 
+    def boot_from_volume?(boot_from_volume, resource_pool)
+      if resource_pool['boot_from_volume'].nil?
+        return boot_from_volume
+      end
+
+      resource_pool['boot_from_volume']
+    end
+
   end
 end

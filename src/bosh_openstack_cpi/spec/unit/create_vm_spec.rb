@@ -476,31 +476,61 @@ describe Bosh::OpenStackCloud::Cloud, "create_vm" do
     end
   end
 
-  context "when boot_from_volume is set" do
-    it "creates an OpenStack server with a boot volume" do
-      network_spec = dynamic_network_spec
+  context 'when boot_from_volume is set' do
+    context 'when boot_from_volume is set globally' do
+      it 'creates an OpenStack server with a boot volume' do
+        network_spec = dynamic_network_spec
 
-      cloud_options = mock_cloud_options
-      cloud_options['properties']['openstack']['boot_from_volume'] = true
+        cloud_options = mock_cloud_options
+        cloud_options['properties']['openstack']['boot_from_volume'] = true
 
-      cloud = mock_cloud(cloud_options['properties']) do |fog|
-        expect(fog.compute.servers).to receive(:create).with(openstack_params({"network_a" => network_spec}, true)).and_return(server)
-        expect(fog.image.images).to receive(:find_by_id).and_return(image)
-        expect(fog.compute.flavors).to receive(:find).and_return(flavor)
-        expect(fog.compute.key_pairs).to receive(:find).and_return(key_pair)
+        cloud = mock_cloud(cloud_options['properties']) do |fog|
+          expect(fog.compute.servers).to receive(:create).with(openstack_params({"network_a" => network_spec}, true)).and_return(server)
+          expect(fog.image.images).to receive(:find_by_id).and_return(image)
+          expect(fog.compute.flavors).to receive(:find).and_return(flavor)
+          expect(fog.compute.key_pairs).to receive(:find).and_return(key_pair)
+        end
+
+        expect(cloud).to receive(:generate_unique_name).and_return(unique_name)
+        expect(cloud.openstack).to receive(:wait_resource).with(server, :active, :state)
+
+        expect(@registry).to receive(:update_settings).
+            with("vm-#{unique_name}", agent_settings(unique_name, network_spec))
+
+        vm_id = cloud.create_vm("agent-id", "sc-id",
+                                resource_pool_spec,
+                                { "network_a" => network_spec },
+                                nil, { "test_env" => "value" })
+        expect(vm_id).to eq("i-test")
       end
+    end
 
-      expect(cloud).to receive(:generate_unique_name).and_return(unique_name)
-      expect(cloud.openstack).to receive(:wait_resource).with(server, :active, :state)
+    context 'when boot_from_volume is set for vm type' do
+      let(:resource_pool_spec_with_boot_from_volume) { resource_pool_spec.merge({ 'boot_from_volume' => true }) }
 
-      expect(@registry).to receive(:update_settings).
-        with("vm-#{unique_name}", agent_settings(unique_name, network_spec))
+      it 'creates an OpenStack server with a boot volume' do
+        network_spec = dynamic_network_spec
+        cloud_options = mock_cloud_options
+        cloud_options['properties']['openstack']['boot_from_volume'] = false
+        cloud = mock_cloud(cloud_options['properties']) do |fog|
+          expect(fog.compute.servers).to receive(:create).with(openstack_params({"network_a" => network_spec}, true)).and_return(server)
+          expect(fog.image.images).to receive(:find_by_id).and_return(image)
+          expect(fog.compute.flavors).to receive(:find).and_return(flavor)
+          expect(fog.compute.key_pairs).to receive(:find).and_return(key_pair)
+        end
 
-      vm_id = cloud.create_vm("agent-id", "sc-id",
-        resource_pool_spec,
-        { "network_a" => network_spec },
-        nil, { "test_env" => "value" })
-      expect(vm_id).to eq("i-test")
+        expect(cloud).to receive(:generate_unique_name).and_return(unique_name)
+        expect(cloud.openstack).to receive(:wait_resource).with(server, :active, :state)
+
+        expect(@registry).to receive(:update_settings).
+            with("vm-#{unique_name}", agent_settings(unique_name, network_spec))
+
+        vm_id = cloud.create_vm("agent-id", "sc-id",
+                                resource_pool_spec_with_boot_from_volume,
+                                { "network_a" => network_spec },
+                                nil, { "test_env" => "value" })
+        expect(vm_id).to eq("i-test")
+      end
     end
   end
 
