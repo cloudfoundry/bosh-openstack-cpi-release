@@ -136,7 +136,7 @@ describe Bosh::OpenStackCloud::Openstack do
 
       context 'when the service returns Unauthorized' do
         it 'raises a CloudError exception if cannot connect to the service API 5 times' do
-          allow(fog[:clazz]).to receive(:new).and_raise(Excon::Errors::Unauthorized, 'Unauthorized')
+          allow(fog[:clazz]).to receive(:new).and_raise(Excon::Error::Unauthorized, 'Unauthorized')
           expect {
             Bosh::OpenStackCloud::Openstack.new(openstack_options, retry_options_overwrites).send(fog[:method_name])
           }.to raise_error(Bosh::Clouds::CloudError,
@@ -145,7 +145,7 @@ describe Bosh::OpenStackCloud::Openstack do
       end
 
       context 'when the backend call raises a SocketError' do
-        let(:socket_error) { Excon::Errors::SocketError.new(SocketError.new('getaddrinfo: nodename nor servname provided, or not known')) }
+        let(:socket_error) { Excon::Error::Socket.new(SocketError.new('getaddrinfo: nodename nor servname provided, or not known')) }
         let(:expected_error_message) { "Unable to connect to the OpenStack Keystone API #{openstack_options['auth_url']}/tokens\ngetaddrinfo: nodename nor servname provided, or not known (SocketError)" }
 
         it 'raises a CloudError exception enriched with the targeted OpenStack KeyStone API url for service API' do
@@ -204,7 +204,7 @@ describe Bosh::OpenStackCloud::Openstack do
           allow(fog[:clazz]).to receive(:new) do
             retry_count += 1
             if retry_count < Bosh::OpenStackCloud::Cloud::CONNECT_RETRY_COUNT
-              raise Excon::Errors::GatewayTimeout.new('Gateway Timeout')
+              raise Excon::Error::GatewayTimeout.new('Gateway Timeout')
             end
             instance_double(fog[:clazz])
           end
@@ -410,13 +410,13 @@ describe Bosh::OpenStackCloud::Openstack do
           # next time don't raise the same exception to avoid looping
           allow(subject).to receive(:servers).and_return(nil)
 
-          raise Excon::Errors::ServiceUnavailable.new('', '', response)
+          raise Excon::Error::ServiceUnavailable.new('', '', response)
         end
       end
 
       it 'retries until the max number of retries is reached' do
         allow(subject).to receive(:servers).exactly(11).times.
-          and_raise(Excon::Errors::ServiceUnavailable.new('', '', response))
+          and_raise(Excon::Error::ServiceUnavailable.new('', '', response))
         expect(subject).to receive(:sleep).with(3).exactly(10).times
 
         expect {
@@ -447,7 +447,7 @@ describe Bosh::OpenStackCloud::Openstack do
           # next time don't raise the same exception to avoid looping
           allow(subject).to receive(:servers).and_return(nil)
 
-          raise Excon::Errors::RequestEntityTooLarge.new('', '', response)
+          raise Excon::Error::RequestEntityTooLarge.new('', '', response)
         end
       end
 
@@ -461,7 +461,7 @@ describe Bosh::OpenStackCloud::Openstack do
 
       it 'retries until the max number of retries is reached' do
         allow(subject).to receive(:servers).exactly(11).times.
-          and_raise(Excon::Errors::RequestEntityTooLarge.new('', '', response))
+          and_raise(Excon::Error::RequestEntityTooLarge.new('', '', response))
         expect_any_instance_of(Kernel).to receive(:sleep).with(3).exactly(10).times
 
         expect {
@@ -510,7 +510,7 @@ describe Bosh::OpenStackCloud::Openstack do
         end
 
         it 'enriches the BOSH error message' do
-          allow(subject).to receive(:servers).and_raise(Excon::Errors::RequestEntityTooLarge.new('', '', response))
+          allow(subject).to receive(:servers).and_raise(Excon::Error::RequestEntityTooLarge.new('', '', response))
 
           expected_message = "OpenStack API Request Entity Too Large error: Specific OpenStack error message\nCheck task debug log for details."
 
@@ -547,7 +547,7 @@ describe Bosh::OpenStackCloud::Openstack do
 
       before do
         response = Excon::Response.new(body: body)
-        expect(subject).to receive(:servers).and_raise(Excon::Errors::BadRequest.new('', '', response))
+        expect(subject).to receive(:servers).and_raise(Excon::Error::BadRequest.new('', '', response))
       end
 
       let(:body) { JSON.dump({}) }
@@ -595,7 +595,7 @@ describe Bosh::OpenStackCloud::Openstack do
     context 'when openstack raises Conflict' do
       before do
         response = Excon::Response.new(body: body)
-        expect(subject).to receive(:servers).and_raise(Excon::Errors::Conflict.new('', '', response))
+        expect(subject).to receive(:servers).and_raise(Excon::Error::Conflict.new('', '', response))
       end
 
       let(:body) { JSON.dump({}) }
@@ -643,7 +643,7 @@ describe Bosh::OpenStackCloud::Openstack do
     context 'when openstack raises InternalServerError' do
       it 'should retry the max number of retries before raising a CloudError exception' do
         expect(subject).to receive(:servers).exactly(11)
-          .and_raise(Excon::Errors::InternalServerError.new('InternalServerError'))
+          .and_raise(Excon::Error::InternalServerError.new('InternalServerError'))
         expect_any_instance_of(Kernel).to receive(:sleep).with(3).exactly(10)
 
         expect {
@@ -670,7 +670,7 @@ describe Bosh::OpenStackCloud::Openstack do
 
       before do
         response = Excon::Response.new(body: body)
-        expect(subject).to receive(:servers).and_raise(Excon::Errors::Forbidden.new('', '', response))
+        expect(subject).to receive(:servers).and_raise(Excon::Error::Forbidden.new('', '', response))
       end
 
       let(:body) { JSON.dump({}) }

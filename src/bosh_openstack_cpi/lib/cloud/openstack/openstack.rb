@@ -35,7 +35,7 @@ module Bosh::OpenStackCloud
       @retry_options = {
         sleep: 1,
         tries: 5,
-        on: [Excon::Errors::GatewayTimeout, Excon::Errors::SocketError],
+        on: [Excon::Error::GatewayTimeout, Excon::Error::Socket],
       }.merge(retry_options_overwrites)
     end
 
@@ -44,7 +44,7 @@ module Bosh::OpenStackCloud
       begin
         yield
 
-      rescue Excon::Errors::RequestEntityTooLarge => e
+      rescue Excon::Error::RequestEntityTooLarge => e
         message = "OpenStack API Request Entity Too Large error: \nCheck task debug log for details."
         overlimit = parse_openstack_response(e.response, "overLimit", "overLimitFault")
 
@@ -64,7 +64,7 @@ module Bosh::OpenStackCloud
         end
         cloud_error(message, e)
 
-      rescue Excon::Errors::ServiceUnavailable => e
+      rescue Excon::Error::ServiceUnavailable => e
         unless retries >= MAX_RETRIES
           retries += 1
           @logger.debug("OpenStack API Service Unavailable error, retrying (#{retries})") if @logger
@@ -73,16 +73,16 @@ module Bosh::OpenStackCloud
         end
         cloud_error('OpenStack API Service Unavailable error. Check task debug log for details.', e)
 
-      rescue Excon::Errors::BadRequest => e
+      rescue Excon::Error::BadRequest => e
         cloud_error("OpenStack API Bad Request#{error_response_message(e)}. Check task debug log for details.", e)
 
-      rescue Excon::Errors::Conflict => e
+      rescue Excon::Error::Conflict => e
         cloud_error("OpenStack API Conflict#{error_response_message(e)}. Check task debug log for details.", e)
 
-      rescue Excon::Errors::Forbidden => e
+      rescue Excon::Error::Forbidden => e
         cloud_error("OpenStack API Forbidden#{error_response_message(e)}. Check task debug log for details.", e)
 
-      rescue Excon::Errors::InternalServerError => e
+      rescue Excon::Error::InternalServerError => e
         unless retries >= MAX_RETRIES
           retries += 1
           @logger.debug("OpenStack API Internal Server error, retrying (#{retries})") if @logger
@@ -108,9 +108,9 @@ module Bosh::OpenStackCloud
             @logger.error("Failed #{tries} times, last failure due to: #{error.inspect}") unless error.nil?
             @compute = Fog::Compute.new(params)
           end
-        rescue Excon::Errors::SocketError => e
+        rescue Excon::Error::Socket => e
           cloud_error(socket_error_msg + "#{e.message}")
-        rescue Bosh::Common::RetryCountExceeded, Excon::Errors::ClientError, Excon::Errors::ServerError => e
+        rescue Bosh::Common::RetryCountExceeded, Excon::Error::Client, Excon::Error::Server => e
           cloud_error("Unable to connect to the OpenStack Compute Service API: #{e.message}. Check task debug log for details.")
         end
       end
@@ -129,9 +129,9 @@ module Bosh::OpenStackCloud
               @glance = Fog::Image::OpenStack::V1.new(params_without_provider)
             end
           end
-        rescue Excon::Errors::SocketError => e
+        rescue Excon::Error::Socket => e
           cloud_error(socket_error_msg + "#{e.message}")
-        rescue Bosh::Common::RetryCountExceeded, Excon::Errors::ClientError, Excon::Errors::ServerError => e
+        rescue Bosh::Common::RetryCountExceeded, Excon::Error::Client, Excon::Error::Server => e
           cloud_error("Unable to connect to the OpenStack Image Service API: #{e.message}. Check task debug log for details.")
         end
       end
@@ -154,9 +154,9 @@ module Bosh::OpenStackCloud
               @volume = Fog::Volume::OpenStack::V1.new(params_without_provider)
             end
           end
-        rescue Excon::Errors::SocketError => e
+        rescue Excon::Error::Socket => e
           cloud_error(socket_error_msg + "#{e.message}")
-        rescue Bosh::Common::RetryCountExceeded, Excon::Errors::ClientError, Excon::Errors::ServerError => e
+        rescue Bosh::Common::RetryCountExceeded, Excon::Error::Client, Excon::Error::Server => e
           cloud_error("Unable to connect to the OpenStack Volume Service API: #{e.message}. Check task debug log for details.")
         end
       end
@@ -171,9 +171,9 @@ module Bosh::OpenStackCloud
             @logger.error("Failed #{tries} times, last failure due to: #{error.inspect}") unless error.nil?
             @network = Fog::Network.new(params)
           end
-        rescue Excon::Errors::SocketError => e
+        rescue Excon::Error::Socket => e
           cloud_error(socket_error_msg + "#{e.message}")
-        rescue Bosh::Common::RetryCountExceeded, Excon::Errors::ClientError, Excon::Errors::ServerError, Fog::Errors::NotFound => e
+        rescue Bosh::Common::RetryCountExceeded, Excon::Error::Client, Excon::Error::Server, Fog::Errors::NotFound => e
           cloud_error("Unable to connect to the OpenStack Network Service API: #{e.message}. Check task debug log for details.")
         end
       end

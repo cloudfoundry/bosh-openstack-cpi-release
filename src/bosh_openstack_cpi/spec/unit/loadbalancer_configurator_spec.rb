@@ -141,7 +141,7 @@ describe Bosh::OpenStackCloud::LoadbalancerConfigurator do
       }) }
 
       before(:each) do
-        allow(network).to receive(:create_lbaas_pool_member).and_raise(Excon::Errors::Conflict.new('BAM!'))
+        allow(network).to receive(:create_lbaas_pool_member).and_raise(Excon::Error::Conflict.new('BAM!'))
         allow(network).to receive(:list_lbaas_pool_members).with('pool-id').and_return(members)
       end
 

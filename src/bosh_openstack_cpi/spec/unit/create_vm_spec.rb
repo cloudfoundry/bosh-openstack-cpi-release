@@ -1,5 +1,4 @@
 require "spec_helper"
-require 'excon/errors'
 require 'excon'
 
 describe Bosh::OpenStackCloud::Cloud, "create_vm" do
@@ -612,7 +611,7 @@ describe Bosh::OpenStackCloud::Cloud, "create_vm" do
     end
 
     context "when OpenStack raises a Timeout error" do
-      let(:socket_error) { Excon::Errors::Timeout.new('read timeout reached') }
+      let(:socket_error) { Excon::Error::Timeout.new('read timeout reached') }
       it "raises a Cloud error with vm information" do
         allow(cloud).to receive(:generate_unique_name).and_return(unique_name)
         allow(cloud.compute.servers).to receive(:create).and_raise(socket_error)
@@ -632,7 +631,7 @@ describe Bosh::OpenStackCloud::Cloud, "create_vm" do
 
     context "when OpenStack raises a Not Found error" do
       let(:networks) { double('networks') }
-      let(:not_found_error) { Excon::Errors::NotFound.new('not found: 814bc266-c6de-4fd0-a713-502da09edbe9') }
+      let(:not_found_error) { Excon::Error::NotFound.new('not found: 814bc266-c6de-4fd0-a713-502da09edbe9') }
 
       let(:cloud) {
         cloud = mock_cloud do |fog|
@@ -678,7 +677,7 @@ describe Bosh::OpenStackCloud::Cloud, "create_vm" do
               nil,
               {"test_env" => "value"}
           )
-        }.to raise_error(Excon::Errors::NotFound, 'not found: 814bc266-c6de-4fd0-a713-502da09edbe9')
+        }.to raise_error(Excon::Error::NotFound, 'not found: 814bc266-c6de-4fd0-a713-502da09edbe9')
       end
 
       context 'when `openstack.network.networks.get` raises' do
@@ -701,7 +700,7 @@ describe Bosh::OpenStackCloud::Cloud, "create_vm" do
                 nil,
                 {"test_env" => "value"}
             )
-          }.to raise_error(Excon::Errors::NotFound, 'not found: 814bc266-c6de-4fd0-a713-502da09edbe9')
+          }.to raise_error(Excon::Error::NotFound, 'not found: 814bc266-c6de-4fd0-a713-502da09edbe9')
         end
       end
 
@@ -739,14 +738,14 @@ describe Bosh::OpenStackCloud::Cloud, "create_vm" do
                 nil,
                 {"test_env" => "value"}
             )
-          }.to raise_error(Excon::Errors::NotFound)
+          }.to raise_error(Excon::Error::NotFound)
         end
       end
     end
 
     context "when OpenStack raises a BadRequest error" do
       let(:networks) { double('networks') }
-      let(:bad_request_error) { Excon::Errors::BadRequest.new('Message does not matter here') }
+      let(:bad_request_error) { Excon::Error::BadRequest.new('Message does not matter here') }
 
       let(:cloud) {
         cloud = mock_cloud do |fog|

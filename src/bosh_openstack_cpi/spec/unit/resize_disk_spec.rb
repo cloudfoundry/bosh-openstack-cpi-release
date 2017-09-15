@@ -1,5 +1,4 @@
 require "spec_helper"
-require 'excon/errors'
 require 'excon'
 
 describe Bosh::OpenStackCloud::Cloud, "resize_disk" do
@@ -96,7 +95,7 @@ describe Bosh::OpenStackCloud::Cloud, "resize_disk" do
     before do
       body
       response = Excon::Response.new(body: body)
-      allow(volume).to receive(:extend).and_raise(Excon::Errors::BadRequest.new('', '', response))
+      allow(volume).to receive(:extend).and_raise(Excon::Error::BadRequest.new('', '', response))
     end
 
     let(:body) { JSON.dump('badRequest' => {'message' => 'some-message'}) }

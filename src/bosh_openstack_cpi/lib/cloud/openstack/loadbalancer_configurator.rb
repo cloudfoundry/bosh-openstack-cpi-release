@@ -41,7 +41,7 @@ module Bosh::OpenStackCloud
           pool_member_response.body['member']['id']
         rescue LoadBalancerResource::NotFound, LoadBalancerResource::NotSupportedConfiguration => e
           raise Bosh::Clouds::VMCreationFailed.new(false), e.message
-        rescue Excon::Errors::Conflict
+        rescue Excon::Error::Conflict
           membership_id = @openstack
             .network
             .list_lbaas_pool_members(pool_id)

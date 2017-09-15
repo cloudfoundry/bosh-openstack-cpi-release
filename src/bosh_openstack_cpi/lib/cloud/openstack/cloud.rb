@@ -215,12 +215,12 @@ module Bosh::OpenStackCloud
           server = @openstack.with_openstack do
             begin
               @openstack.compute.servers.create(server_params)
-            rescue Excon::Errors::Timeout => e
+            rescue Excon::Error::Timeout => e
               @logger.debug(e.backtrace)
               cloud_error_message = "VM creation with name '#{server_params[:name]}' received a timeout. " +
                   "The VM might still have been created by OpenStack.\nOriginal message: "
               raise Bosh::Clouds::VMCreationFailed.new(false), cloud_error_message + e.message
-            rescue Excon::Errors::BadRequest, Excon::Errors::NotFound, Fog::Compute::OpenStack::NotFound => e
+            rescue Excon::Error::BadRequest, Excon::Error::NotFound, Fog::Compute::OpenStack::NotFound => e
               if @openstack.use_nova_networking?
                 raise e
               else
