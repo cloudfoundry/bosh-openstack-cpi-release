@@ -1,6 +1,6 @@
 require_relative './spec_helper'
 
-fdescribe Bosh::OpenStackCloud::Cloud do
+describe Bosh::OpenStackCloud::Cloud do
   # @formatter:off
   before(:all) do
     @config = IntegrationConfig.new
