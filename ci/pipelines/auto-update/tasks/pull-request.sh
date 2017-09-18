@@ -16,6 +16,7 @@ ssh-keyscan github.com > ~/.ssh/known_hosts
 cd ${pr_type}-src-out
 echo "Check if latest auto-update commit has already been merged to master"
 git fetch origin master:refs/remotes/origin/master
+git checkout -b master origin/master
 
 new_commits_available=$(git branch master --contains $(git rev-parse origin/${pr_type}-auto-update))
 pull_request=$(hub issue | grep "Bump ${pr_type}") || no_pull_request=$?
