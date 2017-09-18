@@ -51,6 +51,7 @@ echo "generating light stemcell ..."
 light_stemcell_path="light-bosh-stemcell-${stemcell_version}-openstack-kvm-${os_name}-go_agent.tgz"
 bosh-go repack-stemcell --version "$stemcell_version" \
   --empty-image \
+  --format openstack-light \
   --cloud-properties="{\"image_id\": \"$image_id\"}" \
   $stemcell_dir/stemcell.tgz "$light_stemcell_path"
 
