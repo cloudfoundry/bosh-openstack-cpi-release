@@ -2,6 +2,61 @@ require 'spec_helper'
 require 'fog/compute/openstack/models/server'
 
 describe Bosh::OpenStackCloud::LoadbalancerConfigurator do
+  shared_examples 'changing load balancer resource' do
+    context 'when load balancer is in status PENDING_UPDATE' do
+      let(:body) { { 'NeutronError' => {'message' => 'Invalid state PENDING_UPDATE of loadbalancer resource 1234-abcd'}} }
+      let(:response) { instance_double('response', body: JSON.dump(body)) }
+
+      before do
+        allow(network).to receive(openstack_method_name, &raise_times(2))
+      end
+
+      it 'attempts to change resource again after load balancer has become active again' do
+        expect(network).to receive(openstack_method_name).exactly(3)
+        expect(openstack).to receive(:wait_resource).exactly(4)
+
+        action.call
+      end
+
+      it 'logs the attempts' do
+        allow(logger).to receive(:debug)
+        expected_message = "Changing load balancer resource failed with 'omg pending_update', unsuccessful attempts: "
+
+        action.call
+
+        expect(logger).to have_received(:debug)
+                              .with(expected_message + "'1'")
+                              .with(expected_message + "'2'")
+      end
+
+      context 'when MAX_RETRIES have been reached' do
+        let(:retries) { Bosh::OpenStackCloud::Openstack::MAX_RETRIES }
+
+        before do
+          allow(network).to receive(openstack_method_name, &raise_times(retries + 1))
+        end
+
+        it 'fails with a CloudError, containing number of attempts' do
+          expect(network).to receive(openstack_method_name).exactly(retries)
+          expect(openstack).to receive(:wait_resource).exactly(retries)
+
+          expect {
+            action.call
+          }.to raise_error Bosh::Clouds::CloudError, /Reason: Bosh::Clouds::CloudError Failed after 10 attempts with 'omg pending_update'/
+        end
+      end
+
+      def raise_times(times)
+        times_called = 0
+        proc {
+          times_called += 1
+          raise Excon::Error::Conflict.new('omg pending_update', '', response) if times_called <= times
+          success_response
+        }
+      end
+    end
+  end
+
   subject(:subject) { Bosh::OpenStackCloud::LoadbalancerConfigurator.new(openstack, logger) }
   let(:logger) { instance_double(Logger, debug: nil) }
   let(:network_spec) { {} }
@@ -30,6 +85,8 @@ describe Bosh::OpenStackCloud::LoadbalancerConfigurator do
     allow(openstack).to receive(:network).and_return(network)
     allow(openstack).to receive(:wait_resource)
   end
+
+
 
   describe '#create_pool_memberships' do
     context 'when a list of loadbalancer_pools is given' do
@@ -98,7 +155,7 @@ describe Bosh::OpenStackCloud::LoadbalancerConfigurator do
 
       expect {
         subject.create_membership('pool-id', '10.0.0.1', '8080', 'subnet-id')
-      }.to raise_error(Bosh::Clouds::CloudError, "Timed out waiting for load balancer to be ACTIVE")
+      }.to raise_error(Bosh::Clouds::CloudError, /Timed out waiting for load balancer to be ACTIVE/)
 
       expect(network).to have_received(:get_lbaas_pool).with('pool-id')
       expect(network).to_not have_received(:create_lbaas_pool_member)
@@ -165,6 +222,14 @@ describe Bosh::OpenStackCloud::LoadbalancerConfigurator do
             subject.create_membership('pool-id', 'wrong-ip', '8080', 'subnet-id')
           }.to raise_error(Bosh::Clouds::CloudError, "Load balancer pool membership with pool id 'pool-id', ip 'wrong-ip', and port '8080' supposedly exists, but cannot be found.")
         end
+      end
+
+      it_behaves_like('changing load balancer resource') do
+        let(:success_response) { double('lb_member', body: {'member' => {'id' => 'member-id'}}) }
+        let(:openstack_method_name) { :create_lbaas_pool_member }
+        let(:action) {
+          lambda { subject.create_membership('pool-id', 'wrong-ip', '8080', 'subnet-id') }
+        }
       end
     end
   end
@@ -308,7 +373,7 @@ describe Bosh::OpenStackCloud::LoadbalancerConfigurator do
       allow(network).to receive(:delete_lbaas_pool_member)
     end
 
-    it 'deletes lbaas pool membership' do
+    it 'deletes load balancer pool membership' do
       loadbalancer = instance_double(Bosh::OpenStackCloud::LoadbalancerConfigurator::LoadBalancerResource, 'loadbalancer', provisioning_status: 'ACTIVE')
       allow(Bosh::OpenStackCloud::LoadbalancerConfigurator::LoadBalancerResource).to receive(:new).and_return(loadbalancer)
 
@@ -335,7 +400,7 @@ describe Bosh::OpenStackCloud::LoadbalancerConfigurator do
       expect(openstack).to have_received(:wait_resource).with(loadbalancer, :active, :provisioning_status)
     end
 
-    context 'when lbaas resources are not in a valid state e.g. pool has more than one loadbalancer associated' do
+    context 'when load balancer resources are not in a valid state e.g. pool has more than one loadbalancer associated' do
       before(:each) do
         allow(subject).to receive(:loadbalancer_id).and_raise(Bosh::OpenStackCloud::LoadbalancerConfigurator::LoadBalancerResource::NotSupportedConfiguration)
       end
@@ -343,13 +408,13 @@ describe Bosh::OpenStackCloud::LoadbalancerConfigurator do
       it 'raises an error' do
         expect{
           subject.remove_vm_from_pool(pool_id, membership_id)
-        }.to raise_error(Bosh::Clouds::CloudError, /Deleting LBaaS member with pool_id 'pool-id' and membership_id 'membership-id' failed/)
+        }.to raise_error(Bosh::Clouds::CloudError, /Deleting load balancer pool membership with pool_id 'pool-id' and membership_id 'membership-id' failed/)
 
         expect(network).to_not have_received(:delete_lbaas_pool_member)
       end
     end
 
-    context 'when lbaas resource cannot be found' do
+    context 'when load balancer resource cannot be found' do
       before(:each) do
         allow(subject).to receive(:loadbalancer_id).and_raise(Bosh::OpenStackCloud::LoadbalancerConfigurator::LoadBalancerResource::NotFound)
       end
@@ -369,7 +434,7 @@ describe Bosh::OpenStackCloud::LoadbalancerConfigurator do
       it 'logs error' do
         subject.remove_vm_from_pool(pool_id, membership_id)
 
-        expect(logger).to have_received(:debug).with(/Skipping deletion of lbaas pool member because load balancer resource cannot be found./)
+        expect(logger).to have_received(:debug).with(/Skipping deletion of load balancer pool membership because load balancer resource cannot be found./)
       end
     end
 
@@ -389,7 +454,7 @@ describe Bosh::OpenStackCloud::LoadbalancerConfigurator do
           subject.remove_vm_from_pool(pool_id, membership_id)
         }.to_not raise_error
 
-        expect(logger).to have_received(:debug).with("Skipping deletion of lbaas pool member. Member with pool_id 'pool-id' and membership_id 'membership-id' does not exist.")
+        expect(logger).to have_received(:debug).with("Skipping deletion of load balancer pool membership. Member with pool_id 'pool-id' and membership_id 'membership-id' does not exist.")
       end
     end
 
@@ -399,9 +464,18 @@ describe Bosh::OpenStackCloud::LoadbalancerConfigurator do
 
         expect{
           subject.remove_vm_from_pool(pool_id, membership_id)
-        }.to raise_error(Bosh::Clouds::CloudError, "Deleting LBaaS member with pool_id 'pool-id' and membership_id 'membership-id' failed. Reason: Fog::Network::OpenStack::Error BOOM!!!")
+        }.to raise_error(Bosh::Clouds::CloudError, "Deleting load balancer pool membership with pool_id 'pool-id' and membership_id 'membership-id' failed. Reason: Fog::Network::OpenStack::Error BOOM!!!")
       end
     end
+
+    it_behaves_like('changing load balancer resource') do
+      let(:success_response) { double('lb_member', body: {'member' => {'id' => 'member-id'}}) }
+      let(:openstack_method_name) { :delete_lbaas_pool_member }
+      let(:action) {
+        lambda { subject.remove_vm_from_pool(pool_id, membership_id) }
+      }
+    end
+
   end
 
   describe '#loadbalancer_id' do
@@ -421,7 +495,7 @@ describe Bosh::OpenStackCloud::LoadbalancerConfigurator do
         it 'raises an error' do
           expect{
             subject.loadbalancer_id(pool_id)
-          }.to raise_error Bosh::OpenStackCloud::LoadbalancerConfigurator::LoadBalancerResource::NotFound, "No loadbalancers associated with LBaaS pool 'pool-id'"
+          }.to raise_error Bosh::OpenStackCloud::LoadbalancerConfigurator::LoadBalancerResource::NotFound, "No load balancers associated with load balancer pool 'pool-id'"
         end
       end
 
@@ -431,7 +505,7 @@ describe Bosh::OpenStackCloud::LoadbalancerConfigurator do
         it 'raises an error' do
           expect{
             subject.loadbalancer_id(pool_id)
-          }.to raise_error(Bosh::OpenStackCloud::LoadbalancerConfigurator::LoadBalancerResource::NotSupportedConfiguration, "More than one loadbalancer is associated with LBaaS pool 'pool-id'. It is not possible to verify the status of the loadbalancer responsible for the pool membership.")
+          }.to raise_error(Bosh::OpenStackCloud::LoadbalancerConfigurator::LoadBalancerResource::NotSupportedConfiguration, "More than one load balancer is associated with load balancer pool 'pool-id'. It is not possible to verify the status of the load balancer responsible for the pool membership.")
         end
       end
 
@@ -457,7 +531,7 @@ describe Bosh::OpenStackCloud::LoadbalancerConfigurator do
           it 'raises an error' do
             expect{
               subject.loadbalancer_id(pool_id)
-            }.to raise_error Bosh::OpenStackCloud::LoadbalancerConfigurator::LoadBalancerResource::NotFound, "No listeners associated with LBaaS pool 'pool-id'"
+            }.to raise_error Bosh::OpenStackCloud::LoadbalancerConfigurator::LoadBalancerResource::NotFound, "No listeners associated with load balancer pool 'pool-id'"
           end
         end
 
@@ -473,7 +547,7 @@ describe Bosh::OpenStackCloud::LoadbalancerConfigurator do
           it 'raises an error' do
             expect{
               subject.loadbalancer_id(pool_id)
-            }.to raise_error Bosh::OpenStackCloud::LoadbalancerConfigurator::LoadBalancerResource::NotSupportedConfiguration, "More than one listener is associated with LBaaS pool 'pool-id'. It is not possible to verify the status of the loadbalancer responsible for the pool membership."
+            }.to raise_error Bosh::OpenStackCloud::LoadbalancerConfigurator::LoadBalancerResource::NotSupportedConfiguration, "More than one listener is associated with load balancer pool 'pool-id'. It is not possible to verify the status of the load balancer responsible for the pool membership."
           end
         end
       end
