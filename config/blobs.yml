@@ -6,10 +6,10 @@ ruby_openstack_cpi/ruby-2.4.2.tar.gz:
   size: 14187859
   object_id: 7d57a982-ce5a-43db-4b25-d20562f637b3
   sha: b096124469e31e4fc3d00d2b61b11d36992e6bbd
-ruby_openstack_cpi/rubygems-2.6.13.tar.gz:
-  size: 768906
-  object_id: e87bab16-39ce-4223-7c2d-07baf5837511
-  sha: ebc88822f50656e84ec87687029e9baf5b895f63
+ruby_openstack_cpi/rubygems-2.6.14.tar.gz:
+  size: 769418
+  object_id: 840017bd-181d-424f-42fd-1b14e471a5e9
+  sha: d9c131e7b84fbe9179033545ffddc4097e9c6c7b
 ruby_openstack_cpi/yaml-0.1.7.tar.gz:
   size: 527518
   object_id: b13b05ca-7f83-4dcb-535d-8881295c67b6

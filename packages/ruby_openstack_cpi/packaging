@@ -31,8 +31,8 @@ pushd ruby-2.4.2 > /dev/null
 popd > /dev/null
 
 echo "Installing rubygems"
-tar zxvf ruby_openstack_cpi/rubygems-2.6.13.tar.gz
-pushd rubygems-2.6.13
+tar zxvf ruby_openstack_cpi/rubygems-2.6.14.tar.gz
+pushd rubygems-2.6.14
   ${BOSH_INSTALL_TARGET}/bin/ruby setup.rb
 popd > /dev/null
 
