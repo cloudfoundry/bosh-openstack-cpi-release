@@ -45,7 +45,7 @@ If you still want to run manual tests (e.g. in order to validate your use case) 
 - Create the BOSH release:
 
     ```bash
-    $ bosh create release --force --with-tarball
+    $ bosh create-release --force --tarball=/home/bosh-openstack-cpi-release.tgz
     ```
 
 - Deploy a BOSH Director using your CPI release (see [bosh.io](http://bosh.io/docs/init-openstack.html#create-manifest))
