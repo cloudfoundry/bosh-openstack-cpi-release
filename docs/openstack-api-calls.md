@@ -4,21 +4,21 @@
 DELETE /v2.1/<tenant_id>/servers/<resource_id>
 DELETE /v2.1/<tenant_id>/servers/<resource_id>/os-volume_attachments/<resource_id>
 GET /v2.1/<tenant_id>//servers/<resource_id>/os-volume_attachments
-GET /v2.1/<tenant_id>/flavors/detail.json
-GET /v2.1/<tenant_id>/os-keypairs.json
-GET /v2.1/<tenant_id>/os-security-groups.json
-GET /v2.1/<tenant_id>/servers/<resource_id>.json
+GET /v2.1/<tenant_id>/flavors/detail
+GET /v2.1/<tenant_id>/os-keypairs
+GET /v2.1/<tenant_id>/os-security-groups
+GET /v2.1/<tenant_id>/servers/<resource_id>
 GET /v2.1/<tenant_id>/servers/<resource_id>/metadata/registry_key
-POST /v2.1/<tenant_id>/servers.json body: {"server":{"flavorRef":"<resource_id>","name":"<name>","imageRef":"<resource_id>","availability_zone":"<availability_zone>","user_data":"<user_data>","key_name":"<key_name>","security_groups":[{"name":"<name>"}],"networks":[{"uuid":"<resource_id>","port":"<resource_id>"}]}}
-POST /v2.1/<tenant_id>/servers.json body: {"server":{"flavorRef":"<resource_id>","name":"<name>","imageRef":"<resource_id>","availability_zone":"<availability_zone>","user_data":"<user_data>","key_name":"<key_name>","security_groups":[{"name":"<name>"}],"networks":[{"uuid":"<resource_id>"}]}}
-POST /v2.1/<tenant_id>/servers.json body: {"server":{"flavorRef":"<resource_id>","name":"<name>","imageRef":"<resource_id>","user_data":"<user_data>","key_name":"<key_name>","config_drive":true,"security_groups":[{"name":"<name>"}],"networks":[{"uuid":"<resource_id>","port":"<resource_id>"},{"uuid":"<resource_id>","port":"<resource_id>"}]}}
-POST /v2.1/<tenant_id>/servers.json body: {"server":{"flavorRef":"<resource_id>","name":"<name>","imageRef":"<resource_id>","user_data":"<user_data>","key_name":"<key_name>","config_drive":true,"security_groups":[{"name":"<name>"}],"networks":[{"uuid":"<resource_id>"}]}}
-POST /v2.1/<tenant_id>/servers.json body: {"server":{"flavorRef":"<resource_id>","name":"<name>","imageRef":"<resource_id>","user_data":"<user_data>","key_name":"<key_name>","security_groups":[{"name":"<name>"}],"networks":[{"uuid":"<resource_id>","port":"<resource_id>"}]}}
-POST /v2.1/<tenant_id>/servers.json body: {"server":{"flavorRef":"<resource_id>","name":"<name>","imageRef":"<resource_id>","user_data":"<user_data>","key_name":"<key_name>","security_groups":[{"name":"<name>"}],"networks":[{"uuid":"<resource_id>"}]}}
-POST /v2.1/<tenant_id>/servers.json body: {"server":{"flavorRef":"<resource_id>","name":"<name>","user_data":"<user_data>","key_name":"<key_name>","security_groups":[{"name":"<name>"}],"networks":[{"uuid":"<resource_id>","port":"<resource_id>"}],"block_device_mapping_v2":[{"boot_index":"0","delete_on_termination":"1","destination_type":"volume","device_name":"/dev/vda","source_type":"image","uuid":"<resource_id>","volume_size":"<volume_size>"}]}}
-POST /v2.1/<tenant_id>/servers/<resource_id>/metadata.json body: {"metadata":"<metadata>"}
+POST /v2.1/<tenant_id>/servers body: {"server":{"flavorRef":"<resource_id>","name":"<name>","imageRef":"<resource_id>","availability_zone":"<availability_zone>","user_data":"<user_data>","key_name":"<key_name>","security_groups":[{"name":"<name>"}],"networks":[{"uuid":"<resource_id>","port":"<resource_id>"}]}}
+POST /v2.1/<tenant_id>/servers body: {"server":{"flavorRef":"<resource_id>","name":"<name>","imageRef":"<resource_id>","availability_zone":"<availability_zone>","user_data":"<user_data>","key_name":"<key_name>","security_groups":[{"name":"<name>"}],"networks":[{"uuid":"<resource_id>"}]}}
+POST /v2.1/<tenant_id>/servers body: {"server":{"flavorRef":"<resource_id>","name":"<name>","imageRef":"<resource_id>","user_data":"<user_data>","key_name":"<key_name>","config_drive":true,"security_groups":[{"name":"<name>"}],"networks":[{"uuid":"<resource_id>","port":"<resource_id>"},{"uuid":"<resource_id>","port":"<resource_id>"}]}}
+POST /v2.1/<tenant_id>/servers body: {"server":{"flavorRef":"<resource_id>","name":"<name>","imageRef":"<resource_id>","user_data":"<user_data>","key_name":"<key_name>","config_drive":true,"security_groups":[{"name":"<name>"}],"networks":[{"uuid":"<resource_id>"}]}}
+POST /v2.1/<tenant_id>/servers body: {"server":{"flavorRef":"<resource_id>","name":"<name>","imageRef":"<resource_id>","user_data":"<user_data>","key_name":"<key_name>","security_groups":[{"name":"<name>"}],"networks":[{"uuid":"<resource_id>","port":"<resource_id>"}]}}
+POST /v2.1/<tenant_id>/servers body: {"server":{"flavorRef":"<resource_id>","name":"<name>","imageRef":"<resource_id>","user_data":"<user_data>","key_name":"<key_name>","security_groups":[{"name":"<name>"}],"networks":[{"uuid":"<resource_id>"}]}}
+POST /v2.1/<tenant_id>/servers body: {"server":{"flavorRef":"<resource_id>","name":"<name>","user_data":"<user_data>","key_name":"<key_name>","security_groups":[{"name":"<name>"}],"networks":[{"uuid":"<resource_id>","port":"<resource_id>"}],"block_device_mapping_v2":[{"boot_index":"0","delete_on_termination":"1","destination_type":"volume","device_name":"/dev/vda","source_type":"image","uuid":"<resource_id>","volume_size":"<volume_size>"}]}}
+POST /v2.1/<tenant_id>/servers/<resource_id>/metadata body: {"metadata":"<metadata>"}
 POST /v2.1/<tenant_id>/servers/<resource_id>/os-volume_attachments body: {"volumeAttachment":{"volumeId":"<resource_id>","device":"<device>"}}
-PUT /v2.1/<tenant_id>/servers/<resource_id>.json body: {"server":{"name":"<name>"}}
+PUT /v2.1/<tenant_id>/servers/<resource_id> body: {"server":{"name":"<name>"}}
 ```
 ### All calls for API endpoint 'identity (keystone)'
 ### All calls for API endpoint 'identityv3 (keystonev3)'
@@ -28,10 +28,13 @@ POST /v3/auth/tokens body: {"auth":{"identity":{"methods":["password"],"password
 ```
 ### All calls for API endpoint 'image (glance)'
 ```
+DELETE /v1/images/<resource_id>
 DELETE /v2/images/<resource_id>
 GET /
 GET /v2/images/<resource_id>
 GET /v2/images/non-existing-id
+HEAD /v1/images/<resource_id>
+POST /v1/images
 POST /v2/images body: {"name":"<name>","disk_format":"qcow2","container_format":"bare","visibility":"private","version":"<version>","os_type":"linux","os_distro":"ubuntu","architecture":"x86_64","auto_disk_config":"true","hypervisor_type":"kvm"}
 PUT /v2/images/<resource_id>/file
 ```
