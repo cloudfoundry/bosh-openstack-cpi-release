@@ -19,6 +19,7 @@ custom:
     suse-mitaka:  ['suse-mitaka']
     suse-newton: ['suse-newton']
     blue-box: ['blue-box']
+    suse-cloud7: ['suse-cloud7']
   timeouts:
     long: &timeouts-long 2h
   build_logs_to_retain: &build_logs_to_retain 500
@@ -619,6 +620,7 @@ resources:
       storage:
         bucket: {{s3_openstack_cpi_pipeline_bucket_name}}
         bucket_path: terraform-e2e/
+        region_name: {{s3_openstack_cpi_pipeline_bucket_region}}
         access_key_id: {{s3_openstack_cpi_pipeline_access_key}}
         secret_access_key: {{s3_openstack_cpi_pipeline_secret_key}}
       terraform_source: github.com/cloudfoundry-incubator/bosh-openstack-cpi-release//ci/terraform/e2e/modules/base
@@ -630,6 +632,7 @@ resources:
       storage:
         bucket: {{s3_openstack_cpi_pipeline_bucket_name}}
         bucket_path: terraform-e2e/
+        region_name: {{s3_openstack_cpi_pipeline_bucket_region}}
         access_key_id: {{s3_openstack_cpi_pipeline_access_key}}
         secret_access_key: {{s3_openstack_cpi_pipeline_secret_key}}
       terraform_source: github.com/cloudfoundry-incubator/bosh-openstack-cpi-release//ci/terraform/e2e/config_drive
@@ -640,7 +643,7 @@ resources:
     source:
       regexp: bosh-openstack-cpi-([0-9.]+)\.tgz
       bucket: {{s3_openstack_cpi_pipeline_bucket_name}} # OpenStack CPI account
-      region_name: us-east-1
+      region_name: {{s3_openstack_cpi_pipeline_bucket_region}}
       access_key_id:      {{s3_openstack_cpi_pipeline_access_key}}
       secret_access_key:  {{s3_openstack_cpi_pipeline_secret_key}}
 
@@ -688,6 +691,7 @@ resources:
       access_key_id: {{s3_openstack_cpi_receipts_access_key}}
       secret_access_key: {{s3_openstack_cpi_receipts_secret_key}}
       bucket: {{s3_openstack_cpi_receipts_bucket_name}}
+      region_name: {{s3_openstack_cpi_receipts_bucket_region}}
       regexp: .*-(\d+)-receipt\.json
       region_name: us-east-1
 
