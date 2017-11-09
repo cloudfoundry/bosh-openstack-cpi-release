@@ -18,7 +18,6 @@ custom:
     suse-liberty: ['suse-liberty']
     suse-mitaka:  ['suse-mitaka']
     suse-newton: ['suse-newton']
-    blue-box: ['blue-box']
     suse-cloud7: ['suse-cloud7']
   timeouts:
     long: &timeouts-long 2h
