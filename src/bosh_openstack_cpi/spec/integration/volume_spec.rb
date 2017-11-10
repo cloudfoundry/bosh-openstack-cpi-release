@@ -42,10 +42,12 @@ describe Bosh::OpenStackCloud::Cloud do
   let(:expected_snapshot_metadata) do
     {
       'director' => 'Director',
+      'director_uuid' => '6d06b0cc-2c08-43c5-95be-f1b2dd247e18',
       'deployment' => 'deployment',
       'instance_id' => 'instance',
       'instance_index' => '0',
-      'instance_name' => 'openstack_cpi_spec/instance'
+      'instance_name' => 'openstack_cpi_spec/instance',
+      'agent_id' => 'agent'
     }
   end
 
