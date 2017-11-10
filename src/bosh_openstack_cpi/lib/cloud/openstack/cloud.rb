@@ -541,18 +541,19 @@ module Bosh::OpenStackCloud
         @logger.info("Creating new snapshot `#{snapshot.id}' for volume `#{disk_id}'...")
         @openstack.wait_resource(snapshot, :available)
 
-        snapshot_metadata = {
+        metadata.merge!({
           'director' => metadata['director_name'],
-          'deployment' => metadata['deployment'],
-          'instance_id' => metadata['instance_id'],
           'instance_index' => metadata['index'].to_s,
           'instance_name' => metadata['job'] + '/' + metadata['instance_id']
-        }
-        snapshot_metadata.merge!(metadata['custom_tags']) if metadata['custom_tags']
+        })
+
+        metadata.delete('director_name')
+        metadata.delete('index')
+        metadata.delete('job')
 
         @logger.info("Creating metadata for snapshot `#{snapshot.id}'...")
         @openstack.with_openstack {
-          TagManager.tag_snapshot(snapshot, snapshot_metadata)
+          TagManager.tag_snapshot(snapshot, metadata)
         }
 
         snapshot.id.to_s

@@ -149,10 +149,12 @@ describe Bosh::OpenStackCloud::Cloud do
 
     expected_snapshot_metadata = {
       'director' => 'Test Director',
+      'director_uuid' => '1234',
       'deployment' => 'deployment',
       'instance_id' => 'some-uuid',
       'instance_index' => '0',
-      'instance_name' => 'job/some-uuid'
+      'instance_name' => 'job/some-uuid',
+      'agent_id' => 'agent0'
     }
 
     cloud.snapshot_disk('v-foobar', metadata)
@@ -160,7 +162,7 @@ describe Bosh::OpenStackCloud::Cloud do
     expect(snapshot).to have_received(:update_metadata).with(expected_snapshot_metadata)
   end
 
-  it 'creates snapshot metadata including custom_tags' do
+  it 'creates snapshot metadata keeping user-defined tags without changing them' do
     volume = double('volume', :id => 'v-foobar', :attachments => [])
     snapshot = double('snapshot', :id => 'snap-foobar', :save => nil, :update_metadata => nil)
     cloud = mock_cloud do |fog|
@@ -177,18 +179,18 @@ describe Bosh::OpenStackCloud::Cloud do
       'director_uuid' => '1234',
       'agent_id' => 'agent0',
       'instance_id' => 'some-uuid',
-      'custom_tags' => {
-        'tag1' => 'value1',
-        'tag2' => 'value2'
-      }
+      'tag1' => 'value1',
+      'tag2' => 'value2'
     }
 
     expected_snapshot_metadata = {
       'director' => 'Test Director',
+      'director_uuid' => '1234',
       'deployment' => 'deployment',
       'instance_id' => 'some-uuid',
       'instance_index' => '0',
       'instance_name' => 'job/some-uuid',
+      'agent_id' => 'agent0',
       'tag1' => 'value1',
       'tag2' => 'value2'
     }
