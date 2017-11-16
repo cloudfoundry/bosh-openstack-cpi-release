@@ -1,9 +1,9 @@
 # OpenStack CPI Implementation #
 OpenStack CPI is an implementation of BOSH CPI. It allows BOSH to interface with various services in OpenStack like glance, controller and registry. 
 
-The OpenStack CPI is configured in the BOSH deployment manifest. Read the [OpenStack CPI Config docs](bosh_openstack_cpi/cpi_config.md) for more details.
+The OpenStack CPI is configured in the BOSH deployment manifest. Read the [OpenStack CPI Config docs](bosh_openstack_cpi/docs/cpi_config.md) for more details.
 
-In the sections below we outline the implementation details for each of the method in CPI interface.
+In the sections below we outline the implementation details for the major methods in the CPI interface.
 
 ## Initialize ##
 
@@ -90,7 +90,7 @@ Figure below shows the flow control for `delete_vm` method
 
 1. Check if size passed is integer, is greater than 1024 and less than 1024*1000, else throw an error
 2. Create `volume_params`
-3. Call `create()volume_params)` on `Fog::Compute` service
+3. Call `create(volume_params)` on `Fog::Compute` service
      1. `create_volume` request on `Fog::Volume::OpenStack` 
      2. Opens a `Fog::Connection` request to access the remote service and create a volume.
 
