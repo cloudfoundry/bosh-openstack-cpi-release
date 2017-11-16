@@ -146,7 +146,7 @@ describe Bosh::OpenStackCloud::Cloud, "create_vm" do
         allow(openstack.compute.key_pairs).to receive(:find).and_return(key_pair)
         port_result_net = double('ports1', id: '117717c1-81cb-4ac4-96ab-99aaf1be9ca8', network_id: 'net', mac_address: 'AA:AA:AA:AA:AA:AA')
         ports = double('Fog::Network::OpenStack::Ports')
-        allow(ports).to receive(:create).with(network_id: 'net', fixed_ips: [{ip_address: '10.0.0.1'}], security_groups: ['default_sec_group_id']).and_return(port_result_net)
+        allow(ports).to receive(:create).with(network_id: 'net', fixed_ips: [{ip_address: '10.0.0.1'}], security_groups: ['default_sec_group_id'], allowed_address_pairs: []).and_return(port_result_net)
         allow(openstack.network).to receive(:ports).and_return(ports)
       end
     end
@@ -373,7 +373,7 @@ describe Bosh::OpenStackCloud::Cloud, "create_vm" do
     end
 
     it 'calls NetworkConfigurator#prepare and NetworkConfigurator#nics' do
-      expect_any_instance_of(Bosh::OpenStackCloud::NetworkConfigurator).to receive(:prepare).with(anything, ['default_sec_group_id'])
+      expect_any_instance_of(Bosh::OpenStackCloud::NetworkConfigurator).to receive(:prepare).with(anything, ['default_sec_group_id'], [])
       expect_any_instance_of(Bosh::OpenStackCloud::NetworkConfigurator).to receive(:nics).and_return(nics)
 
       cloud.create_vm("agent-id", "sc-id",

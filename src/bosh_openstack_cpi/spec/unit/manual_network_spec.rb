@@ -41,7 +41,7 @@ describe Bosh::OpenStackCloud::ManualNetwork do
       before(:each) do
         port_result_net = double('ports1', id: '117717c1-81cb-4ac4-96ab-99aaf1be9ca8', network_id: 'net', mac_address: 'AA:AA:AA:AA:AA:AA')
         allow(openstack).to receive(:network).and_return(neutron)
-        allow(ports).to receive(:create).with(network_id: 'net', fixed_ips: [{ip_address: '10.0.0.1'}], security_groups: ['default-security-group-id']).and_return(port_result_net)
+        allow(ports).to receive(:create).with(network_id: 'net', fixed_ips: [{ip_address: '10.0.0.1'}], security_groups: ['default-security-group-id'], allowed_address_pairs: []).and_return(port_result_net)
         allow(neutron).to receive(:ports).and_return(ports)
       end
 
@@ -50,21 +50,21 @@ describe Bosh::OpenStackCloud::ManualNetwork do
       let(:ports) { double('Fog::Network::OpenStack::Ports') }
 
       it 'adds port_ids to nic' do
-        subject.prepare(openstack, security_groups_to_be_used)
+        subject.prepare(openstack, security_groups_to_be_used, [])
 
         expect(subject.nic).to eq({'net_id' => 'net', 'port_id' => '117717c1-81cb-4ac4-96ab-99aaf1be9ca8'})
       end
 
       it 'adds MAC addresses to network spec' do
-        subject.prepare(openstack, security_groups_to_be_used)
+        subject.prepare(openstack, security_groups_to_be_used, [])
 
         expect(subject.spec['mac']).to eq('AA:AA:AA:AA:AA:AA')
       end
 
       it 'sets the given security groups for the port' do
-        subject.prepare(openstack, security_groups_to_be_used)
+        subject.prepare(openstack, security_groups_to_be_used, [])
 
-        expect(ports).to have_received(:create).with(network_id: anything, fixed_ips: anything, security_groups: ['default-security-group-id'])
+        expect(ports).to have_received(:create).with(network_id: anything, fixed_ips: anything, security_groups: ['default-security-group-id'], allowed_address_pairs: [])
       end
 
     end
@@ -76,13 +76,13 @@ describe Bosh::OpenStackCloud::ManualNetwork do
       let(:openstack) { instance_double(Bosh::OpenStackCloud::Openstack, use_nova_networking?: true, network: double('Fog::Network')) }
 
       it 'does not use Fog::Network' do
-        subject.prepare(openstack, security_groups_to_be_used)
+        subject.prepare(openstack, security_groups_to_be_used, [])
 
         expect(openstack).to_not have_received(:network)
       end
 
       it "adds 'v4_fixed_ip' to nic" do
-        subject.prepare(openstack, security_groups_to_be_used)
+        subject.prepare(openstack, security_groups_to_be_used, [])
 
         expect(subject.nic).to eq({'net_id' => 'net', 'v4_fixed_ip' => '10.0.0.1'})
       end
@@ -98,7 +98,7 @@ describe Bosh::OpenStackCloud::ManualNetwork do
 
       before(:each) do
         allow(openstack).to receive(:network).and_return(neutron)
-        allow(ports).to receive(:create).with(network_id: 'net', fixed_ips: [{ip_address: '10.0.0.1'}], security_groups: []).and_return(port)
+        allow(ports).to receive(:create).with(network_id: 'net', fixed_ips: [{ip_address: '10.0.0.1'}], security_groups: [], allowed_address_pairs: []).and_return(port)
         allow(ports).to receive(:get).with('117717c1-81cb-4ac4-96ab-99aaf1be9ca8').and_return(port)
         allow(neutron).to receive(:ports).and_return(ports)
       end
@@ -109,7 +109,7 @@ describe Bosh::OpenStackCloud::ManualNetwork do
       let(:ports) { double('Fog::Network::OpenStack::Ports') }
 
       before(:each) do
-        subject.prepare(openstack, [])
+        subject.prepare(openstack, [], [])
       end
 
       it 'should delete port' do
@@ -136,7 +136,7 @@ describe Bosh::OpenStackCloud::ManualNetwork do
       let(:security_groups_to_be_used) { [] }
 
       before(:each) do
-        subject.prepare(openstack, [])
+        subject.prepare(openstack, [], [])
       end
 
       it 'should not call Fog::Network' do

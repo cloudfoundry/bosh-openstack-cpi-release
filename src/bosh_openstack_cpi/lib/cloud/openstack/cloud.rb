@@ -201,7 +201,10 @@ module Bosh::OpenStackCloud
 
         begin
           @openstack.with_openstack {
-            network_configurator.prepare(@openstack, picked_security_groups.map { |sg| sg.id })
+            network_configurator.prepare(@openstack,
+              picked_security_groups.map { |sg| sg.id },
+              resource_pool['shared_vip'] ? [{ :ip_address => resource_pool['shared_vip'] }] : []
+            )
           }
 
           nics = network_configurator.nics
@@ -724,7 +727,7 @@ module Bosh::OpenStackCloud
 
       nil
     end
-    
+
     private
 
     def mib_to_gib(size)

@@ -49,9 +49,9 @@ module Bosh::OpenStackCloud
       end
     end
 
-    def prepare(openstack, security_group_ids)
+    def prepare(openstack, security_group_ids, allowed_address_pairs)
       @networks.each do |network|
-        network.prepare(openstack, security_group_ids)
+        network.prepare(openstack, security_group_ids, allowed_address_pairs)
       end
     end
 
