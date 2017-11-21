@@ -134,157 +134,35 @@ module Bosh::OpenStackCloud
       with_thread_name("create_vm(#{agent_id}, ...)") do
         @logger.info('Creating new server...')
         registry_key = "vm-#{generate_unique_name}"
-
-        network_configurator = NetworkConfigurator.new(network_spec)
-        network_configurator.check_preconditions(@openstack.use_nova_networking?, @use_config_drive, @use_dhcp)
-
-        picked_security_groups = SecurityGroups.select_and_retrieve(
-            @openstack,
-            @default_security_groups,
-            network_configurator.security_groups,
-            ResourcePool.security_groups(resource_pool)
-        )
-        @logger.debug("Using security groups: `#{picked_security_groups.map { |sg| sg.name }.join(', ')}'")
-
-        stemcell = Stemcell.create(@logger, @openstack, stemcell_id)
-        stemcell.validate_existence
-
-        flavor = @openstack.with_openstack { @openstack.compute.flavors.find { |f| f.name == resource_pool['instance_type'] } }
-        cloud_error("Flavor `#{resource_pool['instance_type']}' not found") if flavor.nil?
-        if flavor_has_ephemeral_disk?(flavor)
-          if flavor.ram
-            # Ephemeral disk size should be at least the double of the vm total memory size, as agent will need:
-            # - vm total memory size for swapon,
-            # - the rest for /var/vcap/data
-            min_ephemeral_size = (flavor.ram / 1024) * 2
-            if flavor.ephemeral < min_ephemeral_size
-              cloud_error("Flavor `#{resource_pool['instance_type']}' should have at least #{min_ephemeral_size}Gb " +
-                'of ephemeral disk')
-            end
-          end
-        end
-        @logger.debug("Using flavor: `#{resource_pool['instance_type']}'")
-
-        keyname = resource_pool['key_name'] || @default_key_name
-        validate_key_exists(keyname)
-
-        if resource_pool['scheduler_hints']
-          @logger.debug("Using scheduler hints: `#{resource_pool['scheduler_hints']}'")
-        end
-
         server_params = {
-          :name => registry_key,
-          :image_ref => stemcell.image_id,
-          :flavor_ref => flavor.id,
-          :key_name => keyname,
-          :security_groups => picked_security_groups.map { |sg| sg.name },
-          :os_scheduler_hints => resource_pool['scheduler_hints'],
-          :config_drive => @use_config_drive
+          name: registry_key,
+          os_scheduler_hints: resource_pool['scheduler_hints'],
+          config_drive: @use_config_drive
         }
 
-        availability_zone = @az_provider.select(disk_locality, resource_pool['availability_zone'])
-        server_params[:availability_zone] = availability_zone if availability_zone
-        volume_configurator = Bosh::OpenStackCloud::VolumeConfigurator.new(@logger)
-        if volume_configurator.boot_from_volume?(@boot_from_volume, resource_pool)
-          boot_vol_size = volume_configurator.select_boot_volume_size(flavor, resource_pool)
-          server_params[:block_device_mapping_v2] = [{
-                                                   :uuid => stemcell.image_id,
-                                                   :source_type => "image",
-                                                   :destination_type => "volume",
-                                                   :volume_size => boot_vol_size,
-                                                   :boot_index => "0",
-                                                   :delete_on_termination => "1",
-                                                   :device_name => "/dev/vda"
-                                                 }]
-          server_params.delete(:image_ref)
-        end
+        network_configurator = NetworkConfigurator.new(network_spec)
+        picked_security_groups = pick_security_groups(server_params, network_configurator, ResourcePool.security_groups(resource_pool))
+        pick_stemcell(server_params, stemcell_id)
+        flavor = pick_flavor(server_params, resource_pool)
+        pick_keyname(server_params, resource_pool)
+
+        @logger.debug("Using scheduler hints: `#{resource_pool['scheduler_hints']}'") if resource_pool['scheduler_hints']
+
+        pick_availability_zone(server_params, disk_locality, resource_pool['availability_zone'])
+        configure_volumes(server_params, flavor, resource_pool)
 
         begin
-          @openstack.with_openstack {
-            network_configurator.prepare(@openstack, picked_security_groups.map { |sg| sg.id })
-          }
+          @openstack.with_openstack { network_configurator.prepare(@openstack, picked_security_groups.map(&:id)) }
 
-          nics = network_configurator.nics
-          @logger.debug("Using NICs: `#{nics.join(', ')}'")
-          server_params.merge!({
-              nics: nics,
-              user_data: JSON.dump(user_data(registry_key, network_configurator.network_spec))
-          })
-
-          @logger.debug("Using boot parms: `#{Bosh::Cpi::Redactor.clone_and_redact(server_params, 'user_data').inspect}'")
-          server = @openstack.with_openstack do
-            begin
-              @openstack.compute.servers.create(server_params)
-            rescue Excon::Error::Timeout => e
-              @logger.debug(e.backtrace)
-              cloud_error_message = "VM creation with name '#{server_params[:name]}' received a timeout. " +
-                  "The VM might still have been created by OpenStack.\nOriginal message: "
-              raise Bosh::Clouds::VMCreationFailed.new(false), cloud_error_message + e.message
-            rescue Excon::Error::BadRequest, Excon::Error::NotFound, Fog::Compute::OpenStack::NotFound => e
-              if @openstack.use_nova_networking?
-                raise e
-              else
-                not_existing_net_ids = not_existing_net_ids(nics)
-                if not_existing_net_ids.empty?
-                  raise e
-                end
-                @logger.debug(e.backtrace)
-                cloud_error_message = "VM creation with name '#{server_params[:name]}' failed. Following network " +
-                    "IDs are not existing or not accessible from this project: '#{not_existing_net_ids.join(",")}'. " +
-                    "Make sure you do not use subnet IDs"
-                raise Bosh::Clouds::VMCreationFailed.new(false), cloud_error_message
-              end
-            end
-          end
-
-          @logger.info("Creating new server `#{server.id}'...")
-          begin
-            @openstack.wait_resource(server, :active, :state)
-
-            @logger.info("Configuring network for server `#{server.id}'...")
-            @openstack.with_openstack {
-              network_configurator.configure(@openstack, server)
-            }
-          rescue => e
-            @logger.warn("Failed to create server: #{e.message}")
-            raise Bosh::Clouds::VMCreationFailed.new(true), e.message
-          end
+          nics = pick_nics(server_params, network_configurator)
+          server = create_server(server_params, nics)
+          configure_server(network_configurator, server)
 
           server_tags = {}
+          tag_server(server_tags, server, registry_key, network_spec, resource_pool.fetch('loadbalancer_pools', []))
 
-          if @human_readable_vm_names
-            @logger.debug("'human_readable_vm_names' enabled")
-
-            server_tags.merge!(REGISTRY_KEY_TAG => registry_key)
-          else
-            @logger.debug("'human_readable_vm_names' disabled")
-          end
-
-          server_tags.merge!(
-            LoadbalancerConfigurator
-              .new(@openstack, @logger)
-              .create_pool_memberships(server, network_spec, resource_pool.fetch('loadbalancer_pools',[]))
-          )
-
-          begin
-            unless server_tags.empty?
-              TagManager.tag_server(server, server_tags)
-              @logger.debug("Tagged VM '#{server.id}' with tags '#{server_tags}")
-            end
-          rescue => e
-            @logger.warn("Unable to tag server with tags '#{server_tags}")
-            raise Bosh::Clouds::VMCreationFailed.new(true), e.message
-          end
-
-          begin
-            @logger.info("Updating settings for server `#{server.id}'...")
-            settings = initial_agent_settings(registry_key, agent_id, network_configurator.network_spec, environment,
-                flavor_has_ephemeral_disk?(flavor))
-            @registry.update_settings(registry_key, settings)
-          rescue => e
-            @logger.warn("Failed to register server: #{e.message}")
-            raise Bosh::Clouds::VMCreationFailed.new(false), e.message
-          end
+          update_server_settings(server, registry_key, agent_id, network_configurator.network_spec, environment,
+                                 flavor_has_ephemeral_disk?(flavor))
 
           server.id.to_s
 
@@ -724,8 +602,163 @@ module Bosh::OpenStackCloud
 
       nil
     end
-    
+
     private
+
+    def pick_security_groups(server_params, network_configurator, resource_pool_groups)
+      network_configurator.check_preconditions(@openstack.use_nova_networking?, @use_config_drive, @use_dhcp)
+
+      picked_security_groups = SecurityGroups.select_and_retrieve(
+        @openstack,
+        @default_security_groups,
+        network_configurator.security_groups,
+        resource_pool_groups
+      )
+      @logger.debug("Using security groups: `#{picked_security_groups.map { |sg| sg.name }.join(', ')}'")
+      server_params[:security_groups] = picked_security_groups.map { |sg| sg.name }
+      picked_security_groups
+    end
+
+    def pick_keyname(server_params, resource_pool)
+      keyname = resource_pool['key_name'] || @default_key_name
+      validate_key_exists(keyname)
+      server_params[:key_name] = keyname
+    end
+
+    def pick_flavor(server_params, resource_pool)
+      flavor = @openstack.with_openstack { @openstack.compute.flavors.find { |f| f.name == resource_pool['instance_type'] } }
+      cloud_error("Flavor `#{resource_pool['instance_type']}' not found") if flavor.nil?
+      if flavor_has_ephemeral_disk?(flavor)
+        if flavor.ram
+          # Ephemeral disk size should be at least the double of the vm total memory size, as agent will need:
+          # - vm total memory size for swapon,
+          # - the rest for /var/vcap/data
+          min_ephemeral_size = (flavor.ram / 1024) * 2
+          if flavor.ephemeral < min_ephemeral_size
+            cloud_error("Flavor `#{resource_pool['instance_type']}' should have at least #{min_ephemeral_size}Gb " +
+                        'of ephemeral disk')
+          end
+        end
+      end
+      @logger.debug("Using flavor: `#{resource_pool['instance_type']}'")
+      server_params[:flavor_ref] = flavor.id
+      flavor
+    end
+
+    def pick_stemcell(server_params, stemcell_id)
+      stemcell = Stemcell.create(@logger, @openstack, stemcell_id)
+      stemcell.validate_existence
+      server_params[:image_ref] = stemcell.image_id
+    end
+
+    def set_auto_anti_affinity(server_params, group)
+      server_group_id = ServerGroups.new(@openstack, Bosh::Clouds::Config.uuid).find_or_create(group)
+      server_params.merge!(group_name: server_group_id)
+    end
+
+    def pick_availability_zone(server_params, disk_locality, resource_pool_zone)
+      availability_zone = @az_provider.select(disk_locality, resource_pool_zone)
+      server_params[:availability_zone] = availability_zone if availability_zone
+    end
+
+    def configure_volumes(server_params, flavor, resource_pool)
+      volume_configurator = Bosh::OpenStackCloud::VolumeConfigurator.new(@logger)
+      return unless volume_configurator.boot_from_volume?(@boot_from_volume, resource_pool)
+
+      boot_vol_size = volume_configurator.select_boot_volume_size(flavor, resource_pool)
+      server_params[:block_device_mapping_v2] = [{
+        :uuid => server_params[:image_ref],
+        :source_type => "image",
+        :destination_type => "volume",
+        :volume_size => boot_vol_size,
+        :boot_index => "0",
+        :delete_on_termination => "1",
+        :device_name => "/dev/vda"
+      }]
+      server_params.delete(:image_ref)
+    end
+
+    def pick_nics(server_params, network_configurator)
+      nics = network_configurator.nics
+      @logger.debug("Using NICs: `#{nics.join(', ')}'")
+      server_params.merge!({
+        nics: nics,
+        user_data: JSON.dump(user_data(server_params[:name], network_configurator.network_spec))
+      })
+      nics
+    end
+
+    def create_server(server_params, nics)
+      @logger.debug("Using boot parms: `#{Bosh::Cpi::Redactor.clone_and_redact(server_params, 'user_data').inspect}'")
+      server = @openstack.with_openstack do
+        begin
+          @openstack.compute.servers.create(server_params)
+        rescue Excon::Error::Timeout => e
+          @logger.debug(e.backtrace)
+          cloud_error_message = "VM creation with name '#{server_params[:name]}' received a timeout. " +
+            "The VM might still have been created by OpenStack.\nOriginal message: "
+          raise Bosh::Clouds::VMCreationFailed.new(false), cloud_error_message + e.message
+        rescue Excon::Error::BadRequest, Excon::Error::NotFound, Fog::Compute::OpenStack::NotFound => e
+          raise e if @openstack.use_nova_networking?
+          not_existing_net_ids = not_existing_net_ids(nics)
+          raise e if not_existing_net_ids.empty?
+          @logger.debug(e.backtrace)
+          cloud_error_message = "VM creation with name '#{server_params[:name]}' failed. Following network " +
+            "IDs are not existing or not accessible from this project: '#{not_existing_net_ids.join(",")}'. " +
+            "Make sure you do not use subnet IDs"
+          raise Bosh::Clouds::VMCreationFailed.new(false), cloud_error_message
+        end
+      end
+      server
+    end
+
+    def configure_server(network_configurator, server)
+      @logger.info("Creating new server `#{server.id}'...")
+      begin
+        @openstack.wait_resource(server, :active, :state)
+
+        @logger.info("Configuring network for server `#{server.id}'...")
+        @openstack.with_openstack { network_configurator.configure(@openstack, server) }
+      rescue => e
+        @logger.warn("Failed to create server: #{e.message}")
+        raise Bosh::Clouds::VMCreationFailed.new(true), e.message
+      end
+    end
+
+    def tag_server(server_tags, server, registry_key, network_spec, loadbalancer_pools)
+      if @human_readable_vm_names
+        @logger.debug("'human_readable_vm_names' enabled")
+
+        server_tags.merge!(REGISTRY_KEY_TAG => registry_key)
+      else
+        @logger.debug("'human_readable_vm_names' disabled")
+      end
+
+      server_tags.merge!(
+        LoadbalancerConfigurator
+        .new(@openstack, @logger)
+        .create_pool_memberships(server, network_spec, loadbalancer_pools)
+      )
+
+      begin
+        unless server_tags.empty?
+          TagManager.tag_server(server, server_tags)
+          @logger.debug("Tagged VM '#{server.id}' with tags '#{server_tags}")
+        end
+      rescue => e
+        @logger.warn("Unable to tag server with tags '#{server_tags}")
+        raise Bosh::Clouds::VMCreationFailed.new(true), e.message
+      end
+    end
+
+    def update_server_settings(server, registry_key, agent_id, network_spec, environment, ephemeral_disk)
+      settings = initial_agent_settings(registry_key, agent_id, network_spec, environment, ephemeral_disk)
+      @logger.info("Updating settings for server `#{server.id}'...")
+      @registry.update_settings(registry_key, settings)
+    rescue => e
+      @logger.warn("Failed to register server: #{e.message}")
+      raise Bosh::Clouds::VMCreationFailed.new(false), e.message
+    end
 
     def mib_to_gib(size)
       (size / 1024.0).ceil
