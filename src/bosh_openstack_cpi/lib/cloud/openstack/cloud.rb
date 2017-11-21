@@ -39,6 +39,7 @@ module Bosh::OpenStackCloud
       @boot_from_volume = openstack_properties['boot_from_volume']
       @use_dhcp = openstack_properties['use_dhcp']
       @human_readable_vm_names = openstack_properties['human_readable_vm_names']
+      @enable_auto_anti_affinity = openstack_properties['enable_auto_anti_affinity']
       @use_config_drive = !!openstack_properties.fetch('config_drive', false)
       @config_drive = openstack_properties['config_drive']
 
@@ -182,8 +183,15 @@ module Bosh::OpenStackCloud
           :config_drive => @use_config_drive
         }
 
+        if @enable_auto_anti_affinity && environment.dig('bosh', 'group')
+          server_group_id = ServerGroups.new(@openstack).find_or_create(Bosh::Clouds::Config.uuid,
+                                                                        environment['bosh']['group'])
+          server_params.merge!(group_name: server_group_id)
+        end
+
         availability_zone = @az_provider.select(disk_locality, resource_pool['availability_zone'])
         server_params[:availability_zone] = availability_zone if availability_zone
+
         volume_configurator = Bosh::OpenStackCloud::VolumeConfigurator.new(@logger)
         if volume_configurator.boot_from_volume?(@boot_from_volume, resource_pool)
           boot_vol_size = volume_configurator.select_boot_volume_size(flavor, resource_pool)
@@ -724,7 +732,7 @@ module Bosh::OpenStackCloud
 
       nil
     end
-    
+
     private
 
     def mib_to_gib(size)
