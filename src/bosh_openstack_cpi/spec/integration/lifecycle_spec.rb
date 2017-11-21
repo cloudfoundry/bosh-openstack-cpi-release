@@ -20,11 +20,10 @@ describe Bosh::OpenStackCloud::Cloud do
   let(:use_dhcp) { true }
   let(:human_readable_vm_names) { false }
   let(:use_nova_networking) { false }
-  let(:enable_auto_anti_affinity) { false }
   let(:openstack) { @config.create_openstack }
 
   subject(:cpi) do
-    @config.create_cpi(boot_from_volume: boot_from_volume, config_drive: config_drive, human_readable_vm_names: human_readable_vm_names, use_nova_networking: use_nova_networking, use_dhcp: use_dhcp, enable_auto_anti_affinity: enable_auto_anti_affinity)
+    @config.create_cpi(boot_from_volume: boot_from_volume, config_drive: config_drive, human_readable_vm_names: human_readable_vm_names, use_nova_networking: use_nova_networking, use_dhcp: use_dhcp)
   end
 
   before { allow(Bosh::Cpi::RegistryClient).to receive(:new).and_return(double('registry').as_null_object) }
@@ -460,42 +459,6 @@ describe Bosh::OpenStackCloud::Cloud do
     end
   end
 
-  describe 'enable_auto_anti_affinity' do
-    let (:enable_auto_anti_affinity) { true }
-    let(:network_spec) do
-      {
-        'default' => {
-          'type' => 'dynamic',
-          'cloud_properties' => {
-            'net_id' => @config.net_id
-          }
-        }
-      }
-    end
-
-    before do
-      allow(Bosh::Clouds::Config).to receive(:uuid).and_return('fake-uuid')
-      remove_server_groups(openstack)
-    end
-
-    after do
-      clean_up_vm(@server_groups_vm_id) if @server_groups_vm_id
-      remove_server_groups(openstack)
-    end
-
-    it 'creates a server group' do
-      @server_groups_vm_id = create_vm(@stemcell_id, network_spec, [])
-      vm_server_groups = openstack.compute.server_groups.all.select { |g| g.name == 'fake-uuid-instance-group-1' }
-      expect(vm_server_groups.size).to eq(1)
-      expect(vm_server_groups.first.members).to include(@server_groups_vm_id)
-    end
-
-    it 'does not create a server group if instance group is missing from environment' do
-      @server_groups_vm_id = create_vm(@stemcell_id, network_spec, [], {}, {})
-      expect(openstack.compute.server_groups.all).to be_empty
-    end
-  end
-
   describe 'resize_disk' do
     before { @disk_id = cpi.create_disk(2048, {}, nil) }
     after { clean_up_disk(@disk_id) if @disk_id }
@@ -587,7 +550,7 @@ describe Bosh::OpenStackCloud::Cloud do
     run_all_and_raise_any_errors(create_error, funcs)
   end
 
-  def create_vm(stemcell_id, network_spec, disk_locality, resource_pool = {}, environment = { 'bosh' => {  'group' => 'instance-group-1' } })
+  def create_vm(stemcell_id, network_spec, disk_locality, resource_pool = {})
     @config.logger.info("Creating VM with stemcell_id=#{stemcell_id}")
     vm_id = cpi.create_vm(
       'agent-007',
@@ -597,7 +560,7 @@ describe Bosh::OpenStackCloud::Cloud do
       }.merge(resource_pool),
       network_spec,
       disk_locality,
-      environment
+      { 'key' => 'value' }
     )
     expect(vm_id).to be
 
