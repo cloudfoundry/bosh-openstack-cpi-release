@@ -82,6 +82,9 @@ properties:
   openstack.use_nova_networking:
     description: 'Use Nova networking APIs instead of Neutron APIs. Note: Nova networking APIs are deprecated with the Newton release, hence this switch will likely not work in future releases.'
     default: false
+  openstack.enable_auto_anti_affinity:
+    description: Configures soft anti-affinity. For each instance group an OpenStack server group with a soft-anti-affinity policy is created. If anti-affinity can not be achieved (more than one VM is placed on a single hypervisor) the deployment will not fail and no warning will be shown.
+    default: false
 
   registry.host:
     description: Address of the Registry to connect to (required)

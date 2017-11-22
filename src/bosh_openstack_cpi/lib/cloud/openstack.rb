@@ -43,6 +43,7 @@ require "cloud/openstack/availability_zone_provider"
 require "cloud/openstack/stemcell"
 require "cloud/openstack/stemcell_creator"
 require "cloud/openstack/instance_type_mapper"
+require "cloud/openstack/server_groups"
 
 module Bosh
   module Clouds

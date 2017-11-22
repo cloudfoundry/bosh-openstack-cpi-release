@@ -39,6 +39,7 @@ module Bosh::OpenStackCloud
       @boot_from_volume = openstack_properties['boot_from_volume']
       @use_dhcp = openstack_properties['use_dhcp']
       @human_readable_vm_names = openstack_properties['human_readable_vm_names']
+      @enable_auto_anti_affinity = openstack_properties['enable_auto_anti_affinity']
       @use_config_drive = !!openstack_properties.fetch('config_drive', false)
       @config_drive = openstack_properties['config_drive']
 
@@ -150,6 +151,15 @@ module Bosh::OpenStackCloud
 
         pick_availability_zone(server_params, disk_locality, resource_pool['availability_zone'])
         configure_volumes(server_params, flavor, resource_pool)
+
+        if @enable_auto_anti_affinity && environment.dig('bosh', 'group')
+          server_group_id = ServerGroups.new(@openstack).find_or_create(Bosh::Clouds::Config.uuid,
+                                                                        environment['bosh']['group'])
+          server_params.merge!(group_name: server_group_id)
+        end
+
+        availability_zone = @az_provider.select(disk_locality, resource_pool['availability_zone'])
+        server_params[:availability_zone] = availability_zone if availability_zone
 
         begin
           @openstack.with_openstack { network_configurator.prepare(@openstack, picked_security_groups.map(&:id)) }
