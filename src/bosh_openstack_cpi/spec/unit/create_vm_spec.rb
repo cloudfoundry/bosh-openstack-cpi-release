@@ -901,6 +901,20 @@ describe Bosh::OpenStackCloud::Cloud, 'create_vm' do
   end
 
   describe 'enable_auto_anti_affinity' do
+    let(:environment) do
+      {
+        'bosh' => { 'group' => 'fake-group' }
+      }
+    end
+
+    let(:server_groups) { instance_double(Bosh::OpenStackCloud::ServerGroups) }
+
+    before(:each) do
+      allow(Bosh::Clouds::Config).to receive(:uuid).and_return('fake-uuid')
+      allow(Bosh::OpenStackCloud::ServerGroups).to receive(:new).and_return(server_groups)
+      allow(server_groups).to receive(:find_or_create).and_return('fake-server-group-id')
+    end
+
     context 'when "enable_auto_anti_affinity" is true' do
       let(:options) do
         options = mock_cloud_options['properties']
@@ -908,33 +922,18 @@ describe Bosh::OpenStackCloud::Cloud, 'create_vm' do
         options
       end
 
-      let(:environment) do
-        {
-          'bosh' => { 'group' => 'id' }
-        }
+      it 'creates the vm with the server group assigned' do
+        cloud.create_vm('agent-id', 'sc-id', resource_pool_spec, { 'network_a' => dynamic_network_spec }, nil, environment)
+
+        expect(Bosh::OpenStackCloud::ServerGroups).to have_received(:new).with(cloud.openstack)
+        expect(server_groups).to have_received(:find_or_create).with('fake-uuid', 'fake-group')
+        expect(cloud.compute.servers).to have_received(:create).with(hash_including(group_name: 'fake-server-group-id'))
       end
 
-      context 'when a server_group with soft-anti-affinity policy already exists for this instance group' do
-        before(:each) do
-          allow(Bosh::OpenStackCloud::ServerGroups).to receive(:new).and_return(server_groups)
-          allow(Bosh::Clouds::Config).to receive(:uuid).and_return('123')
-          allow(server_groups).to receive(:find_or_create).and_return('id-123')
-        end
-
-        let(:server_groups){ instance_double(Bosh::OpenStackCloud::ServerGroups) }
-
-        it 'creates the vm with the server group assigned' do
-          cloud.create_vm('agent-id', 'sc-id', resource_pool_spec, { 'network_a' => dynamic_network_spec }, nil, environment)
-
-          expect(Bosh::OpenStackCloud::ServerGroups).to have_received(:new).with(cloud.openstack, '123')
-          expect(server_groups).to have_received(:find_or_create).with('id')
-          expect(cloud.compute.servers).to have_received(:create).with(hash_including(group_name: 'id-123'))
-        end
+      it 'does not set server group name if bosh group is missing' do
+        cloud.create_vm('agent-id', 'sc-id', resource_pool_spec, { 'network_a' => dynamic_network_spec }, nil, {})
+        expect(Bosh::OpenStackCloud::ServerGroups).to_not have_received(:new)
       end
-
-      # context 'when no server_group with soft-anti-affinity policy exists for this instance group' do
-      #
-      # end
     end
 
     context 'when "enable_auto_anti_affinity" is false' do

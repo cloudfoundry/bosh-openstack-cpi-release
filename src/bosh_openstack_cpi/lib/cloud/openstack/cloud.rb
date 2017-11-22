@@ -152,11 +152,7 @@ module Bosh::OpenStackCloud
         pick_availability_zone(server_params, disk_locality, resource_pool['availability_zone'])
         configure_volumes(server_params, flavor, resource_pool)
 
-        if @enable_auto_anti_affinity && environment.dig('bosh', 'group')
-          server_group_id = ServerGroups.new(@openstack).find_or_create(Bosh::Clouds::Config.uuid,
-                                                                        environment['bosh']['group'])
-          server_params.merge!(group_name: server_group_id)
-        end
+        pick_server_groups(server_params, environment)
 
         availability_zone = @az_provider.select(disk_locality, resource_pool['availability_zone'])
         server_params[:availability_zone] = availability_zone if availability_zone
@@ -686,6 +682,14 @@ module Bosh::OpenStackCloud
         :device_name => "/dev/vda"
       }]
       server_params.delete(:image_ref)
+    end
+
+    def pick_server_groups(server_params, environment)
+      return unless @enable_auto_anti_affinity
+      bosh_group = environment.dig('bosh', 'group')
+      return unless bosh_group
+      server_group_id = ServerGroups.new(@openstack).find_or_create(Bosh::Clouds::Config.uuid, bosh_group)
+      server_params[:group_name] = server_group_id
     end
 
     def pick_nics(server_params, network_configurator)

@@ -78,7 +78,8 @@ describe 'cpi.json.erb' do
             'wait_resource_poll_interval' => 'openstack.wait_resource_poll_interval',
             'human_readable_vm_names' => false,
             'use_nova_networking' => false,
-            'default_volume_type' => nil
+            'default_volume_type' => nil,
+            'enable_auto_anti_affinity' => false
           },
           'registry' => {
             'address' => 'registry.host',
