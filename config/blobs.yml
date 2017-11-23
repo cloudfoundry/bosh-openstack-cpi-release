@@ -1,7 +1,7 @@
-ruby_openstack_cpi/bundler-1.15.4.gem:
-  size: 337408
-  object_id: dd00e974-bab1-4948-4843-64691f6375c2
-  sha: 313a6413486ac07c7a70e5eaf0ba11683b14cb5b
+ruby_openstack_cpi/bundler-1.16.0.gem:
+  size: 350208
+  object_id: e2a5d7c9-44e8-4b3d-776a-9f493a8c70fc
+  sha: cb3c531fd27f82a7525224e4315418757056dc67
 ruby_openstack_cpi/ruby-2.4.2.tar.gz:
   size: 14187859
   object_id: 7d57a982-ce5a-43db-4b25-d20562f637b3
