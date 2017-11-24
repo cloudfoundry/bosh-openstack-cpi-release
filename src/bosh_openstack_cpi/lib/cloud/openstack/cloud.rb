@@ -657,11 +657,6 @@ module Bosh::OpenStackCloud
       server_params[:image_ref] = stemcell.image_id
     end
 
-    def set_auto_anti_affinity(server_params, group)
-      server_group_id = ServerGroups.new(@openstack, Bosh::Clouds::Config.uuid).find_or_create(group)
-      server_params.merge!(group_name: server_group_id)
-    end
-
     def pick_availability_zone(server_params, disk_locality, resource_pool_zone)
       availability_zone = @az_provider.select(disk_locality, resource_pool_zone)
       server_params[:availability_zone] = availability_zone if availability_zone
@@ -688,8 +683,16 @@ module Bosh::OpenStackCloud
       return unless @enable_auto_anti_affinity
       bosh_group = environment.dig('bosh', 'group')
       return unless bosh_group
+
+      if server_params.dig(:os_scheduler_hints, 'group')
+        @logger.debug("Won't create/use server group for bosh group '#{bosh_group}'. Using provided server group with id '#{server_params[:os_scheduler_hints]['group']}'.")
+        return
+      end
+
       server_group_id = ServerGroups.new(@openstack).find_or_create(Bosh::Clouds::Config.uuid, bosh_group)
-      server_params[:group_name] = server_group_id
+      server_group_hint = {'group' => server_group_id}
+      return server_params[:os_scheduler_hints].merge!(server_group_hint) if server_params[:os_scheduler_hints]
+      server_params[:os_scheduler_hints] = server_group_hint
     end
 
     def pick_nics(server_params, network_configurator)

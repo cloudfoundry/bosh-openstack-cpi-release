@@ -20,9 +20,9 @@ describe Bosh::OpenStackCloud::ServerGroups do
     let(:fog_server_groups) {
       double(:compute_server_groups, all:
         [
-          OpenStruct.new('id' => '456', 'name' => 'fake-uuid-fake-group', 'policy' => 'anti-affinity'),
-          OpenStruct.new('id' => '123', 'name' => 'fake-uuid-fake-group', 'policy' => 'soft-anti-affinity'),
-          OpenStruct.new('id' => '234', 'name' => 'other-uuid-other-group', 'policy' => 'soft-anti-affinity')
+          OpenStruct.new('id' => '456', 'name' => 'fake-uuid-fake-group', 'policies' => ['anti-affinity']),
+          OpenStruct.new('id' => '123', 'name' => 'fake-uuid-fake-group', 'policies' => ['soft-anti-affinity']),
+          OpenStruct.new('id' => '234', 'name' => 'other-uuid-other-group', 'policies' => ['soft-anti-affinity'])
         ],
         create: OpenStruct.new('id' => 'fake-server-group-id', 'name' => 'fake-uuid-fake-group', 'policy' => 'soft-anti-affinity')
       )

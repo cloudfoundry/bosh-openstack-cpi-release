@@ -927,12 +927,37 @@ describe Bosh::OpenStackCloud::Cloud, 'create_vm' do
 
         expect(Bosh::OpenStackCloud::ServerGroups).to have_received(:new).with(cloud.openstack)
         expect(server_groups).to have_received(:find_or_create).with('fake-uuid', 'fake-group')
-        expect(cloud.compute.servers).to have_received(:create).with(hash_including(group_name: 'fake-server-group-id'))
+        expect(cloud.compute.servers).to have_received(:create).with(hash_including(os_scheduler_hints: { 'group' => 'fake-server-group-id' }))
       end
 
       it 'does not set server group name if bosh group is missing' do
         cloud.create_vm('agent-id', 'sc-id', resource_pool_spec, { 'network_a' => dynamic_network_spec }, nil, {})
         expect(Bosh::OpenStackCloud::ServerGroups).to_not have_received(:new)
+      end
+
+      context 'when the user specifies a server group'  do
+        let(:resource_pool_spec)  { { 'scheduler_hints' => { 'group' => 'fake-server-group-uuid' } } }
+
+        before(:each) do
+          allow(Bosh::Clouds::Config.logger).to receive(:debug)
+        end
+
+        it 'uses the specified server group' do
+          cloud.create_vm('agent-id', 'sc-id', resource_pool_spec, { 'network_a' => dynamic_network_spec}, nil, environment)
+
+          expect(Bosh::Clouds::Config.logger).to have_received(:debug).with("Won't create/use server group for bosh group 'fake-group'. Using provided server group with id 'fake-server-group-uuid'.")
+          expect(Bosh::OpenStackCloud::ServerGroups).to_not have_received(:new)
+        end
+      end
+
+      context 'when the user specifies scheduler hints but no group' do
+        let(:resource_pool_spec)  { { 'scheduler_hints' => {'foo' => 'bar'}} }
+
+        it "merges 'group' to the other hints" do
+          cloud.create_vm('agent-id', 'sc-id', resource_pool_spec, { 'network_a' => dynamic_network_spec }, nil, environment)
+
+          expect(cloud.compute.servers).to have_received(:create).with(hash_including(os_scheduler_hints: { 'group' => 'fake-server-group-id', 'foo' => 'bar' }))
+        end
       end
     end
 
