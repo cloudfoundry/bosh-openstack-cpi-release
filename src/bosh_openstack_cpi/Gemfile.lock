@@ -38,7 +38,7 @@ GEM
     minitar (0.5.4)
     multi_json (1.12.2)
     netaddr (1.5.1)
-    public_suffix (3.0.0)
+    public_suffix (3.0.1)
     rake (10.3.2)
     rspec (3.3.0)
       rspec-core (~> 3.3.0)
