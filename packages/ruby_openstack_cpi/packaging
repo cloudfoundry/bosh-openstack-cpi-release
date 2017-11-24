@@ -2,6 +2,8 @@
 
 set -e -x
 
+export LC_ALL=en_US.UTF-8
+
 openssl_version=`PATH=/usr/local/opt/openssl/bin:$PATH openssl version`
 openssl_major_version=`echo $openssl_version | cut -f2 -d\ | cut -f1 -d.`
 if [ $openssl_major_version == 0 ]; then
@@ -36,4 +38,4 @@ pushd rubygems-2.6.14
   ${BOSH_INSTALL_TARGET}/bin/ruby setup.rb
 popd > /dev/null
 
-${BOSH_INSTALL_TARGET}/bin/gem install ruby_openstack_cpi/bundler-1.15.4.gem --local --no-ri --no-rdoc
+${BOSH_INSTALL_TARGET}/bin/gem install ruby_openstack_cpi/bundler-1.15.4.gem --local --no-ri --no-rdoc --force
