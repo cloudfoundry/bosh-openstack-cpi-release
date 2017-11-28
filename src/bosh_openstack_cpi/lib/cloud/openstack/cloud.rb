@@ -724,6 +724,9 @@ module Bosh::OpenStackCloud
             "IDs are not existing or not accessible from this project: '#{not_existing_net_ids.join(",")}'. " +
             "Make sure you do not use subnet IDs"
           raise Bosh::Clouds::VMCreationFailed.new(false), cloud_error_message
+        rescue Excon::Error::Forbidden => e
+          raise e unless e.message.include? 'Quota exceeded, too many servers in group'
+          raise Bosh::Clouds::CloudError, "You have reached your quota for members in a server group for project '#{@openstack.params[:openstack_tenant]}'. Please disable auto-anti-affinity server groups or increase your quota."
         end
       end
       server

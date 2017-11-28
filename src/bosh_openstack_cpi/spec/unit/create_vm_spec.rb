@@ -935,6 +935,18 @@ describe Bosh::OpenStackCloud::Cloud, 'create_vm' do
         expect(Bosh::OpenStackCloud::ServerGroups).to_not have_received(:new)
       end
 
+      context 'when quota for members in server groups is reached' do
+        before do
+          allow(cloud.compute.servers).to receive(:create).and_raise Excon::Error::Forbidden.new('Quota exceeded, too many servers in group')
+        end
+
+        it 'raises an cloud error' do
+          expect{
+            cloud.create_vm('agent-id', 'sc-id', resource_pool_spec, { 'network_a' => dynamic_network_spec }, nil, environment)
+          }.to raise_error(Bosh::Clouds::CloudError, "You have reached your quota for members in a server group for project '#{cloud.openstack.params[:openstack_tenant]}'. Please disable auto-anti-affinity server groups or increase your quota.")
+        end
+      end
+
       context 'when the user specifies a server group'  do
         let(:resource_pool_spec)  { { 'scheduler_hints' => { 'group' => 'fake-server-group-uuid' } } }
 
