@@ -22,7 +22,7 @@ GEM
     fog-json (1.0.2)
       fog-core (~> 1.0)
       multi_json (~> 1.10)
-    fog-openstack (0.1.22)
+    fog-openstack (0.1.23.pre.microversions)
       fog-core (>= 1.40)
       fog-json (>= 1.0)
       ipaddress (>= 0.8)
@@ -71,7 +71,7 @@ DEPENDENCIES
   bosh_common
   bosh_cpi (= 2.3.0)
   excon (~> 0.49)
-  fog-openstack (= 0.1.22)
+  fog-openstack (= 0.1.23.pre.microversions)
   httpclient (= 2.8.3)
   membrane (~> 1.1.0)
   minitar (~> 0.5.4)
@@ -83,4 +83,4 @@ DEPENDENCIES
   webmock (~> 2.3.2)
 
 BUNDLED WITH
-   1.13.7
+   1.16.0
