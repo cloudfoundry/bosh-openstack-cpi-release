@@ -46,6 +46,8 @@ export BOSH_OPENSTACK_STEMCELL_PATH="${PWD}/openstack-lifecycle-stemcell/stemcel
 
 cd bosh-cpi-src-in/src/bosh_openstack_cpi
 
+BUNDLE_WITHOUT="development:test" BUNDLE_CACHE_PATH="vendor/package" bundle install --local
+bundle config --delete without
 bundle install
 
 if [ -n "${BOSH_OPENSTACK_AUTH_URL_V2}" ]; then
