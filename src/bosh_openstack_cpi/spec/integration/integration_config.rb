@@ -26,7 +26,8 @@ class IntegrationConfig
               :floating_ip,
               :ca_cert_path,
               :insecure,
-              :lbaas_pool_name
+              :lbaas_pool_name,
+              :test_auto_anti_affinity
 
   def initialize(identity_version=:v3)
     if identity_version == :v3
@@ -75,14 +76,15 @@ class IntegrationConfig
     @availability_zone               = LifecycleHelper.get_config(:availability_zone, nil)
     @floating_ip                     = LifecycleHelper.get_config(:floating_ip)
     @lbaas_pool_name                 = LifecycleHelper.get_config(:lbaas_pool_name, nil)
+    @test_auto_anti_affinity         = LifecycleHelper.get_config(:test_auto_anti_affinity, false)
     # some environments may not have this set, and it isn't strictly necessary so don't raise if it isn't set
     @region                          = LifecycleHelper.get_config(:region, nil)
     Bosh::Clouds::Config.configure(OpenStruct.new(:logger => @logger, :cpi_task_log => nil))
   end
 
-  def create_cpi(boot_from_volume: false, config_drive: nil, human_readable_vm_names: false, use_nova_networking: false, use_dhcp: true, default_volume_type: nil)
+  def create_cpi(boot_from_volume: false, config_drive: nil, human_readable_vm_names: false, use_nova_networking: false, use_dhcp: true, default_volume_type: nil, enable_auto_anti_affinity: false)
     properties = {
-        'openstack' => openstack_properties(boot_from_volume, config_drive, human_readable_vm_names, use_nova_networking, use_dhcp, default_volume_type),
+        'openstack' => openstack_properties(boot_from_volume, config_drive, human_readable_vm_names, use_nova_networking, use_dhcp, default_volume_type, enable_auto_anti_affinity),
         'registry' => {
             'endpoint' => 'fake',
             'user' => 'fake',
@@ -98,7 +100,7 @@ class IntegrationConfig
     Bosh::OpenStackCloud::Openstack.new(openstack_properties, {}, {})
   end
 
-  def openstack_properties(boot_from_volume = false, config_drive = nil, human_readable_vm_names = false, use_nova_networking = false, use_dhcp = true, default_volume_type = nil)
+  def openstack_properties(boot_from_volume = false, config_drive = nil, human_readable_vm_names = false, use_nova_networking = false, use_dhcp = true, default_volume_type = nil, enable_auto_anti_affinity = false)
     properties = {
         'auth_url' => @auth_url,
         'username' => @username,
@@ -115,7 +117,8 @@ class IntegrationConfig
         'ignore_server_availability_zone' => str_to_bool(@ignore_server_az),
         'human_readable_vm_names' => human_readable_vm_names,
         'use_nova_networking' => use_nova_networking,
-        'connection_options' => @connection_options
+        'connection_options' => @connection_options,
+        'enable_auto_anti_affinity' => enable_auto_anti_affinity
     }
 
     if @domain

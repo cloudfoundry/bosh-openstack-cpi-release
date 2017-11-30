@@ -176,6 +176,7 @@ jobs:
           BOSH_OPENSTACK_CA_CERT:                  {{bosh_openstack_ca_cert}}
           BOSH_OPENSTACK_FLAVOR_WITH_NO_ROOT_DISK: {{openstack_flavor_with_no_root_disk}}
           BOSH_OPENSTACK_AVAILABILITY_ZONE:        {{availability_zone}}
+          BOSH_OPENSTACK_TEST_AUTO_ANTI_AFFINITY:  {{lifecycle_test_auto_anti_affinity}}
         <<: *send-failure-email
 
       - put: lifecycle-log
