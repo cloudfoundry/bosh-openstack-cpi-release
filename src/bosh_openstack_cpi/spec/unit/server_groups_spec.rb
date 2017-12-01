@@ -90,7 +90,6 @@ describe Bosh::OpenStackCloud::ServerGroups do
       expect {
         server_groups.find_or_create('fake-uuid', 'fake-group')
       }.to raise_error(Bosh::Clouds::CloudError, "Auto-anti-affinity is only supported on OpenStack Mitaka or higher. Please upgrade or set 'openstack.enable_auto_anti_affinity=false'.")
-      expect(logger).to have_received(:error).twice
       expect(message_logged).to be(true)
       expect(exception_logged).to be(true)
     end
