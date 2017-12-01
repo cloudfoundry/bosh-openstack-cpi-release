@@ -1,9 +1,12 @@
 module Bosh::OpenStackCloud
   class ServerGroups
+    include Helpers
+
     POLICY = 'soft-anti-affinity'
 
     def initialize(openstack)
       @openstack = openstack
+      @logger = Bosh::Clouds::Config.logger
     end
 
     def find_or_create(uuid, bosh_group)
@@ -19,12 +22,14 @@ module Bosh::OpenStackCloud
           end
         rescue Excon::Error::Forbidden => error
           if error.message.include?('Quota exceeded, too many server groups')
-            raise Bosh::Clouds::CloudError, "You have reached your quota for server groups for project '#{@openstack.params[:openstack_tenant]}'. Please disable auto-anti-affinity server groups or increase your quota."
+            message = "You have reached your quota for server groups for project '#{@openstack.params[:openstack_tenant]}'. Please disable auto-anti-affinity server groups or increase your quota."
+            cloud_error(message, error)
           end
           raise error
         rescue Excon::Error::BadRequest => error
           if error.message.match(/Invalid input.*'soft-anti-affinity' is not one of/)
-            raise Bosh::Clouds::CloudError, "Your OpenStack does not support the 'soft-anti-affinity' server group policy. Either upgrade your OpenStack to Mitaka or higher, or disable the feature in global CPI config via 'enable_auto_anti_affinity=false'."
+            message = "Auto-anti-affinity is only supported on OpenStack Mitaka or higher. Please upgrade or set 'openstack.enable_auto_anti_affinity=false'."
+            cloud_error(message, error)
           end
           raise error
         end

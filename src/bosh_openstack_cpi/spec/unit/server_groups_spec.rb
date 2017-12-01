@@ -1,6 +1,8 @@
 require 'spec_helper'
 
 describe Bosh::OpenStackCloud::ServerGroups do
+  let(:logger) { Logger.new(STDERR) }
+
   let(:fog_server_groups) {
     double(:compute_server_groups, all: [],
       create: OpenStruct.new('id' => 'fake-server-group-id', 'name' => 'fake-uuid-fake-group', 'policy' => 'soft-anti-affinity'))
@@ -15,6 +17,7 @@ describe Bosh::OpenStackCloud::ServerGroups do
   }
 
   before do
+    allow(Bosh::Clouds::Config).to receive(:logger).and_return(logger)
     allow(openstack).to receive(:with_openstack) { |&block| block.call }
     allow(openstack).to receive(:params).and_return({:openstack_tenant => 'my-project'})
   end
@@ -73,10 +76,23 @@ describe Bosh::OpenStackCloud::ServerGroups do
       allow(fog_server_groups).to receive(:create).and_raise(Excon::Error::BadRequest.new("Invalid input for field/attribute 0. Value: soft-anti-affinity. u'soft-anti-affinity' is not one of ['anti-affinity', 'affinity']"))
     end
 
-    it 'raises an cloud error' do
-      expect{
+    it 'raises a cloud error and logs message as well as excon bad request error' do
+      message_logged = false
+      exception_logged = false
+      allow(logger).to receive(:error) do |arg|
+        if arg == "Auto-anti-affinity is only supported on OpenStack Mitaka or higher. Please upgrade or set 'openstack.enable_auto_anti_affinity=false'."
+          message_logged = true
+        elsif arg.is_a? Excon::Error::BadRequest
+          exception_logged = true
+        end
+      end
+
+      expect {
         server_groups.find_or_create('fake-uuid', 'fake-group')
-      }.to raise_error(Bosh::Clouds::CloudError, "Your OpenStack does not support the 'soft-anti-affinity' server group policy. Either upgrade your OpenStack to Mitaka or higher, or disable the feature in global CPI config via 'enable_auto_anti_affinity=false'.")
+      }.to raise_error(Bosh::Clouds::CloudError, "Auto-anti-affinity is only supported on OpenStack Mitaka or higher. Please upgrade or set 'openstack.enable_auto_anti_affinity=false'.")
+      expect(logger).to have_received(:error).twice
+      expect(message_logged).to be(true)
+      expect(exception_logged).to be(true)
     end
   end
 end
