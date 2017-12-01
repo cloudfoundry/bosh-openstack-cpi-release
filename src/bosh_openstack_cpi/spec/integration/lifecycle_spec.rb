@@ -473,7 +473,13 @@ describe Bosh::OpenStackCloud::Cloud do
       }
     end
 
-    before do
+    before(:all) do
+      unless @config.test_auto_anti_affinity
+        skip('Tests for auto-anti-affinity are not activated.')
+      end
+    end
+
+    before(:each) do
       allow(Bosh::Clouds::Config).to receive(:uuid).and_return('fake-uuid')
       remove_server_groups(openstack)
     end
