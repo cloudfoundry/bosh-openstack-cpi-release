@@ -690,7 +690,6 @@ resources:
       access_key_id: {{s3_openstack_cpi_receipts_access_key}}
       secret_access_key: {{s3_openstack_cpi_receipts_secret_key}}
       bucket: {{s3_openstack_cpi_receipts_bucket_name}}
-      region_name: {{s3_openstack_cpi_receipts_bucket_region}}
       regexp: .*-(\d+)-receipt\.json
       region_name: us-east-1
 
