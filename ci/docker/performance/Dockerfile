@@ -10,5 +10,4 @@ RUN apt-get update && apt-get install -y wget git
 RUN wget https://redirector.gvt1.com/edgedl/go/go1.9.2.linux-amd64.tar.gz && \
     tar -C /usr/local -xzf go1.9.2.linux-amd64.tar.gz
 
-ENV PATH $PATH:/usr/local/go/bin
-ENV PATH $PATH:$HOME/go/bin
+ENV PATH $PATH:/usr/local/go/bin:/root/go/bin
