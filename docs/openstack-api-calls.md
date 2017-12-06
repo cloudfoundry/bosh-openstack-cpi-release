@@ -54,7 +54,7 @@ GET /v2.0/ports?device_id=<device_id>
 GET /v2.0/ports?device_id=<device_id>&network_id=<network_id>
 GET /v2.0/security-groups
 GET /v2.0/subnets?network_id=<network_id>
-POST /v2.0/lbaas/pools/<resource_id>/members body: {"member":{"address":"10.0.1.202","protocol_port":4443,"subnet_id":"<resource_id>"}}
+POST /v2.0/lbaas/pools/<resource_id>/members body: {"member":{"address":"<address>","protocol_port":"<protocol_port>","subnet_id":"<resource_id>"}}
 POST /v2.0/ports body: {"port":{"network_id":"<network_id>","fixed_ips":[{"ip_address":"<ip_address>"}],"security_groups":["<resource_id>"]}}
 PUT /v2.0/floatingips/<resource_id> body: {"floatingip":{"port_id":"<resource_id>"}}
 PUT /v2.0/floatingips/<resource_id> body: {"floatingip":{"port_id":null}}
