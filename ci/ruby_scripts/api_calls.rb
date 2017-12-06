@@ -4,9 +4,9 @@ def target_service(request, endpoints)
   url = /(http|https):\/\/#{request[:host]}:#{request[:port]}/
   url_with_version = /#{url}#{request[:path][/\/v[1-9](\.[0-9]+)?/]}/
 
-  catalog_entry = find_versioned_target_service(endpoints, url_with_version)
+  catalog_entry = match_service_url(endpoints, url_with_version)
   if catalog_entry.empty?
-    catalog_entry = find_unversioned_target_service(endpoints, url)
+    catalog_entry = match_service_url(endpoints, url)
   end
 
   if catalog_entry.empty?
@@ -18,14 +18,6 @@ def target_service(request, endpoints)
         name: catalog_entry[0]['name']
     }
   end
-end
-
-def find_versioned_target_service(endpoints, url)
-  match_service_url(endpoints, url)
-end
-
-def find_unversioned_target_service(endpoints, url)
-  match_service_url(endpoints, url)
 end
 
 def match_service_url(endpoints, url_pattern)
@@ -63,7 +55,11 @@ def scrub_random_values!(requests)
     # life cycle test uses this fake ids which doesn't match any uuid reqex
     request[:path].gsub!('non-existing-disk', '<resource_id>')
     request[:path].gsub!('non-existing-vm-id', '<resource_id>')
-    keys_to_scrub = ['user_data', 'display_description', 'device', 'password', 'fixed_ip', 'availability_zone', 'key_name', 'username', 'tenantName', 'name', 'token', 'ip_address', 'device_id', 'version', 'floating_ip_address', 'network_id', 'description', 'metadata']
+    keys_to_scrub = [
+        'user_data', 'display_description', 'device', 'password', 'fixed_ip', 'availability_zone', 'key_name', 'username',
+        'tenantName', 'name', 'token', 'ip_address', 'device_id', 'version', 'floating_ip_address', 'network_id', 'description',
+        'metadata', 'address'
+    ]
     if request[:query]
       keys_to_scrub.each do |key|
         scrub_random_query_value!(request[:query], key)
@@ -75,6 +71,7 @@ def scrub_random_values!(requests)
       request[:body].gsub!(/"volume_size":\d+/, "\"volume_size\":\"<volume_size>\"")
       request[:body].gsub!(/"flavorRef":"\d+"/, "\"flavorRef\":\"<flavorRef_id>\"")
       request[:body].gsub!(/"size":\d+/, "\"size\":\"<size>\"")
+      request[:body].gsub!(/"protocol_port":\d+/, "\"protocol_port\":\"<protocol_port>\"")
       keys_to_scrub.each do |key|
         scrub_random_body_value!(request, key)
         scrub_random_body_hash!(request, key)

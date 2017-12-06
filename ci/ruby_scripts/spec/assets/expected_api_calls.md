@@ -9,6 +9,7 @@ POST /v2/images body: {"name":"<name>","disk_format":"qcow2","container_format":
 ### All calls for API endpoint 'network (neutron)'
 ```
 GET /v2.0/ports?device_id=<device_id>&name=<name>
+POST /v2.0/lbaas/pools/<resource_id>/members body: {"member":{"address":"<address>","protocol_port":"<protocol_port>","subnet_id":"<resource_id>"}}
 ```
 ### All calls for API endpoint 'volume (cinder)'
 ```
