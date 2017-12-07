@@ -8,7 +8,7 @@ inputs:
   - name: bosh-cpi-src-in
   - name: stemcell
   - name: bats
-  - name: terraform-bats-dynamic-deploy
+  - name: terraform-cpi-deploy
   - name: bosh-director-deployment
 outputs:
   - name: terraform-bats

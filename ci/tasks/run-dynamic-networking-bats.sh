@@ -24,7 +24,7 @@ ssh-add $BAT_VCAP_PRIVATE_KEY
 
 #copy terraform metadata in order to use it in 'print_task_errors' and 'teardown_director' task
 # where no distinction is made between manual and dynamic
-cp terraform-bats-dynamic-deploy/metadata terraform-bats
+cp terraform-cpi-deploy/metadata terraform-bats
 metadata=terraform-bats/metadata
 
 export_terraform_variable "floating_ip"

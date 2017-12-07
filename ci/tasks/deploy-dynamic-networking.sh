@@ -26,8 +26,8 @@ source bosh-cpi-src-in/ci/tasks/utils.sh
 optional_value bosh_openstack_ca_cert
 optional_value availability_zone
 
-cp terraform-bats-dynamic/metadata terraform-bats-dynamic-deploy
-metadata=terraform-bats-dynamic/metadata
+cp terraform-cpi/metadata terraform-cpi-deploy
+metadata=terraform-cpi/metadata
 
 # Variables from TF
 export_terraform_variable "default_key_name"

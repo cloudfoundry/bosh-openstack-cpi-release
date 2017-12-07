@@ -10,11 +10,11 @@ inputs:
   - name: bosh-cpi-dev-artifacts
   - name: version-semver
   - name: stemcell
-  - name: terraform-bats-dynamic
+  - name: terraform-cpi
   - name: bosh-deployment
 outputs:
   - name: bosh-director-deployment
-  - name: terraform-bats-dynamic-deploy
+  - name: terraform-cpi-deploy
 run:
   path: bosh-cpi-src-in/ci/tasks/deploy-dynamic-networking.sh
 params:
