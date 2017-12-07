@@ -650,7 +650,6 @@ resource_types:
     type: docker-image
     source:
       repository: ljfranklin/terraform-resource
-      tag: 0.9.11
 
 resources:
   - name: terraform-lifecycle
