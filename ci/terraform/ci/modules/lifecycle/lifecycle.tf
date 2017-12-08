@@ -44,7 +44,7 @@ output "lifecycle_floating_ip" {
 }
 
 output "lifecycle_lb_pool_name" {
-  value = "${openstack_lb_pool_v2.lifecycle_pool.*.name}"
+  value = "${length(openstack_lb_pool_v2.lifecycle_pool.*) == 1 ? openstack_lb_pool_v2.lifecycle_pool.0.name : ""}"
 }
 
 resource "openstack_networking_network_v2" "lifecycle_net" {
@@ -127,7 +127,7 @@ resource "openstack_lb_listener_v2" "lifecycle_listener" {
   protocol        = "TCP"
   protocol_port   = 4444
   name = "Lifecycle Listener"
-  loadbalancer_id = "${openstack_lb_loadbalancer_v2.lifecycle_loadbalancer.*.id}"
+  loadbalancer_id =  "${element(openstack_lb_loadbalancer_v2.lifecycle_loadbalancer.*.id, count.index)}"
   count = "${var.use_lbaas == "true" ? 1 : 0}"
 }
 
@@ -135,6 +135,6 @@ resource "openstack_lb_pool_v2" "lifecycle_pool" {
   protocol    = "TCP"
   lb_method   = "ROUND_ROBIN"
   name = "Lifecycle Pool"
-  listener_id = "${openstack_lb_listener_v2.lifecycle_listener.*.id}"
+  listener_id = "${element(openstack_lb_listener_v2.lifecycle_listener.*.id, count.index)}"
   count = "${var.use_lbaas == "true" ? 1 : 0}"
 }
