@@ -39,7 +39,7 @@ output "default_router_id" {
 }
 
 output "security_group" {
-  value = "${length(openstack_networking_secgroup_v2.secgroup.*) == 1 ? openstack_networking_secgroup_v2.secgroup.0.name : ""}"
+  value = "${var.add_security_group == 1 ? var.prefix : ""}"
 }
 
 # key pairs

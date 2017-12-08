@@ -15,6 +15,10 @@ variable "use_lbaas" {
   description = "When set to 'true', all necessary LBaaS V2 resources are created."
 }
 
+variable "lbaas_pool_name" {
+  default = "Lifecycle Pool"
+}
+
 output "lifecycle_openstack_net_id" {
   value = "${openstack_networking_network_v2.lifecycle_net.id}"
 }
@@ -44,7 +48,7 @@ output "lifecycle_floating_ip" {
 }
 
 output "lifecycle_lb_pool_name" {
-  value = "${length(openstack_lb_pool_v2.lifecycle_pool.*) == 1 ? openstack_lb_pool_v2.lifecycle_pool.0.name : ""}"
+  value = "${var.use_lbaas == "true" ? var.lbaas_pool_name : ""}"
 }
 
 resource "openstack_networking_network_v2" "lifecycle_net" {
