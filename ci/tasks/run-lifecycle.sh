@@ -36,7 +36,7 @@ export BOSH_OPENSTACK_NET_ID_NO_DHCP_2=$(cat ${metadata} | jq --raw-output ".net
 export BOSH_OPENSTACK_DEFAULT_KEY_NAME=$(cat ${metadata} | jq --raw-output ".default_key_name")
 export BOSH_OPENSTACK_FLOATING_IP=$(cat ${metadata} | jq --raw-output ".floating_ip")
 pool_name=$(cat ${metadata} | jq --raw-output ".loadbalancer_pool_name")
-if [ "${pool_name}" != "null" ]; then
+if [ "${pool_name}" != "" ]; then
   export BOSH_OPENSTACK_LBAAS_POOL_NAME=${pool_name}
 fi
 
