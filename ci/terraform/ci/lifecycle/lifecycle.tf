@@ -9,7 +9,7 @@ provider "openstack" {
 }
 
 module "base" {
-  source = "github.com/cloudfoundry-incubator/bosh-openstack-cpi-release//ci/terraform/ci/modules/base"
+  source = "../modules/base"
   region_name = "${var.region_name}"
   project_name = "${var.project_name}"
   ext_net_id = "${var.ext_net_id}"
@@ -21,7 +21,7 @@ module "base" {
 }
 
 module "lifecycle" {
-  source = "github.com/cloudfoundry-incubator/bosh-openstack-cpi-release//ci/terraform/ci/modules/lifecycle"
+  source = "../modules/lifecycle"
   region_name = "${var.region_name}"
   dns_nameservers = "${var.dns_nameservers}"
   default_router_id = "${module.base.default_router_id}"

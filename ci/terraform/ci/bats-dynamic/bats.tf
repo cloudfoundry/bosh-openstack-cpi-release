@@ -9,7 +9,7 @@ provider "openstack" {
 }
 
 module "base" {
-  source = "github.com/cloudfoundry-incubator/bosh-openstack-cpi-release//ci/terraform/ci/modules/base"
+  source = "../modules/base"
   region_name = "${var.region_name}"
   project_name = "${var.project_name}"
   ext_net_id = "${var.ext_net_id}"
@@ -21,7 +21,7 @@ module "base" {
 }
 
 module "bats" {
-  source = "github.com/cloudfoundry-incubator/bosh-openstack-cpi-release//ci/terraform/ci/modules/bats"
+  source = "../modules/bats"
   region_name = "${var.region_name}"
   primary_net_name = "${var.primary_net_name}"
   primary_net_cidr = "${var.primary_net_cidr}"
