@@ -196,30 +196,99 @@ describe Bosh::OpenStackCloud::NetworkConfigurator do
   end
 
   describe '#prepare' do
-    let(:openstack) { instance_double(Bosh::OpenStackCloud::Openstack, use_nova_networking?: true) }
-    let(:networks) {[]}
+    let(:network) { double('network') }
+    let(:openstack) { instance_double(Bosh::OpenStackCloud::Openstack, use_nova_networking?: true, network: network) }
+    let(:nc) { Bosh::OpenStackCloud::NetworkConfigurator.new(network_specs) }
+    let(:network_specs) {
+      {
+        'network_a' => manual_network_spec(ip: '10.0.0.1'),
+        'network_b' => vip_network_spec,
+        'network_c' => dynamic_network_spec
+      }
+    }
 
-    before(:each) do
-      [Bosh::OpenStackCloud::ManualNetwork, Bosh::OpenStackCloud::DynamicNetwork].each do |class_name|
-        allow(class_name).to receive(:new) do
-          network = instance_double(class_name, prepare: nil)
-          networks << network
-          network
+    before do
+      allow_any_instance_of(Bosh::OpenStackCloud::ManualNetwork).to receive(:prepare)
+      allow_any_instance_of(Bosh::OpenStackCloud::DynamicNetwork).to receive(:prepare)
+    end
+
+    it 'delegates to all private networks' do
+      expect(nc.networks.size).to eq(2)
+
+      nc.prepare(openstack, [])
+
+      nc.networks.each do |network|
+        expect(network).to have_received(:prepare)
+      end
+    end
+
+    context 'with a shared vip network' do
+      let(:openstack) { instance_double(Bosh::OpenStackCloud::Openstack, use_nova_networking?: false) }
+      let(:network) { double('network', update_port: nil) }
+      let(:shared_vip_network_spec) {
+        {
+          'type' => 'vip',
+          'ip' => '10.0.1.6',
+          'cloud_properties' => {
+            'shared' => true
+          }
+        }
+      }
+
+      before do
+        allow(openstack).to receive(:network).and_return(network)
+        allow_any_instance_of(Bosh::OpenStackCloud::ManualNetwork).to receive(:prepare)
+      end
+
+      context 'with only one manual network' do
+        let(:network_specs) {
+          {
+            'network_a' => manual_network_spec(ip: '10.0.0.1', defaults: ['gateway', 'dns']),
+            'network_b' => shared_vip_network_spec
+          }
+        }
+
+        before(:each) do
+          allow(nc.networks.find{|network| network.name == 'network_a'}).to receive(:nic).and_return({'net_id' => 'net', 'port_id' => '117717c1-81cb-4ac4-96ab-99aaf1be9ca8'})
+        end
+
+        it "updates port of the manual network" do
+          nc.prepare(openstack, [])
+
+          expect(network).to have_received(:update_port).with('117717c1-81cb-4ac4-96ab-99aaf1be9ca8', allowed_address_pairs: [{ip_address: '10.0.1.6'}])
+        end
+      end
+
+      context 'with multiple manual networks' do
+        let(:network_specs) {
+          {
+            'network_a' => manual_network_spec(ip: '10.0.0.1'),
+            'network_b' => manual_network_spec(name: 'network_b', ip: '10.0.0.2', net_id: 'bar', defaults: ['dns', 'gateway']),
+            'network_c' => shared_vip_network_spec
+          }
+        }
+
+        before(:each) do
+          allow(nc.networks.find{|network| network.name == 'network_b'}).to receive(:nic).and_return({'net_id' => 'net', 'port_id' => '117717c1-81cb-4ac4-96ab-99aaf1be9ca8'})
+        end
+
+        it "updates only the port of the manual network with default gateway" do
+          nc.prepare(openstack, [])
+
+          expect(network).to have_received(:update_port).with('117717c1-81cb-4ac4-96ab-99aaf1be9ca8', allowed_address_pairs: [{ip_address: '10.0.1.6'}])
         end
       end
     end
 
-    it 'should delegate to all private networks' do
-      nc = Bosh::OpenStackCloud::NetworkConfigurator.new({
-          'network_a' => manual_network_spec(ip: '10.0.0.1'),
-          'network_b' => manual_network_spec(net_id: 'bar', ip: '10.0.0.2'),
-          'network_c' => dynamic_network_spec
-      })
+    context 'when there is no shared vip network' do
+      before do
+        allow(network).to receive(:update_port)
+      end
 
-      nc.prepare(openstack, [])
+      it "does not update any port" do
+        nc.prepare(openstack, [])
 
-      networks.each do |network|
-        expect(network).to have_received(:prepare)
+        expect(openstack.network).to_not have_received(:update_port)
       end
     end
   end

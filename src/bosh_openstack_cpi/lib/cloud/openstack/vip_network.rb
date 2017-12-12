@@ -25,9 +25,13 @@ module Bosh::OpenStackCloud
       end
 
       openstack.with_openstack do
-        FloatingIp.reassociate(openstack, @ip, server, network_id)
+        FloatingIp.reassociate(openstack, @ip, server, network_id) unless shared?
       end
     end
 
+    def shared?
+      return false unless @cloud_properties
+      @cloud_properties.fetch('shared', false)
+    end
   end
 end

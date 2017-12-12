@@ -9,7 +9,7 @@ module Bosh::OpenStackCloud
   class NetworkConfigurator
     include Helpers
 
-    attr_reader :network_spec
+    attr_reader :network_spec, :networks
 
     ##
     # Creates new network spec
@@ -52,6 +52,14 @@ module Bosh::OpenStackCloud
     def prepare(openstack, security_group_ids)
       @networks.each do |network|
         network.prepare(openstack, security_group_ids)
+      end
+
+      if @vip_network&.shared?
+        gateway_network = NetworkConfigurator.get_gateway_network(@network_spec)
+        if gateway_network
+          default_network = @networks.find{ |network| network.spec == gateway_network }
+          openstack.network.update_port(default_network.nic['port_id'], allowed_address_pairs: [{ip_address: @vip_network.spec['ip']}])
+        end
       end
     end
 

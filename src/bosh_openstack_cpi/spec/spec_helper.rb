@@ -150,8 +150,9 @@ def dynamic_network_spec
   }
 end
 
-def manual_network_spec(net_id: 'net', ip: '0.0.0.0', defaults: nil, overwrites: {})
+def manual_network_spec(name: 'network_a', net_id: 'net', ip: '0.0.0.0', defaults: nil, overwrites: {})
   {
+    'name' => name,
     'ip' => ip,
     'defaults' => defaults,
     'cloud_properties' => {
