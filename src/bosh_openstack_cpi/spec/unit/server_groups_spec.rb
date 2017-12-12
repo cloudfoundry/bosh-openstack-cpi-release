@@ -1,7 +1,7 @@
 require 'spec_helper'
 
 describe Bosh::OpenStackCloud::ServerGroups do
-  let(:logger) { Logger.new(STDERR) }
+  let(:logger) { instance_double(Logger, error: nil) }
 
   let(:fog_server_groups) {
     double(:compute_server_groups, all: [],
