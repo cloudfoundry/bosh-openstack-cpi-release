@@ -722,11 +722,12 @@ resources:
     type: semver
     tags: *tags
     source:
-      key:                release-current-version
-      bucket:             {{s3_openstack_cpi_pipeline_bucket_name}}
-      access_key_id:      {{s3_openstack_cpi_pipeline_access_key}}
-      secret_access_key:  {{s3_openstack_cpi_pipeline_secret_key}}
-      region_name:        {{s3_openstack_cpi_pipeline_bucket_region}}
+      initial_version: "35.0.0"
+      driver: git
+      uri: git@github.com:cloudfoundry-incubator/bosh-openstack-cpi-release.git
+      branch: release-semver
+      file: VERSION
+      private_key: {{github_deployment_key__bosh-openstack-cpi-release}}
 
   - name: bats
     type: git
