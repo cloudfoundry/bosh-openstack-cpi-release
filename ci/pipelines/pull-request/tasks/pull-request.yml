@@ -1,0 +1,10 @@
+---
+platform: linux
+image_resource:
+  type: docker-image
+  source:
+    repository: boshcpi/openstack-cpi-release
+inputs:
+  - name: pull-request
+run:
+  path: pull-request/ci/pipelines/pull-request/tasks/pull-request.sh
