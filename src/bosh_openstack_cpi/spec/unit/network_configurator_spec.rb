@@ -160,7 +160,7 @@ describe Bosh::OpenStackCloud::NetworkConfigurator do
       context 'and no port id is available in network spec' do
         let(:openstack) { instance_double(Bosh::OpenStackCloud::Openstack, use_nova_networking?: true) }
         it 'should set fixed ip only' do
-          nc.prepare(openstack, nil)
+          nc.prepare(openstack, nil, nil)
 
           expect(nc.nics).to eq([{'net_id' => 'net', 'v4_fixed_ip' => '10.0.0.1'}])
         end
@@ -174,7 +174,7 @@ describe Bosh::OpenStackCloud::NetworkConfigurator do
         end
 
         it 'should set port id only' do
-          nc.prepare(openstack, nil)
+          nc.prepare(openstack, nil, nil)
 
           expect(nc.nics).to eq([{'net_id' => 'net', 'port_id' => '117717c1-81cb-4ac4-96ab-99aaf1be9ca8'}])
         end
@@ -184,7 +184,7 @@ describe Bosh::OpenStackCloud::NetworkConfigurator do
         let(:openstack) { instance_double(Bosh::OpenStackCloud::Openstack, use_nova_networking?: true) }
         it 'should extract net_id and IP address from all' do
           nc = Bosh::OpenStackCloud::NetworkConfigurator.new(several_manual_networks)
-          nc.prepare(openstack, nil)
+          nc.prepare(openstack, nil, nil)
 
           expect(nc.nics).to eq([
                                     {'net_id' => 'net', 'v4_fixed_ip' => '10.0.0.1'},
@@ -216,7 +216,7 @@ describe Bosh::OpenStackCloud::NetworkConfigurator do
           'network_c' => dynamic_network_spec
       })
 
-      nc.prepare(openstack, [])
+      nc.prepare(openstack, [], [])
 
       networks.each do |network|
         expect(network).to have_received(:prepare)
