@@ -3,6 +3,7 @@ module Bosh::OpenStackCloud
   class PrivateNetwork < Network
 
     attr_reader :nic
+    attr_accessor :allowed_address_pairs
 
     def initialize(name, spec)
       super

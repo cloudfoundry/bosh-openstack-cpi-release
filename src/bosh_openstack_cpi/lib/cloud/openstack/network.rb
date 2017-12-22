@@ -31,7 +31,7 @@ module Bosh::OpenStackCloud
     def configure(openstack, server)
     end
 
-    def prepare(openstack, security_groups, allowed_address_pairs)
+    def prepare(openstack, security_groups)
     end
 
     def cleanup(openstack)

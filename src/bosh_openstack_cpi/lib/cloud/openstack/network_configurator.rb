@@ -9,13 +9,13 @@ module Bosh::OpenStackCloud
   class NetworkConfigurator
     include Helpers
 
-    attr_reader :network_spec
+    attr_reader :network_spec, :networks
 
     ##
     # Creates new network spec
     #
     # @param [Hash] spec Raw network spec passed by director
-    def initialize(spec)
+    def initialize(spec, allowed_address_pairs = nil)
       unless spec.is_a?(Hash)
         raise ArgumentError, "Invalid spec, Hash expected, #{spec.class} provided"
       end
@@ -33,6 +33,7 @@ module Bosh::OpenStackCloud
       end
 
       cloud_error("At least one dynamic or manual network should be defined") if @networks.empty?
+      add_vrrp_ip_to_default_network(allowed_address_pairs) if allowed_address_pairs
     end
 
     def check_preconditions(use_nova_networking, config_drive, use_dhcp)
@@ -49,9 +50,9 @@ module Bosh::OpenStackCloud
       end
     end
 
-    def prepare(openstack, security_group_ids, allowed_address_pairs)
+    def prepare(openstack, security_group_ids)
       @networks.each do |network|
-        network.prepare(openstack, security_group_ids, allowed_address_pairs)
+        network.prepare(openstack, security_group_ids)
       end
     end
 
@@ -201,6 +202,20 @@ module Bosh::OpenStackCloud
     end
 
     private
+    def add_vrrp_ip_to_default_network(allowed_address_pairs)
+      @networks.each do |network|
+        network.allowed_address_pairs = allowed_address_pairs if default_network?(network)
+      end
+    end
+
+    def vrrp_network?(network, allowed_address_pairs)
+      allowed_address_pairs && default_network?(network)
+    end
+
+    def default_network?(network)
+      default_network_spec = NetworkConfigurator.get_gateway_network(@network_spec)
+      network.spec == default_network_spec
+    end
 
     def self.network_type(network)
       # in case of a manual network bosh doesn't provide a type.
