@@ -141,7 +141,7 @@ module Bosh::OpenStackCloud
           config_drive: @use_config_drive
         }
 
-        network_configurator = NetworkConfigurator.new(network_spec)
+        network_configurator = NetworkConfigurator.new(network_spec, resource_pool['allowed_address_pairs'])
         picked_security_groups = pick_security_groups(server_params, network_configurator, ResourcePool.security_groups(resource_pool))
         pick_stemcell(server_params, stemcell_id)
         flavor = pick_flavor(server_params, resource_pool)
@@ -158,13 +158,7 @@ module Bosh::OpenStackCloud
         server_params[:availability_zone] = availability_zone if availability_zone
 
         begin
-          @openstack.with_openstack {
-            network_configurator.prepare(@openstack,
-              picked_security_groups.map(&:id),
-              resource_pool['shared_vip'] ? [{ :ip_address => resource_pool['shared_vip'] }] : []
-            )
-          }
-
+          @openstack.with_openstack { network_configurator.prepare(@openstack, picked_security_groups.map(&:id)) }
           nics = pick_nics(server_params, network_configurator)
           server = create_server(server_params, nics)
           configure_server(network_configurator, server)

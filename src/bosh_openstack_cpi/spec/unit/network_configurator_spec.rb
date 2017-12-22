@@ -96,6 +96,42 @@ describe Bosh::OpenStackCloud::NetworkConfigurator do
         }.to raise_error Bosh::Clouds::CloudError, 'At least one dynamic or manual network should be defined'
       end
     end
+
+     context 'when vrrp' do
+       context 'is configured' do
+         it 'should set allowed_address_pair to the default network' do
+           vrrp_port ='10.0.0.10'
+           network_configurator = Bosh::OpenStackCloud::NetworkConfigurator.new({
+             'network_a' => manual_network_spec(ip: '10.0.0.1'),
+             'network_b' => manual_network_spec(net_id: 'bar', ip: '10.0.0.2', defaults: ['gateway']),
+             'network_c' => dynamic_network_spec
+           }, vrrp_port)
+
+           network_configurator.networks.each do |network|
+             if network.name == 'network_b'
+               expect(network.allowed_address_pairs).to eq(vrrp_port)
+             else
+               expect(network.allowed_address_pairs).to eq(nil)
+             end
+           end
+         end
+       end
+
+       context 'is not configured' do
+         it 'should set allowed_address_pair to the default network' do
+           network_configurator = Bosh::OpenStackCloud::NetworkConfigurator.new({
+             'network_a' => manual_network_spec(ip: '10.0.0.1'),
+             'network_b' => manual_network_spec(net_id: 'bar', ip: '10.0.0.2', defaults: ['gateway']),
+             'network_c' => dynamic_network_spec
+           })
+
+           network_configurator.networks.each do |network|
+             expect(network.allowed_address_pairs).to eq(nil)
+           end
+         end
+       end
+     end
+
   end
 
   describe '#security_groups' do
@@ -160,7 +196,7 @@ describe Bosh::OpenStackCloud::NetworkConfigurator do
       context 'and no port id is available in network spec' do
         let(:openstack) { instance_double(Bosh::OpenStackCloud::Openstack, use_nova_networking?: true) }
         it 'should set fixed ip only' do
-          nc.prepare(openstack, nil, nil)
+          nc.prepare(openstack, nil)
 
           expect(nc.nics).to eq([{'net_id' => 'net', 'v4_fixed_ip' => '10.0.0.1'}])
         end
@@ -174,7 +210,7 @@ describe Bosh::OpenStackCloud::NetworkConfigurator do
         end
 
         it 'should set port id only' do
-          nc.prepare(openstack, nil, nil)
+          nc.prepare(openstack, nil)
 
           expect(nc.nics).to eq([{'net_id' => 'net', 'port_id' => '117717c1-81cb-4ac4-96ab-99aaf1be9ca8'}])
         end
@@ -184,7 +220,7 @@ describe Bosh::OpenStackCloud::NetworkConfigurator do
         let(:openstack) { instance_double(Bosh::OpenStackCloud::Openstack, use_nova_networking?: true) }
         it 'should extract net_id and IP address from all' do
           nc = Bosh::OpenStackCloud::NetworkConfigurator.new(several_manual_networks)
-          nc.prepare(openstack, nil, nil)
+          nc.prepare(openstack, nil)
 
           expect(nc.nics).to eq([
                                     {'net_id' => 'net', 'v4_fixed_ip' => '10.0.0.1'},
@@ -201,8 +237,8 @@ describe Bosh::OpenStackCloud::NetworkConfigurator do
 
     before(:each) do
       [Bosh::OpenStackCloud::ManualNetwork, Bosh::OpenStackCloud::DynamicNetwork].each do |class_name|
-        allow(class_name).to receive(:new) do
-          network = instance_double(class_name, prepare: nil)
+        allow(class_name).to receive(:new) do |name, spec|
+          network = instance_double(class_name, prepare: nil, name: name, spec: spec)
           networks << network
           network
         end
@@ -216,10 +252,10 @@ describe Bosh::OpenStackCloud::NetworkConfigurator do
           'network_c' => dynamic_network_spec
       })
 
-      nc.prepare(openstack, [], [])
+      nc.prepare(openstack, [])
 
       networks.each do |network|
-        expect(network).to have_received(:prepare)
+        expect(network).to have_received(:prepare).with(anything, anything)
       end
     end
   end

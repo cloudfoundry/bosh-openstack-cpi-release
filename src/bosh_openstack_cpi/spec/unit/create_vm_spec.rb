@@ -130,7 +130,7 @@ describe Bosh::OpenStackCloud::Cloud, 'create_vm' do
         allow(openstack.compute.key_pairs).to receive(:find).and_return(key_pair)
         port_result_net = double('ports1', id: '117717c1-81cb-4ac4-96ab-99aaf1be9ca8', network_id: 'net', mac_address: 'AA:AA:AA:AA:AA:AA')
         ports = double('Fog::Network::OpenStack::Ports')
-        allow(ports).to receive(:create).with(network_id: 'net', fixed_ips: [{ip_address: '10.0.0.1'}], security_groups: ['default_sec_group_id'], allowed_address_pairs: []).and_return(port_result_net)
+        allow(ports).to receive(:create).with(network_id: 'net', fixed_ips: [{ip_address: '10.0.0.1'}], security_groups: ['default_sec_group_id']).and_return(port_result_net)
         allow(openstack.network).to receive(:ports).and_return(ports)
       end
     end
@@ -234,22 +234,39 @@ describe Bosh::OpenStackCloud::Cloud, 'create_vm' do
     end
   end
 
-  context 'with nic for dynamic network' do
-    let(:nics) do
-      [
-        { 'net_id' => 'foo' }
-      ]
+  context 'with dynamic network' do
+
+    context 'with nic' do
+      let(:nics) do
+        [
+          { 'net_id' => 'foo' }
+        ]
+      end
+
+      it 'creates an OpenStack server with nic for dynamic network' do
+        network_spec = dynamic_network_spec
+        network_spec['cloud_properties'] ||= {}
+        network_spec['cloud_properties']['net_id'] = nics[0]['net_id']
+
+        cloud.create_vm('agent-id', 'sc-id', resource_pool_spec, { 'network_a' => network_spec }, nil, environment)
+
+        expect(cloud.compute.servers).to have_received(:create).with(openstack_params('network_a' => network_spec))
+        expect(@registry).to have_received(:update_settings).with("vm-#{unique_name}", agent_settings(unique_name, network_spec))
+      end
     end
 
-    it 'creates an OpenStack server with nic for dynamic network' do
-      network_spec = dynamic_network_spec
-      network_spec['cloud_properties'] ||= {}
-      network_spec['cloud_properties']['net_id'] = nics[0]['net_id']
+    context 'when vrrp ip is configured' do
+      let(:resource_pool_with_vrrp) {
+        rps = resource_pool_spec
+        rps['allowed_address_pairs'] = '10.0.0.10'
+        rps
+      }
 
-      cloud.create_vm('agent-id', 'sc-id', resource_pool_spec, { 'network_a' => network_spec }, nil, environment)
-
-      expect(cloud.compute.servers).to have_received(:create).with(openstack_params('network_a' => network_spec))
-      expect(@registry).to have_received(:update_settings).with("vm-#{unique_name}", agent_settings(unique_name, network_spec))
+      it 'raises an cloud error' do
+        expect{
+          cloud.create_vm('agent-id', 'sc-id', resource_pool_with_vrrp, { 'network' => dynamic_network_with_netid_spec }, nil, environment)
+        }.to raise_error Bosh::Clouds::CloudError, "Network with id 'net' is a dynamic network. VRRP is not supported for dynamic networks"
+      end
     end
   end
 
@@ -272,11 +289,29 @@ describe Bosh::OpenStackCloud::Cloud, 'create_vm' do
     end
 
     it 'calls NetworkConfigurator#prepare and NetworkConfigurator#nics' do
-      expect_any_instance_of(Bosh::OpenStackCloud::NetworkConfigurator).to receive(:prepare).with(anything, ['default_sec_group_id'], [])
+      expect(Bosh::OpenStackCloud::NetworkConfigurator).to receive(:new).with(anything, nil).and_call_original
+      expect_any_instance_of(Bosh::OpenStackCloud::NetworkConfigurator).to receive(:prepare).with(anything, ['default_sec_group_id'])
       expect_any_instance_of(Bosh::OpenStackCloud::NetworkConfigurator).to receive(:nics).and_return(nics)
 
       cloud.create_vm('agent-id', 'sc-id', resource_pool_spec, several_manual_networks, nil, environment)
     end
+
+    context 'when vrrp ip is configured' do
+      let(:resource_pool_with_vrrp) {
+        rps = resource_pool_spec
+        rps['allowed_address_pairs'] = '10.0.0.10'
+        rps
+      }
+
+      it 'calls NetworkConfigurator#prepare and NetworkConfigurator#nics' do
+        expect(Bosh::OpenStackCloud::NetworkConfigurator).to receive(:new).with(anything, '10.0.0.10').and_call_original
+        expect_any_instance_of(Bosh::OpenStackCloud::NetworkConfigurator).to receive(:prepare).with(anything, ['default_sec_group_id'])
+        expect_any_instance_of(Bosh::OpenStackCloud::NetworkConfigurator).to receive(:nics).and_return(nics)
+
+        cloud.create_vm('agent-id', 'sc-id', resource_pool_with_vrrp, several_manual_networks, nil, environment)
+      end
+    end
+
 
     context 'when vm creation fails' do
       before(:each) do
