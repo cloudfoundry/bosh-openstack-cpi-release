@@ -158,7 +158,12 @@ module Bosh::OpenStackCloud
         server_params[:availability_zone] = availability_zone if availability_zone
 
         begin
-          @openstack.with_openstack { network_configurator.prepare(@openstack, picked_security_groups.map(&:id)) }
+          @openstack.with_openstack {
+            network_configurator.prepare(@openstack,
+              picked_security_groups.map(&:id),
+              resource_pool['shared_vip'] ? [{ :ip_address => resource_pool['shared_vip'] }] : []
+            )
+          }
 
           nics = pick_nics(server_params, network_configurator)
           server = create_server(server_params, nics)
