@@ -21,7 +21,7 @@ describe Bosh::OpenStackCloud::Cloud do
       @cloud.set_vm_metadata('i-foobar', metadata)
     end
 
-    it "logs 'compiling/x'" do
+    it "logs 'compiling-x'" do
       @cloud.set_vm_metadata("i-foobar", {})
       expect(Bosh::Clouds::Config.logger).to have_received(:debug).with("VM with id 'i-foobar' has no 'registry_key' tag")
     end
@@ -40,14 +40,14 @@ describe Bosh::OpenStackCloud::Cloud do
       context "when bosh provides NO 'name' property" do
         let(:metadata) { {'job' => 'job', 'index' => 'index'} }
 
-        it "sets the vm name 'job/index'" do
+        it "sets the vm name 'job-index'" do
           @cloud.set_vm_metadata("i-foobar", metadata)
-          expect(@cloud.compute).to have_received(:update_server).with('i-foobar', {'name' => 'job/index'})
+          expect(@cloud.compute).to have_received(:update_server).with('i-foobar', {'name' => 'job-index'})
         end
 
         it 'logs job name & index' do
           @cloud.set_vm_metadata("i-foobar", metadata)
-          expect(Bosh::Clouds::Config.logger).to have_received(:debug).with("Rename VM with id 'i-foobar' to 'job/index'")
+          expect(Bosh::Clouds::Config.logger).to have_received(:debug).with("Rename VM with id 'i-foobar' to 'job-index'")
         end
       end
 
@@ -70,14 +70,14 @@ describe Bosh::OpenStackCloud::Cloud do
     context 'for compilation vms' do
       let(:metadata) { {'compiling' => 'x'} }
 
-      it "sets the vm name 'compiling/x'" do
+      it "sets the vm name 'compiling-x'" do
         @cloud.set_vm_metadata("i-foobar", metadata)
-        expect(@cloud.compute).to have_received(:update_server).with('i-foobar', {'name' => 'compiling/x'})
+        expect(@cloud.compute).to have_received(:update_server).with('i-foobar', {'name' => 'compiling-x'})
       end
 
-      it "logs 'compiling/x'" do
+      it "logs 'compiling-x'" do
         @cloud.set_vm_metadata("i-foobar", metadata)
-        expect(Bosh::Clouds::Config.logger).to have_received(:debug).with("Rename VM with id 'i-foobar' to 'compiling/x'")
+        expect(Bosh::Clouds::Config.logger).to have_received(:debug).with("Rename VM with id 'i-foobar' to 'compiling-x'")
       end
     end
   end

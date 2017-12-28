@@ -153,7 +153,7 @@ describe Bosh::OpenStackCloud::Cloud do
       'deployment' => 'deployment',
       'instance_id' => 'some-uuid',
       'instance_index' => '0',
-      'instance_name' => 'job/some-uuid',
+      'instance_name' => 'job-some-uuid',
       'agent_id' => 'agent0'
     }
 
@@ -189,7 +189,7 @@ describe Bosh::OpenStackCloud::Cloud do
       'deployment' => 'deployment',
       'instance_id' => 'some-uuid',
       'instance_index' => '0',
-      'instance_name' => 'job/some-uuid',
+      'instance_name' => 'job-some-uuid',
       'agent_id' => 'agent0',
       'tag1' => 'value1',
       'tag2' => 'value2'
