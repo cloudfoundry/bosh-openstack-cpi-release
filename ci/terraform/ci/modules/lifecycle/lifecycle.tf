@@ -27,6 +27,10 @@ output "lifecycle_manual_ip" {
   value = "${cidrhost(openstack_networking_subnet_v2.lifecycle_subnet.cidr, 3)}"
 }
 
+output "lifecycle_allowed_address_pairs" {
+  value = "${openstack_networking_port_v2.allowed_address_pairs.all_fixed_ips[0]}"
+}
+
 output "lifecycle_net_id_no_dhcp_1" {
   value = "${openstack_networking_network_v2.lifecycle_net_no_dhcp_1.id}"
 }
@@ -70,6 +74,15 @@ resource "openstack_networking_subnet_v2" "lifecycle_subnet" {
   gateway_ip       = "10.0.1.1"
   enable_dhcp      = "true"
   dns_nameservers = ["${compact(split(",",var.dns_nameservers))}"]
+}
+
+resource "openstack_networking_port_v2" "allowed_address_pairs" {
+  name           = "allowed_address_pairs"
+  network_id     = "${openstack_networking_network_v2.lifecycle_net.id}"
+  fixed_ip = {
+    subnet_id = "${openstack_networking_subnet_v2.lifecycle_subnet.id}"
+  }
+  admin_state_up = "true"
 }
 
 resource "openstack_networking_network_v2" "lifecycle_net_no_dhcp_1" {

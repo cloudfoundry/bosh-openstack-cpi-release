@@ -93,6 +93,10 @@ output "manual_ip" {
   value = "${module.lifecycle.lifecycle_manual_ip}"
 }
 
+output "allowed_address_pairs" {
+  value = "${module.lifecycle.lifecycle_allowed_address_pairs}"
+}
+
 output "net_id_no_dhcp_1" {
   value = "${module.lifecycle.lifecycle_net_id_no_dhcp_1}"
 }

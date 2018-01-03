@@ -27,7 +27,8 @@ class IntegrationConfig
               :ca_cert_path,
               :insecure,
               :lbaas_pool_name,
-              :test_auto_anti_affinity
+              :test_auto_anti_affinity,
+              :allowed_address_pairs
 
   def initialize(identity_version=:v3)
     if identity_version == :v3
@@ -77,6 +78,7 @@ class IntegrationConfig
     @floating_ip                     = LifecycleHelper.get_config(:floating_ip)
     @lbaas_pool_name                 = LifecycleHelper.get_config(:lbaas_pool_name, nil)
     @test_auto_anti_affinity         = LifecycleHelper.get_config(:test_auto_anti_affinity, false)
+    @allowed_address_pairs           = LifecycleHelper.get_config(:allowed_address_pairs, nil)
     # some environments may not have this set, and it isn't strictly necessary so don't raise if it isn't set
     @region                          = LifecycleHelper.get_config(:region, nil)
     Bosh::Clouds::Config.configure(OpenStruct.new(:logger => @logger, :cpi_task_log => nil))

@@ -181,6 +181,19 @@ describe Bosh::OpenStackCloud::Cloud do
         lambda { |network_interface| network_interface['addr'] == ip }
       end
     end
+
+    context 'with vrrp' do
+
+      before { @vm_with_vrrp_ip = create_vm(@stemcell_id, network_spec, [], {"allowed_address_pairs" =>  @config.allowed_address_pairs}) }
+      after { clean_up_vm(@vm_with_vrrp_ip) if@vm_with_vrrp_ip }
+
+      it 'adds vrrp_ip as allowed_address_pairs' do
+        vrrp_port = openstack.network.ports.all(:fixed_ips => "ip_address=#{@config.manual_ip}")[0]
+        assigned_allowed_address_pairs = openstack.network.get_port(vrrp_port.id)[:body]["port"]["allowed_address_pairs"][0]["ip_address"]
+
+        expect(assigned_allowed_address_pairs).to eq(@config.allowed_address_pairs)
+      end
+    end
   end
 
   context 'when booting from volume' do
