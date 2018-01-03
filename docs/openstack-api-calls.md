@@ -52,7 +52,7 @@ GET /v2.0/networks/<resource_id>
 GET /v2.0/ports/<resource_id>
 GET /v2.0/ports?device_id=<device_id>
 GET /v2.0/ports?device_id=<device_id>&network_id=<network_id>
-GET /v2.0/ports?fixed_ips=ip_address=10.0.1.202
+GET /v2.0/ports?fixed_ips=ip_address=10.0.1.208
 GET /v2.0/security-groups
 GET /v2.0/subnets?network_id=<network_id>
 POST /v2.0/lbaas/pools/<resource_id>/members body: {"member":{"address":"<address>","protocol_port":"<protocol_port>","subnet_id":"<resource_id>"}}
