@@ -20,8 +20,9 @@ GEM
       excon (~> 0.58)
       formatador (~> 0.2)
       mime-types
-    fog-json (1.0.0)
-      multi_json (~> 1.0)
+    fog-json (1.1.0)
+      fog-core (~> 2.0)
+      multi_json (~> 1.10)
     fog-openstack (0.1.24.pre.microversions)
       fog-core (>= 1.40)
       fog-json (>= 1.0)
