@@ -47,7 +47,7 @@ class IntegrationConfig
     @logger                          = Logger.new(STDERR)
 
     @ca_cert_content                 = LifecycleHelper.get_config(:ca_cert, nil)
-    if @ca_cert_content && !@ca_cert_content.empty?
+    if @ca_cert_content && !@ca_cert_content.empty? && @ca_cert_content != 'null'
       @ca_cert_file = write_ca_cert(logger)
       @ca_cert_path = @ca_cert_file.path
     end
