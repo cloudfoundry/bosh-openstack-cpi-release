@@ -227,4 +227,3 @@ module Bosh::OpenStackCloud
     end
   end
 end
-

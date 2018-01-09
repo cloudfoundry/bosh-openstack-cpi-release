@@ -427,7 +427,7 @@ module Bosh::OpenStackCloud
         metadata.merge!({
           'director' => metadata['director_name'],
           'instance_index' => metadata['index'].to_s,
-          'instance_name' => metadata['job'] + '/' + metadata['instance_id']
+          'instance_name' => metadata['job'] + '-' + metadata['instance_id']
         })
 
         metadata.delete('director_name')
@@ -490,11 +490,11 @@ module Bosh::OpenStackCloud
               @logger.debug("Rename VM with id '#{server_id}' to '#{name}'")
               @openstack.compute.update_server(server_id, {'name' => "#{name}"})
             elsif job && index
-              @logger.debug("Rename VM with id '#{server_id}' to '#{job}/#{index}'")
-              @openstack.compute.update_server(server_id, {'name' => "#{job}/#{index}"})
+              @logger.debug("Rename VM with id '#{server_id}' to '#{job}-#{index}'")
+              @openstack.compute.update_server(server_id, {'name' => "#{job}-#{index}"})
             elsif compiling
-              @logger.debug("Rename VM with id '#{server_id}' to 'compiling/#{compiling}'")
-              @openstack.compute.update_server(server_id, {'name' => "compiling/#{compiling}"})
+              @logger.debug("Rename VM with id '#{server_id}' to 'compiling-#{compiling}'")
+              @openstack.compute.update_server(server_id, {'name' => "compiling-#{compiling}"})
             end
           else
             @logger.debug("VM with id '#{server_id}' has no 'registry_key' tag")

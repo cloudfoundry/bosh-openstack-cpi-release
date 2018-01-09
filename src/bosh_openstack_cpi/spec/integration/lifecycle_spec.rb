@@ -8,7 +8,7 @@ describe Bosh::OpenStackCloud::Cloud do
     @stemcell_id, _ = upload_stemcell(@cpi_for_stemcell, @config.stemcell_path)
   end
   # @formatter:on
-  
+
   before { allow(Bosh::Clouds::Config).to receive(:logger).and_return(@config.logger) }
 
   after(:all) do
@@ -83,7 +83,7 @@ describe Bosh::OpenStackCloud::Cloud do
 
       it 'sets the vm name according to the metadata' do
         vm = openstack.compute.servers.get(@human_readable_vm_name_id)
-        expect(vm.name).to eq 'openstack_cpi_spec/instance_id'
+        expect(vm.name).to eq 'openstack_cpi_spec-instance_id'
       end
     end
   end
@@ -626,7 +626,7 @@ describe Bosh::OpenStackCloud::Cloud do
     @config.logger.info("Setting VM metadata vm_id=#{vm_id}")
     cpi.set_vm_metadata(vm_id, {
       'deployment' => 'deployment',
-      'name' => 'openstack_cpi_spec/instance_id',
+      'name' => 'openstack_cpi_spec-instance_id',
     })
 
     vm_id
