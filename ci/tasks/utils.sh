@@ -11,7 +11,7 @@ creds_path() {
 optional_value() {
   local name=$1
   local value=$(eval echo '$'$name)
-  if [ "$value" == 'replace-me' ]; then
+  if [ "$value" == 'replace-me' ] || [ "$value" == 'null' ]; then
     echo "unsetting optional environment variable $name"
     unset $name
   fi
