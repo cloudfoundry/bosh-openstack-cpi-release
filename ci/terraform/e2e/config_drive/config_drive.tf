@@ -1,5 +1,5 @@
 module "base" {
-  source                          = "github.com/cloudfoundry-incubator/bosh-openstack-cpi-release//ci/terraform/e2e/modules/base"
+  source                          = "../modules/base"
   auth_url                        = "${var.auth_url}"
   user_name                       = "${var.user_name}"
   password                        = "${var.password}"
@@ -19,7 +19,7 @@ module "base" {
 }
 
 module "config_drive" {
-  source                          = "github.com/cloudfoundry-incubator/bosh-openstack-cpi-release//ci/terraform/e2e/modules/config_drive"
+  source                          = "../modules/config_drive"
   region_name                     = "${var.region_name}"
   auth_url                        = "${var.auth_url}"
   user_name                       = "${var.user_name}"
