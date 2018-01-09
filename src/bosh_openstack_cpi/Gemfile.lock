@@ -40,7 +40,7 @@ GEM
       mime-types-data (~> 3.2015)
     mime-types-data (3.2016.0521)
     minitar (0.5.4)
-    multi_json (1.12.2)
+    multi_json (1.13.0)
     netaddr (1.5.1)
     public_suffix (3.0.1)
     rake (10.3.2)
