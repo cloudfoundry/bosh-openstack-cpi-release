@@ -1,6 +1,6 @@
 ---
 groups:
-  - name: {{pipeline_name}}
+  - name: ((pipeline_name))
     jobs:
       - cleanup
       - e2e-centos
@@ -13,12 +13,6 @@ groups:
       - certify-ubuntu
 
 custom:
-  tags:
-    default: &tags []
-    suse-liberty: ['suse-liberty']
-    suse-mitaka:  ['suse-mitaka']
-    suse-newton: ['suse-newton']
-    suse-cloud7: ['suse-cloud7']
   timeouts:
     long: &timeouts-long 2h
   build_logs_to_retain: &build_logs_to_retain 500
@@ -29,22 +23,22 @@ custom:
       on_failure:
         put: send-an-email
         params:
-          subject: {{email_subject}}
-          body: {{email_body}}
+          subject: ((email_subject))
+          body: ((email_body))
   terraform-base-inputs: &terraform-base-inputs
-    auth_url: {{openstack_auth_url_v3}}
-    domain_name: {{v3_e2e_domain}}
-    user_name: {{v3_e2e_username}}
-    password: {{v3_e2e_api_key}}
-    cacert_file: {{tf_ca_file_path}}
-    project_name: {{v3_e2e_project}}
-    dns_nameservers: {{tf_dns_nameservers}}
-    ext_net_name: {{tf_external_network_name}}
-    ext_net_id: {{tf_external_network_id}}
-    ext_net_cidr: {{tf_ext_net_cidr}}
-    region_name: {{tf_region_name}}
-    concourse_external_network_cidr: {{tf_concourse_external_network_cidr}}
-    default_public_key: {{tf_default_public_key}}
+    auth_url: ((openstack_auth_url_v3))
+    domain_name: ((v3_e2e_domain))
+    user_name: ((v3_e2e_username))
+    password: ((v3_e2e_api_key))
+    cacert_file: ((tf_ca_file_path))
+    project_name: ((v3_e2e_project))
+    dns_nameservers: ((tf_dns_nameservers))
+    ext_net_name: ((tf_external_network_name))
+    ext_net_id: ((tf_external_network_id))
+    ext_net_cidr: ((tf_ext_net_cidr))
+    region_name: ((tf_region_name))
+    concourse_external_network_cidr: ((tf_concourse_external_network_cidr))
+    default_public_key: ((tf_default_public_key))
 
 jobs:
   - name: e2e-centos
@@ -53,32 +47,33 @@ jobs:
     build_logs_to_retain: *build_logs_to_retain
     plan:
       - aggregate:
-        - {trigger: false, get: bosh-cpi-src-in,  passed: [cleanup], tags: *tags, timeout: *timeouts-long}
-        - {trigger: false, get: dummy-release,                       tags: *tags, timeout: *timeouts-long}
-        - {trigger: true,  get: bosh-cpi-release, passed: [cleanup], tags: *tags, timeout: *timeouts-long, resource: bosh-cpi-dev-artifacts}
-        - {trigger: true,  get: bosh-release,     passed: [cleanup], tags: *tags, timeout: *timeouts-long}
-        - {trigger: true,  get: stemcell,         passed: [cleanup], tags: *tags, timeout: *timeouts-long, resource: centos-stemcell}
-        - {trigger: false, get: bosh-deployment,                     tags: *tags, timeout: *timeouts-long}
+        - {trigger: false, get: bosh-cpi-src-in,  passed: [cleanup], tags: ((worker_tags)), timeout: *timeouts-long}
+        - {trigger: false, get: dummy-release,                       tags: ((worker_tags)), timeout: *timeouts-long}
+        - {trigger: true,  get: bosh-cpi-release, passed: [cleanup], tags: ((worker_tags)), timeout: *timeouts-long, resource: bosh-cpi-dev-artifacts}
+        - {trigger: true,  get: bosh-release,     passed: [cleanup], tags: ((worker_tags)), timeout: *timeouts-long}
+        - {trigger: true,  get: stemcell,         passed: [cleanup], tags: ((worker_tags)), timeout: *timeouts-long, resource: centos-stemcell}
+        - {trigger: false, get: bosh-deployment,                     tags: ((worker_tags)), timeout: *timeouts-long}
 
       - task: write_ca_file
-        tags: *tags
+        tags: ((worker_tags))
         file: bosh-cpi-src-in/ci/tasks/write-ca-file.yml
         params:
-          file_content: {{bosh_openstack_ca_cert}}
+          file_content: ((bosh_openstack_ca_cert))
 
       - put: terraform
         resource: terraform-e2e-base
-        tags: *tags
+        tags: ((worker_tags))
         timeout: *timeouts-long
         params:
           env_name: e2e-centos
+          terraform_source: bosh-cpi-src-in/ci/terraform/e2e/modules/base
           vars:
             <<: *terraform-base-inputs
             prefix: "e2e-centos"
             e2e_net_cidr: "10.0.1.0/24"
 
       - task: deploy-integration-director
-        tags: *tags
+        tags: ((worker_tags))
         timeout: *timeouts-long
         file: bosh-cpi-src-in/ci/pipelines/certify-stemcell/tasks/deploy-director.yml
         params: &centos-deploy-director-params
@@ -87,56 +82,56 @@ jobs:
           v3_e2e_read_timeout:                  "180"
           v3_e2e_state_timeout:                 "900"
           v3_e2e_write_timeout:                 "180"
-          bosh_vcap_password:                   {{bosh_vcap_password}}
-          bosh_openstack_ca_cert:               {{bosh_openstack_ca_cert}}
-          v3_e2e_bosh_registry_port:            {{v3_e2e_bosh_registry_port}}
-          v3_e2e_api_key:                       {{v3_e2e_api_key}}
-          v3_e2e_auth_url:                      {{openstack_auth_url_v3}}
-          v3_e2e_project:                       {{v3_e2e_project}}
-          v3_e2e_domain:                        {{v3_e2e_domain}}
-          v3_e2e_username:                      {{v3_e2e_username}}
-          v3_e2e_private_key_data:              {{v3_e2e_private_key_data}}
-          v3_e2e_blobstore_bucket:              {{v3_e2e_blobstore_bucket}}
-          v3_e2e_blobstore_host:                {{v3_e2e_blobstore_host}}
-          v3_e2e_blobstore_access_key:          {{v3_e2e_blobstore_access_key}}
-          v3_e2e_blobstore_secret_key:          {{v3_e2e_blobstore_secret_key}}
-          time_server_1:                        {{time_server_1}}
-          time_server_2:                        {{time_server_2}}
+          bosh_vcap_password:                   ((bosh_vcap_password))
+          bosh_openstack_ca_cert:               ((bosh_openstack_ca_cert))
+          v3_e2e_bosh_registry_port:            ((v3_e2e_bosh_registry_port))
+          v3_e2e_api_key:                       ((v3_e2e_api_key))
+          v3_e2e_auth_url:                      ((openstack_auth_url_v3))
+          v3_e2e_project:                       ((v3_e2e_project))
+          v3_e2e_domain:                        ((v3_e2e_domain))
+          v3_e2e_username:                      ((v3_e2e_username))
+          v3_e2e_private_key_data:              ((v3_e2e_private_key_data))
+          v3_e2e_blobstore_bucket:              ((v3_e2e_blobstore_bucket))
+          v3_e2e_blobstore_host:                ((v3_e2e_blobstore_host))
+          v3_e2e_blobstore_access_key:          ((v3_e2e_blobstore_access_key))
+          v3_e2e_blobstore_secret_key:          ((v3_e2e_blobstore_secret_key))
+          time_server_1:                        ((time_server_1))
+          time_server_2:                        ((time_server_2))
           distro:                               "centos"
-          director_ca:                          {{director_ca}}
-          director_ca_private_key:              {{director_ca_private_key}}
+          director_ca:                          ((director_ca))
+          director_ca_private_key:              ((director_ca_private_key))
         <<: *send-failure-email
 
       - task: deploy-dummy-release
-        tags: *tags
+        tags: ((worker_tags))
         timeout: *timeouts-long
         file: bosh-cpi-src-in/ci/pipelines/certify-stemcell/tasks/deploy-dummy-release.yml
         params:
           instance_flavor:             "m1.medium"
-          bosh_vcap_password:          {{bosh_vcap_password}}
+          bosh_vcap_password:          ((bosh_vcap_password))
           stemcell_name:               "bosh-openstack-kvm-centos-7-go_agent"
           delete_deployment_when_done: "true"
         <<: *send-failure-email
 
       - task: deploy-dummy-release-light-stemcell
-        tags: *tags
+        tags: ((worker_tags))
         timeout: *timeouts-long
         file: bosh-cpi-src-in/ci/pipelines/certify-stemcell/tasks/deploy-dummy-release-light-stemcell.yml
         params:
           instance_flavor:                     "m1.medium"
-          bosh_vcap_password:                  {{bosh_vcap_password}}
+          bosh_vcap_password:                  ((bosh_vcap_password))
           os_name:                             "centos-7"
           delete_deployment_when_done:         "true"
-          BOSH_OPENSTACK_DOMAIN_NAME:          {{v3_e2e_domain}}
-          BOSH_OPENSTACK_AUTH_URL:             {{openstack_auth_url_v3}}
-          BOSH_OPENSTACK_USERNAME:             {{v3_e2e_username}}
-          BOSH_OPENSTACK_API_KEY:              {{v3_e2e_api_key}}
-          BOSH_OPENSTACK_PROJECT:              {{v3_e2e_project}}
-          BOSH_OPENSTACK_CA_CERT:              {{bosh_openstack_ca_cert}}
+          BOSH_OPENSTACK_DOMAIN_NAME:          ((v3_e2e_domain))
+          BOSH_OPENSTACK_AUTH_URL:             ((openstack_auth_url_v3))
+          BOSH_OPENSTACK_USERNAME:             ((v3_e2e_username))
+          BOSH_OPENSTACK_API_KEY:              ((v3_e2e_api_key))
+          BOSH_OPENSTACK_PROJECT:              ((v3_e2e_project))
+          BOSH_OPENSTACK_CA_CERT:              ((bosh_openstack_ca_cert))
         <<: *send-failure-email
 
       - task: teardown-director
-        tags: *tags
+        tags: ((worker_tags))
         timeout: *timeouts-long
         file: bosh-cpi-src-in/ci/pipelines/certify-stemcell/tasks/teardown-director.yml
         params:
@@ -148,32 +143,33 @@ jobs:
     build_logs_to_retain: *build_logs_to_retain
     plan:
       - aggregate:
-        - {trigger: false, get: bosh-cpi-src-in,  passed: [cleanup], tags: *tags, timeout: *timeouts-long}
-        - {trigger: false, get: dummy-release,                       tags: *tags, timeout: *timeouts-long}
-        - {trigger: true,  get: bosh-cpi-release, passed: [cleanup], tags: *tags, timeout: *timeouts-long, resource: bosh-cpi-dev-artifacts}
-        - {trigger: true,  get: bosh-release,     passed: [cleanup], tags: *tags, timeout: *timeouts-long}
-        - {trigger: true,  get: stemcell,         passed: [cleanup], tags: *tags, timeout: *timeouts-long, resource: ubuntu-stemcell}
-        - {trigger: false, get: bosh-deployment,                     tags: *tags, timeout: *timeouts-long}
+        - {trigger: false, get: bosh-cpi-src-in,  passed: [cleanup], tags: ((worker_tags)), timeout: *timeouts-long}
+        - {trigger: false, get: dummy-release,                       tags: ((worker_tags)), timeout: *timeouts-long}
+        - {trigger: true,  get: bosh-cpi-release, passed: [cleanup], tags: ((worker_tags)), timeout: *timeouts-long, resource: bosh-cpi-dev-artifacts}
+        - {trigger: true,  get: bosh-release,     passed: [cleanup], tags: ((worker_tags)), timeout: *timeouts-long}
+        - {trigger: true,  get: stemcell,         passed: [cleanup], tags: ((worker_tags)), timeout: *timeouts-long, resource: ubuntu-stemcell}
+        - {trigger: false, get: bosh-deployment,                     tags: ((worker_tags)), timeout: *timeouts-long}
 
       - task: write_ca_file
-        tags: *tags
+        tags: ((worker_tags))
         file: bosh-cpi-src-in/ci/tasks/write-ca-file.yml
         params:
-          file_content: {{bosh_openstack_ca_cert}}
+          file_content: ((bosh_openstack_ca_cert))
 
       - put: terraform
         resource: terraform-e2e-base
-        tags: *tags
+        tags: ((worker_tags))
         timeout: *timeouts-long
         params:
           env_name: e2e-ubuntu
+          terraform_source: bosh-cpi-src-in/ci/terraform/e2e/modules/base
           vars:
             <<:     *terraform-base-inputs
             prefix: "e2e-ubuntu"
             e2e_net_cidr: "10.0.2.0/24"
 
       - task: deploy-integration-director
-        tags: *tags
+        tags: ((worker_tags))
         timeout: *timeouts-long
         file: bosh-cpi-src-in/ci/pipelines/certify-stemcell/tasks/deploy-director.yml
         params:
@@ -182,35 +178,35 @@ jobs:
         <<: *send-failure-email
 
       - task: deploy-dummy-release
-        tags: *tags
+        tags: ((worker_tags))
         timeout: *timeouts-long
         file: bosh-cpi-src-in/ci/pipelines/certify-stemcell/tasks/deploy-dummy-release.yml
         params:
           instance_flavor:                     "m1.medium"
-          bosh_vcap_password:                  {{bosh_vcap_password}}
+          bosh_vcap_password:                  ((bosh_vcap_password))
           stemcell_name:                       "bosh-openstack-kvm-ubuntu-trusty-go_agent"
           delete_deployment_when_done:         "true"
         <<: *send-failure-email
 
       - task: deploy-dummy-release-light-stemcell
-        tags: *tags
+        tags: ((worker_tags))
         timeout: *timeouts-long
         file: bosh-cpi-src-in/ci/pipelines/certify-stemcell/tasks/deploy-dummy-release-light-stemcell.yml
         params:
           instance_flavor:             "m1.medium"
-          bosh_vcap_password:          {{bosh_vcap_password}}
+          bosh_vcap_password:          ((bosh_vcap_password))
           os_name:                     "ubuntu-trusty"
           delete_deployment_when_done: "true"
-          BOSH_OPENSTACK_DOMAIN_NAME:  {{v3_e2e_domain}}
-          BOSH_OPENSTACK_AUTH_URL:     {{openstack_auth_url_v3}}
-          BOSH_OPENSTACK_USERNAME:     {{v3_e2e_username}}
-          BOSH_OPENSTACK_API_KEY:      {{v3_e2e_api_key}}
-          BOSH_OPENSTACK_PROJECT:      {{v3_e2e_project}}
-          BOSH_OPENSTACK_CA_CERT:      {{bosh_openstack_ca_cert}}
+          BOSH_OPENSTACK_DOMAIN_NAME:  ((v3_e2e_domain))
+          BOSH_OPENSTACK_AUTH_URL:     ((openstack_auth_url_v3))
+          BOSH_OPENSTACK_USERNAME:     ((v3_e2e_username))
+          BOSH_OPENSTACK_API_KEY:      ((v3_e2e_api_key))
+          BOSH_OPENSTACK_PROJECT:      ((v3_e2e_project))
+          BOSH_OPENSTACK_CA_CERT:      ((bosh_openstack_ca_cert))
         <<: *send-failure-email
 
       - task: teardown-director
-        tags: *tags
+        tags: ((worker_tags))
         timeout: *timeouts-long
         file: bosh-cpi-src-in/ci/pipelines/certify-stemcell/tasks/teardown-director.yml
         params:
@@ -222,25 +218,26 @@ jobs:
     build_logs_to_retain: *build_logs_to_retain
     plan:
       - aggregate:
-        - {trigger: false, get: bosh-cpi-src-in,  passed: [cleanup], tags: *tags, timeout: *timeouts-long}
-        - {trigger: false, get: dummy-release,                       tags: *tags, timeout: *timeouts-long}
-        - {trigger: true,  get: bosh-cpi-release, passed: [cleanup], tags: *tags, timeout: *timeouts-long, resource: bosh-cpi-dev-artifacts}
-        - {trigger: true,  get: bosh-release,     passed: [cleanup], tags: *tags, timeout: *timeouts-long}
-        - {trigger: true,  get: stemcell,         passed: [cleanup], tags: *tags, timeout: *timeouts-long, resource: centos-stemcell}
-        - {trigger: false, get: bosh-deployment,                     tags: *tags, timeout: *timeouts-long}
+        - {trigger: false, get: bosh-cpi-src-in,  passed: [cleanup], tags: ((worker_tags)), timeout: *timeouts-long}
+        - {trigger: false, get: dummy-release,                       tags: ((worker_tags)), timeout: *timeouts-long}
+        - {trigger: true,  get: bosh-cpi-release, passed: [cleanup], tags: ((worker_tags)), timeout: *timeouts-long, resource: bosh-cpi-dev-artifacts}
+        - {trigger: true,  get: bosh-release,     passed: [cleanup], tags: ((worker_tags)), timeout: *timeouts-long}
+        - {trigger: true,  get: stemcell,         passed: [cleanup], tags: ((worker_tags)), timeout: *timeouts-long, resource: centos-stemcell}
+        - {trigger: false, get: bosh-deployment,                     tags: ((worker_tags)), timeout: *timeouts-long}
 
       - task: write_ca_file
-        tags: *tags
+        tags: ((worker_tags))
         file: bosh-cpi-src-in/ci/tasks/write-ca-file.yml
         params:
-          file_content: {{bosh_openstack_ca_cert}}
+          file_content: ((bosh_openstack_ca_cert))
 
       - put: terraform
         resource: terraform-e2e-config-drive
-        tags: *tags
+        tags: ((worker_tags))
         timeout: *timeouts-long
         params:
           env_name: e2e-centos-config-drive
+          terraform_source: bosh-cpi-src-in/ci/terraform/e2e/config_drive
           vars:
             <<: *terraform-base-inputs
             prefix: "e2e-centos-config-drive"
@@ -249,7 +246,7 @@ jobs:
             no_dhcp_net_2_cidr: "10.0.5.0/24"
 
       - task: deploy-integration-director
-        tags: *tags
+        tags: ((worker_tags))
         timeout: *timeouts-long
         file: bosh-cpi-src-in/ci/pipelines/certify-stemcell/tasks/deploy-director.yml
         params: &e2e-centos-config-drive-director-params
@@ -260,39 +257,39 @@ jobs:
           v3_e2e_write_timeout:                 "180"
           v3_e2e_config_drive:                  "disk"
           v3_e2e_use_dhcp:                      false
-          bosh_vcap_password:                   {{bosh_vcap_password}}
-          bosh_openstack_ca_cert:               {{bosh_openstack_ca_cert}}
-          v3_e2e_bosh_registry_port:            {{v3_e2e_bosh_registry_port}}
-          v3_e2e_api_key:                       {{v3_e2e_api_key}}
-          v3_e2e_auth_url:                      {{openstack_auth_url_v3}}
-          v3_e2e_project:                       {{v3_e2e_project}}
-          v3_e2e_domain:                        {{v3_e2e_domain}}
-          v3_e2e_username:                      {{v3_e2e_username}}
-          v3_e2e_private_key_data:              {{v3_e2e_private_key_data}}
-          v3_e2e_blobstore_bucket:              {{v3_e2e_blobstore_bucket}}
-          v3_e2e_blobstore_host:                {{v3_e2e_blobstore_host}}
-          v3_e2e_blobstore_access_key:          {{v3_e2e_blobstore_access_key}}
-          v3_e2e_blobstore_secret_key:          {{v3_e2e_blobstore_secret_key}}
-          time_server_1:                        {{time_server_1}}
-          time_server_2:                        {{time_server_2}}
+          bosh_vcap_password:                   ((bosh_vcap_password))
+          bosh_openstack_ca_cert:               ((bosh_openstack_ca_cert))
+          v3_e2e_bosh_registry_port:            ((v3_e2e_bosh_registry_port))
+          v3_e2e_api_key:                       ((v3_e2e_api_key))
+          v3_e2e_auth_url:                      ((openstack_auth_url_v3))
+          v3_e2e_project:                       ((v3_e2e_project))
+          v3_e2e_domain:                        ((v3_e2e_domain))
+          v3_e2e_username:                      ((v3_e2e_username))
+          v3_e2e_private_key_data:              ((v3_e2e_private_key_data))
+          v3_e2e_blobstore_bucket:              ((v3_e2e_blobstore_bucket))
+          v3_e2e_blobstore_host:                ((v3_e2e_blobstore_host))
+          v3_e2e_blobstore_access_key:          ((v3_e2e_blobstore_access_key))
+          v3_e2e_blobstore_secret_key:          ((v3_e2e_blobstore_secret_key))
+          time_server_1:                        ((time_server_1))
+          time_server_2:                        ((time_server_2))
           distro:                               "centos"
-          director_ca:                          {{director_ca}}
-          director_ca_private_key:              {{director_ca_private_key}}
+          director_ca:                          ((director_ca))
+          director_ca_private_key:              ((director_ca_private_key))
         <<: *send-failure-email
 
       - task: deploy-dummy-release
-        tags: *tags
+        tags: ((worker_tags))
         timeout: *timeouts-long
         file: bosh-cpi-src-in/ci/pipelines/certify-stemcell/tasks/deploy-dummy-release-multiple-manual-networks.yml
         params:
           instance_flavor:           "m1.medium"
-          bosh_vcap_password:        {{bosh_vcap_password}}
-          v3_e2e_private_key_data:   {{v3_e2e_private_key_data}}
+          bosh_vcap_password:        ((bosh_vcap_password))
+          v3_e2e_private_key_data:   ((v3_e2e_private_key_data))
           stemcell_name:             "bosh-openstack-kvm-centos-7-go_agent"
         <<: *send-failure-email
 
       - task: teardown-director
-        tags: *tags
+        tags: ((worker_tags))
         timeout: *timeouts-long
         file: bosh-cpi-src-in/ci/pipelines/certify-stemcell/tasks/teardown-director.yml
         params:
@@ -304,25 +301,26 @@ jobs:
     build_logs_to_retain: *build_logs_to_retain
     plan:
       - aggregate:
-        - {trigger: false, get: bosh-cpi-src-in,  passed: [cleanup], tags: *tags, timeout: *timeouts-long}
-        - {trigger: false, get: dummy-release,                       tags: *tags, timeout: *timeouts-long}
-        - {trigger: true,  get: bosh-cpi-release, passed: [cleanup], tags: *tags, timeout: *timeouts-long, resource: bosh-cpi-dev-artifacts}
-        - {trigger: true,  get: bosh-release,     passed: [cleanup], tags: *tags, timeout: *timeouts-long}
-        - {trigger: true,  get: stemcell,         passed: [cleanup], tags: *tags, timeout: *timeouts-long, resource: ubuntu-stemcell}
-        - {trigger: false, get: bosh-deployment,                     tags: *tags, timeout: *timeouts-long}
+        - {trigger: false, get: bosh-cpi-src-in,  passed: [cleanup], tags: ((worker_tags)), timeout: *timeouts-long}
+        - {trigger: false, get: dummy-release,                       tags: ((worker_tags)), timeout: *timeouts-long}
+        - {trigger: true,  get: bosh-cpi-release, passed: [cleanup], tags: ((worker_tags)), timeout: *timeouts-long, resource: bosh-cpi-dev-artifacts}
+        - {trigger: true,  get: bosh-release,     passed: [cleanup], tags: ((worker_tags)), timeout: *timeouts-long}
+        - {trigger: true,  get: stemcell,         passed: [cleanup], tags: ((worker_tags)), timeout: *timeouts-long, resource: ubuntu-stemcell}
+        - {trigger: false, get: bosh-deployment,                     tags: ((worker_tags)), timeout: *timeouts-long}
 
       - task: write_ca_file
-        tags: *tags
+        tags: ((worker_tags))
         file: bosh-cpi-src-in/ci/tasks/write-ca-file.yml
         params:
-          file_content: {{bosh_openstack_ca_cert}}
+          file_content: ((bosh_openstack_ca_cert))
 
       - put: terraform
         resource: terraform-e2e-config-drive
-        tags: *tags
+        tags: ((worker_tags))
         timeout: *timeouts-long
         params:
           env_name: e2e-ubuntu-config-drive
+          terraform_source: bosh-cpi-src-in/ci/terraform/e2e/config_drive
           vars:
             <<: *terraform-base-inputs
             prefix: "e2e-ubuntu-config-drive"
@@ -331,7 +329,7 @@ jobs:
             no_dhcp_net_2_cidr: "10.0.8.0/24"
 
       - task: deploy-integration-director
-        tags: *tags
+        tags: ((worker_tags))
         timeout: *timeouts-long
         file: bosh-cpi-src-in/ci/pipelines/certify-stemcell/tasks/deploy-director.yml
         params:
@@ -340,18 +338,18 @@ jobs:
         <<: *send-failure-email
 
       - task: deploy-dummy-release
-        tags: *tags
+        tags: ((worker_tags))
         timeout: *timeouts-long
         file: bosh-cpi-src-in/ci/pipelines/certify-stemcell/tasks/deploy-dummy-release-multiple-manual-networks.yml
         params:
           instance_flavor:           "m1.medium"
-          bosh_vcap_password:        {{bosh_vcap_password}}
-          v3_e2e_private_key_data:   {{v3_e2e_private_key_data}}
+          bosh_vcap_password:        ((bosh_vcap_password))
+          v3_e2e_private_key_data:   ((v3_e2e_private_key_data))
           stemcell_name:             "bosh-openstack-kvm-ubuntu-trusty-go_agent"
         <<: *send-failure-email
 
       - task: teardown-director
-        tags: *tags
+        tags: ((worker_tags))
         timeout: *timeouts-long
         file: bosh-cpi-src-in/ci/pipelines/certify-stemcell/tasks/teardown-director.yml
         params:
@@ -363,55 +361,56 @@ jobs:
     build_logs_to_retain: *build_logs_to_retain
     plan:
       - aggregate:
-        - {trigger: false, get: bosh-cpi-src-in,  passed: [cleanup], tags: *tags, timeout: *timeouts-long}
-        - {trigger: false, get: dummy-release,                       tags: *tags, timeout: *timeouts-long}
-        - {trigger: true,  get: bosh-cpi-release, passed: [cleanup], tags: *tags, timeout: *timeouts-long, resource: bosh-cpi-dev-artifacts}
-        - {trigger: true,  get: bosh-release,     passed: [cleanup], tags: *tags, timeout: *timeouts-long}
-        - {trigger: true,  get: stemcell,         passed: [cleanup], tags: *tags, timeout: *timeouts-long, resource: centos-stemcell}
-        - {trigger: false, get: bosh-deployment,                     tags: *tags, timeout: *timeouts-long}
+        - {trigger: false, get: bosh-cpi-src-in,  passed: [cleanup], tags: ((worker_tags)), timeout: *timeouts-long}
+        - {trigger: false, get: dummy-release,                       tags: ((worker_tags)), timeout: *timeouts-long}
+        - {trigger: true,  get: bosh-cpi-release, passed: [cleanup], tags: ((worker_tags)), timeout: *timeouts-long, resource: bosh-cpi-dev-artifacts}
+        - {trigger: true,  get: bosh-release,     passed: [cleanup], tags: ((worker_tags)), timeout: *timeouts-long}
+        - {trigger: true,  get: stemcell,         passed: [cleanup], tags: ((worker_tags)), timeout: *timeouts-long, resource: centos-stemcell}
+        - {trigger: false, get: bosh-deployment,                     tags: ((worker_tags)), timeout: *timeouts-long}
 
       - task: write_ca_file
-        tags: *tags
+        tags: ((worker_tags))
         file: bosh-cpi-src-in/ci/tasks/write-ca-file.yml
         params:
-          file_content: {{bosh_openstack_ca_cert}}
+          file_content: ((bosh_openstack_ca_cert))
 
       - put: terraform
         resource: terraform-e2e-base
-        tags: *tags
+        tags: ((worker_tags))
         timeout: *timeouts-long
         params:
           env_name: e2e-centos-upgrade
+          terraform_source: bosh-cpi-src-in/ci/terraform/e2e/modules/base
           vars:
             <<: *terraform-base-inputs
             prefix: "e2e-centos-upgrade"
             e2e_net_cidr: "10.0.9.0/24"
 
       - task: deploy-old-director
-        tags: *tags
+        tags: ((worker_tags))
         timeout: *timeouts-long
         file: bosh-cpi-src-in/ci/pipelines/certify-stemcell/tasks/deploy-old-director.yml
         params: &centos-deploy-old-director-params
-          director_ca:                          {{director_ca}}
-          director_ca_private_key:              {{director_ca_private_key}}
-          bosh_openstack_ca_cert:               {{bosh_openstack_ca_cert}}
-          v3_e2e_private_key_data:              {{v3_e2e_private_key_data}}
+          director_ca:                          ((director_ca))
+          director_ca_private_key:              ((director_ca_private_key))
+          bosh_openstack_ca_cert:               ((bosh_openstack_ca_cert))
+          v3_e2e_private_key_data:              ((v3_e2e_private_key_data))
           old_bosh_release_version:             255.5
           old_bosh_release_sha1:                ffc41db255450cb72b74190c8b9c2a1fe9846ad7
-          bosh_vcap_password:                   {{bosh_vcap_password}}
+          bosh_vcap_password:                   ((bosh_vcap_password))
           v3_e2e_flavor:                        "m1.medium"
           v3_e2e_connection_timeout:            "600"
           v3_e2e_read_timeout:                  "180"
           v3_e2e_state_timeout:                 "900"
           v3_e2e_write_timeout:                 "180"
-          v3_e2e_bosh_registry_port:            {{v3_e2e_bosh_registry_port}}
-          v3_e2e_api_key:                       {{v3_e2e_api_key}}
-          v3_e2e_auth_url:                      {{openstack_auth_url_v3}}
-          v3_e2e_project:                       {{v3_e2e_project}}
-          v3_e2e_domain:                        {{v3_e2e_domain}}
-          v3_e2e_username:                      {{v3_e2e_username}}
-          time_server_1:                        {{time_server_1}}
-          time_server_2:                        {{time_server_2}}
+          v3_e2e_bosh_registry_port:            ((v3_e2e_bosh_registry_port))
+          v3_e2e_api_key:                       ((v3_e2e_api_key))
+          v3_e2e_auth_url:                      ((openstack_auth_url_v3))
+          v3_e2e_project:                       ((v3_e2e_project))
+          v3_e2e_domain:                        ((v3_e2e_domain))
+          v3_e2e_username:                      ((v3_e2e_username))
+          time_server_1:                        ((time_server_1))
+          time_server_2:                        ((time_server_2))
           distro:                               "centos"
           old_openstack_cpi_release_version:    26
           old_openstack_cpi_release_sha1:       09c18a410aca8a15c11fcbe028f3eac39bef31b5
@@ -421,18 +420,18 @@ jobs:
         <<: *send-failure-email
 
       - task: deploy-dummy-release-with-old-cpi
-        tags: *tags
+        tags: ((worker_tags))
         timeout: *timeouts-long
         file: bosh-cpi-src-in/ci/pipelines/certify-stemcell/tasks/deploy-dummy-release.yml
         params:
           instance_flavor:             "m1.medium"
-          bosh_vcap_password:          {{bosh_vcap_password}}
+          bosh_vcap_password:          ((bosh_vcap_password))
           stemcell_name:               "bosh-openstack-kvm-centos-7-go_agent"
           delete_deployment_when_done: "false"
         <<: *send-failure-email
 
       - task: test-upgrade
-        tags: *tags
+        tags: ((worker_tags))
         timeout: *timeouts-long
         file: bosh-cpi-src-in/ci/pipelines/certify-stemcell/tasks/test-upgrade.yml
         params: &centos-test-upgrade-params
@@ -441,22 +440,22 @@ jobs:
           v3_e2e_read_timeout:                  "180"
           v3_e2e_state_timeout:                 "900"
           v3_e2e_write_timeout:                 "180"
-          bosh_vcap_password:                   {{bosh_vcap_password}}
-          bosh_openstack_ca_cert:               {{bosh_openstack_ca_cert}}
-          v3_e2e_bosh_registry_port:            {{v3_e2e_bosh_registry_port}}
-          v3_e2e_api_key:                       {{v3_e2e_api_key}}
-          v3_e2e_auth_url:                      {{openstack_auth_url_v3}}
-          v3_e2e_project:                       {{v3_e2e_project}}
-          v3_e2e_domain:                        {{v3_e2e_domain}}
-          v3_e2e_username:                      {{v3_e2e_username}}
-          v3_e2e_private_key_data:              {{v3_e2e_private_key_data}}
-          time_server_1:                        {{time_server_1}}
-          time_server_2:                        {{time_server_2}}
+          bosh_vcap_password:                   ((bosh_vcap_password))
+          bosh_openstack_ca_cert:               ((bosh_openstack_ca_cert))
+          v3_e2e_bosh_registry_port:            ((v3_e2e_bosh_registry_port))
+          v3_e2e_api_key:                       ((v3_e2e_api_key))
+          v3_e2e_auth_url:                      ((openstack_auth_url_v3))
+          v3_e2e_project:                       ((v3_e2e_project))
+          v3_e2e_domain:                        ((v3_e2e_domain))
+          v3_e2e_username:                      ((v3_e2e_username))
+          v3_e2e_private_key_data:              ((v3_e2e_private_key_data))
+          time_server_1:                        ((time_server_1))
+          time_server_2:                        ((time_server_2))
           distro:                               "centos"
         <<: *send-failure-email
 
       - task: teardown-director
-        tags: *tags
+        tags: ((worker_tags))
         timeout: *timeouts-long
         file: bosh-cpi-src-in/ci/pipelines/certify-stemcell/tasks/teardown.yml
         <<: *send-failure-email
@@ -467,32 +466,33 @@ jobs:
     build_logs_to_retain: *build_logs_to_retain
     plan:
       - aggregate:
-        - {trigger: false, get: bosh-cpi-src-in,  passed: [cleanup], tags: *tags, timeout: *timeouts-long}
-        - {trigger: false, get: dummy-release,                       tags: *tags, timeout: *timeouts-long}
-        - {trigger: true,  get: bosh-cpi-release, passed: [cleanup], tags: *tags, timeout: *timeouts-long, resource: bosh-cpi-dev-artifacts}
-        - {trigger: true,  get: bosh-release,     passed: [cleanup], tags: *tags, timeout: *timeouts-long}
-        - {trigger: true,  get: stemcell,         passed: [cleanup], tags: *tags, timeout: *timeouts-long, resource: ubuntu-stemcell}
-        - {trigger: false, get: bosh-deployment,                     tags: *tags, timeout: *timeouts-long}
+        - {trigger: false, get: bosh-cpi-src-in,  passed: [cleanup], tags: ((worker_tags)), timeout: *timeouts-long}
+        - {trigger: false, get: dummy-release,                       tags: ((worker_tags)), timeout: *timeouts-long}
+        - {trigger: true,  get: bosh-cpi-release, passed: [cleanup], tags: ((worker_tags)), timeout: *timeouts-long, resource: bosh-cpi-dev-artifacts}
+        - {trigger: true,  get: bosh-release,     passed: [cleanup], tags: ((worker_tags)), timeout: *timeouts-long}
+        - {trigger: true,  get: stemcell,         passed: [cleanup], tags: ((worker_tags)), timeout: *timeouts-long, resource: ubuntu-stemcell}
+        - {trigger: false, get: bosh-deployment,                     tags: ((worker_tags)), timeout: *timeouts-long}
 
       - task: write_ca_file
-        tags: *tags
+        tags: ((worker_tags))
         file: bosh-cpi-src-in/ci/tasks/write-ca-file.yml
         params:
-          file_content: {{bosh_openstack_ca_cert}}
+          file_content: ((bosh_openstack_ca_cert))
 
       - put: terraform
         resource: terraform-e2e-base
-        tags: *tags
+        tags: ((worker_tags))
         timeout: *timeouts-long
         params:
           env_name: e2e-ubuntu-upgrade
+          terraform_source: bosh-cpi-src-in/ci/terraform/e2e/modules/base
           vars:
             <<: *terraform-base-inputs
             prefix: "e2e-ubuntu-upgrade"
             e2e_net_cidr: "10.0.10.0/24"
 
       - task: deploy-old-director
-        tags: *tags
+        tags: ((worker_tags))
         timeout: *timeouts-long
         file: bosh-cpi-src-in/ci/pipelines/certify-stemcell/tasks/deploy-old-director.yml
         params:
@@ -503,18 +503,18 @@ jobs:
         <<: *send-failure-email
 
       - task: deploy-dummy-release-with-old-cpi
-        tags: *tags
+        tags: ((worker_tags))
         timeout: *timeouts-long
         file: bosh-cpi-src-in/ci/pipelines/certify-stemcell/tasks/deploy-dummy-release.yml
         params:
           instance_flavor:             "m1.medium"
-          bosh_vcap_password:          {{bosh_vcap_password}}
+          bosh_vcap_password:          ((bosh_vcap_password))
           stemcell_name:               "bosh-openstack-kvm-ubuntu-trusty-go_agent"
           delete_deployment_when_done: "false"
         <<: *send-failure-email
 
       - task: test-upgrade
-        tags: *tags
+        tags: ((worker_tags))
         timeout: *timeouts-long
         file: bosh-cpi-src-in/ci/pipelines/certify-stemcell/tasks/test-upgrade.yml
         params:
@@ -523,7 +523,7 @@ jobs:
         <<: *send-failure-email
 
       - task: teardown-director
-        tags: *tags
+        tags: ((worker_tags))
         timeout: *timeouts-long
         file: bosh-cpi-src-in/ci/pipelines/certify-stemcell/tasks/teardown.yml
         <<: *send-failure-email
@@ -534,35 +534,35 @@ jobs:
     build_logs_to_retain: *build_logs_to_retain
     plan:
       - aggregate:
-        - {trigger: false, get: bosh-cpi-src-in,   tags: *tags, timeout: *timeouts-long}
-        - {trigger: true,  get: bosh-cpi-release,  tags: *tags, timeout: *timeouts-long, resource: bosh-cpi-dev-artifacts}
-        - {trigger: true,  get: bosh-release,      tags: *tags, timeout: *timeouts-long}
-        - {trigger: true,  get: centos-stemcell,   tags: *tags, timeout: *timeouts-long}
-        - {trigger: true,  get: ubuntu-stemcell,   tags: *tags, timeout: *timeouts-long}
+        - {trigger: false, get: bosh-cpi-src-in,   tags: ((worker_tags)), timeout: *timeouts-long}
+        - {trigger: true,  get: bosh-cpi-release,  tags: ((worker_tags)), timeout: *timeouts-long, resource: bosh-cpi-dev-artifacts}
+        - {trigger: true,  get: bosh-release,      tags: ((worker_tags)), timeout: *timeouts-long}
+        - {trigger: true,  get: centos-stemcell,   tags: ((worker_tags)), timeout: *timeouts-long}
+        - {trigger: true,  get: ubuntu-stemcell,   tags: ((worker_tags)), timeout: *timeouts-long}
 
       - task: cleanup-e2e
-        tags: *tags
+        tags: ((worker_tags))
         timeout: *timeouts-long
         file: bosh-cpi-src-in/ci/tasks/cleanup.yml
         params:
-          BOSH_OPENSTACK_DOMAIN_NAME:          {{v3_e2e_domain}}
-          BOSH_OPENSTACK_AUTH_URL:             {{openstack_auth_url_v3}}
-          BOSH_OPENSTACK_USERNAME:             {{v3_e2e_username}}
-          BOSH_OPENSTACK_API_KEY:              {{v3_e2e_api_key}}
-          BOSH_OPENSTACK_PROJECT:              {{v3_e2e_project}}
-          BOSH_OPENSTACK_CA_CERT:              {{bosh_openstack_ca_cert}}
+          BOSH_OPENSTACK_DOMAIN_NAME:          ((v3_e2e_domain))
+          BOSH_OPENSTACK_AUTH_URL:             ((openstack_auth_url_v3))
+          BOSH_OPENSTACK_USERNAME:             ((v3_e2e_username))
+          BOSH_OPENSTACK_API_KEY:              ((v3_e2e_api_key))
+          BOSH_OPENSTACK_PROJECT:              ((v3_e2e_project))
+          BOSH_OPENSTACK_CA_CERT:              ((bosh_openstack_ca_cert))
         <<: *send-failure-email
 
   - name: certify-ubuntu
     plan:
       - aggregate:
-        - {trigger: false, get: bosh-cpi-src-in, tags: *tags, timeout: *timeouts-long}
-        - {trigger: true,  get: bosh-cpi-release, passed: [e2e-ubuntu, e2e-ubuntu-config-drive, test-upgrade-ubuntu], resource: bosh-cpi-dev-artifacts, tags: *tags, timeout: *timeouts-long}
-        - {trigger: true,  get: bosh-release,     passed: [e2e-ubuntu, e2e-ubuntu-config-drive, test-upgrade-ubuntu], tags: *tags, timeout: *timeouts-long}
-        - {trigger: true,  get: stemcell,         passed: [e2e-ubuntu, e2e-ubuntu-config-drive, test-upgrade-ubuntu], resource: ubuntu-stemcell, tags: *tags, timeout: *timeouts-long}
+        - {trigger: false, get: bosh-cpi-src-in, tags: ((worker_tags)), timeout: *timeouts-long}
+        - {trigger: true,  get: bosh-cpi-release, passed: [e2e-ubuntu, e2e-ubuntu-config-drive, test-upgrade-ubuntu], resource: bosh-cpi-dev-artifacts, tags: ((worker_tags)), timeout: *timeouts-long}
+        - {trigger: true,  get: bosh-release,     passed: [e2e-ubuntu, e2e-ubuntu-config-drive, test-upgrade-ubuntu], tags: ((worker_tags)), timeout: *timeouts-long}
+        - {trigger: true,  get: stemcell,         passed: [e2e-ubuntu, e2e-ubuntu-config-drive, test-upgrade-ubuntu], resource: ubuntu-stemcell, tags: ((worker_tags)), timeout: *timeouts-long}
 
       - task: generate-certification
-        tags: *tags
+        tags: ((worker_tags))
         timeout: *timeouts-long
         file: bosh-cpi-src-in/ci/pipelines/certify-stemcell/tasks/generate-certification.yml
         params:
@@ -571,7 +571,7 @@ jobs:
           stemcell_name: bosh-openstack-kvm-ubuntu-trusty-go_agent
 
       - put: certification
-        tags: *tags
+        tags: ((worker_tags))
         timeout: *timeouts-long
         params:
           file: certification-receipt/*-receipt.json
@@ -579,13 +579,13 @@ jobs:
   - name: certify-centos
     plan:
       - aggregate:
-        - {trigger: false, get: bosh-cpi-src-in, tags: *tags, timeout: *timeouts-long}
-        - {trigger: true,  get: bosh-cpi-release, passed: [e2e-centos, e2e-centos-config-drive, test-upgrade-centos], resource: bosh-cpi-dev-artifacts, tags: *tags, timeout: *timeouts-long}
-        - {trigger: true,  get: bosh-release,     passed: [e2e-centos, e2e-centos-config-drive, test-upgrade-centos], tags: *tags, timeout: *timeouts-long}
-        - {trigger: true,  get: stemcell,         passed: [e2e-centos, e2e-centos-config-drive, test-upgrade-centos], resource: centos-stemcell, tags: *tags, timeout: *timeouts-long}
+        - {trigger: false, get: bosh-cpi-src-in, tags: ((worker_tags)), timeout: *timeouts-long}
+        - {trigger: true,  get: bosh-cpi-release, passed: [e2e-centos, e2e-centos-config-drive, test-upgrade-centos], resource: bosh-cpi-dev-artifacts, tags: ((worker_tags)), timeout: *timeouts-long}
+        - {trigger: true,  get: bosh-release,     passed: [e2e-centos, e2e-centos-config-drive, test-upgrade-centos], tags: ((worker_tags)), timeout: *timeouts-long}
+        - {trigger: true,  get: stemcell,         passed: [e2e-centos, e2e-centos-config-drive, test-upgrade-centos], resource: centos-stemcell, tags: ((worker_tags)), timeout: *timeouts-long}
 
       - task: generate-certification
-        tags: *tags
+        tags: ((worker_tags))
         timeout: *timeouts-long
         file: bosh-cpi-src-in/ci/pipelines/certify-stemcell/tasks/generate-certification.yml
         params:
@@ -594,7 +594,7 @@ jobs:
           stemcell_name: bosh-openstack-kvm-centos-7-go_agent
 
       - put: certification
-        tags: *tags
+        tags: ((worker_tags))
         timeout: *timeouts-long
         params:
           file: certification-receipt/*-receipt.json
@@ -613,66 +613,64 @@ resource_types:
 resources:
   - name: terraform-e2e-base
     type: terraform
-    tags: *tags
+    tags: ((worker_tags))
     source:
       storage:
-        bucket: {{s3_openstack_cpi_pipeline_bucket_name}}
+        bucket: ((s3_openstack_cpi_pipeline_bucket_name))
         bucket_path: terraform-e2e/
-        region_name: {{s3_openstack_cpi_pipeline_bucket_region}}
-        access_key_id: {{s3_openstack_cpi_pipeline_access_key}}
-        secret_access_key: {{s3_openstack_cpi_pipeline_secret_key}}
-      terraform_source: github.com/cloudfoundry-incubator/bosh-openstack-cpi-release//ci/terraform/e2e/modules/base
+        region_name: ((s3_openstack_cpi_pipeline_bucket_region))
+        access_key_id: ((s3_openstack_cpi_pipeline_access_key))
+        secret_access_key: ((s3_openstack_cpi_pipeline_secret_key))
 
   - name: terraform-e2e-config-drive
     type: terraform
-    tags: *tags
+    tags: ((worker_tags))
     source:
       storage:
-        bucket: {{s3_openstack_cpi_pipeline_bucket_name}}
+        bucket: ((s3_openstack_cpi_pipeline_bucket_name))
         bucket_path: terraform-e2e/
-        region_name: {{s3_openstack_cpi_pipeline_bucket_region}}
-        access_key_id: {{s3_openstack_cpi_pipeline_access_key}}
-        secret_access_key: {{s3_openstack_cpi_pipeline_secret_key}}
-      terraform_source: github.com/cloudfoundry-incubator/bosh-openstack-cpi-release//ci/terraform/e2e/config_drive
+        region_name: ((s3_openstack_cpi_pipeline_bucket_region))
+        access_key_id: ((s3_openstack_cpi_pipeline_access_key))
+        secret_access_key: ((s3_openstack_cpi_pipeline_secret_key))
 
   - name: bosh-cpi-dev-artifacts
     type: s3
-    tags: *tags
+    tags: ((worker_tags))
     source:
       regexp: bosh-openstack-cpi-([0-9.]+)\.tgz
-      bucket: {{s3_openstack_cpi_pipeline_bucket_name}} # OpenStack CPI account
-      region_name: {{s3_openstack_cpi_pipeline_bucket_region}}
-      access_key_id:      {{s3_openstack_cpi_pipeline_access_key}}
-      secret_access_key:  {{s3_openstack_cpi_pipeline_secret_key}}
+      bucket: ((s3_openstack_cpi_pipeline_bucket_name)) # OpenStack CPI account
+      region_name: ((s3_openstack_cpi_pipeline_bucket_region))
+      access_key_id:      ((s3_openstack_cpi_pipeline_access_key))
+      secret_access_key:  ((s3_openstack_cpi_pipeline_secret_key))
 
   - name: dummy-release
     type: git
-    tags: *tags
+    tags: ((worker_tags))
     source:
       uri: https://github.com/pivotal-cf-experimental/dummy-boshrelease.git
       branch: master
 
   - name: bosh-release
     type: bosh-io-release
-    tags: *tags
+    tags: ((worker_tags))
     source:
       repository: cloudfoundry/bosh
 
   - name: centos-stemcell
     type: bosh-io-stemcell
-    tags: *tags
+    tags: ((worker_tags))
     source:
       name: bosh-openstack-kvm-centos-7-go_agent
 
   - name: ubuntu-stemcell
     type: bosh-io-stemcell
-    tags: *tags
+    tags: ((worker_tags))
     source:
       name: bosh-openstack-kvm-ubuntu-trusty-go_agent
 
   - name: bosh-cpi-src-in
     type: git
-    tags: *tags
+    tags: ((worker_tags))
     source:
       uri: https://github.com/cloudfoundry-incubator/bosh-openstack-cpi-release.git
       branch: master
@@ -684,27 +682,27 @@ resources:
 
   - name: certification
     type: s3
-    tags: *tags
+    tags: ((worker_tags))
     source:
-      access_key_id: {{s3_openstack_cpi_receipts_access_key}}
-      secret_access_key: {{s3_openstack_cpi_receipts_secret_key}}
-      bucket: {{s3_openstack_cpi_receipts_bucket_name}}
+      access_key_id: ((s3_openstack_cpi_receipts_access_key))
+      secret_access_key: ((s3_openstack_cpi_receipts_secret_key))
+      bucket: ((s3_openstack_cpi_receipts_bucket_name))
       regexp: .*-(\d+)-receipt\.json
       region_name: us-east-1
 
   - name: bosh-deployment
     type: git
-    tags: *tags
+    tags: ((worker_tags))
     source:
       uri: https://github.com/cloudfoundry/bosh-deployment.git
       branch: master
 
 #  - name: send-an-email
 #    type: email
-#    tags: *tags
+#    tags: ((worker_tags))
 #    source:
 #      smtp:
-#        host: {{email_host}}
-#        port: {{email_port}}
-#      from: {{email_from}}
-#      to: [ {{email_to}} ]
+#        host: ((email_host))
+#        port: ((email_port))
+#      from: ((email_from))
+#      to: [ ((email_to)) ]
