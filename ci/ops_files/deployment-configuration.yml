@@ -24,6 +24,8 @@
     env:
       bosh:
         password: ((bosh_vcap_password_hash))
+        mbus:
+          cert: ((mbus_bootstrap_ssl))
 
 - type: replace
   path: /instance_groups/name=bosh/properties/hm/resurrector_enabled
