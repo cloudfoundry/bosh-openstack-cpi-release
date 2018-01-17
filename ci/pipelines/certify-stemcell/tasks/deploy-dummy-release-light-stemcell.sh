@@ -49,6 +49,8 @@ export BOSH_CA_CERT=director_ca
 
 echo "generating light stemcell ..."
 light_stemcell_path="light-bosh-stemcell-${stemcell_version}-openstack-kvm-${os_name}-go_agent.tgz"
+mv ~/.bosh/tmp .
+ln -s $PWD/tmp ~/.bosh/tmp
 bosh-go repack-stemcell --version "$stemcell_version" \
   --empty-image \
   --format openstack-light \
