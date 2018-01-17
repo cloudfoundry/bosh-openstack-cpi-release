@@ -415,8 +415,8 @@ jobs:
           old_openstack_cpi_release_version:    26
           old_openstack_cpi_release_sha1:       09c18a410aca8a15c11fcbe028f3eac39bef31b5
           old_bosh_stemcell_name:               bosh-openstack-kvm-centos-7-go_agent
-          old_bosh_stemcell_version:            3215
-          old_bosh_stemcell_sha1:               8a4f597368d330f8699c17b62993c43de5de2ba4
+          old_bosh_stemcell_version:            3421.36
+          old_bosh_stemcell_sha1:               5c570269911d46a9d4b4bed890178adc58d93035
         <<: *send-failure-email
 
       - task: deploy-dummy-release-with-old-cpi

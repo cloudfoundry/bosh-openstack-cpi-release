@@ -107,7 +107,7 @@ bosh-go int ../bosh-deployment/bosh.yml \
     -v old_openstack_cpi_release_sha1=${old_openstack_cpi_release_sha1} \
     -v old_bosh_stemcell_sha1=${old_bosh_stemcell_sha1} \
     -v old_bosh_stemcell_name=${old_bosh_stemcell_name} \
-    -v old_bosh_stemcell_version=${old_bosh_stemcell_version} \
+    -v old_bosh_stemcell_version="'${old_bosh_stemcell_version}'" \
     --var-file=private_key=${private_key} \
     -v region=null \
     -v time_server_1=${time_server_1} \
