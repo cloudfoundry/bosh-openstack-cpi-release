@@ -40,7 +40,7 @@ def scrub_random_body_hash!(request, key)
 end
 
 def scrub_random_query_value!(query, key)
-  query.gsub!(/(\A|&)#{key}=.*?(\Z|&)/, "\\1#{key}=<#{key}>\\2")
+  query.gsub!(/(\A|&|=)#{key}=.*?(\Z|&)/, "\\1#{key}=<#{key}>\\2")
 end
 
 def scrub_random_values!(requests)
