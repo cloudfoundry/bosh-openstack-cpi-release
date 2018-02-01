@@ -28,6 +28,12 @@ describe Bosh::OpenStackCloud::ServerGroups do
     expect(fog_server_groups).to have_received(:create).with('fake-uuid-fake-group', 'soft-anti-affinity')
   end
 
+  it 'uses a lock file to synchronize getting and creating server groups' do
+    server_groups.find_or_create('fake-uuid', 'fake-group')
+
+    expect(File.exists?("#{Dir.tmpdir}/openstack-server-groups.lock")).to be true
+  end
+
   context 'when a server_group with soft-anti-affinity policy already exists for this name' do
     let(:fog_server_groups) {
       double(:compute_server_groups, all:

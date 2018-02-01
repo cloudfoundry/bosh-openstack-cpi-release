@@ -43,4 +43,17 @@ describe Bosh::OpenStackCloud::Cloud do
     expect(id).to eq(other_id)
     expect(groups.length).to eq(1)
   end
+
+  it 'creates a single server group when CPI tries to create server groups in parallel' do
+    threads = (1..10).map do
+      Thread.new do
+        server_groups.find_or_create('1', '2')
+      end
+    end
+    threads.each {|t| t.join}
+    server_groups = cpi_for_cloud_props.compute.server_groups
+    expect(server_groups.length).to eq(1)
+    server_group = cpi_for_cloud_props.compute.server_groups.find { |f| f.name == '1-2' }
+    expect(server_group).to_not be_nil
+  end
 end
