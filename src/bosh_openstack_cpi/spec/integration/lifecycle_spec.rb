@@ -189,7 +189,13 @@ describe Bosh::OpenStackCloud::Cloud do
 
       it 'adds vrrp_ip as allowed_address_pairs' do
         vrrp_port = openstack.network.ports.all(:fixed_ips => "ip_address=#{@config.manual_ip}")[0]
-        assigned_allowed_address_pairs = openstack.network.get_port(vrrp_port.id)[:body]["port"]["allowed_address_pairs"][0]["ip_address"]
+        port_info = openstack.network.get_port(vrrp_port.id)
+        expect(port_info).to be
+
+        allowed_address_pairs = port_info[:body]["port"]["allowed_address_pairs"]
+        expect(allowed_address_pairs.size).not_to be_zero
+
+        assigned_allowed_address_pairs = allowed_address_pairs[0]["ip_address"]
 
         expect(assigned_allowed_address_pairs).to eq(@config.allowed_address_pairs)
       end
