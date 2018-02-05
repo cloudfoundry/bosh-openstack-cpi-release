@@ -21,17 +21,23 @@ describe Bosh::OpenStackCloud::Cloud do
 
   let(:loadbalancer_configurator) { instance_double(Bosh::OpenStackCloud::LoadbalancerConfigurator) }
 
-  before(:each) do
-     @registry = mock_registry
+  let(:server_groups) {instance_double(Bosh::OpenStackCloud::ServerGroups)}
 
-     allow(Bosh::OpenStackCloud::NetworkConfigurator).to receive(:port_ids).and_return(['port_id'])
-     allow(Bosh::OpenStackCloud::NetworkConfigurator).to receive(:cleanup_ports)
-     allow(server).to receive(:destroy)
-     allow(cloud.openstack).to receive(:wait_resource)
-     allow(@registry).to receive(:delete_settings)
-     allow(Bosh::OpenStackCloud::LoadbalancerConfigurator).to receive(:new).and_return(loadbalancer_configurator)
-     allow(loadbalancer_configurator).to receive(:cleanup_memberships)
-   end
+  before(:each) do
+    @registry = mock_registry
+    Bosh::Clouds::Config.configure(double('config', uuid: 'director-uuid'))
+
+    allow(Bosh::Clouds::Config).to receive(:uuid).and_return('fake-uuid')
+    allow(Bosh::OpenStackCloud::ServerGroups).to receive(:new).and_return(server_groups)
+    allow(server_groups).to receive(:delete_if_no_members)
+    allow(Bosh::OpenStackCloud::NetworkConfigurator).to receive(:port_ids).and_return(['port_id'])
+    allow(Bosh::OpenStackCloud::NetworkConfigurator).to receive(:cleanup_ports)
+    allow(server).to receive(:destroy)
+    allow(cloud.openstack).to receive(:wait_resource)
+    allow(@registry).to receive(:delete_settings)
+    allow(Bosh::OpenStackCloud::LoadbalancerConfigurator).to receive(:new).and_return(loadbalancer_configurator)
+    allow(loadbalancer_configurator).to receive(:cleanup_memberships)
+  end
 
   context 'when server retrieval fails' do
     let(:cloud) do
@@ -79,6 +85,14 @@ describe Bosh::OpenStackCloud::Cloud do
     expect(cloud.openstack).to have_received(:wait_resource).with(server, [:terminated, :deleted], :state, true).ordered
     expect(Bosh::OpenStackCloud::NetworkConfigurator).to have_received(:cleanup_ports).with(any_args, ['port_id']).ordered
     expect(@registry).to have_received(:delete_settings).with(registry_key)
+  end
+
+  it 'deletes the server group after destroying the server' do
+    cloud.delete_vm('i-foobar')
+
+    expect(server).to have_received(:destroy).ordered
+    expect(cloud.openstack).to have_received(:wait_resource).with(server, [:terminated, :deleted], :state, true).ordered
+    expect(server_groups).to have_received(:delete_if_no_members).ordered
   end
 
   context 'when server destroy fails' do

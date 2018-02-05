@@ -88,8 +88,13 @@ describe Bosh::OpenStackCloud::Cloud, 'create_vm' do
       end
   end
 
+  let(:server_groups) {instance_double(Bosh::OpenStackCloud::ServerGroups)}
+
   before(:each) do
     @registry = mock_registry
+    Bosh::Clouds::Config.configure(double('config', uuid: 'director-uuid'))
+    allow(Bosh::OpenStackCloud::ServerGroups).to receive(:new).and_return(server_groups)
+    allow(server_groups).to receive(:delete_if_no_members)
     allow(@registry).to receive(:delete_settings)
     allow(@registry).to receive(:update_settings)
     allow(cloud).to receive(:generate_unique_name).and_return(unique_name)

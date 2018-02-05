@@ -3,9 +3,9 @@ require_relative './spec_helper'
 describe Bosh::OpenStackCloud::Cloud do
   include Bosh::OpenStackCloud::Helpers
 
-  let(:logger) { Logger.new(STDERR) }
-  let(:cpi_for_cloud_props) { IntegrationConfig.new.create_cpi }
-  let(:server_groups) { Bosh::OpenStackCloud::ServerGroups.new(cpi_for_cloud_props.openstack) }
+  let(:logger) {Logger.new(STDERR)}
+  let(:cpi_for_cloud_props) {IntegrationConfig.new.create_cpi}
+  let(:server_groups) {Bosh::OpenStackCloud::ServerGroups.new(cpi_for_cloud_props.openstack)}
 
   before(:all) do
     @config = IntegrationConfig.new
@@ -28,7 +28,7 @@ describe Bosh::OpenStackCloud::Cloud do
   it 'creates a server group' do
     id = server_groups.find_or_create('1', '2')
 
-    server_group = cpi_for_cloud_props.compute.server_groups.find { |f| f.name == '1-2' }
+    server_group = cpi_for_cloud_props.compute.server_groups.find {|f| f.name == '1-2'}
     expect(server_group).to_not be_nil
     expect(server_group.id).to eq(id)
     expect(server_group.policies.length).to eq(1)
@@ -39,7 +39,7 @@ describe Bosh::OpenStackCloud::Cloud do
     id = server_groups.find_or_create('1', '2')
     other_id = server_groups.find_or_create('1', '2')
 
-    groups = cpi_for_cloud_props.compute.server_groups.select { |f| f.name == '1-2' }
+    groups = cpi_for_cloud_props.compute.server_groups.select {|f| f.name == '1-2'}
     expect(id).to eq(other_id)
     expect(groups.length).to eq(1)
   end
@@ -53,7 +53,17 @@ describe Bosh::OpenStackCloud::Cloud do
     threads.each {|t| t.join}
     server_groups = cpi_for_cloud_props.compute.server_groups
     expect(server_groups.length).to eq(1)
-    server_group = cpi_for_cloud_props.compute.server_groups.find { |f| f.name == '1-2' }
+    server_group = cpi_for_cloud_props.compute.server_groups.find {|f| f.name == '1-2'}
     expect(server_group).to_not be_nil
+  end
+
+  it 'deletes a server group without any members' do
+    server_groups.find_or_create('1', '2')
+    server_group = cpi_for_cloud_props.compute.server_groups.find {|f| f.name == '1-2'}
+    expect(server_group).to_not be_nil
+
+    server_groups.delete_if_no_members('1-2')
+    server_group = cpi_for_cloud_props.compute.server_groups.find {|f| f.name == '1-2'}
+    expect(server_group).to be_nil
   end
 end

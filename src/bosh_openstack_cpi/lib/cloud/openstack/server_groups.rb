@@ -14,9 +14,9 @@ module Bosh::OpenStackCloud
       @openstack.with_openstack do
         lock_by_file do
           begin
-            groups = @openstack.compute.server_groups.all
-            if found = groups.find {|group| group.name == name && group.policies.include?(POLICY)}
-              found.id
+            server_group = find(name)
+            if server_group
+              server_group.id
             else
               result = @openstack.compute.server_groups.create(name, POLICY)
               result.id
@@ -38,6 +38,17 @@ module Bosh::OpenStackCloud
       end
     end
 
+    def delete_if_no_members(name)
+      @openstack.with_openstack do
+        lock_by_file do
+          server_group = find(name)
+          if server_group&.members&.empty?
+            @openstack.compute.delete_server_group(server_group.id)
+          end
+        end
+      end
+    end
+
     private
 
     def lock_by_file
@@ -48,7 +59,12 @@ module Bosh::OpenStackCloud
     end
 
     def name(uuid, bosh_group)
-      "#{uuid}-#{bosh_group}"
+      "#{uuid}-#{bosh_group}" # director_uuid-director_name-deployment_name-instance_group_name
+    end
+
+    def find(name)
+      groups = @openstack.compute.server_groups.all
+      groups.find {|group| group.name == name && group.policies.include?(POLICY)}
     end
   end
 end
