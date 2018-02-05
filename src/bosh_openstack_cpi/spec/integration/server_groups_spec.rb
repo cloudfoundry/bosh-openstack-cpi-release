@@ -62,7 +62,7 @@ describe Bosh::OpenStackCloud::Cloud do
     server_group = cpi_for_cloud_props.compute.server_groups.find {|f| f.name == '1-2'}
     expect(server_group).to_not be_nil
 
-    server_groups.delete_if_no_members('1-2')
+    server_groups.delete_if_no_members('1', '2')
     server_group = cpi_for_cloud_props.compute.server_groups.find {|f| f.name == '1-2'}
     expect(server_group).to be_nil
   end

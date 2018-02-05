@@ -12,7 +12,7 @@ module Bosh::OpenStackCloud
     def find_or_create(uuid, bosh_group)
       name = name(uuid, bosh_group)
       @openstack.with_openstack do
-        lock_by_file do
+        lock_by_file(bosh_group) do
           begin
             server_group = find(name)
             if server_group
@@ -38,10 +38,10 @@ module Bosh::OpenStackCloud
       end
     end
 
-    def delete_if_no_members(name)
+    def delete_if_no_members(uuid, bosh_group)
       @openstack.with_openstack do
-        lock_by_file do
-          server_group = find(name)
+        lock_by_file(bosh_group) do
+          server_group = find(name(uuid, bosh_group))
           if server_group&.members&.empty?
             @openstack.compute.delete_server_group(server_group.id)
           end
@@ -51,8 +51,10 @@ module Bosh::OpenStackCloud
 
     private
 
-    def lock_by_file
-      File.open("#{Dir.tmpdir}/openstack-server-groups.lock", 'w') do |f|
+    def lock_by_file(bosh_group)
+      lock_folder = File.join(Dir.tmpdir, 'openstack-server-groups')
+      FileUtils.mkdir_p(lock_folder)
+      File.open(File.join(lock_folder, "#{bosh_group}.lock"), 'w') do |f|
         f.flock(File::LOCK_EX)
         yield
       end
