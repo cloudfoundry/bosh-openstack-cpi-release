@@ -137,6 +137,7 @@ resource "openstack_networking_floatingip_v2" "lifecycle_floating_ip" {
 resource "openstack_lb_loadbalancer_v2" "lifecycle_loadbalancer" {
   vip_subnet_id = "${openstack_networking_subnet_v2.lifecycle_subnet.id}"
   name = "Lifecycle Load Balancer"
+  loadbalancer_provider = "haproxy"
   count = "${var.use_lbaas == "true" ? 1 : 0}"
 }
 
