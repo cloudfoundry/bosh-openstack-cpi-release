@@ -23,6 +23,8 @@ bosh-go --version
 echo "cleaning up director... (especially orphan disks)"
 bosh-go -n clean-up --all
 
+export BOSH_LOG_LEVEL=debug
+
 echo "deleting BOSH..."
 bosh-go delete-env \
     --state bosh-state.json \
