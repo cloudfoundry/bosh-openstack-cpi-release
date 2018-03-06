@@ -4,7 +4,6 @@
 DELETE /v2.1/<tenant_id>/os-server-groups/<resource_id>
 DELETE /v2.1/<tenant_id>/servers/<resource_id>
 DELETE /v2.1/<tenant_id>/servers/<resource_id>/os-volume_attachments/<resource_id>
-GET /
 GET /v2.1/<tenant_id>//servers/<resource_id>/os-volume_attachments
 GET /v2.1/<tenant_id>/flavors/detail
 GET /v2.1/<tenant_id>/os-keypairs
@@ -26,6 +25,9 @@ POST /v2.1/<tenant_id>/servers/<resource_id>/os-volume_attachments body: {"volum
 PUT /v2.1/<tenant_id>/servers/<resource_id> body: {"server":{"name":"<name>"}}
 ```
 ### All calls for API endpoint 'compute_legacy (nova_legacy)'
+```
+GET /
+```
 ### All calls for API endpoint 'identity (keystone)'
 ```
 POST /v3/auth/tokens body: {"auth":{"identity":{"methods":["password"],"password":{"user":{"password":"<password>","domain":{"name":"<name>"},"name":"<name>"}}},"scope":{"project":{"name":"<name>","domain":{"name":"<name>"}}}}}
@@ -61,6 +63,8 @@ POST /v2.0/ports body: {"port":{"network_id":"<network_id>","fixed_ips":[{"ip_ad
 PUT /v2.0/floatingips/<resource_id> body: {"floatingip":{"port_id":"<resource_id>"}}
 PUT /v2.0/floatingips/<resource_id> body: {"floatingip":{"port_id":null}}
 ```
+### All calls for API endpoint 'object-store (Objectstore)'
+### All calls for API endpoint 'object-store-test (Objectstore-Test)'
 ### All calls for API endpoint 'orchestration (heat)'
 ### All calls for API endpoint 'volume (cinder)'
 ### All calls for API endpoint 'volumev2 (cinderv2)'
