@@ -7,25 +7,25 @@ resource_types:
 
 resources:
 - name: pull-request
-  tags: [suse-cloud7]
+  tags: ((worker_tags))
   type: pull-request
   source:
     repo: cloudfoundry-incubator/bosh-openstack-cpi-release
-    access_token: {{github-access-token}}
+    access_token: ((github-access-token))
 
 jobs:
 - name: unit-test
   public: true
   plan:
   - get: pull-request
-    tags: [suse-cloud7]
+    tags: ((worker_tags))
     trigger: true
     version: every
   - put: pull-request
-    tags: [suse-cloud7]
+    tags: ((worker_tags))
     params: {path: pull-request, status: pending}
   - task: test
-    tags: [suse-cloud7]
+    tags: ((worker_tags))
     config:
       platform: linux
       image_resource:
@@ -41,9 +41,9 @@ jobs:
         - "cd pull-request/src/bosh_openstack_cpi && bundle install && bundle exec rspec spec/unit/*"
     on_failure:
       put: pull-request
-      tags: [suse-cloud7]
+      tags: ((worker_tags))
       params: {path: pull-request, status: failure}
     on_success:
       put: pull-request
-      tags: [suse-cloud7]
+      tags: ((worker_tags))
       params: {path: pull-request, status: success}
