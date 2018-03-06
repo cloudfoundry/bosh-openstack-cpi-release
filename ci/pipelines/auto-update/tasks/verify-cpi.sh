@@ -44,7 +44,7 @@ cloud_config:
 EOF
 
 echo 'Installing validator dependencies...'
-BUNDLE_CACHE_PATH="vendor/package" bundle install --local --deployment --path .bundle
+bundle install
 
 useradd -m vali
 
