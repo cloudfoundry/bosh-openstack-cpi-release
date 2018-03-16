@@ -958,7 +958,7 @@ module Bosh::OpenStackCloud
     # @param [Fog::Compute::OpenStack::Server] server OpenStack server
     # @return [String] First available letter
     def first_device_name_letter(server)
-      letter = "#{FIRST_DEVICE_NAME_LETTER}"
+      letter = FIRST_DEVICE_NAME_LETTER.dup
       return letter if server.flavor.nil?
       return letter unless server.flavor.has_key?('id')
       flavor = @openstack.with_openstack { @openstack.compute.flavors.find { |f| f.id == server.flavor['id'] } }
