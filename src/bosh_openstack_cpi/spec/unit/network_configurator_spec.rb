@@ -387,7 +387,7 @@ describe Bosh::OpenStackCloud::NetworkConfigurator do
         allow(port_a).to receive(:destroy)
         allow(port_b).to receive(:destroy)
 
-        expect(Bosh::OpenStackCloud::NetworkConfigurator.cleanup_ports(openstack, ['port_a_id', 'port_b_id']))
+        expect(Bosh::OpenStackCloud::NetworkConfigurator.cleanup_ports(openstack, %w[port_a_id port_b_id]))
       end
 
       it 'should not fail on already deleted ports' do
@@ -398,7 +398,7 @@ describe Bosh::OpenStackCloud::NetworkConfigurator do
         allow(ports).to receive(:get).with('port_b_id').and_return(nil)
 
         expect {
-          Bosh::OpenStackCloud::NetworkConfigurator.cleanup_ports(openstack, ['port_a_id', 'port_b_id'])
+          Bosh::OpenStackCloud::NetworkConfigurator.cleanup_ports(openstack, %w[port_a_id port_b_id])
         }.to_not raise_error
       end
     end
@@ -562,7 +562,7 @@ describe Bosh::OpenStackCloud::NetworkConfigurator do
         it 'returns a list of matching subnets' do
           subnet_ids = Bosh::OpenStackCloud::NetworkConfigurator.matching_gateway_subnet_ids_for_ip(network_spec, openstack, '10.0.0.4')
 
-          expect(subnet_ids).to eq(['subnet_id', 'second_subnet_id'])
+          expect(subnet_ids).to eq(%w[subnet_id second_subnet_id])
         end
       end
     end

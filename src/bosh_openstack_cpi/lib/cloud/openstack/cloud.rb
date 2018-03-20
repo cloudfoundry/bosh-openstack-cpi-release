@@ -4,7 +4,7 @@ module Bosh::OpenStackCloud
   class Cloud < Bosh::Cloud
     include Helpers
 
-    OPTION_KEYS = ['openstack', 'registry', 'agent', 'use_dhcp'].freeze
+    OPTION_KEYS = %w[openstack registry agent use_dhcp].freeze
 
     BOSH_APP_DIR = '/var/vcap/bosh'.freeze
     FIRST_DEVICE_NAME_LETTER = 'b'.freeze
@@ -396,7 +396,7 @@ module Bosh::OpenStackCloud
         devices = []
         volume.attachments.each { |attachment| devices << attachment['device'] unless attachment.empty? }
 
-        description = ['deployment', 'job', 'index'].collect { |key| metadata[key] }
+        description = %w[deployment job index].collect { |key| metadata[key] }
         description << devices.first.split('/').last unless devices.empty?
         name = "snapshot-#{generate_unique_name}"
         snapshot_params = {
@@ -517,7 +517,7 @@ module Bosh::OpenStackCloud
     # @param [Hash] requirements requested cpu, ram, and ephemeral_disk_size
     # @return [Hash] OpenStack specific cloud_properties describing instance (e.g. instance_type)
     def calculate_vm_cloud_properties(requirements)
-      required_keys = ['cpu', 'ram', 'ephemeral_disk_size']
+      required_keys = %w[cpu ram ephemeral_disk_size]
       missing_keys = required_keys.reject { |key| requirements[key] }
       unless missing_keys.empty?
         missing_keys.map! { |k| "'#{k}'" }

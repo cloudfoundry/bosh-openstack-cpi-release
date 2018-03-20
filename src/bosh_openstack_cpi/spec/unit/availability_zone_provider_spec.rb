@@ -49,7 +49,7 @@ describe Bosh::OpenStackCloud::AvailabilityZoneProvider do
         end
 
         it "should return the disk's availability zone" do
-          selected_availability_zone = az_provider.select(['foo_id', 'bar_id'], 'west_az')
+          selected_availability_zone = az_provider.select(%w[foo_id bar_id], 'west_az')
           expect(selected_availability_zone).to eq('west_az')
         end
       end
@@ -61,7 +61,7 @@ describe Bosh::OpenStackCloud::AvailabilityZoneProvider do
 
         it 'should raise an error' do
           expect {
-            az_provider.select(['foo_id', 'bar_id'], nil)
+            az_provider.select(%w[foo_id bar_id], nil)
           }.to raise_error(Bosh::Clouds::CloudError)
         end
       end
@@ -72,7 +72,7 @@ describe Bosh::OpenStackCloud::AvailabilityZoneProvider do
         end
 
         it 'should select the common disk AZ' do
-          selected_availability_zone = az_provider.select(['foo_id', 'bar_id'], nil)
+          selected_availability_zone = az_provider.select(%w[foo_id bar_id], nil)
           expect(selected_availability_zone).to eq('west_az')
         end
       end
@@ -84,7 +84,7 @@ describe Bosh::OpenStackCloud::AvailabilityZoneProvider do
 
         it 'should raise an error' do
           expect {
-            az_provider.select(['foo_id', 'bar_id'], 'west_az')
+            az_provider.select(%w[foo_id bar_id], 'west_az')
           }.to raise_error(Bosh::Clouds::CloudError)
         end
       end
@@ -96,7 +96,7 @@ describe Bosh::OpenStackCloud::AvailabilityZoneProvider do
 
         it 'should raise an error' do
           expect {
-            az_provider.select(['foo_id', 'bar_id'], 'south_az')
+            az_provider.select(%w[foo_id bar_id], 'south_az')
           }.to raise_error(Bosh::Clouds::CloudError)
         end
       end
@@ -108,7 +108,7 @@ describe Bosh::OpenStackCloud::AvailabilityZoneProvider do
 
         it 'should raise an error' do
           expect {
-            az_provider.select(['foo_id', 'bar_id'], 'south_az')
+            az_provider.select(%w[foo_id bar_id], 'south_az')
           }.to raise_error(Bosh::Clouds::CloudError)
         end
       end
@@ -128,7 +128,7 @@ describe Bosh::OpenStackCloud::AvailabilityZoneProvider do
     let(:ignore_server_az) { true }
 
     it 'should return the resource pool availabilty zone' do
-      selected_availability_zone = az_provider.select(['foo_id', 'bar_id'], 'north_id')
+      selected_availability_zone = az_provider.select(%w[foo_id bar_id], 'north_id')
       expect(selected_availability_zone).to eq('north_id')
     end
   end

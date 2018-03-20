@@ -129,8 +129,8 @@ describe Bosh::OpenStackCloud::Openstack do
     describe (fog[:name]).to_s do
       let(:retry_options_overwrites) {
         {
-        sleep: 0,
-      } }
+          sleep: 0,
+        } }
 
       context 'when the service returns Unauthorized' do
         it 'raises a CloudError exception if cannot connect to the service API 5 times' do
@@ -409,7 +409,7 @@ describe Bosh::OpenStackCloud::Openstack do
 
       it 'retries until the max number of retries is reached' do
         allow(subject).to receive(:servers).exactly(11).times
-          .and_raise(Excon::Error::ServiceUnavailable.new('', '', response))
+                                           .and_raise(Excon::Error::ServiceUnavailable.new('', '', response))
         expect(subject).to receive(:sleep).with(3).exactly(10).times
 
         expect {
@@ -453,7 +453,7 @@ describe Bosh::OpenStackCloud::Openstack do
 
       it 'retries until the max number of retries is reached' do
         allow(subject).to receive(:servers).exactly(11).times
-          .and_raise(Excon::Error::RequestEntityTooLarge.new('', '', response))
+                                           .and_raise(Excon::Error::RequestEntityTooLarge.new('', '', response))
         expect_any_instance_of(Kernel).to receive(:sleep).with(3).exactly(10).times
 
         expect {
@@ -521,7 +521,7 @@ describe Bosh::OpenStackCloud::Openstack do
         end
 
         it 'enriches the BOSH error message with the whole response body' do
-          expected_response_body = JSON.dump({ 'notOverLimit' => 'arbitrary content' })
+          expected_response_body = JSON.dump('notOverLimit' => 'arbitrary content')
           expected_message = "OpenStack API Request Entity Too Large error: #{expected_response_body}\nCheck task debug log for details."
 
           expect {
@@ -730,19 +730,19 @@ describe Bosh::OpenStackCloud::Openstack do
     end
 
     it 'should return nil if response is no key is found' do
-      response = Excon::Response.new(body: JSON.dump({ 'foo' => 'bar' }))
+      response = Excon::Response.new(body: JSON.dump('foo' => 'bar'))
 
       expect(subject.parse_openstack_response(response, 'key')).to be_nil
     end
 
     it 'should return the contents if key is found' do
-      response = Excon::Response.new(body: JSON.dump({ 'key' => 'foo' }))
+      response = Excon::Response.new(body: JSON.dump('key' => 'foo'))
 
       expect(subject.parse_openstack_response(response, 'key')).to eql('foo')
     end
 
     it 'should return the contents of the first key found' do
-      response = Excon::Response.new(body: JSON.dump({ 'key1' => 'foo', 'key2' => 'bar' }))
+      response = Excon::Response.new(body: JSON.dump('key1' => 'foo', 'key2' => 'bar'))
 
       expect(subject.parse_openstack_response(response, 'key2', 'key1')).to eql('bar')
     end
