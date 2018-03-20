@@ -1,6 +1,6 @@
 require 'spec_helper'
 require 'tempfile'
-require 'english'
+require 'English'
 
 describe 'the openstack_cpi executable' do
   describe '#set_vm_metadata' do
