@@ -17,7 +17,7 @@ def remove_server_groups(openstack)
 end
 
 def upload_stemcell(cpi, stemcell_path)
-  stemcell_manifest = Psych.load_file(File.join(stemcell_path, "stemcell.MF"))
-  stemcell_id = cpi.create_stemcell(File.join(stemcell_path, "image"), stemcell_manifest["cloud_properties"])
+  stemcell_manifest = Psych.load_file(File.join(stemcell_path, 'stemcell.MF'))
+  stemcell_id = cpi.create_stemcell(File.join(stemcell_path, 'image'), stemcell_manifest['cloud_properties'])
   [stemcell_id, stemcell_manifest]
 end

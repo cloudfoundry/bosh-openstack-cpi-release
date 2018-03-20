@@ -1,5 +1,4 @@
 module Bosh::OpenStackCloud
-
   module Stemcell
     include Helpers
 
@@ -14,7 +13,7 @@ module Bosh::OpenStackCloud
     def self.create(logger, openstack, id)
       regex = / light$/
 
-      if id =~ regex
+      if id.match?(regex)
         LightStemcell.new(logger, openstack, id.gsub(regex, ''))
       else
         HeavyStemcell.new(logger, openstack, id)
@@ -23,9 +22,7 @@ module Bosh::OpenStackCloud
 
     def validate_existence
       image = @openstack.with_openstack { @openstack.image.images.find_by_id(image_id) }
-      if image.nil?
-        cloud_error("Image `#{id}' not found")
-      end
+      cloud_error("Image `#{id}' not found") if image.nil?
       @logger.debug("Using image: `#{id}'")
     end
   end

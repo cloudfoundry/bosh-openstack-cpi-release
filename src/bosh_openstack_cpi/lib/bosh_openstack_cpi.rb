@@ -1,1 +1,1 @@
-require "cloud/openstack"
+require 'cloud/openstack'

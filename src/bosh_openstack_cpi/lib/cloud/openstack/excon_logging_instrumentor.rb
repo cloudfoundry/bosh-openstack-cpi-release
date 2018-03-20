@@ -1,15 +1,12 @@
 module Bosh::OpenStackCloud
   class ExconLoggingInstrumentor
-
-    REDACTED = '<redacted>'
+    REDACTED = '<redacted>'.freeze
 
     def self.instrument(name, params = {})
       redacted_params = redact(params)
 
       Bosh::Clouds::Config.logger.debug("#{name} #{redacted_params}")
-      if block_given?
-        yield
-      end
+      yield if block_given?
     end
 
     def self.redact(params)
@@ -24,8 +21,8 @@ module Bosh::OpenStackCloud
     private
 
     def self.redact_body(params, json_path)
-      return unless params.has_key?(:body) && params[:body].is_a?(String)
-      return unless params.has_key?(:headers) && params[:headers]['Content-Type'] == 'application/json'
+      return unless params.key?(:body) && params[:body].is_a?(String)
+      return unless params.key?(:headers) && params[:headers]['Content-Type'] == 'application/json'
 
       begin
         json_content = JSON.parse(params[:body])
@@ -37,7 +34,7 @@ module Bosh::OpenStackCloud
     end
 
     def self.redact_headers(params, property)
-      return unless params.has_key?(:headers)
+      return unless params.key?(:headers)
 
       headers = params[:headers] = params[:headers].dup
 
@@ -45,7 +42,7 @@ module Bosh::OpenStackCloud
     end
 
     def self.fetch_property
-      -> (hash, property) { hash.fetch(property, {})}
+      ->(hash, property) { hash.fetch(property, {}) }
     end
   end
 end

@@ -76,4 +76,3 @@ describe Bosh::OpenStackCloud::Cloud do
     end
   end
 end
-

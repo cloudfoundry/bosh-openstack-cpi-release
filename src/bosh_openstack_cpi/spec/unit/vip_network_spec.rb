@@ -2,7 +2,6 @@ require 'spec_helper'
 
 describe Bosh::OpenStackCloud::VipNetwork do
   describe 'configure' do
-
     subject do
       described_class.new('network_b', network_spec)
     end
@@ -22,7 +21,6 @@ describe Bosh::OpenStackCloud::VipNetwork do
     end
 
     context 'floating IP is provided' do
-
       let(:openstack) { double('openstack') }
       before { allow(openstack).to receive(:with_openstack) { |&block| block.call } }
 
@@ -35,6 +33,5 @@ describe Bosh::OpenStackCloud::VipNetwork do
         expect(Bosh::OpenStackCloud::FloatingIp).to have_received(:reassociate).with(openstack, '10.0.0.1', server, 'network_id')
       end
     end
-
   end
 end

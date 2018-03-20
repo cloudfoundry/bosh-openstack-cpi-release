@@ -4,7 +4,7 @@ require 'fog/compute/openstack/models/server'
 describe Bosh::OpenStackCloud::LoadbalancerConfigurator do
   shared_examples 'changing load balancer resource' do
     context 'when load balancer is in status PENDING_UPDATE' do
-      let(:body) { { 'NeutronError' => {'message' => 'Invalid state PENDING_UPDATE of loadbalancer resource 1234-abcd'}} }
+      let(:body) { { 'NeutronError' => { 'message' => 'Invalid state PENDING_UPDATE of loadbalancer resource 1234-abcd' } } }
       let(:response) { instance_double('response', body: JSON.dump(body)) }
       let(:state_timeout) { 10 }
 
@@ -74,24 +74,24 @@ describe Bosh::OpenStackCloud::LoadbalancerConfigurator do
   subject(:subject) { Bosh::OpenStackCloud::LoadbalancerConfigurator.new(openstack, logger) }
   let(:logger) { instance_double(Logger, debug: nil) }
   let(:network_spec) { {} }
-  let(:options) { { 'auth_url' => ''} }
+  let(:options) { { 'auth_url' => '' } }
   let(:openstack) { Bosh::OpenStackCloud::Openstack.new(options) }
   let(:network) { double('network', list_lbaas_pools: loadbalancer_pools_response, get_lbaas_listener: lb_listener, get_lbaas_pool: lb_pool) }
-  let(:lb_listener) { double('lb_listener', body: {'listener' => { 'loadbalancers' => [{'id' => 'loadbalancer-id'}]}}) }
-  let(:lb_pool) { double('lb_pool', body: {'pool' => { 'loadbalancers' => [{'id' => 'loadbalancer-id'}]}}) }
-  let(:loadbalancer_pools_response) { double('response', :body => body) }
+  let(:lb_listener) { double('lb_listener', body: { 'listener' => { 'loadbalancers' => [{ 'id' => 'loadbalancer-id' }] } }) }
+  let(:lb_pool) { double('lb_pool', body: { 'pool' => { 'loadbalancers' => [{ 'id' => 'loadbalancer-id' }] } }) }
+  let(:loadbalancer_pools_response) { double('response', body: body) }
   let(:body) {
     {
       'pools' => [
-        { 'name' => 'my-lb-pool', 'id' => 'pool-id' }
-      ]
+        { 'name' => 'my-lb-pool', 'id' => 'pool-id' },
+      ],
     }
   }
   let(:server) { instance_double(Fog::Compute::OpenStack::Server, id: 1234) }
   let(:pool) {
     {
       'name' => 'my-lb-pool',
-      'port' => 8080
+      'port' => 8080,
     }
   }
 
@@ -102,18 +102,20 @@ describe Bosh::OpenStackCloud::LoadbalancerConfigurator do
 
   describe '#create_pool_memberships' do
     context 'when a list of loadbalancer_pools is given' do
+      let(:load_balancer_pools) {
+        [
+          { 'name' => 'my-pool-1', 'port' => 443 },
+          { 'name' => 'my-pool-2', 'port' => 8080 },
+        ]
+      }
 
-      let(:load_balancer_pools) { [
-        { 'name' => 'my-pool-1', 'port' => 443 },
-        { 'name' => 'my-pool-2', 'port' => 8080 }
-      ] }
-
-      let(:network_spec) { {
+      let(:network_spec) {
+        {
           'network_a' => manual_network_spec(net_id: 'sub-net-id', ip: '10.10.10.10'),
-          'vip_network' => vip_network_spec
-      } }
+          'vip_network' => vip_network_spec,
+        } }
 
-      let(:lb_member) { double('lb_member', body: {'member' => {'id' => 'membership-id'}}) }
+      let(:lb_member) { double('lb_member', body: { 'member' => { 'id' => 'membership-id' } }) }
 
       it 'creates the memberships and returns the corresponding server_tags' do
         allow(Bosh::OpenStackCloud::NetworkConfigurator).to receive(:matching_gateway_subnet_ids_for_ip).and_return(['sub-net-id'])
@@ -121,10 +123,10 @@ describe Bosh::OpenStackCloud::LoadbalancerConfigurator do
 
         server_tags = subject.create_pool_memberships(server, network_spec, load_balancer_pools)
 
-        expect(server_tags).to eq({
+        expect(server_tags).to eq(
           'lbaas_pool_1' => 'pool-id/membership-id',
-          'lbaas_pool_2' => 'pool-id/membership-id'
-        })
+          'lbaas_pool_2' => 'pool-id/membership-id',
+        )
       end
     end
 
@@ -141,7 +143,7 @@ describe Bosh::OpenStackCloud::LoadbalancerConfigurator do
   end
 
   describe '#create_membership' do
-    let(:lb_member) { double('lb_member', body: {'member' => {'id' => 'member-id'}}) }
+    let(:lb_member) { double('lb_member', body: { 'member' => { 'id' => 'member-id' } }) }
 
     before(:each) do
       allow(logger).to receive(:info)
@@ -163,7 +165,7 @@ describe Bosh::OpenStackCloud::LoadbalancerConfigurator do
     it 'runs into time out while waiting for load balancer to be active before creating pool member' do
       loadbalancer = instance_double(Bosh::OpenStackCloud::LoadbalancerConfigurator::LoadBalancerResource, 'loadbalancer', provisioning_status: 'PENDING_UPDATE')
       allow(Bosh::OpenStackCloud::LoadbalancerConfigurator::LoadBalancerResource).to receive(:new).and_return(loadbalancer)
-      allow(openstack).to receive(:wait_resource).with(loadbalancer, :active, :provisioning_status).and_raise(Bosh::Clouds::CloudError.new("Timed out waiting for load balancer to be ACTIVE"))
+      allow(openstack).to receive(:wait_resource).with(loadbalancer, :active, :provisioning_status).and_raise(Bosh::Clouds::CloudError.new('Timed out waiting for load balancer to be ACTIVE'))
 
       expect {
         subject.create_membership('pool-id', '10.0.0.1', '8080', 'subnet-id')
@@ -180,7 +182,7 @@ describe Bosh::OpenStackCloud::LoadbalancerConfigurator do
       end
 
       it 'raises an error' do
-        expect{
+        expect {
           subject.create_membership('pool-id', '10.0.0.1', '8080', 'subnet-id')
         }.to raise_error(Bosh::Clouds::VMCreationFailed, 'some-error-message')
 
@@ -194,7 +196,7 @@ describe Bosh::OpenStackCloud::LoadbalancerConfigurator do
       end
 
       it 'raises an error' do
-        expect{
+        expect {
           subject.create_membership('pool-id', '10.0.0.1', '8080', 'subnet-id')
         }.to raise_error(Bosh::Clouds::VMCreationFailed, 'some-error-message')
         expect(network).to_not have_received(:create_lbaas_pool_member)
@@ -202,18 +204,19 @@ describe Bosh::OpenStackCloud::LoadbalancerConfigurator do
     end
 
     context 'when pool membership cannot be created' do
-      let(:members) { double('lb_member', body: {
+      let(:members) {
+        double('lb_member', body: {
           'members' => [
-              { 'id' => 'member-id-1', 'subnet_id' => 'subnet-id', 'address' => '10.0.0.2', 'protocol_port' => '8080' },
-              { 'id' => 'member-id-2', 'subnet_id' => 'subnet-id', 'address' => '10.0.0.1', 'protocol_port' => '8080' }
-          ]
-      }) }
+            { 'id' => 'member-id-1', 'subnet_id' => 'subnet-id', 'address' => '10.0.0.2', 'protocol_port' => '8080' },
+            { 'id' => 'member-id-2', 'subnet_id' => 'subnet-id', 'address' => '10.0.0.1', 'protocol_port' => '8080' },
+          ],
+        }) }
 
-      let(:body) { { } }
+      let(:body) { {} }
       let(:response) { instance_double('response', body: JSON.dump(body)) }
 
       before(:each) do
-        allow(network).to receive(:create_lbaas_pool_member).and_raise(Excon::Error::Conflict.new('BAM!','',response))
+        allow(network).to receive(:create_lbaas_pool_member).and_raise(Excon::Error::Conflict.new('BAM!', '', response))
         allow(network).to receive(:list_lbaas_pool_members).with('pool-id').and_return(members)
       end
 
@@ -240,33 +243,32 @@ describe Bosh::OpenStackCloud::LoadbalancerConfigurator do
       end
 
       it_behaves_like('changing load balancer resource') do
-        let(:success_response) { double('lb_member', body: {'member' => {'id' => 'member-id'}}) }
+        let(:success_response) { double('lb_member', body: { 'member' => { 'id' => 'member-id' } }) }
         let(:openstack_method_name) { :create_lbaas_pool_member }
         let(:action) {
-          lambda { subject.create_membership('pool-id', 'wrong-ip', '8080', 'subnet-id') }
+          -> { subject.create_membership('pool-id', 'wrong-ip', '8080', 'subnet-id') }
         }
       end
     end
   end
 
   describe '#add_vm_to_pool' do
-
     context 'when pool input invalid' do
       it 'raises an error' do
-        expect{
-          subject.add_vm_to_pool(server, network_spec, {'name' => 'foo'})
+        expect {
+          subject.add_vm_to_pool(server, network_spec, 'name' => 'foo')
         }.to raise_error(Bosh::Clouds::VMCreationFailed, "VM with id '1234' cannot be attached to load balancer pool 'foo'. Reason: Load balancer pool 'foo' has no port definition")
 
-        expect{
-          subject.add_vm_to_pool(server, network_spec, {'port' => 8080})
+        expect {
+          subject.add_vm_to_pool(server, network_spec, 'port' => 8080)
         }.to raise_error(Bosh::Clouds::VMCreationFailed, "VM with id '1234' cannot be attached to load balancer pool ''. Reason: Load balancer pool defined without a name")
       end
     end
 
-    context 'when create_membership raises an error'  do
+    context 'when create_membership raises an error' do
       let(:network_spec) {
         {
-            'network_a' => manual_network_spec(net_id: 'sub-net-id', ip: '10.10.10.10')
+          'network_a' => manual_network_spec(net_id: 'sub-net-id', ip: '10.10.10.10'),
         }
       }
 
@@ -276,7 +278,7 @@ describe Bosh::OpenStackCloud::LoadbalancerConfigurator do
       end
 
       it 'raises an VMCreationFailed error' do
-        expect{
+        expect {
           subject.add_vm_to_pool(server, network_spec, pool)
         }.to raise_error(Bosh::Clouds::VMCreationFailed, "VM with id '1234' cannot be attached to load balancer pool 'my-lb-pool'. Reason: some-error-message")
       end
@@ -298,8 +300,8 @@ describe Bosh::OpenStackCloud::LoadbalancerConfigurator do
           {
             'pools' => [
               { 'name' => 'my-lb-pool' },
-              { 'name' => 'my-lb-pool' }
-            ]
+              { 'name' => 'my-lb-pool' },
+            ],
           }
         }
         it 'raises an error' do
@@ -315,12 +317,12 @@ describe Bosh::OpenStackCloud::LoadbalancerConfigurator do
         allow(network).to receive(:create_lbaas_pool_member).and_return(lb_member)
       end
 
-      let(:lb_member) { double('lb_member', body: {'member' => {'id' => 'id'}}) }
+      let(:lb_member) { double('lb_member', body: { 'member' => { 'id' => 'id' } }) }
 
       let(:network_spec) {
         {
           'network_a' => manual_network_spec(net_id: 'sub-net-id', ip: '10.10.10.10'),
-          'vip_network' => vip_network_spec
+          'vip_network' => vip_network_spec,
         }
       }
 
@@ -329,7 +331,7 @@ describe Bosh::OpenStackCloud::LoadbalancerConfigurator do
 
         loadbalancer_membership = subject.add_vm_to_pool(server, network_spec, pool)
 
-        expect(network).to have_received(:create_lbaas_pool_member).with('pool-id', '10.10.10.10', 8080, { subnet_id: 'sub-net-id' })
+        expect(network).to have_received(:create_lbaas_pool_member).with('pool-id', '10.10.10.10', 8080, subnet_id: 'sub-net-id')
         expect(loadbalancer_membership.membership_id).to eq('id')
         expect(loadbalancer_membership.port).to eq(8080)
         expect(loadbalancer_membership.name).to eq('my-lb-pool')
@@ -352,13 +354,13 @@ describe Bosh::OpenStackCloud::LoadbalancerConfigurator do
     context 'when multiple subnet ids match' do
       let(:network_spec) {
         {
-          'network_a' => manual_network_spec(net_id: 'net-id', ip: '10.10.10.10')
+          'network_a' => manual_network_spec(net_id: 'net-id', ip: '10.10.10.10'),
         }
       }
 
       it 'errors' do
         allow(Bosh::OpenStackCloud::NetworkConfigurator).to receive(:matching_gateway_subnet_ids_for_ip).and_return(['subnet-id', 'other-subnet-id'])
-        expect{
+        expect {
           subject.add_vm_to_pool(server, network_spec, pool)
         }.to raise_error(Bosh::Clouds::VMCreationFailed, /Reason: In network 'net-id' more than one subnet CIDRs match the IP '10\.10\.10\.10'/)
       end
@@ -367,13 +369,13 @@ describe Bosh::OpenStackCloud::LoadbalancerConfigurator do
     context 'when no subnet id match or no subnet exists' do
       let(:network_spec) {
         {
-          'network_a' => manual_network_spec(net_id: 'net-id', ip: '10.10.10.10')
+          'network_a' => manual_network_spec(net_id: 'net-id', ip: '10.10.10.10'),
         }
       }
 
       it 'errors' do
         allow(Bosh::OpenStackCloud::NetworkConfigurator).to receive(:matching_gateway_subnet_ids_for_ip).and_return([])
-        expect{
+        expect {
           subject.add_vm_to_pool(server, network_spec, pool)
         }.to raise_error(Bosh::Clouds::VMCreationFailed, /Network 'net-id' does not contain any subnet to match the IP '10\.10\.10\.10'/)
       end
@@ -403,7 +405,7 @@ describe Bosh::OpenStackCloud::LoadbalancerConfigurator do
     it 'runs into time out while waiting for load balancer to be active before deleting pool member' do
       loadbalancer = instance_double(Bosh::OpenStackCloud::LoadbalancerConfigurator::LoadBalancerResource, 'loadbalancer', provisioning_status: 'PENDING_UPDATE')
       allow(Bosh::OpenStackCloud::LoadbalancerConfigurator::LoadBalancerResource).to receive(:new).and_return(loadbalancer)
-      allow(openstack).to receive(:wait_resource).with(loadbalancer, :active, :provisioning_status).and_raise(Bosh::Clouds::CloudError.new("Timed out waiting for load balancer to be ACTIVE"))
+      allow(openstack).to receive(:wait_resource).with(loadbalancer, :active, :provisioning_status).and_raise(Bosh::Clouds::CloudError.new('Timed out waiting for load balancer to be ACTIVE'))
 
       expect {
         subject.remove_vm_from_pool(pool_id, membership_id)
@@ -421,7 +423,7 @@ describe Bosh::OpenStackCloud::LoadbalancerConfigurator do
       end
 
       it 'raises an error' do
-        expect{
+        expect {
           subject.remove_vm_from_pool(pool_id, membership_id)
         }.to raise_error(Bosh::Clouds::CloudError, /Deleting load balancer pool membership with pool_id 'pool-id' and membership_id 'membership-id' failed/)
 
@@ -435,7 +437,7 @@ describe Bosh::OpenStackCloud::LoadbalancerConfigurator do
       end
 
       it 'does not raise' do
-        expect{
+        expect {
           subject.remove_vm_from_pool(pool_id, membership_id)
         }.to_not raise_error
       end
@@ -459,13 +461,13 @@ describe Bosh::OpenStackCloud::LoadbalancerConfigurator do
       end
 
       it 'does not raise' do
-        expect{
+        expect {
           subject.remove_vm_from_pool(pool_id, membership_id)
         }.to_not raise_error
       end
 
       it 'logs error' do
-        expect{
+        expect {
           subject.remove_vm_from_pool(pool_id, membership_id)
         }.to_not raise_error
 
@@ -477,17 +479,17 @@ describe Bosh::OpenStackCloud::LoadbalancerConfigurator do
       it 're-raises as CloudError' do
         allow(network).to receive(:delete_lbaas_pool_member).and_raise(Fog::Network::OpenStack::Error.new('BOOM!!!'))
 
-        expect{
+        expect {
           subject.remove_vm_from_pool(pool_id, membership_id)
         }.to raise_error(Bosh::Clouds::CloudError, "Deleting load balancer pool membership with pool_id 'pool-id' and membership_id 'membership-id' failed. Reason: Fog::Network::OpenStack::Error BOOM!!!")
       end
     end
 
     it_behaves_like('changing load balancer resource') do
-      let(:success_response) { double('lb_member', body: {'member' => {'id' => 'member-id'}}) }
+      let(:success_response) { double('lb_member', body: { 'member' => { 'id' => 'member-id' } }) }
       let(:openstack_method_name) { :delete_lbaas_pool_member }
       let(:action) {
-        lambda { subject.remove_vm_from_pool(pool_id, membership_id) }
+        -> { subject.remove_vm_from_pool(pool_id, membership_id) }
       }
     end
   end
@@ -496,7 +498,6 @@ describe Bosh::OpenStackCloud::LoadbalancerConfigurator do
     let(:pool_id) { 'pool-id' }
 
     context 'when pool exists' do
-
       it 'returns the loadbalancer_id' do
         loadbalancer_id = subject.loadbalancer_id(pool_id)
 
@@ -504,30 +505,28 @@ describe Bosh::OpenStackCloud::LoadbalancerConfigurator do
       end
 
       context 'when pool has no loadbalancer associated' do
-        let(:lb_pool) { double('lb_pool', body: {'pool' => { 'loadbalancers' => []}}) }
+        let(:lb_pool) { double('lb_pool', body: { 'pool' => { 'loadbalancers' => [] } }) }
 
         it 'raises an error' do
-          expect{
+          expect {
             subject.loadbalancer_id(pool_id)
           }.to raise_error Bosh::OpenStackCloud::LoadbalancerConfigurator::LoadBalancerResource::NotFound, "No load balancers associated with load balancer pool 'pool-id'"
         end
       end
 
       context 'when pool has more than one loadbalancer associated' do
-        let(:lb_pool) { double('lb_pool', body: {'pool' => { 'loadbalancers' => [{'id' => 'loadbalancer-id-1'}, {'id' => 'loadbalancer-id-2'}]}}) }
+        let(:lb_pool) { double('lb_pool', body: { 'pool' => { 'loadbalancers' => [{ 'id' => 'loadbalancer-id-1' }, { 'id' => 'loadbalancer-id-2' }] } }) }
 
         it 'raises an error' do
-          expect{
+          expect {
             subject.loadbalancer_id(pool_id)
           }.to raise_error(Bosh::OpenStackCloud::LoadbalancerConfigurator::LoadBalancerResource::NotSupportedConfiguration, "More than one load balancer is associated with load balancer pool 'pool-id'. It is not possible to verify the status of the load balancer responsible for the pool membership.")
         end
       end
 
       context 'when pool does not have loadbalancer property (before Newton)' do
-
         context 'when listener does exist' do
-
-          let(:lb_pool) { double('lb_pool', body: {'pool' => { 'loadbalancers' => nil, 'listeners' => [{'id' => 'listener-id'}]}}) }
+          let(:lb_pool) { double('lb_pool', body: { 'pool' => { 'loadbalancers' => nil, 'listeners' => [{ 'id' => 'listener-id' }] } }) }
 
           it 'returns loadbalancer id ' do
             loadbalancer_id = subject.loadbalancer_id(pool_id)
@@ -537,29 +536,26 @@ describe Bosh::OpenStackCloud::LoadbalancerConfigurator do
           end
         end
 
-
         context 'when listener does not exist' do
-
-          let(:lb_pool) { double('lb_pool', body: {'pool' => { 'loadbalancers' => nil, 'listeners' => []}}) }
+          let(:lb_pool) { double('lb_pool', body: { 'pool' => { 'loadbalancers' => nil, 'listeners' => [] } }) }
 
           it 'raises an error' do
-            expect{
+            expect {
               subject.loadbalancer_id(pool_id)
             }.to raise_error Bosh::OpenStackCloud::LoadbalancerConfigurator::LoadBalancerResource::NotFound, "No listeners associated with load balancer pool 'pool-id'"
           end
         end
 
         context 'when multiple listeners do exist' do
-
           let(:lb_pool) do
-            double('lb_pool', body: {'pool' => { 'loadbalancers' => nil, 'listeners' => [
-                {'id' => 'listener-id'},
-                {'id' => 'other-listener-id'}
-            ]}})
+            double('lb_pool', body: { 'pool' => { 'loadbalancers' => nil, 'listeners' => [
+                     { 'id' => 'listener-id' },
+                     { 'id' => 'other-listener-id' },
+                   ] } })
           end
 
           it 'raises an error' do
-            expect{
+            expect {
               subject.loadbalancer_id(pool_id)
             }.to raise_error Bosh::OpenStackCloud::LoadbalancerConfigurator::LoadBalancerResource::NotSupportedConfiguration, "More than one listener is associated with load balancer pool 'pool-id'. It is not possible to verify the status of the load balancer responsible for the pool membership."
           end
@@ -573,7 +569,7 @@ describe Bosh::OpenStackCloud::LoadbalancerConfigurator do
       end
 
       it 'raises an error' do
-        expect{
+        expect {
           subject.loadbalancer_id(pool_id)
         }.to raise_error Bosh::OpenStackCloud::LoadbalancerConfigurator::LoadBalancerResource::NotFound, "Load balancer ID could not be determined because pool with ID 'pool-id' was not found. Reason: some-error-message"
       end
@@ -586,7 +582,7 @@ describe Bosh::OpenStackCloud::LoadbalancerConfigurator do
         'lbaas_pool_0' => 'pool-id-0/membership-id-0',
         'lbaas_pool_1' => 'pool-id-1/membership-id-1',
         'index' => 0,
-        'job' => 'bosh'
+        'job' => 'bosh',
       }
     }
 
@@ -603,7 +599,7 @@ describe Bosh::OpenStackCloud::LoadbalancerConfigurator do
     it 're-raises the exception' do
       allow(network).to receive(:delete_lbaas_pool_member).and_raise(Fog::Network::OpenStack::Error.new('BOOM!!!'))
 
-      expect{
+      expect {
         subject.cleanup_memberships(server_metadata)
       }.to raise_error(Bosh::Clouds::CloudError)
     end
@@ -611,7 +607,7 @@ describe Bosh::OpenStackCloud::LoadbalancerConfigurator do
 
   describe Bosh::OpenStackCloud::LoadbalancerConfigurator::LoadBalancerResource do
     let(:subject) { Bosh::OpenStackCloud::LoadbalancerConfigurator::LoadBalancerResource.new('loadbalancer-id', openstack) }
-    let(:loadbalancer) { double('loadbalancer', body: {'loadbalancer' => {'id' => 'loadbalancer-id', 'provisioning_status' => 'ACTIVE'}}) }
+    let(:loadbalancer) { double('loadbalancer', body: { 'loadbalancer' => { 'id' => 'loadbalancer-id', 'provisioning_status' => 'ACTIVE' } }) }
 
     describe '#provisioning_status' do
       it 'returns the status of the loadbalancer' do

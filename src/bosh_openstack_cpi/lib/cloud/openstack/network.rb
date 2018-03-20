@@ -12,9 +12,7 @@ module Bosh::OpenStackCloud
     # @param [String] name Network name
     # @param [Hash] spec Raw network spec
     def initialize(name, spec)
-      unless spec.is_a?(Hash)
-        raise ArgumentError, "Invalid spec, Hash expected, #{spec.class} provided"
-      end
+      raise ArgumentError, "Invalid spec, Hash expected, #{spec.class} provided" unless spec.is_a?(Hash)
 
       @logger = Bosh::Clouds::Config.logger
       @spec = spec
@@ -28,14 +26,10 @@ module Bosh::OpenStackCloud
     #
     # @param [Bosh::OpenStackCloud::Openstack] openstack
     # @param [Fog::Compute::OpenStack::Server] server OpenStack server to configure
-    def configure(openstack, server)
-    end
+    def configure(openstack, server); end
 
-    def prepare(openstack, security_groups)
-    end
+    def prepare(openstack, security_groups); end
 
-    def cleanup(openstack)
-    end
-
+    def cleanup(openstack); end
   end
 end

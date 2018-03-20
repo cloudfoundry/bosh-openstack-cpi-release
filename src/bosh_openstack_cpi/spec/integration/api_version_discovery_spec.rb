@@ -5,7 +5,7 @@ describe Bosh::OpenStackCloud::Cloud do
 
   before(:all) do
     @config = IntegrationConfig.new
-    Bosh::Clouds::Config.configure(OpenStruct.new(:logger => @config.logger, :cpi_task_log => nil))
+    Bosh::Clouds::Config.configure(OpenStruct.new(logger: @config.logger, cpi_task_log: nil))
   end
 
   let(:logger) { @config.logger }
@@ -18,7 +18,6 @@ describe Bosh::OpenStackCloud::Cloud do
 
   describe 'Glance version discovery' do
     context 'when only V1 is available' do
-
       before do
         force_image_v1
       end
@@ -33,12 +32,10 @@ describe Bosh::OpenStackCloud::Cloud do
         expect(@config.create_cpi.glance.class.to_s).to start_with('Fog::Image::OpenStack::V2')
       end
     end
-
   end
 
   describe 'Cinder version discovery' do
     context 'when only V1 is available' do
-
       before do
         force_volume_v1
       end
@@ -96,9 +93,9 @@ describe Bosh::OpenStackCloud::Cloud do
   def find_service_url(service_catalog, service_type)
     endpoints = service_catalog.find { |service| service['type'] == service_type }['endpoints']
     if is_v3(@config.auth_url)
-      endpoints.find {|endpoint| endpoint['interface'] == 'public'}['url']
+      endpoints.find { |endpoint| endpoint['interface'] == 'public' }['url']
     else
-      endpoints.first()['publicURL']
+      endpoints.first['publicURL']
     end
   end
 
@@ -127,42 +124,42 @@ describe Bosh::OpenStackCloud::Cloud do
   def retrieve_token
     token_response_uri = token_uri(@config.auth_url)
     http = create_http_connection(token_response_uri)
-    token_request = Net::HTTP::Post.new(token_response_uri.request_uri, {'Content-Type' => 'application/json'})
+    token_request = Net::HTTP::Post.new(token_response_uri.request_uri, 'Content-Type' => 'application/json')
     token_request.body = if is_v3(@config.auth_url)
-      {
-          'auth' => {
-              identity: {
-                  methods: ["password"],
-                  password: {
-                      user: {
-                          password: @config.api_key,
-                          domain: {
-                              name: @config.domain
-                          },
-                          name: @config.username
-                      }
-                  }
-              },
-              scope: {
-                  project: {
-                      name: @config.project,
-                      domain: {
-                          name: @config.domain
-                      }
-                  }
-              }
-          }
-      }.to_json
-    else
-      {
-          'auth' => {
-              'tenantName' => @config.tenant,
-              'passwordCredentials' => {
-                  'username' => @config.username,
-                  'password' => @config.api_key,
-              },
-          }
-      }.to_json
+                           {
+                             'auth' => {
+                               identity: {
+                                 methods: ['password'],
+                                 password: {
+                                   user: {
+                                     password: @config.api_key,
+                                     domain: {
+                                       name: @config.domain,
+                                     },
+                                     name: @config.username,
+                                   },
+                                 },
+                               },
+                               scope: {
+                                 project: {
+                                   name: @config.project,
+                                   domain: {
+                                     name: @config.domain,
+                                   },
+                                 },
+                               },
+                             },
+                           }.to_json
+                         else
+                           {
+                             'auth' => {
+                               'tenantName' => @config.tenant,
+                               'passwordCredentials' => {
+                                 'username' => @config.username,
+                                 'password' => @config.api_key,
+                               },
+                             },
+                           }.to_json
     end
     token_response = http.request(token_request)
     JSON.parse(token_response.body)
@@ -171,11 +168,11 @@ describe Bosh::OpenStackCloud::Cloud do
   def token_uri(auth_url)
     token_response_uri = URI.parse(auth_url)
 
-    if is_v3(auth_url)
-      token_response_uri.path = '/v3/auth/tokens'
-    else
-      token_response_uri.path = '/v2.0/tokens'
-    end
+    token_response_uri.path = if is_v3(auth_url)
+                                '/v3/auth/tokens'
+                              else
+                                '/v2.0/tokens'
+                              end
 
     token_response_uri
   end
@@ -191,14 +188,14 @@ describe Bosh::OpenStackCloud::Cloud do
     http = create_http_connection(supported_versions_uri)
     supported_versions_resp = http.request(Net::HTTP::Get.new(supported_versions_uri.request_uri))
     supported_versions = JSON.parse(supported_versions_resp.body)
-    supported_versions['versions'] =  yield supported_versions['versions']
+    supported_versions['versions'] = yield supported_versions['versions']
 
     stub_request(:get, supported_versions_uri)
-        .to_return(body: supported_versions.to_json, status: 200)
+      .to_return(body: supported_versions.to_json, status: 200)
   end
 
   def create_http_connection(token_response_uri)
-    ssl_options = {use_ssl: token_response_uri.scheme == 'https'}
+    ssl_options = { use_ssl: token_response_uri.scheme == 'https' }
     if @config.ca_cert_path
       ssl_options[:ca_file] = @config.ca_cert_path
     elsif @config.insecure

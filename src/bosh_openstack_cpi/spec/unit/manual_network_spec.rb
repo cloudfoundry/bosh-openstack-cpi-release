@@ -1,7 +1,6 @@
 require 'spec_helper'
 
 describe Bosh::OpenStackCloud::ManualNetwork do
-
   subject { Bosh::OpenStackCloud::ManualNetwork.new(network_name, network_spec) }
   let(:openstack) { double(Bosh::OpenStackCloud::Openstack) }
 
@@ -33,8 +32,8 @@ describe Bosh::OpenStackCloud::ManualNetwork do
   end
 
   describe '#prepare' do
-    let(:network_name) { 'network_a'}
-    let(:network_spec) { manual_network_spec(ip: '10.0.0.1')}
+    let(:network_name) { 'network_a' }
+    let(:network_spec) { manual_network_spec(ip: '10.0.0.1') }
     let(:security_groups_to_be_used) { ['default-security-group-id'] }
 
     context "with 'use_nova_networking=false'" do
@@ -52,7 +51,7 @@ describe Bosh::OpenStackCloud::ManualNetwork do
       it 'adds port_ids to nic' do
         subject.prepare(openstack, security_groups_to_be_used)
 
-        expect(subject.nic).to eq({'net_id' => 'net', 'port_id' => '117717c1-81cb-4ac4-96ab-99aaf1be9ca8'})
+        expect(subject.nic).to eq('net_id' => 'net', 'port_id' => '117717c1-81cb-4ac4-96ab-99aaf1be9ca8')
       end
 
       it 'adds MAC addresses to network spec' do
@@ -69,7 +68,7 @@ describe Bosh::OpenStackCloud::ManualNetwork do
 
       context 'allowed_address_pair' do
         context 'is configured' do
-          let(:manual_network) { manual_network_spec(ip: '10.0.0.1')}
+          let(:manual_network) { manual_network_spec(ip: '10.0.0.1') }
           let(:allowed_address_pairs) { '10.0.0.10' }
 
           before(:each) do
@@ -77,12 +76,12 @@ describe Bosh::OpenStackCloud::ManualNetwork do
           end
 
           it 'configures allowed_address_pair to the port' do
-            allow(ports).to receive(:all).and_return([{'name' => 'vrrp-port'}])
+            allow(ports).to receive(:all).and_return([{ 'name' => 'vrrp-port' }])
 
             subject.prepare(openstack, security_groups_to_be_used)
 
-            expect(ports).to have_received(:create).once.with(network_id: anything, fixed_ips: anything, security_groups: ['default-security-group-id'], allowed_address_pairs: [{ :ip_address => allowed_address_pairs }])
-            expect(ports).to have_received(:all).with(:fixed_ips => "ip_address=#{allowed_address_pairs}")
+            expect(ports).to have_received(:create).once.with(network_id: anything, fixed_ips: anything, security_groups: ['default-security-group-id'], allowed_address_pairs: [{ ip_address: allowed_address_pairs }])
+            expect(ports).to have_received(:all).with(fixed_ips: "ip_address=#{allowed_address_pairs}")
           end
 
           context 'and vrrp port does not exist' do
@@ -91,7 +90,7 @@ describe Bosh::OpenStackCloud::ManualNetwork do
 
               expect {
                 subject.prepare(openstack, security_groups_to_be_used)
-              }.to raise_error(Bosh::Clouds::CloudError,"Configured VRRP port with ip '#{allowed_address_pairs}' does not exist.")
+              }.to raise_error(Bosh::Clouds::CloudError, "Configured VRRP port with ip '#{allowed_address_pairs}' does not exist.")
             end
           end
         end
@@ -104,11 +103,10 @@ describe Bosh::OpenStackCloud::ManualNetwork do
           end
         end
       end
-
     end
 
     context "with 'use_nova_networking=true'" do
-      let(:manual_network) { manual_network_spec(ip: '10.0.0.1')}
+      let(:manual_network) { manual_network_spec(ip: '10.0.0.1') }
       let(:security_groups_to_be_used) { ['default-security-group-id'] }
 
       let(:openstack) { instance_double(Bosh::OpenStackCloud::Openstack, use_nova_networking?: true, network: double('Fog::Network')) }
@@ -122,21 +120,19 @@ describe Bosh::OpenStackCloud::ManualNetwork do
       it "adds 'v4_fixed_ip' to nic" do
         subject.prepare(openstack, security_groups_to_be_used)
 
-        expect(subject.nic).to eq({'net_id' => 'net', 'v4_fixed_ip' => '10.0.0.1'})
+        expect(subject.nic).to eq('net_id' => 'net', 'v4_fixed_ip' => '10.0.0.1')
       end
     end
-
   end
 
   describe '#cleanup' do
-    let(:network_name) { 'network_a'}
-    let(:network_spec) { manual_network_spec(ip: '10.0.0.1')}
+    let(:network_name) { 'network_a' }
+    let(:network_spec) { manual_network_spec(ip: '10.0.0.1') }
 
     context "with 'use_nova_networking=false'" do
-
       before(:each) do
         allow(openstack).to receive(:network).and_return(neutron)
-        allow(ports).to receive(:create).with(network_id: 'net', fixed_ips: [{ip_address: '10.0.0.1'}], security_groups: []).and_return(port)
+        allow(ports).to receive(:create).with(network_id: 'net', fixed_ips: [{ ip_address: '10.0.0.1' }], security_groups: []).and_return(port)
         allow(ports).to receive(:get).with('117717c1-81cb-4ac4-96ab-99aaf1be9ca8').and_return(port)
         allow(neutron).to receive(:ports).and_return(ports)
       end

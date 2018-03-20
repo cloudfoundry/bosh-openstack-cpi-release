@@ -1,17 +1,15 @@
 require 'spec_helper'
 
 describe Bosh::OpenStackCloud::Cloud do
-  let(:image) { double('image', :id => 'i-bar') }
+  let(:image) { double('image', id: 'i-bar') }
   let(:unique_name) { SecureRandom.uuid }
 
   before { @tmp_dir = Dir.mktmpdir }
 
   describe 'Image upload based flow' do
-
     let(:cloud_options) { nil }
 
     context 'when an environment only supports image v1' do
-
       before do
         @cloud = mock_glance_v1(cloud_options) do |glance|
           @glance = glance
@@ -26,8 +24,8 @@ describe Bosh::OpenStackCloud::Cloud do
           location: "#{@tmp_dir}/root.img",
           is_public: false,
           properties: {
-            version: 'x.y.z'
-          }
+            version: 'x.y.z',
+          },
         }
 
         expect(@glance.images).to receive(:create).with(image_params).and_return(image)
@@ -38,12 +36,11 @@ describe Bosh::OpenStackCloud::Cloud do
         expect(Dir).to receive(:mktmpdir).and_yield(@tmp_dir)
         expect_any_instance_of(Bosh::OpenStackCloud::HeavyStemcellCreator).to receive(:unpack_image).with(@tmp_dir, '/tmp/foo')
 
-        sc_id = @cloud.create_stemcell('/tmp/foo', {
-          'name' => 'stemcell-name',
-          'version' => 'x.y.z',
-          'container_format' => 'bare',
-          'disk_format' => 'qcow2'
-        })
+        sc_id = @cloud.create_stemcell('/tmp/foo',
+                                       'name' => 'stemcell-name',
+                                       'version' => 'x.y.z',
+                                       'container_format' => 'bare',
+                                       'disk_format' => 'qcow2')
 
         expect(sc_id).to eq 'i-bar'
       end
@@ -60,8 +57,8 @@ describe Bosh::OpenStackCloud::Cloud do
             os_type: 'linux',
             os_distro: 'ubuntu',
             architecture: 'x86_64',
-            auto_disk_config: 'true'
-          }
+            auto_disk_config: 'true',
+          },
         }
 
         expect(@glance.images).to receive(:create).with(image_params).and_return(image)
@@ -70,17 +67,16 @@ describe Bosh::OpenStackCloud::Cloud do
         expect_any_instance_of(Bosh::OpenStackCloud::HeavyStemcellCreator).to receive(:unpack_image).with(@tmp_dir, '/tmp/foo')
         expect(@cloud.openstack).to receive(:wait_resource).with(image, :active)
 
-        sc_id = @cloud.create_stemcell('/tmp/foo', {
-          'name' => 'stemcell-name',
-          'version' => 'x.y.z',
-          'os_type' => 'linux',
-          'os_distro' => 'ubuntu',
-          'architecture' => 'x86_64',
-          'auto_disk_config' => 'true',
-          'foo' => 'bar',
-          'container_format' => 'bare',
-          'disk_format' => 'qcow2',
-        })
+        sc_id = @cloud.create_stemcell('/tmp/foo',
+                                       'name' => 'stemcell-name',
+                                       'version' => 'x.y.z',
+                                       'os_type' => 'linux',
+                                       'os_distro' => 'ubuntu',
+                                       'architecture' => 'x86_64',
+                                       'auto_disk_config' => 'true',
+                                       'foo' => 'bar',
+                                       'container_format' => 'bare',
+                                       'disk_format' => 'qcow2')
 
         expect(sc_id).to eq 'i-bar'
       end
@@ -114,7 +110,7 @@ describe Bosh::OpenStackCloud::Cloud do
             auto_disk_config: 'true',
             hw_vif_model: 'fake-hw_vif_model',
             hypervisor_type: 'fake-hypervisor_type',
-          }
+          },
         }
 
         expect(@glance.images).to receive(:create).with(image_params).and_return(image)
@@ -133,10 +129,9 @@ describe Bosh::OpenStackCloud::Cloud do
         allow(File).to receive(:exists?).and_return(false)
 
         expect {
-          @cloud.create_stemcell('/tmp/foo', {
-            'container_format' => 'bare',
-            'disk_format' => 'qcow2'
-          })
+          @cloud.create_stemcell('/tmp/foo',
+                                 'container_format' => 'bare',
+                                 'disk_format' => 'qcow2')
         }.to raise_exception(Bosh::Clouds::CloudError, 'Root image is missing from stemcell archive')
       end
 
@@ -147,16 +142,14 @@ describe Bosh::OpenStackCloud::Cloud do
         expect(Dir).to receive(:mktmpdir).and_yield(@tmp_dir)
 
         expect {
-          @cloud.create_stemcell('/tmp/foo', {
-            'container_format' => 'ami',
-            'disk_format' => 'ami'
-          })
+          @cloud.create_stemcell('/tmp/foo',
+                                 'container_format' => 'ami',
+                                 'disk_format' => 'ami')
         }.to raise_exception(Bosh::Clouds::CloudError,
-          'Extracting stemcell root image failed. Check task debug log for details.')
+                             'Extracting stemcell root image failed. Check task debug log for details.')
       end
 
       context 'stemcell_public_visibility is true' do
-
         let(:cloud_options) do
           cloud_options = mock_cloud_options['properties']
           cloud_options['openstack']['stemcell_public_visibility'] = true
@@ -171,8 +164,8 @@ describe Bosh::OpenStackCloud::Cloud do
             location: "#{@tmp_dir}/root.img",
             is_public: true,
             properties: {
-              version: 'x.y.z'
-            }
+              version: 'x.y.z',
+            },
           }
 
           expect(@glance.images).to receive(:create).with(image_params).and_return(image)
@@ -181,12 +174,11 @@ describe Bosh::OpenStackCloud::Cloud do
           expect_any_instance_of(Bosh::OpenStackCloud::HeavyStemcellCreator).to receive(:unpack_image).with(@tmp_dir, '/tmp/foo')
           expect(@cloud.openstack).to receive(:wait_resource).with(image, :active)
 
-          sc_id = @cloud.create_stemcell('/tmp/foo', {
-            'name' => 'stemcell-name',
-            'version' => 'x.y.z',
-            'container_format' => 'bare',
-            'disk_format' => 'qcow2',
-          })
+          sc_id = @cloud.create_stemcell('/tmp/foo',
+                                         'name' => 'stemcell-name',
+                                         'version' => 'x.y.z',
+                                         'container_format' => 'bare',
+                                         'disk_format' => 'qcow2')
 
           expect(sc_id).to eq 'i-bar'
         end
@@ -194,7 +186,6 @@ describe Bosh::OpenStackCloud::Cloud do
     end
 
     context 'when an environment supports image v2' do
-
       before do
         @cloud = mock_glance_v2(cloud_options) do |glance|
           @glance = glance
@@ -224,12 +215,11 @@ describe Bosh::OpenStackCloud::Cloud do
 
         expect(image).to receive(:upload_data).with(fake_file)
 
-        sc_id = @cloud.create_stemcell('/tmp/foo', {
-          'name' => 'stemcell-name',
-          'version' => 'x.y.z',
-          'container_format' => 'bare',
-          'disk_format' => 'qcow2'
-        })
+        sc_id = @cloud.create_stemcell('/tmp/foo',
+                                       'name' => 'stemcell-name',
+                                       'version' => 'x.y.z',
+                                       'container_format' => 'bare',
+                                       'disk_format' => 'qcow2')
 
         expect(sc_id).to eq 'i-bar'
       end
@@ -261,17 +251,16 @@ describe Bosh::OpenStackCloud::Cloud do
 
         expect(@cloud.openstack).to receive(:wait_resource).with(image, :active)
 
-        sc_id = @cloud.create_stemcell('/tmp/foo', {
-          'name' => 'stemcell-name',
-          'version' => 'x.y.z',
-          'os_type' => 'linux',
-          'os_distro' => 'ubuntu',
-          'architecture' => 'x86_64',
-          'auto_disk_config' => 'true',
-          'foo' => 'bar',
-          'container_format' => 'bare',
-          'disk_format' => 'qcow2',
-        })
+        sc_id = @cloud.create_stemcell('/tmp/foo',
+                                       'name' => 'stemcell-name',
+                                       'version' => 'x.y.z',
+                                       'os_type' => 'linux',
+                                       'os_distro' => 'ubuntu',
+                                       'architecture' => 'x86_64',
+                                       'auto_disk_config' => 'true',
+                                       'foo' => 'bar',
+                                       'container_format' => 'bare',
+                                       'disk_format' => 'qcow2')
 
         expect(sc_id).to eq 'i-bar'
       end
@@ -327,12 +316,11 @@ describe Bosh::OpenStackCloud::Cloud do
         allow(File).to receive(:exists?).and_return(false)
 
         expect {
-          @cloud.create_stemcell('/tmp/foo', {
-            'name' => 'stemcell-name',
-            'version' => 'x.y.z',
-            'container_format' => 'bare',
-            'disk_format' => 'qcow2'
-          })
+          @cloud.create_stemcell('/tmp/foo',
+                                 'name' => 'stemcell-name',
+                                 'version' => 'x.y.z',
+                                 'container_format' => 'bare',
+                                 'disk_format' => 'qcow2')
         }.to raise_exception(Bosh::Clouds::CloudError, 'Root image is missing from stemcell archive')
       end
 
@@ -343,18 +331,16 @@ describe Bosh::OpenStackCloud::Cloud do
         expect(Dir).to receive(:mktmpdir).and_yield(@tmp_dir)
 
         expect {
-          @cloud.create_stemcell('/tmp/foo', {
-            'name' => 'stemcell-name',
-            'version' => 'x.y.z',
-            'container_format' => 'ami',
-            'disk_format' => 'ami'
-          })
+          @cloud.create_stemcell('/tmp/foo',
+                                 'name' => 'stemcell-name',
+                                 'version' => 'x.y.z',
+                                 'container_format' => 'ami',
+                                 'disk_format' => 'ami')
         }.to raise_exception(Bosh::Clouds::CloudError,
-          'Extracting stemcell root image failed. Check task debug log for details.')
+                             'Extracting stemcell root image failed. Check task debug log for details.')
       end
 
       context 'stemcell_public_visibility is true' do
-
         let(:cloud_options) do
           cloud_options = mock_cloud_options['properties']
           cloud_options['openstack']['stemcell_public_visibility'] = true
@@ -382,12 +368,11 @@ describe Bosh::OpenStackCloud::Cloud do
 
           expect(@cloud.openstack).to receive(:wait_resource).with(image, :active)
 
-          sc_id = @cloud.create_stemcell('/tmp/foo', {
-            'name' => 'stemcell-name',
-            'version' => 'x.y.z',
-            'container_format' => 'bare',
-            'disk_format' => 'qcow2',
-          })
+          sc_id = @cloud.create_stemcell('/tmp/foo',
+                                         'name' => 'stemcell-name',
+                                         'version' => 'x.y.z',
+                                         'container_format' => 'bare',
+                                         'disk_format' => 'qcow2')
 
           expect(sc_id).to eq 'i-bar'
         end
@@ -395,8 +380,8 @@ describe Bosh::OpenStackCloud::Cloud do
     end
 
     context 'given a light stemcell' do
-      let(:images) { double('images', :get => image) }
-      let(:image) { double('image', :id => 'image_id', :status => 'active') }
+      let(:images) { double('images', get: image) }
+      let(:image) { double('image', id: 'image_id', status: 'active') }
 
       before(:each) do
         @cloud = mock_glance_v2(cloud_options) do |glance|
@@ -407,7 +392,7 @@ describe Bosh::OpenStackCloud::Cloud do
 
       it 'returns the image id with ` light` suffix' do
         cloud_properties = {
-          'image_id' => 'image_id'
+          'image_id' => 'image_id',
         }
 
         stemcell_id = @cloud.create_stemcell('/tmp/foo', cloud_properties)
@@ -417,7 +402,7 @@ describe Bosh::OpenStackCloud::Cloud do
 
       it 'checks if image with id exists in OpenStack' do
         cloud_properties = {
-          'image_id' => 'image_id'
+          'image_id' => 'image_id',
         }
 
         @cloud.create_stemcell('/tmp/foo', cloud_properties)
@@ -426,28 +411,28 @@ describe Bosh::OpenStackCloud::Cloud do
       end
 
       context 'when image with given id does not exist in OpenStack' do
-        let(:images) { double('images', :get => nil) }
+        let(:images) { double('images', get: nil) }
 
         it 'raises a cloud error' do
           cloud_properties = {
-            'image_id' => 'non_existing_image_id'
+            'image_id' => 'non_existing_image_id',
           }
 
-          expect{
+          expect {
             @cloud.create_stemcell('/tmp/foo', cloud_properties)
           }.to raise_error(Bosh::Clouds::CloudError, 'No active image with id \'non_existing_image_id\' referenced by light stemcell found in OpenStack.')
         end
       end
 
       context 'when image with given id is not in state `active`' do
-        let(:image) { double('image', :id => 'image_id', :status => 'not-active') }
+        let(:image) { double('image', id: 'image_id', status: 'not-active') }
 
         it 'raises a cloud error' do
           cloud_properties = {
-            'image_id' => 'image_id'
+            'image_id' => 'image_id',
           }
 
-          expect{
+          expect {
             @cloud.create_stemcell('/tmp/foo', cloud_properties)
           }.to raise_error(Bosh::Clouds::CloudError, 'No active image with id \'image_id\' referenced by light stemcell found in OpenStack.')
         end

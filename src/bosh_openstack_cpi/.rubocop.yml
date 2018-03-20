@@ -53,3 +53,6 @@ Style/BracesAroundHashParameters:
 
 Layout/IndentHash:
   EnforcedStyle: consistent
+
+Style/WordArray:
+  Enabled: false

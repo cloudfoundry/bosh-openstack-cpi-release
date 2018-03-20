@@ -6,7 +6,7 @@ describe Bosh::OpenStackCloud::Cloud do
   before(:all) do
     @config = IntegrationConfig.new
     @cpi_for_stemcell = @config.create_cpi
-    @stemcell_id, _ = upload_stemcell(@cpi_for_stemcell, @config.stemcell_path)
+    @stemcell_id, = upload_stemcell(@cpi_for_stemcell, @config.stemcell_path)
   end
 
   after(:all) do
@@ -23,19 +23,19 @@ describe Bosh::OpenStackCloud::Cloud do
       'job' => 'openstack_cpi_spec',
       'instance_index' => '0',
       'instance_name' => 'openstack_cpi_spec/instance',
-      'attached_at' => '2017-08-23T16:13:00Z'
+      'attached_at' => '2017-08-23T16:13:00Z',
     }
   end
 
   let(:disk_snapshot_metadata) do
     {
-      :deployment => 'deployment',
-      :job => 'openstack_cpi_spec',
-      :index => 0,
-      :instance_id => 'instance',
-      :agent_id => 'agent',
-      :director_name => 'Director',
-      :director_uuid => '6d06b0cc-2c08-43c5-95be-f1b2dd247e18',
+      deployment: 'deployment',
+      job: 'openstack_cpi_spec',
+      index: 0,
+      instance_id: 'instance',
+      agent_id: 'agent',
+      director_name: 'Director',
+      director_uuid: '6d06b0cc-2c08-43c5-95be-f1b2dd247e18',
     }
   end
 
@@ -47,21 +47,21 @@ describe Bosh::OpenStackCloud::Cloud do
       'instance_id' => 'instance',
       'instance_index' => '0',
       'instance_name' => 'openstack_cpi_spec/instance',
-      'agent_id' => 'agent'
+      'agent_id' => 'agent',
     }
   end
 
   let(:cpi_for_vm) { @config.create_cpi }
   let(:openstack) { @config.create_openstack }
-  
+
   let(:network_spec) do
     {
       'default' => {
         'type' => 'dynamic',
         'cloud_properties' => {
-          'net_id' => @config.net_id
-        }
-      }
+          'net_id' => @config.net_id,
+        },
+      },
     }
   end
 
@@ -70,12 +70,12 @@ describe Bosh::OpenStackCloud::Cloud do
       'agent-007',
       @stemcell_id,
       {
-          'instance_type' => @config.instance_type,
-          'availability_zone' => @config.availability_zone
+        'instance_type' => @config.instance_type,
+        'availability_zone' => @config.availability_zone,
       },
       network_spec,
       [],
-      { 'key' => 'value' }
+      'key' => 'value',
     )
   end
 
@@ -92,7 +92,6 @@ describe Bosh::OpenStackCloud::Cloud do
       let(:cpi_for_volume) { @config.create_cpi }
 
       context 'and NO vm_type `type`' do
-
         it 'sets to nil' do
           expect(cpi_for_volume.volume.class.to_s).to start_with('Fog::Volume::OpenStack::V2')
           volume_lifecycle
@@ -111,7 +110,7 @@ describe Bosh::OpenStackCloud::Cloud do
 
     context 'with global default_volume_type' do
       context 'and vm_type `type`' do
-        let(:cpi_for_volume) { @config.create_cpi(default_volume_type: 'type-to-override')}
+        let(:cpi_for_volume) { @config.create_cpi(default_volume_type: 'type-to-override') }
         let(:cloud_properties) { { 'type' => supported_volume_type } }
 
         it 'overrides to type' do
@@ -121,7 +120,7 @@ describe Bosh::OpenStackCloud::Cloud do
       end
 
       context 'and NO vm_type `type`' do
-        let(:cpi_for_volume) { @config.create_cpi(default_volume_type: supported_volume_type)}
+        let(:cpi_for_volume) { @config.create_cpi(default_volume_type: supported_volume_type) }
 
         it 'uses the default_volume_type' do
           expect(cpi_for_volume.volume.class.to_s).to start_with('Fog::Volume::OpenStack::V2')
@@ -151,9 +150,7 @@ describe Bosh::OpenStackCloud::Cloud do
 
     expect(cpi_for_volume.has_disk?(disk_id)).to be(true)
 
-    unless volume_type.nil?
-      expect(openstack.volume.volumes.get(disk_id).volume_type).to eq(volume_type)
-    end
+    expect(openstack.volume.volumes.get(disk_id).volume_type).to eq(volume_type) unless volume_type.nil?
 
     cpi_for_volume.attach_disk(vm_id, disk_id)
 
@@ -172,5 +169,4 @@ describe Bosh::OpenStackCloud::Cloud do
   def force_volume_v1
     allow(Fog::Volume::OpenStack::V2).to receive(:new).and_raise(Fog::OpenStack::Errors::ServiceUnavailable)
   end
-
 end

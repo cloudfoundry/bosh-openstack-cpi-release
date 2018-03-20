@@ -2,7 +2,7 @@ require 'spec_helper'
 
 describe Bosh::OpenStackCloud::Cloud do
   let(:default_connection_options) {
-    {"instrumentor" => Bosh::OpenStackCloud::ExconLoggingInstrumentor}
+    { 'instrumentor' => Bosh::OpenStackCloud::ExconLoggingInstrumentor }
   }
 
   describe :new do
@@ -20,13 +20,13 @@ describe Bosh::OpenStackCloud::Cloud do
         {
           'openstack' => {
             'username' => 'fake-username',
-            'api_key' => 'fake-api-key'
+            'api_key' => 'fake-api-key',
           },
           'registry' => {
             'endpoint' => 'fake-registry',
             'user' => 'fake-user',
             'password' => 'fake-password',
-          }
+          },
         }
       end
       subject(:subject) { Bosh::OpenStackCloud::Cloud.new(options) }
@@ -43,7 +43,7 @@ describe Bosh::OpenStackCloud::Cloud do
 
         context 'when connection_options are specified' do
           it 'expects connection_options to be a hash' do
-            options['openstack']['connection_options'] = {'any-key' => 'any-value'}
+            options['openstack']['connection_options'] = { 'any-key' => 'any-value' }
 
             expect { subject }.to_not raise_error
           end
@@ -138,7 +138,6 @@ describe Bosh::OpenStackCloud::Cloud do
   end
 
   describe :update_agent_settings do
-
     let(:cloud_options) { mock_cloud_options }
     let(:connection_options) { nil }
     let(:merged_connection_options) { default_connection_options }
@@ -168,7 +167,7 @@ describe Bosh::OpenStackCloud::Cloud do
         cpi = Bosh::OpenStackCloud::Cloud.new(cloud_options['properties'])
         server = double('server', id: 'id', name: 'name', metadata: double('metadata'))
 
-        allow(server.metadata).to receive(:get).with(:registry_key).and_return(double('metadatum', {'value' => 'registry-tag-value'}))
+        allow(server.metadata).to receive(:get).with(:registry_key).and_return(double('metadatum', 'value' => 'registry-tag-value'))
 
         expect(cpi.registry).to receive(:read_settings).with('registry-tag-value')
         expect(cpi.registry).to receive(:update_settings).with('registry-tag-value', anything)
@@ -183,7 +182,7 @@ describe Bosh::OpenStackCloud::Cloud do
 
     it 'returns correct info' do
       cpi = Bosh::OpenStackCloud::Cloud.new(cloud_options['properties'])
-      expect(cpi.info).to eq({'stemcell_formats' => ['openstack-raw', 'openstack-qcow2', 'openstack-light']})
+      expect(cpi.info).to eq('stemcell_formats' => ['openstack-raw', 'openstack-qcow2', 'openstack-light'])
     end
   end
 end

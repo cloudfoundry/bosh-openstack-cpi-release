@@ -14,7 +14,7 @@ module Bosh::OpenStackCloud
       auth_url.match(/\/v3(?=\/|$)/)
     end
 
-    def initialize(options, retry_options_overwrites = {}, extra_connection_options = {'instrumentor' => Bosh::OpenStackCloud::ExconLoggingInstrumentor})
+    def initialize(options, retry_options_overwrites = {}, extra_connection_options = { 'instrumentor' => Bosh::OpenStackCloud::ExconLoggingInstrumentor })
       @logger = Bosh::Clouds::Config.logger
       @is_v3 = Openstack.is_v3(options['auth_url'])
 
@@ -43,18 +43,17 @@ module Bosh::OpenStackCloud
       retries = 0
       begin
         yield
-
       rescue Excon::Error::RequestEntityTooLarge => e
         message = "OpenStack API Request Entity Too Large error: \nCheck task debug log for details."
-        overlimit = parse_openstack_response(e.response, "overLimit", "overLimitFault")
+        overlimit = parse_openstack_response(e.response, 'overLimit', 'overLimitFault')
 
         if overlimit
-          message.insert(46, overlimit["message"])
-          details = "#{overlimit["message"]} - #{overlimit["details"]}"
+          message.insert(46, overlimit['message'])
+          details = "#{overlimit['message']} - #{overlimit['details']}"
 
           if retries < MAX_RETRIES
-            wait_time = overlimit["retryAfter"] || e.response.headers["Retry-After"] || DEFAULT_RETRY_TIMEOUT
-            @logger.debug("OpenStack API Over Limit (#{details}), waiting #{wait_time} seconds before retrying") if @logger
+            wait_time = overlimit['retryAfter'] || e.response.headers['Retry-After'] || DEFAULT_RETRY_TIMEOUT
+            @logger&.debug("OpenStack API Over Limit (#{details}), waiting #{wait_time} seconds before retrying")
             sleep(wait_time.to_i)
             retries += 1
             retry
@@ -63,37 +62,30 @@ module Bosh::OpenStackCloud
           message.insert(46, e.response.body)
         end
         cloud_error(message, e)
-
       rescue Excon::Error::ServiceUnavailable => e
         unless retries >= MAX_RETRIES
           retries += 1
-          @logger.debug("OpenStack API Service Unavailable error, retrying (#{retries})") if @logger
+          @logger&.debug("OpenStack API Service Unavailable error, retrying (#{retries})")
           sleep(DEFAULT_RETRY_TIMEOUT)
           retry
         end
         cloud_error('OpenStack API Service Unavailable error. Check task debug log for details.', e)
-
       rescue Excon::Error::BadRequest => e
         cloud_error("OpenStack API Bad Request#{error_response_message(e)}. Check task debug log for details.", e)
-
       rescue Excon::Error::Conflict => e
         cloud_error("OpenStack API Conflict#{error_response_message(e)}. Check task debug log for details.", e)
-
       rescue Excon::Error::Forbidden => e
         cloud_error("OpenStack API Forbidden#{error_response_message(e)}. Check task debug log for details.", e)
-
       rescue Excon::Error::InternalServerError => e
         unless retries >= MAX_RETRIES
           retries += 1
-          @logger.debug("OpenStack API Internal Server error, retrying (#{retries})") if @logger
+          @logger&.debug("OpenStack API Internal Server error, retrying (#{retries})")
           sleep(DEFAULT_RETRY_TIMEOUT)
           retry
         end
         cloud_error('OpenStack API Internal Server error. Check task debug log for details.', e)
-
       rescue Fog::Errors::NotFound => e
         cloud_error("OpenStack API service not found error: #{e.message}\nCheck task debug log for details.", e)
-
       end
     end
 
@@ -109,7 +101,7 @@ module Bosh::OpenStackCloud
             @compute = Fog::Compute.new(params)
           end
         rescue Excon::Error::Socket => e
-          cloud_error(socket_error_msg + "#{e.message}")
+          cloud_error(socket_error_msg + e.message.to_s)
         rescue Bosh::Common::RetryCountExceeded, Excon::Error::Client, Excon::Error::Server => e
           cloud_error("Unable to connect to the OpenStack Compute Service API: #{e.message}. Check task debug log for details.")
         end
@@ -130,7 +122,7 @@ module Bosh::OpenStackCloud
             end
           end
         rescue Excon::Error::Socket => e
-          cloud_error(socket_error_msg + "#{e.message}")
+          cloud_error(socket_error_msg + e.message.to_s)
         rescue Bosh::Common::RetryCountExceeded, Excon::Error::Client, Excon::Error::Server => e
           cloud_error("Unable to connect to the OpenStack Image Service API: #{e.message}. Check task debug log for details.")
         end
@@ -155,7 +147,7 @@ module Bosh::OpenStackCloud
             end
           end
         rescue Excon::Error::Socket => e
-          cloud_error(socket_error_msg + "#{e.message}")
+          cloud_error(socket_error_msg + e.message.to_s)
         rescue Bosh::Common::RetryCountExceeded, Excon::Error::Client, Excon::Error::Server => e
           cloud_error("Unable to connect to the OpenStack Volume Service API: #{e.message}. Check task debug log for details.")
         end
@@ -172,7 +164,7 @@ module Bosh::OpenStackCloud
             @network = Fog::Network.new(params)
           end
         rescue Excon::Error::Socket => e
-          cloud_error(socket_error_msg + "#{e.message}")
+          cloud_error(socket_error_msg + e.message.to_s)
         rescue Bosh::Common::RetryCountExceeded, Excon::Error::Client, Excon::Error::Server, Fog::Errors::NotFound => e
           cloud_error("Unable to connect to the OpenStack Network Service API: #{e.message}. Check task debug log for details.")
         end
@@ -189,19 +181,16 @@ module Bosh::OpenStackCloud
     # @param [Symbol] state_method Resource's method to fetch state
     # @param [Boolean] allow_notfound true if resource could be not found
     def wait_resource(resource, target_state, state_method = :status, allow_notfound = false)
-
       started_at = Time.now
-      desc = resource.class.name.split("::").last.to_s + " `" + resource.id.to_s + "'"
+      desc = resource.class.name.split('::').last.to_s + ' `' + resource.id.to_s + "'"
       target_state = Array(target_state)
 
       loop do
         duration = Time.now - started_at
 
-        if duration > @state_timeout
-          cloud_error("Timed out waiting for #{desc} to be #{target_state.join(", ")}")
-        end
+        cloud_error("Timed out waiting for #{desc} to be #{target_state.join(', ')}") if duration > @state_timeout
 
-        @logger.debug("Waiting for #{desc} to be #{target_state.join(", ")} (#{duration}s)")
+        @logger.debug("Waiting for #{desc} to be #{target_state.join(', ')} (#{duration}s)")
 
         # If resource reload is nil, perhaps it's because resource went away
         # (ie: a destroy operation). Don't raise an exception if this is
@@ -210,7 +199,7 @@ module Bosh::OpenStackCloud
           break if allow_notfound
           cloud_error("#{desc}: Resource not found")
         else
-          state =  with_openstack { resource.send(state_method).downcase.to_sym }
+          state = with_openstack { resource.send(state_method).downcase.to_sym }
         end
 
         # This is not a very strong convention, but some resources
@@ -219,17 +208,16 @@ module Bosh::OpenStackCloud
         # set of 'loop breaker' states but that doesn't seem very helpful
         # at the moment
         if state == :error || state == :failed || state == :killed
-          cloud_error("#{desc} state is #{state}, expected #{target_state.join(", ")}#{openstack_fault_message(resource)}")
+          cloud_error("#{desc} state is #{state}, expected #{target_state.join(', ')}#{openstack_fault_message(resource)}")
         end
 
         break if target_state.include?(state)
 
         sleep(@wait_resource_poll_interval)
-
       end
 
       total = Time.now - started_at
-      @logger.info("#{desc} is now #{target_state.join(", ")}, took #{total}s")
+      @logger.info("#{desc} is now #{target_state.join(', ')}, took #{total}s")
     end
 
     ##
@@ -240,7 +228,7 @@ module Bosh::OpenStackCloud
     # @return [Hash] Contents at the first key found, or nil if not found
     def parse_openstack_response(response, *keys)
       json_body = parse_openstack_response_body(response.body)
-      key = keys.detect { |k| json_body.has_key?(k)} if (json_body && !json_body.empty?)
+      key = keys.detect { |k| json_body.key?(k) } if json_body && !json_body.empty?
       json_body[key] if key
     end
 
@@ -253,21 +241,21 @@ module Bosh::OpenStackCloud
 
     def openstack_params(options)
       {
-          :provider => 'OpenStack',
-          :openstack_auth_url => auth_url,
-          :openstack_username => options['username'],
-          :openstack_api_key => options['api_key'],
-          :openstack_tenant => options['tenant'],
-          :openstack_project_name => options['project'],
-          :openstack_domain_name => options['domain'],
-          :openstack_region => options['region'],
-          :openstack_endpoint_type => options['endpoint_type'],
-          :connection_options => options['connection_options'].merge(@extra_connection_options)
+        provider: 'OpenStack',
+        openstack_auth_url: auth_url,
+        openstack_username: options['username'],
+        openstack_api_key: options['api_key'],
+        openstack_tenant: options['tenant'],
+        openstack_project_name: options['project'],
+        openstack_domain_name: options['domain'],
+        openstack_region: options['region'],
+        openstack_endpoint_type: options['endpoint_type'],
+        connection_options: options['connection_options'].merge(@extra_connection_options),
       }
     end
 
     def params_without_provider
-      params.reject{ |key, _| key == :provider }
+      params.reject { |key, _| key == :provider }
     end
 
     def socket_error_msg
@@ -283,7 +271,7 @@ module Bosh::OpenStackCloud
     end
 
     def append_url_sufix(url)
-      unless url.match(/\/tokens$/)
+      unless url.match?(/\/tokens$/)
         url += '/auth' if @is_v3
         url += '/tokens'
       end
@@ -306,7 +294,7 @@ module Bosh::OpenStackCloud
     end
 
     def determine_message(body)
-      hash_with_msg_property = proc { |k, v| (v.is_a? Hash) && v['message'] }
+      hash_with_msg_property = proc { |_k, v| (v.is_a? Hash) && v['message'] }
 
       body ||= {}
       _, value = body.find &hash_with_msg_property

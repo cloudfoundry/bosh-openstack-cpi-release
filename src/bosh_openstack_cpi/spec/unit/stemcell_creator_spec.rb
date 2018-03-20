@@ -2,10 +2,9 @@ describe Bosh::OpenStackCloud::HeavyStemcellCreator do
   subject { described_class }
 
   describe '#normalize_image_properties' do
-
     it 'rejects nil values' do
       properties = {
-        'version' => nil
+        'version' => nil,
       }
 
       expect(subject.normalize_image_properties(properties)).to_not have_key(:version)
@@ -21,7 +20,7 @@ describe Bosh::OpenStackCloud::HeavyStemcellCreator do
 
     it 'maps hypervisor key to hypervisor_type' do
       properties = {
-        'hypervisor' => 'kvm'
+        'hypervisor' => 'kvm',
       }
 
       image_properties = subject.normalize_image_properties(properties)

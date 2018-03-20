@@ -13,13 +13,12 @@ describe Bosh::OpenStackCloud::ServerGroups do
 
   let(:fog_server_groups) {
     double(:compute_server_groups, all: [],
-    create: OpenStruct.new('id' => 'fake-server-group-id', 'name' => "fake-uuid-#{bosh_group}", 'policy' => 'soft-anti-affinity'))
+                                   create: OpenStruct.new('id' => 'fake-server-group-id', 'name' => "fake-uuid-#{bosh_group}", 'policy' => 'soft-anti-affinity'))
   }
 
   let(:openstack) {
     double('openstack', compute: double(:compute, server_groups: fog_server_groups))
   }
-
 
   subject(:server_groups) {
     Bosh::OpenStackCloud::ServerGroups.new(openstack)
@@ -31,8 +30,8 @@ describe Bosh::OpenStackCloud::ServerGroups do
 
   before do
     allow(Bosh::Clouds::Config).to receive(:logger).and_return(logger)
-    allow(openstack).to receive(:with_openstack) {|&block| block.call}
-    allow(openstack).to receive(:params).and_return({:openstack_tenant => 'my-project'})
+    allow(openstack).to receive(:with_openstack) { |&block| block.call }
+    allow(openstack).to receive(:params).and_return(openstack_tenant: 'my-project')
   end
 
   it 'uses name derived from uuid and bosh groups' do
@@ -44,13 +43,13 @@ describe Bosh::OpenStackCloud::ServerGroups do
   it 'uses a lock file to synchronize getting and creating server groups' do
     server_groups.find_or_create('fake-uuid', bosh_group)
 
-    expect(File.exists?(File.join(lock_file_folder, "#{bosh_group}.lock"))).to be true
+    expect(File.exist?(File.join(lock_file_folder, "#{bosh_group}.lock"))).to be true
   end
 
   it 'uses a lock file to synchronize deletion of server groups' do
-    server_groups.delete_if_no_members("fake-uuid", bosh_group)
+    server_groups.delete_if_no_members('fake-uuid', bosh_group)
 
-    expect(File.exists?(File.join(lock_file_folder, "#{bosh_group}.lock"))).to be true
+    expect(File.exist?(File.join(lock_file_folder, "#{bosh_group}.lock"))).to be true
   end
 
   context 'when a server_group with soft-anti-affinity policy already exists for this name' do
@@ -62,12 +61,11 @@ describe Bosh::OpenStackCloud::ServerGroups do
       let(:fog_server_groups) {
         double(:compute_server_groups, all:
             [
-                OpenStruct.new('id' => '456', 'name' => "fake-uuid-#{bosh_group}", 'policies' => ['anti-affinity'], 'members' => []),
-                OpenStruct.new('id' => '123', 'name' => "fake-uuid-#{bosh_group}", 'policies' => ['soft-anti-affinity'], 'members' => []),
-                OpenStruct.new('id' => '234', 'name' => 'other-uuid-other-group', 'policies' => ['soft-anti-affinity'], 'members' => [])
+              OpenStruct.new('id' => '456', 'name' => "fake-uuid-#{bosh_group}", 'policies' => ['anti-affinity'], 'members' => []),
+              OpenStruct.new('id' => '123', 'name' => "fake-uuid-#{bosh_group}", 'policies' => ['soft-anti-affinity'], 'members' => []),
+              OpenStruct.new('id' => '234', 'name' => 'other-uuid-other-group', 'policies' => ['soft-anti-affinity'], 'members' => []),
             ],
-               create: OpenStruct.new('id' => 'fake-server-group-id', 'name' => "fake-uuid-#{bosh_group}", 'policy' => 'soft-anti-affinity'),
-               )
+                                       create: OpenStruct.new('id' => 'fake-server-group-id', 'name' => "fake-uuid-#{bosh_group}", 'policy' => 'soft-anti-affinity'))
       }
 
       it 'returns id of existing server group' do
@@ -89,8 +87,7 @@ describe Bosh::OpenStackCloud::ServerGroups do
     context 'when there are members in the server group' do
       let(:fog_server_groups) {
         double(:compute_server_groups, all:
-            [OpenStruct.new('id' => '123', 'name' => "fake-uuid-#{bosh_group}", 'policies' => ['soft-anti-affinity'], 'members' => ['member_1'])]
-        )
+            [OpenStruct.new('id' => '123', 'name' => "fake-uuid-#{bosh_group}", 'policies' => ['soft-anti-affinity'], 'members' => ['member_1'])])
       }
 
       it 'does not delete the server group' do
@@ -111,14 +108,14 @@ describe Bosh::OpenStackCloud::ServerGroups do
       expect(id).to eq('fake-server-group-id')
     end
   end
-  
+
   context 'when quota of server groups is reached' do
     before(:each) do
       allow(fog_server_groups).to receive(:create).and_raise(Excon::Error::Forbidden.new('Quota exceeded, too many server groups'))
     end
 
     it 'raises a cloud error' do
-      expect{
+      expect {
         server_groups.find_or_create('fake-uuid', bosh_group)
       }.to raise_error(Bosh::Clouds::CloudError, "You have reached your quota for server groups for project '#{openstack.params[:openstack_tenant]}'. Please disable auto-anti-affinity server groups or increase your quota.")
     end

@@ -2,28 +2,27 @@ require 'spec_helper'
 require 'excon'
 
 describe Bosh::OpenStackCloud::Cloud, 'create_vm' do
-
   def agent_settings(unique_name, network_spec = dynamic_network_spec, ephemeral = '/dev/sdb')
     {
       'vm' => {
-        'name' => "vm-#{unique_name}"
+        'name' => "vm-#{unique_name}",
       },
       'agent_id' => 'agent-id',
       'networks' => { 'network_a' => network_spec },
       'disks' => {
         'system' => '/dev/sda',
         'ephemeral' => ephemeral,
-        'persistent' => {}
+        'persistent' => {},
       },
       'env' => {
-        'test_env' => 'value'
+        'test_env' => 'value',
       },
       'foo' => 'bar', # Agent env
-      'baz' => 'zaz'
+      'baz' => 'zaz',
     }
   end
 
-  def openstack_params(network_spec = { 'network_a' => dynamic_network_spec}, boot_from_volume = false )
+  def openstack_params(network_spec = { 'network_a' => dynamic_network_spec }, boot_from_volume = false)
     params = {
       name: "vm-#{unique_name}",
       image_ref: 'sc-id',
@@ -34,19 +33,20 @@ describe Bosh::OpenStackCloud::Cloud, 'create_vm' do
       nics: nics,
       config_drive: false,
       user_data: JSON.dump(user_data(unique_name, network_spec, nameserver, false)),
-      availability_zone: 'foobar-1a'
+      availability_zone: 'foobar-1a',
     }
 
     if boot_from_volume
       params.delete(:image_ref)
       params[:block_device_mapping_v2] = [{
-        :uuid => 'sc-id',
-        :source_type => 'image',
-        :destination_type => 'volume',
-        :volume_size => 2,
-        :boot_index => '0',
-        :delete_on_termination => '1',
-        :device_name => '/dev/vda' }]
+        uuid: 'sc-id',
+        source_type: 'image',
+        destination_type: 'volume',
+        volume_size: 2,
+        boot_index: '0',
+        delete_on_termination: '1',
+        device_name: '/dev/vda',
+      }]
     end
 
     params
@@ -55,11 +55,11 @@ describe Bosh::OpenStackCloud::Cloud, 'create_vm' do
   def user_data(unique_name, network_spec, nameserver = nil, openssh = false)
     user_data = {
       'registry' => {
-          'endpoint' => 'http://registry:3333'
+        'endpoint' => 'http://registry:3333',
       },
       'server' => {
-          'name' => "vm-#{unique_name}"
-      }
+        'name' => "vm-#{unique_name}",
+      },
     }
     user_data['openssh'] = { 'public_key' => 'public openssh key' } if openssh
     user_data['networks'] = network_spec
@@ -68,11 +68,13 @@ describe Bosh::OpenStackCloud::Cloud, 'create_vm' do
   end
 
   let(:unique_name) { SecureRandom.uuid }
-  let(:server) { double('server', :id => 'i-test', :name => 'i-test') }
-  let(:image) { double('image', :id => 'sc-id', :name => 'sc-id') }
-  let(:flavor) { double('flavor', :id => 'f-test', :name => 'm1.tiny', :ram => 1024, :disk => 2, :ephemeral => 2) }
-  let(:key_pair) { double('key_pair', :id => 'k-test', :name => 'test_key',
-                   :fingerprint => '00:01:02:03:04', :public_key => 'public openssh key') }
+  let(:server) { double('server', id: 'i-test', name: 'i-test') }
+  let(:image) { double('image', id: 'sc-id', name: 'sc-id') }
+  let(:flavor) { double('flavor', id: 'f-test', name: 'm1.tiny', ram: 1024, disk: 2, ephemeral: 2) }
+  let(:key_pair) {
+    double('key_pair', id: 'k-test', name: 'test_key',
+                       fingerprint: '00:01:02:03:04', public_key: 'public openssh key')
+  }
   let(:configured_security_groups) { %w[default] }
   let(:nameserver) { nil }
   let(:nics) { [] }
@@ -85,10 +87,10 @@ describe Bosh::OpenStackCloud::Cloud, 'create_vm' do
       allow(fog.compute.servers).to receive(:create).and_return(server)
       allow(fog.compute.flavors).to receive(:find).and_return(flavor)
       allow(fog.compute.key_pairs).to receive(:find).and_return(key_pair)
-      end
+    end
   end
 
-  let(:server_groups) {instance_double(Bosh::OpenStackCloud::ServerGroups)}
+  let(:server_groups) { instance_double(Bosh::OpenStackCloud::ServerGroups) }
 
   before(:each) do
     @registry = mock_registry
@@ -106,7 +108,7 @@ describe Bosh::OpenStackCloud::Cloud, 'create_vm' do
   it 'redacts user_data' do
     allow(Bosh::Clouds::Config.logger).to receive(:debug)
 
-    cloud.create_vm('agent-id', 'sc-id', resource_pool_spec, { 'network_a' => dynamic_network_spec}, nil, environment)
+    cloud.create_vm('agent-id', 'sc-id', resource_pool_spec, { 'network_a' => dynamic_network_spec }, nil, environment)
 
     expect(Bosh::Clouds::Config.logger).to have_received(:debug).with(/Using boot parms:.*"user_data"=>"<redacted>"/)
   end
@@ -119,14 +121,13 @@ describe Bosh::OpenStackCloud::Cloud, 'create_vm' do
   end
 
   describe 'multi-homed VMs' do
-
     let(:cloud) do
       cloud_options = mock_cloud_options['properties']
-      cloud_options['openstack'].merge!({
-          'config_drive' => 'cdrom',
-          'use_dhcp' => false,
-          'use_nova_networking' => false
-      })
+      cloud_options['openstack'].merge!(
+        'config_drive' => 'cdrom',
+        'use_dhcp' => false,
+        'use_nova_networking' => false,
+      )
 
       mock_cloud(cloud_options) do |openstack|
         allow(openstack.compute.servers).to receive(:create).and_return(server)
@@ -135,13 +136,13 @@ describe Bosh::OpenStackCloud::Cloud, 'create_vm' do
         allow(openstack.compute.key_pairs).to receive(:find).and_return(key_pair)
         port_result_net = double('ports1', id: '117717c1-81cb-4ac4-96ab-99aaf1be9ca8', network_id: 'net', mac_address: 'AA:AA:AA:AA:AA:AA')
         ports = double('Fog::Network::OpenStack::Ports')
-        allow(ports).to receive(:create).with(network_id: 'net', fixed_ips: [{ip_address: '10.0.0.1'}], security_groups: ['default_sec_group_id']).and_return(port_result_net)
+        allow(ports).to receive(:create).with(network_id: 'net', fixed_ips: [{ ip_address: '10.0.0.1' }], security_groups: ['default_sec_group_id']).and_return(port_result_net)
         allow(openstack.network).to receive(:ports).and_return(ports)
       end
     end
-    let(:network_spec) { {'network_a' => manual_network_spec(ip: '10.0.0.1')} }
-    let(:expected_network_spec) { {'network_a' => manual_network_spec(ip: '10.0.0.1', overwrites: {'mac' => 'AA:AA:AA:AA:AA:AA', 'use_dhcp' => false})} }
-    let(:nics) { [{'net_id' => 'net', 'port_id' => '117717c1-81cb-4ac4-96ab-99aaf1be9ca8'}] }
+    let(:network_spec) { { 'network_a' => manual_network_spec(ip: '10.0.0.1') } }
+    let(:expected_network_spec) { { 'network_a' => manual_network_spec(ip: '10.0.0.1', overwrites: { 'mac' => 'AA:AA:AA:AA:AA:AA', 'use_dhcp' => false }) } }
+    let(:nics) { [{ 'net_id' => 'net', 'port_id' => '117717c1-81cb-4ac4-96ab-99aaf1be9ca8' }] }
 
     it 'creates an OpenStack server with config drive and mac addresses' do
       cloud.create_vm('agent-id', 'sc-id', resource_pool_spec, network_spec, nil, environment)
@@ -151,7 +152,7 @@ describe Bosh::OpenStackCloud::Cloud, 'create_vm' do
   end
 
   context 'with nameserver' do
-    let(:nameserver) {'1.2.3.4'}
+    let(:nameserver) { '1.2.3.4' }
     let(:network_spec) do
       network_spec = dynamic_network_spec
       network_spec['dns'] = [nameserver]
@@ -185,25 +186,29 @@ describe Bosh::OpenStackCloud::Cloud, 'create_vm' do
     end
 
     context 'defined in both network and resource_pools spec' do
-      let(:openstack_security_groups) { [
+      let(:openstack_security_groups) {
+        [
           double('net-group-1', id: 'net-group-1_id', name: 'net-group-1'),
           double('net-group-2', id: 'net-group-2_id', name: 'net-group-2'),
           double('pool-group-1', id: 'pool-group-1_id', name: 'pool-group-1'),
-          double('pool-group-2', id: 'pool-group-2_id', name: 'pool-group-2')
-      ] }
+          double('pool-group-2', id: 'pool-group-2_id', name: 'pool-group-2'),
+        ]
+      }
 
       it 'uses the resource pool security groups to create vm' do
         cloud.create_vm('agent-id', 'sc-id', resource_pool_with_security_group_spec, network_with_security_group, nil, environment)
 
-        expect(cloud.compute.servers).to have_received(:create).with(hash_including(:security_groups => %w[pool-group-1 pool-group-2]))
+        expect(cloud.compute.servers).to have_received(:create).with(hash_including(security_groups: %w[pool-group-1 pool-group-2]))
       end
     end
 
     context 'defined in network spec' do
-      let(:openstack_security_groups) { [
+      let(:openstack_security_groups) {
+        [
           double('net-group-1', id: 'net-group-1_id', name: 'net-group-1'),
-          double('net-group-2', id: 'net-group-2_id', name: 'net-group-2')
-      ] }
+          double('net-group-2', id: 'net-group-2_id', name: 'net-group-2'),
+        ]
+      }
 
       let(:configured_security_groups) { %w[net-group-1 net-group-2] }
 
@@ -216,11 +221,12 @@ describe Bosh::OpenStackCloud::Cloud, 'create_vm' do
     end
 
     context 'defined in resource_pools spec' do
-
-      let(:openstack_security_groups) { [
+      let(:openstack_security_groups) {
+        [
           double('pool-group-1', id: 'pool-group-1_id', name: 'pool-group-1'),
-          double('pool-group-2', id: 'pool-group-2_id', name: 'pool-group-2')
-      ] }
+          double('pool-group-2', id: 'pool-group-2_id', name: 'pool-group-2'),
+        ]
+      }
 
       let(:configured_security_groups) { %w[pool-group-1 pool-group-2] }
 
@@ -240,11 +246,10 @@ describe Bosh::OpenStackCloud::Cloud, 'create_vm' do
   end
 
   context 'with dynamic network' do
-
     context 'with nic' do
       let(:nics) do
         [
-          { 'net_id' => 'foo' }
+          { 'net_id' => 'foo' },
         ]
       end
 
@@ -268,7 +273,7 @@ describe Bosh::OpenStackCloud::Cloud, 'create_vm' do
       }
 
       it 'raises an cloud error' do
-        expect{
+        expect {
           cloud.create_vm('agent-id', 'sc-id', resource_pool_with_vrrp, { 'network' => dynamic_network_with_netid_spec }, nil, environment)
         }.to raise_error Bosh::Clouds::CloudError, "Network with id 'net' is a dynamic network. VRRP is not supported for dynamic networks"
       end
@@ -278,13 +283,13 @@ describe Bosh::OpenStackCloud::Cloud, 'create_vm' do
   context 'with manual network' do
     let(:several_manual_networks) do
       {
-          'network_a' => manual_network_spec(ip: '10.0.0.1'),
-          'network_b' => manual_network_spec(net_id: 'bar', ip: '10.0.0.2')
+        'network_a' => manual_network_spec(ip: '10.0.0.1'),
+        'network_b' => manual_network_spec(net_id: 'bar', ip: '10.0.0.2'),
       }
     end
     let(:manual_network) { { 'network_a' => manual_network_spec(ip: '10.0.0.1') } }
 
-    let(:nics) { [{'net_id' => 'net', 'v4_fixed_ip' => '10.0.0.1'}, {'net_id' => 'bar', 'v4_fixed_ip' => '10.0.0.2'}] }
+    let(:nics) { [{ 'net_id' => 'net', 'v4_fixed_ip' => '10.0.0.1' }, { 'net_id' => 'bar', 'v4_fixed_ip' => '10.0.0.2' }] }
     let(:configured_security_groups) { %w[default default] }
     let(:options) do
       cloud_options = mock_cloud_options
@@ -317,7 +322,6 @@ describe Bosh::OpenStackCloud::Cloud, 'create_vm' do
       end
     end
 
-
     context 'when vm creation fails' do
       before(:each) do
         allow(cloud.compute.servers).to receive(:create).and_raise 'BOOM!!!'
@@ -327,7 +331,7 @@ describe Bosh::OpenStackCloud::Cloud, 'create_vm' do
       it 'calls NetworkConfigurator#cleanup' do
         allow_any_instance_of(Bosh::OpenStackCloud::NetworkConfigurator).to receive(:cleanup)
 
-        expect{
+        expect {
           cloud.create_vm('agent-id', 'sc-id', resource_pool_spec, manual_network, nil, environment)
         }.to raise_error RuntimeError, 'BOOM!!!'
       end
@@ -336,7 +340,7 @@ describe Bosh::OpenStackCloud::Cloud, 'create_vm' do
         it 'fails with the vm creation failure' do
           allow_any_instance_of(Bosh::OpenStackCloud::NetworkConfigurator).to receive(:cleanup).and_raise 'BOOM Cleanup!!!'
 
-          expect{
+          expect {
             cloud.create_vm('agent-id', 'sc-id', resource_pool_spec, manual_network, nil, environment)
           }.to raise_error RuntimeError, 'BOOM!!!'
         end
@@ -352,7 +356,7 @@ describe Bosh::OpenStackCloud::Cloud, 'create_vm' do
       it 'calls NetworkConfigurator#cleanup and fails with VMCreationFailed error' do
         allow_any_instance_of(Bosh::OpenStackCloud::NetworkConfigurator).to receive(:configure).and_raise 'BOOM configure!!!'
 
-        expect{
+        expect {
           cloud.create_vm('agent-id', 'sc-id', resource_pool_spec, manual_network, nil, environment)
         }.to raise_error Bosh::Clouds::VMCreationFailed, 'BOOM configure!!!'
       end
@@ -361,7 +365,7 @@ describe Bosh::OpenStackCloud::Cloud, 'create_vm' do
 
   context 'with scheduler hints' do
     let(:scheduler_hints) do
-      {group: 'abcd-foo-bar'}
+      { group: 'abcd-foo-bar' }
     end
 
     it 'creates an OpenStack server with scheduler hints' do
@@ -384,7 +388,6 @@ describe Bosh::OpenStackCloud::Cloud, 'create_vm' do
       end
 
       it 'creates an OpenStack server with a boot volume' do
-
         cloud.create_vm('agent-id', 'sc-id', resource_pool_spec, dynamic_network, nil, environment)
 
         expect(cloud.compute.servers).to have_received(:create).with(openstack_params(dynamic_network, true))
@@ -392,7 +395,7 @@ describe Bosh::OpenStackCloud::Cloud, 'create_vm' do
     end
 
     context 'for vm type' do
-      let(:resource_pool_spec_with_boot_from_volume) { resource_pool_spec.merge({ 'boot_from_volume' => true }) }
+      let(:resource_pool_spec_with_boot_from_volume) { resource_pool_spec.merge('boot_from_volume' => true) }
       let(:options) do
         cloud_options = mock_cloud_options
         cloud_options['properties']['openstack']['boot_from_volume'] = false
@@ -430,7 +433,7 @@ describe Bosh::OpenStackCloud::Cloud, 'create_vm' do
     end
 
     it 'creates an OpenStack server with config drive' do
-      cloud.create_vm('agent-id', 'sc-id', resource_pool_spec, { 'network_a' => dynamic_network_spec}, nil, environment)
+      cloud.create_vm('agent-id', 'sc-id', resource_pool_spec, { 'network_a' => dynamic_network_spec }, nil, environment)
 
       expect(cloud.compute.servers).to have_received(:create).with(openstack_params.merge(config_drive: true))
     end
@@ -448,7 +451,7 @@ describe Bosh::OpenStackCloud::Cloud, 'create_vm' do
         allow(cloud.compute.servers).to receive(:create).and_raise(socket_error)
 
         expect {
-          cloud.create_vm('agent-id', 'sc-id', resource_pool_spec, { 'network_a' => dynamic_network_spec}, nil, environment)
+          cloud.create_vm('agent-id', 'sc-id', resource_pool_spec, { 'network_a' => dynamic_network_spec }, nil, environment)
         }.to raise_error(Bosh::Clouds::VMCreationFailed, /'vm-#{unique_name}'.*?\nOriginal message: read timeout reached/)
       end
     end
@@ -466,7 +469,7 @@ describe Bosh::OpenStackCloud::Cloud, 'create_vm' do
         allow(networks).to receive(:get).and_return(nil)
 
         expect {
-          cloud.create_vm('agent-id', 'sc-id', resource_pool_spec, { 'network_a' => dynamic_network_with_netid_spec}, nil, environment)
+          cloud.create_vm('agent-id', 'sc-id', resource_pool_spec, { 'network_a' => dynamic_network_with_netid_spec }, nil, environment)
         }.to raise_error(Bosh::Clouds::VMCreationFailed, /'vm-#{unique_name}'.*?'net'/)
       end
 
@@ -482,7 +485,6 @@ describe Bosh::OpenStackCloud::Cloud, 'create_vm' do
       end
 
       context 'when `openstack.network.networks.get` raises' do
-
         before(:each) do
           allow(networks).to receive(:get).and_raise('BOOM!!!')
         end
@@ -513,7 +515,7 @@ describe Bosh::OpenStackCloud::Cloud, 'create_vm' do
 
         it 'raises a Not Found error with Network service not available' do
           expect {
-            cloud.create_vm('agent-id', 'sc-id', resource_pool_spec, { 'network_a' => dynamic_network_with_netid_spec}, nil, environment)
+            cloud.create_vm('agent-id', 'sc-id', resource_pool_spec, { 'network_a' => dynamic_network_with_netid_spec }, nil, environment)
           }.to raise_error(Excon::Error::NotFound)
 
           expect(cloud.network).to_not have_received(:networks)
@@ -534,7 +536,7 @@ describe Bosh::OpenStackCloud::Cloud, 'create_vm' do
         allow(networks).to receive(:get).and_return(nil)
 
         expect {
-          cloud.create_vm('agent-id', 'sc-id', resource_pool_spec, { 'network_a' => dynamic_network_with_netid_spec}, nil, environment)
+          cloud.create_vm('agent-id', 'sc-id', resource_pool_spec, { 'network_a' => dynamic_network_with_netid_spec }, nil, environment)
         }.to raise_error(Bosh::Clouds::VMCreationFailed, /'vm-#{unique_name}'.*?'net'/)
       end
     end
@@ -542,10 +544,10 @@ describe Bosh::OpenStackCloud::Cloud, 'create_vm' do
     context 'with a CloudError' do
       it 'destroys the server successfully' do
         allow(cloud.openstack).to receive(:wait_resource).with(server, :active, :state).and_raise(Bosh::Clouds::CloudError)
-        expect(cloud.openstack).to receive(:wait_resource).with(server, [:terminated, :deleted], :state, true)
+        expect(cloud.openstack).to receive(:wait_resource).with(server, %i[terminated deleted], :state, true)
 
         expect {
-          cloud.create_vm('agent-id', 'sc-id', resource_pool_spec, { 'network_a' => dynamic_network_spec}, nil, environment)
+          cloud.create_vm('agent-id', 'sc-id', resource_pool_spec, { 'network_a' => dynamic_network_spec }, nil, environment)
         }.to raise_error(Bosh::Clouds::VMCreationFailed)
       end
     end
@@ -553,10 +555,10 @@ describe Bosh::OpenStackCloud::Cloud, 'create_vm' do
     context 'with a StandardError' do
       it 'destroys the server successfully' do
         allow(cloud.openstack).to receive(:wait_resource).with(server, :active, :state).and_raise(StandardError)
-        expect(cloud.openstack).to receive(:wait_resource).with(server, [:terminated, :deleted], :state, true)
+        expect(cloud.openstack).to receive(:wait_resource).with(server, %i[terminated deleted], :state, true)
 
         expect {
-          cloud.create_vm('agent-id', 'sc-id', resource_pool_spec, { 'network_a' => dynamic_network_spec}, nil, environment)
+          cloud.create_vm('agent-id', 'sc-id', resource_pool_spec, { 'network_a' => dynamic_network_spec }, nil, environment)
         }.to raise_error(Bosh::Clouds::VMCreationFailed)
       end
     end
@@ -564,10 +566,10 @@ describe Bosh::OpenStackCloud::Cloud, 'create_vm' do
     it 'raises a VMCreationFailed error and logs correct failure message when failed to destroy the server' do
       allow(server).to receive(:destroy)
       allow(cloud.openstack).to receive(:wait_resource).with(server, :active, :state).and_raise(Bosh::Clouds::CloudError)
-      allow(cloud.openstack).to receive(:wait_resource).with(server, [:terminated, :deleted], :state, true).and_raise(Bosh::Clouds::CloudError)
+      allow(cloud.openstack).to receive(:wait_resource).with(server, %i[terminated deleted], :state, true).and_raise(Bosh::Clouds::CloudError)
 
       expect {
-        cloud.create_vm('agent-id', 'sc-id', resource_pool_spec, { 'network_a' => dynamic_network_spec}, nil, environment)
+        cloud.create_vm('agent-id', 'sc-id', resource_pool_spec, { 'network_a' => dynamic_network_spec }, nil, environment)
       }.to raise_error(Bosh::Clouds::VMCreationFailed)
 
       expect(Bosh::Clouds::Config.logger).to have_received(:warn).with('Failed to create server: Bosh::Clouds::CloudError')
@@ -582,32 +584,32 @@ describe Bosh::OpenStackCloud::Cloud, 'create_vm' do
       allow(@registry).to receive(:update_settings).and_raise(Bosh::Clouds::CloudError)
 
       expect {
-        cloud.create_vm('agent-id', 'sc-id', resource_pool_spec, { 'network_a' => dynamic_network_spec}, nil, environment)
+        cloud.create_vm('agent-id', 'sc-id', resource_pool_spec, { 'network_a' => dynamic_network_spec }, nil, environment)
       }.to raise_error { |error|
              expect(error).to be_a(Bosh::Clouds::VMCreationFailed)
              expect(error.ok_to_retry).to eq(false)
            }
-      expect(cloud.openstack).to have_received(:wait_resource).with(server, [:terminated, :deleted], :state, true)
+      expect(cloud.openstack).to have_received(:wait_resource).with(server, %i[terminated deleted], :state, true)
     end
 
     it 'destroys the server successfully and raises a non-retryable Error when StandardError happens' do
       allow(@registry).to receive(:update_settings).and_raise(StandardError)
 
       expect {
-        cloud.create_vm('agent-id', 'sc-id', resource_pool_spec, { 'network_a' => dynamic_network_spec}, nil, environment)
+        cloud.create_vm('agent-id', 'sc-id', resource_pool_spec, { 'network_a' => dynamic_network_spec }, nil, environment)
       }.to raise_error { |error|
              expect(error).to be_a(Bosh::Clouds::VMCreationFailed)
              expect(error.ok_to_retry).to eq(false)
            }
-      expect(cloud.openstack).to have_received(:wait_resource).with(server, [:terminated, :deleted], :state, true)
+      expect(cloud.openstack).to have_received(:wait_resource).with(server, %i[terminated deleted], :state, true)
     end
 
     it 'logs correct failure message when failed to destroy the server' do
       allow(@registry).to receive(:update_settings).and_raise(Bosh::Clouds::CloudError)
-      allow(cloud.openstack).to receive(:wait_resource).with(server, [:terminated, :deleted], :state, true).and_raise(Bosh::Clouds::CloudError)
+      allow(cloud.openstack).to receive(:wait_resource).with(server, %i[terminated deleted], :state, true).and_raise(Bosh::Clouds::CloudError)
 
       expect {
-        cloud.create_vm('agent-id', 'sc-id', resource_pool_spec, { 'network_a' => dynamic_network_spec}, nil, environment)
+        cloud.create_vm('agent-id', 'sc-id', resource_pool_spec, { 'network_a' => dynamic_network_spec }, nil, environment)
       }.to raise_error(Bosh::Clouds::VMCreationFailed)
       expect(Bosh::Clouds::Config.logger).to have_received(:warn).with('Failed to register server: Bosh::Clouds::CloudError')
       expect(Bosh::Clouds::Config.logger).to have_received(:warn).with(/Failed to destroy server:.*/)
@@ -615,19 +617,19 @@ describe Bosh::OpenStackCloud::Cloud, 'create_vm' do
   end
 
   context "when security group doesn't exist" do
-    let(:openstack_security_groups) { [ double('foo-sec-group', id: 'foo-sec-group-id', name: 'foo') ] }
+    let(:openstack_security_groups) { [double('foo-sec-group', id: 'foo-sec-group-id', name: 'foo')] }
 
     it 'raises an error' do
       allow(cloud.network).to receive(:security_groups).and_return(openstack_security_groups)
 
       expect {
-        cloud.create_vm('agent-id', 'sc-id', resource_pool_spec, { 'network_a' => dynamic_network_spec}, nil, environment)
+        cloud.create_vm('agent-id', 'sc-id', resource_pool_spec, { 'network_a' => dynamic_network_spec }, nil, environment)
       }.to raise_error(Bosh::Clouds::CloudError, "Security group `default' not found")
     end
   end
 
   it "raises an error when flavor doesn't have enough ephemeral disk capacity" do
-    flavor = double('flavor', :id => 'f-test', :name => 'm1.tiny', :ram => 1024, :ephemeral => 1)
+    flavor = double('flavor', id: 'f-test', name: 'm1.tiny', ram: 1024, ephemeral: 1)
     allow(cloud.compute.flavors).to receive(:find).and_return(flavor)
 
     expect {
@@ -636,8 +638,8 @@ describe Bosh::OpenStackCloud::Cloud, 'create_vm' do
   end
 
   describe '#select_availability_zone' do
-    let(:volume_foo_1) { double('volume', :availability_zone => 'foo') }
-    let(:volume_foo_2) { double('volume', :availability_zone => 'foo') }
+    let(:volume_foo_1) { double('volume', availability_zone: 'foo') }
+    let(:volume_foo_2) { double('volume', availability_zone: 'foo') }
 
     it 'should return nil when all values are nil' do
       expect(cloud.select_availability_zone(nil, nil)).to eq(nil)
@@ -676,8 +678,8 @@ describe Bosh::OpenStackCloud::Cloud, 'create_vm' do
   end
 
   describe 'failing to select an AZ' do
-    let(:volume_foo) { double('volume', :availability_zone => 'foo') }
-    let(:volume_bar) { double('volume', :availability_zone => 'bar') }
+    let(:volume_foo) { double('volume', availability_zone: 'foo') }
+    let(:volume_bar) { double('volume', availability_zone: 'bar') }
 
     it 'should raise an error when the disks are from different zones' do
       allow(cloud.volume.volumes).to receive(:get).and_return(volume_foo, volume_bar)
@@ -714,7 +716,7 @@ describe Bosh::OpenStackCloud::Cloud, 'create_vm' do
     it 'updates network settings to include use_dhcp as false' do
       expected_network_spec = dynamic_network_spec
       expected_network_spec['use_dhcp'] = false
-      expected_openstack_params = openstack_params({ 'network_a' => expected_network_spec })
+      expected_openstack_params = openstack_params('network_a' => expected_network_spec)
 
       cloud.create_vm('agent-id', 'sc-id', resource_pool_spec, { 'network_a' => dynamic_network_spec }, nil, environment)
       expect(cloud.compute.servers).to have_received(:create).with(expected_openstack_params)
@@ -724,8 +726,8 @@ describe Bosh::OpenStackCloud::Cloud, 'create_vm' do
   describe 'key_name configuration' do
     let(:resource_pool_spec_no_key) do
       {
-          'availability_zone' => 'foobar-1a',
-          'instance_type' => 'm1.tiny'
+        'availability_zone' => 'foobar-1a',
+        'instance_type' => 'm1.tiny',
       }
     end
 
@@ -840,12 +842,12 @@ describe Bosh::OpenStackCloud::Cloud, 'create_vm' do
 
   describe 'with loadbalancer pool' do
     let(:resource_pool_spec_with_lbaas_pools) do
-      resource_pool_spec.merge({
+      resource_pool_spec.merge(
         'loadbalancer_pools' => [
           { 'name' => 'my-pool-1', 'port' => 443 },
-          { 'name' => 'my-pool-2', 'port' => 8080 }
-        ]
-      })
+          { 'name' => 'my-pool-2', 'port' => 8080 },
+        ],
+      )
     end
 
     it 'creates as many loadbalancers as are listed in the manifest' do
@@ -854,11 +856,11 @@ describe Bosh::OpenStackCloud::Cloud, 'create_vm' do
 
       expect_any_instance_of(Bosh::OpenStackCloud::LoadbalancerConfigurator)
         .to receive(:add_vm_to_pool)
-        .with(server, network_spec, { 'name' => 'my-pool-1', 'port' => 443 })
+        .with(server, network_spec, 'name' => 'my-pool-1', 'port' => 443)
         .and_return(pool_membership)
       expect_any_instance_of(Bosh::OpenStackCloud::LoadbalancerConfigurator)
         .to receive(:add_vm_to_pool)
-        .with(server, network_spec, { 'name' => 'my-pool-2', 'port' => 8080 })
+        .with(server, network_spec, 'name' => 'my-pool-2', 'port' => 8080)
         .and_return(pool_membership)
 
       cloud.create_vm('agent-id', 'sc-id light', resource_pool_spec_with_lbaas_pools, network_spec, nil, environment)
@@ -893,32 +895,31 @@ describe Bosh::OpenStackCloud::Cloud, 'create_vm' do
 
     context 'when loadbalancer_pools are present' do
       let(:resource_pool_spec_with_lbaas_pools) do
-        resource_pool_spec.merge({
+        resource_pool_spec.merge(
           'loadbalancer_pools' => [
             { 'name' => 'my-pool-1', 'port' => 443 },
-            { 'name' => 'my-pool-2', 'port' => 8080 }
-          ]
-        })
+            { 'name' => 'my-pool-2', 'port' => 8080 },
+          ],
+        )
       end
 
       let(:loadbalancer_configurator) { instance_double(Bosh::OpenStackCloud::LoadbalancerConfigurator) }
 
       before(:each) do
         allow(Bosh::OpenStackCloud::LoadbalancerConfigurator).to receive(:new).and_return(loadbalancer_configurator)
-        allow(loadbalancer_configurator).to receive(:create_pool_memberships).and_return({
+        allow(loadbalancer_configurator).to receive(:create_pool_memberships).and_return(
           'lbaas_pool_1' => 'pool_id/membership_id',
-          'lbaas_pool_2' => 'pool_id/membership_id'
-        })
+          'lbaas_pool_2' => 'pool_id/membership_id',
+        )
         allow(Bosh::OpenStackCloud::TagManager).to receive(:tag_server)
       end
 
       it 'tags the vm with the lbaas pool and membership' do
         cloud.create_vm('agent-id', 'sc-id', resource_pool_spec_with_lbaas_pools, { 'network_a' => dynamic_network_spec }, nil, environment)
 
-        expect(Bosh::OpenStackCloud::TagManager).to have_received(:tag_server).with(server, {
-          'lbaas_pool_1' => 'pool_id/membership_id',
-          'lbaas_pool_2' => 'pool_id/membership_id'
-        })
+        expect(Bosh::OpenStackCloud::TagManager).to have_received(:tag_server).with(server,
+                                                                                    'lbaas_pool_1' => 'pool_id/membership_id',
+                                                                                    'lbaas_pool_2' => 'pool_id/membership_id')
       end
 
       context 'when tagging fails' do
@@ -931,10 +932,10 @@ describe Bosh::OpenStackCloud::Cloud, 'create_vm' do
             cloud.create_vm('agent-id', 'sc-id', resource_pool_spec_with_lbaas_pools, { 'network_a' => dynamic_network_spec }, nil, environment)
           }.to raise_error(Bosh::Clouds::CloudError)
           expect(server).to have_received(:destroy)
-          expect(loadbalancer_configurator).to have_received(:cleanup_memberships).with({
+          expect(loadbalancer_configurator).to have_received(:cleanup_memberships).with(
             'lbaas_pool_1' => 'pool_id/membership_id',
-            'lbaas_pool_2' => 'pool_id/membership_id'
-          })
+            'lbaas_pool_2' => 'pool_id/membership_id',
+          )
         end
       end
     end
@@ -943,7 +944,7 @@ describe Bosh::OpenStackCloud::Cloud, 'create_vm' do
   describe 'enable_auto_anti_affinity' do
     let(:environment) do
       {
-        'bosh' => { 'group' => 'fake-group' }
+        'bosh' => { 'group' => 'fake-group' },
       }
     end
 
@@ -981,21 +982,21 @@ describe Bosh::OpenStackCloud::Cloud, 'create_vm' do
         end
 
         it 'raises an cloud error' do
-          expect{
+          expect {
             cloud.create_vm('agent-id', 'sc-id', resource_pool_spec, { 'network_a' => dynamic_network_spec }, nil, environment)
           }.to raise_error(Bosh::Clouds::CloudError, "You have reached your quota for members in a server group for project '#{cloud.openstack.params[:openstack_tenant]}'. Please disable auto-anti-affinity server groups or increase your quota.")
         end
       end
 
-      context 'when the user specifies a server group'  do
-        let(:resource_pool_spec)  { { 'scheduler_hints' => { 'group' => 'fake-server-group-uuid' } } }
+      context 'when the user specifies a server group' do
+        let(:resource_pool_spec) { { 'scheduler_hints' => { 'group' => 'fake-server-group-uuid' } } }
 
         before(:each) do
           allow(Bosh::Clouds::Config.logger).to receive(:debug)
         end
 
         it 'uses the specified server group' do
-          cloud.create_vm('agent-id', 'sc-id', resource_pool_spec, { 'network_a' => dynamic_network_spec}, nil, environment)
+          cloud.create_vm('agent-id', 'sc-id', resource_pool_spec, { 'network_a' => dynamic_network_spec }, nil, environment)
 
           expect(Bosh::Clouds::Config.logger).to have_received(:debug).with("Won't create/use server group for bosh group 'fake-group'. Using provided server group with id 'fake-server-group-uuid'.")
           expect(Bosh::OpenStackCloud::ServerGroups).to_not have_received(:new)
@@ -1003,7 +1004,7 @@ describe Bosh::OpenStackCloud::Cloud, 'create_vm' do
       end
 
       context 'when the user specifies scheduler hints but no group' do
-        let(:resource_pool_spec)  { { 'scheduler_hints' => {'foo' => 'bar'}} }
+        let(:resource_pool_spec)  { { 'scheduler_hints' => { 'foo' => 'bar' } } }
 
         it "merges 'group' to the other hints" do
           cloud.create_vm('agent-id', 'sc-id', resource_pool_spec, { 'network_a' => dynamic_network_spec }, nil, environment)

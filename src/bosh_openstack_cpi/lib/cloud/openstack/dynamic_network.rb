@@ -2,7 +2,6 @@ module Bosh::OpenStackCloud
   ##
   # Represents OpenStack dynamic network: where IaaS sets VM's IP
   class DynamicNetwork < PrivateNetwork
-
     ##
     # Creates a new dynamic network
     #
@@ -12,9 +11,8 @@ module Bosh::OpenStackCloud
       super
     end
 
-    def prepare(openstack, security_group_ids)
+    def prepare(_openstack, _security_group_ids)
       cloud_error("Network with id '#{net_id}' is a dynamic network. VRRP is not supported for dynamic networks") if @allowed_address_pairs
     end
-
   end
 end

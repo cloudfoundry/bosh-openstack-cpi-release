@@ -13,19 +13,19 @@ describe Bosh::OpenStackCloud::SecurityGroups do
     context 'security group picking' do
       let(:security_groups) {
         [
-            double('default-security-group', name: 'default-security-group'),
-            double('network-spec-security-group', name: 'network-spec-security-group'),
-            double('resource-pool-spec-security-group', name: 'resource-pool-spec-security-group'),
+          double('default-security-group', name: 'default-security-group'),
+          double('network-spec-security-group', name: 'network-spec-security-group'),
+          double('resource-pool-spec-security-group', name: 'resource-pool-spec-security-group'),
         ]
       }
 
       context 'when security groups specified in resource pool spec' do
         it 'picks those' do
           picked_security_groups = Bosh::OpenStackCloud::SecurityGroups.select_and_retrieve(
-              openstack,
-              ['default-security-group'],
-              [],
-              ['resource-pool-spec-security-group']
+            openstack,
+            ['default-security-group'],
+            [],
+            ['resource-pool-spec-security-group'],
           )
           expect(picked_security_groups.size).to eq(1)
           expect(picked_security_groups.first.name).to eq('resource-pool-spec-security-group')
@@ -35,10 +35,10 @@ describe Bosh::OpenStackCloud::SecurityGroups do
       context 'when security groups specified in network spec' do
         it 'picks those' do
           picked_security_groups = Bosh::OpenStackCloud::SecurityGroups.select_and_retrieve(
-              openstack,
-              ['default-security-group'],
-              ['network-spec-security-group'],
-              []
+            openstack,
+            ['default-security-group'],
+            ['network-spec-security-group'],
+            [],
           )
           expect(picked_security_groups.size).to eq(1)
           expect(picked_security_groups.first.name).to eq('network-spec-security-group')
@@ -48,10 +48,10 @@ describe Bosh::OpenStackCloud::SecurityGroups do
       context 'when resource pool spec and network spec define security groups' do
         it 'picks the resource pool security groups' do
           picked_security_groups = Bosh::OpenStackCloud::SecurityGroups.select_and_retrieve(
-              openstack,
-              ['default security group'],
-              ['network-spec-security-group'],
-              ['resource-pool-spec-security-group']
+            openstack,
+            ['default security group'],
+            ['network-spec-security-group'],
+            ['resource-pool-spec-security-group'],
           )
           expect(picked_security_groups.size).to eq(1)
           expect(picked_security_groups.first.name).to eq('resource-pool-spec-security-group')
@@ -61,10 +61,10 @@ describe Bosh::OpenStackCloud::SecurityGroups do
       context 'when security groups are neither specified in network spec nor resource pool spec' do
         it 'picks the default security group' do
           picked_security_groups = Bosh::OpenStackCloud::SecurityGroups.select_and_retrieve(
-              openstack,
-              ['default-security-group'],
-              [],
-              []
+            openstack,
+            ['default-security-group'],
+            [],
+            [],
           )
           expect(picked_security_groups.size).to eq(1)
           expect(picked_security_groups.first.name).to eq('default-security-group')
@@ -72,17 +72,16 @@ describe Bosh::OpenStackCloud::SecurityGroups do
       end
     end
 
-
     context 'when a picked security group does not exist in openstack' do
       let(:security_groups) { [] }
 
       it 'raises an error' do
         expect {
           Bosh::OpenStackCloud::SecurityGroups.select_and_retrieve(
-              openstack,
-              ['default-security-group'],
-              [],
-              []
+            openstack,
+            ['default-security-group'],
+            [],
+            [],
           )
         }.to raise_error Bosh::Clouds::CloudError, "Security group `default-security-group' not found"
       end
@@ -93,16 +92,16 @@ describe Bosh::OpenStackCloud::SecurityGroups do
 
       let(:security_groups) {
         [
-            double('default-security-group', name: 'default-security-group')
+          double('default-security-group', name: 'default-security-group'),
         ]
       }
 
       it 'uses nova to retrieve the security groups' do
         Bosh::OpenStackCloud::SecurityGroups.select_and_retrieve(
-            openstack,
-            ['default-security-group'],
-            [],
-            []
+          openstack,
+          ['default-security-group'],
+          [],
+          [],
         )
 
         expect(compute).to have_received(:security_groups)
@@ -115,16 +114,16 @@ describe Bosh::OpenStackCloud::SecurityGroups do
 
       let(:security_groups) {
         [
-            double('default-security-group', name: 'default-security-group')
+          double('default-security-group', name: 'default-security-group'),
         ]
       }
 
       it 'uses neutron to retrieve the security groups' do
         Bosh::OpenStackCloud::SecurityGroups.select_and_retrieve(
-            openstack,
-            ['default-security-group'],
-            [],
-            []
+          openstack,
+          ['default-security-group'],
+          [],
+          [],
         )
 
         expect(network).to have_received(:security_groups)

@@ -7,18 +7,18 @@
 #                                {"default" => {"type" => "dynamic", "cloud_properties" => {"security_groups" => ["name" => "default"]}}},
 #                                [],
 #                                {"foo" =>"bar"})
-$LOAD_PATH.unshift File.expand_path('../../lib', __FILE__)
+$LOAD_PATH.unshift File.expand_path('../lib', __dir__)
 
-require "bosh_openstack_cpi"
-require "irb"
-require "irb/completion"
-require "ostruct"
-require "optparse"
+require 'bosh_openstack_cpi'
+require 'irb'
+require 'irb/completion'
+require 'ostruct'
+require 'optparse'
 
 config_file = nil
 
 opts_parser = OptionParser.new do |opts|
-  opts.on("-c", "--config FILE") { |file| config_file = file }
+  opts.on('-c', '--config FILE') { |file| config_file = file }
 end
 
 opts_parser.parse!
@@ -48,7 +48,7 @@ module ConsoleHelpers
   end
 end
 
-cloud_config = OpenStruct.new(:logger => Logger.new(STDOUT))
+cloud_config = OpenStruct.new(logger: Logger.new(STDOUT))
 
 Bosh::Clouds::Config.configure(cloud_config)
 
@@ -56,12 +56,12 @@ include ConsoleHelpers
 
 begin
   require 'ruby-debug'
-  puts "=> Debugger enabled"
+  puts '=> Debugger enabled'
 rescue LoadError
-  puts "=> ruby-debug not found, debugger disabled"
+  puts '=> ruby-debug not found, debugger disabled'
 end
 
-puts "=> Welcome to BOSH OpenStack CPI console"
+puts '=> Welcome to BOSH OpenStack CPI console'
 puts "You can use 'cpi' to access CPI methods"
 puts "You can use 'openstack' to access Fog::Compute::OpenStack methods"
 puts "You can use 'glance' to access Fog::Image::OpenStack methods"
