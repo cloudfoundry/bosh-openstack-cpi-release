@@ -610,7 +610,7 @@ describe Bosh::OpenStackCloud::Cloud do
       'agent-007',
       stemcell_id,
       { 'instance_type' => @config.instance_type,
-        'availability_zone' => @config.availability_zone},.merge(resource_pool),
+        'availability_zone' => @config.availability_zone}.merge(resource_pool),
       network_spec,
       disk_locality,
       environment,
