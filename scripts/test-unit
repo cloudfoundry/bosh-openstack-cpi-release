@@ -1,0 +1,8 @@
+#!/bin/bash
+
+"$(dirname $0)/install-git-hooks"
+
+pushd "$(dirname $0)/../src/bosh_openstack_cpi"
+  bundle install
+  bundle exec rspec spec/unit
+popd
