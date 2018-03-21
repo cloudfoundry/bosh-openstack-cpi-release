@@ -1,6 +1,5 @@
 module Bosh::OpenStackCloud
   class LoadbalancerConfigurator
-
     def initialize(openstack, logger)
       @openstack = openstack
       @logger = logger
@@ -8,26 +7,24 @@ module Bosh::OpenStackCloud
 
     def create_pool_memberships(server, network_spec, pools)
       pools
-        .map { |pool| add_vm_to_pool(server, network_spec, pool)}
+        .map { |pool| add_vm_to_pool(server, network_spec, pool) }
         .each_with_index
         .map do |membership, index|
-          ["lbaas_pool_#{index+1}", "#{membership.pool_id}/#{membership.membership_id}"]
+          ["lbaas_pool_#{index + 1}", "#{membership.pool_id}/#{membership.membership_id}"]
         end
         .to_h
     end
 
     def add_vm_to_pool(server, network_spec, pool_spec)
-      begin
-        validate_configuration(pool_spec)
-        openstack_pool_id = openstack_pool_id(pool_spec['name'])
-        ip = NetworkConfigurator.gateway_ip(network_spec, @openstack, server)
-        subnet_id = matching_subnet_id(network_spec, ip)
-        membership_id = create_membership(openstack_pool_id, ip, pool_spec['port'], subnet_id)
-        LoadbalancerPoolMembership.new(pool_spec['name'], pool_spec['port'], openstack_pool_id, membership_id)
-      rescue Bosh::Clouds::VMCreationFailed => e
-        message = "VM with id '#{server.id}' cannot be attached to load balancer pool '#{pool_spec['name']}'. Reason: #{e.message}"
-        raise Bosh::Clouds::VMCreationFailed.new(false), message
-      end
+      validate_configuration(pool_spec)
+      openstack_pool_id = openstack_pool_id(pool_spec['name'])
+      ip = NetworkConfigurator.gateway_ip(network_spec, @openstack, server)
+      subnet_id = matching_subnet_id(network_spec, ip)
+      membership_id = create_membership(openstack_pool_id, ip, pool_spec['port'], subnet_id)
+      LoadbalancerPoolMembership.new(pool_spec['name'], pool_spec['port'], openstack_pool_id, membership_id)
+    rescue Bosh::Clouds::VMCreationFailed => e
+      message = "VM with id '#{server.id}' cannot be attached to load balancer pool '#{pool_spec['name']}'. Reason: #{e.message}"
+      raise Bosh::Clouds::VMCreationFailed.new(false), message
     end
 
     def create_membership(pool_id, ip, port, subnet_id)
@@ -36,36 +33,36 @@ module Bosh::OpenStackCloud
         begin
           @logger.debug("Creating load balancer pool membership with pool id '#{pool_id}', ip '#{ip}', and port '#{port}'.")
           membership_id = retry_on_conflict_pending_update(pool_id) {
-            @openstack.network.create_lbaas_pool_member(pool_id, ip, port, {subnet_id: subnet_id}).body['member']['id']
+            @openstack.network.create_lbaas_pool_member(pool_id, ip, port, subnet_id: subnet_id).body['member']['id']
           }
         rescue Excon::Error::Conflict => e
           membership_id =
             @openstack
-              .network
-              .list_lbaas_pool_members(pool_id)
-              .body.fetch('members', [])
-              .detect(
-                  raise_if_not_found(pool_id, ip, port),
-                  &matching_member(ip, port, subnet_id)
-              )
-              .fetch('id')
+            .network
+            .list_lbaas_pool_members(pool_id)
+            .body.fetch('members', [])
+            .detect(
+              raise_if_not_found(pool_id, ip, port),
+              &matching_member(ip, port, subnet_id)
+            )
+            .fetch('id')
 
           @logger.info("Load balancer pool membership with pool id '#{pool_id}', ip '#{ip}', and port '#{port}' already exists. The membership has the id '#{membership_id}'.")
         rescue LoadBalancerResource::NotFound, LoadBalancerResource::NotSupportedConfiguration => e
           raise Bosh::Clouds::VMCreationFailed.new(false), e.message
-        rescue => e
-          raise Bosh::Clouds::CloudError, "Creating load balancer pool membership with pool_id '#{pool_id}' and membership_id '#{membership_id}' failed. Reason: #{e.class.to_s} #{e.message}"
+        rescue StandardError => e
+          raise Bosh::Clouds::CloudError, "Creating load balancer pool membership with pool_id '#{pool_id}' and membership_id '#{membership_id}' failed. Reason: #{e.class} #{e.message}"
         end
         membership_id
       end
     end
 
     def raise_if_not_found(pool_id, ip, port)
-      lambda { raise Bosh::Clouds::CloudError, "Load balancer pool membership with pool id '#{pool_id}', ip '#{ip}', and port '#{port}' supposedly exists, but cannot be found." }
+      -> { raise Bosh::Clouds::CloudError, "Load balancer pool membership with pool id '#{pool_id}', ip '#{ip}', and port '#{port}' supposedly exists, but cannot be found." }
     end
 
     def matching_member(ip, port, subnet_id)
-      lambda { |member| member['address'] == ip && member['protocol_port'] == port && member['subnet_id'] == subnet_id }
+      ->(member) { member['address'] == ip && member['protocol_port'] == port && member['subnet_id'] == subnet_id }
     end
 
     def cleanup_memberships(server_metadata)
@@ -86,8 +83,8 @@ module Bosh::OpenStackCloud
           @logger.debug("Skipping deletion of load balancer pool membership. Member with pool_id '#{pool_id}' and membership_id '#{membership_id}' does not exist.")
         rescue LoadBalancerResource::NotFound => e
           @logger.debug("Skipping deletion of load balancer pool membership because load balancer resource cannot be found. #{e.message}")
-        rescue => e
-          raise Bosh::Clouds::CloudError, "Deleting load balancer pool membership with pool_id '#{pool_id}' and membership_id '#{membership_id}' failed. Reason: #{e.class.to_s} #{e.message}"
+        rescue StandardError => e
+          raise Bosh::Clouds::CloudError, "Deleting load balancer pool membership with pool_id '#{pool_id}' and membership_id '#{membership_id}' failed. Reason: #{e.class} #{e.message}"
         end
       end
     end
@@ -127,10 +124,10 @@ module Bosh::OpenStackCloud
         begin
           pool_response = @openstack.network.get_lbaas_pool(pool_id)
           loadbalancers = pool_response.body['pool']['loadbalancers'] ||
-              retrieve_loadbalancers_via_listener(
-                  pool_response.body['pool']['listeners'],
-                  pool_id
-              )
+                          retrieve_loadbalancers_via_listener(
+                            pool_response.body['pool']['listeners'],
+                            pool_id,
+                          )
           extract_loadbalancer_id(loadbalancers, pool_id)
         rescue Fog::Network::OpenStack::NotFound => e
           raise LoadBalancerResource::NotFound, "Load balancer ID could not be determined because pool with ID '#{pool_id}' was not found. Reason: #{e.message}"
@@ -147,7 +144,7 @@ module Bosh::OpenStackCloud
         raise LoadBalancerResource::NotSupportedConfiguration, "More than one listener is associated with load balancer pool '#{pool_id}'. It is not possible to verify the status of the load balancer responsible for the pool membership."
       end
 
-      listener_response = @openstack.with_openstack{ @openstack.network.get_lbaas_listener(listeners[0]['id']) }
+      listener_response = @openstack.with_openstack { @openstack.network.get_lbaas_listener(listeners[0]['id']) }
       listener_response.body['listener']['loadbalancers']
     end
 
@@ -173,9 +170,7 @@ module Bosh::OpenStackCloud
     end
 
     def validate_configuration(pool_spec)
-      unless pool_spec['name']
-        raise Bosh::Clouds::VMCreationFailed.new(false), 'Load balancer pool defined without a name'
-      end
+      raise Bosh::Clouds::VMCreationFailed.new(false), 'Load balancer pool defined without a name' unless pool_spec['name']
 
       unless pool_spec['port']
         raise Bosh::Clouds::VMCreationFailed.new(false), "Load balancer pool '#{pool_spec['name']}' has no port definition"
@@ -195,7 +190,7 @@ module Bosh::OpenStackCloud
 
     def openstack_pool_id(pool_name)
       pools = @openstack.with_openstack {
-        @openstack.network.list_lbaas_pools({ 'name' => pool_name }).body['pools']
+        @openstack.network.list_lbaas_pools('name' => pool_name).body['pools']
       }
 
       if pools.empty?
@@ -227,4 +222,3 @@ module Bosh::OpenStackCloud
     end
   end
 end
-

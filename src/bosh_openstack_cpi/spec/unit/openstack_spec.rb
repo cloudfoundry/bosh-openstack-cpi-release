@@ -45,7 +45,6 @@ describe Bosh::OpenStackCloud::Openstack do
       end
 
       context 'when auth_url is v3' do
-
         let(:openstack_options) { openstack_options_v3 }
         before do
           openstack_options_v3['auth_url'] = 'http://fake-auth-url/v3/auth/tokens'
@@ -80,7 +79,7 @@ describe Bosh::OpenStackCloud::Openstack do
         it 'set the default instrumentor' do
           openstack = Bosh::OpenStackCloud::Openstack.new(openstack_options, {}, {})
 
-          expect(openstack.params[:connection_options].has_key?('instrumentor')).to be(false)
+          expect(openstack.params[:connection_options].key?('instrumentor')).to be(false)
         end
       end
     end
@@ -118,21 +117,20 @@ describe Bosh::OpenStackCloud::Openstack do
         expect {
           Bosh::OpenStackCloud::Openstack.new(openstack_options).network
         }.to raise_error(Bosh::Clouds::CloudError,
-            'Unable to connect to the OpenStack Network Service API: Not found message. Check task debug log for details.')
+                         'Unable to connect to the OpenStack Network Service API: Not found message. Check task debug log for details.')
       end
     end
   end
 
-  [{clazz: Fog::Compute, name: 'Compute', method_name: :compute},
-      {clazz: Fog::Image::OpenStack::V2, name: 'Image', method_name: :image},
-      {clazz: Fog::Volume::OpenStack::V2, name: 'Volume', method_name: :volume},
-      {clazz: Fog::Network, name: 'Network', method_name: :network}
-  ].each do |fog|
-    describe "#{fog[:name]}" do
-
-      let(:retry_options_overwrites){ {
-        sleep: 0
-      } }
+  [{ clazz: Fog::Compute, name: 'Compute', method_name: :compute },
+   { clazz: Fog::Image::OpenStack::V2, name: 'Image', method_name: :image },
+   { clazz: Fog::Volume::OpenStack::V2, name: 'Volume', method_name: :volume },
+   { clazz: Fog::Network, name: 'Network', method_name: :network }].each do |fog|
+    describe (fog[:name]).to_s do
+      let(:retry_options_overwrites) {
+        {
+          sleep: 0,
+        } }
 
       context 'when the service returns Unauthorized' do
         it 'raises a CloudError exception if cannot connect to the service API 5 times' do
@@ -140,7 +138,7 @@ describe Bosh::OpenStackCloud::Openstack do
           expect {
             Bosh::OpenStackCloud::Openstack.new(openstack_options, retry_options_overwrites).send(fog[:method_name])
           }.to raise_error(Bosh::Clouds::CloudError,
-              "Unable to connect to the OpenStack #{fog[:name]} Service API: Unauthorized. Check task debug log for details.")
+                           "Unable to connect to the OpenStack #{fog[:name]} Service API: Unauthorized. Check task debug log for details.")
         end
       end
 
@@ -158,9 +156,9 @@ describe Bosh::OpenStackCloud::Openstack do
       end
 
       context 'with connection options' do
-        let(:connection_options) { {'ssl_verify_peer' => false} }
+        let(:connection_options) { { 'ssl_verify_peer' => false } }
         let(:default_connection_options) {
-          {"instrumentor" => Bosh::OpenStackCloud::ExconLoggingInstrumentor}
+          { 'instrumentor' => Bosh::OpenStackCloud::ExconLoggingInstrumentor }
         }
         let(:merged_connection_options) {
           default_connection_options.merge(connection_options)
@@ -188,7 +186,6 @@ describe Bosh::OpenStackCloud::Openstack do
       end
 
       context 'when keystone V2 API is used' do
-
         it 'should add optional options to the Fog connection' do
           allow(fog[:clazz]).to receive(:new).and_return(instance_double(fog[:clazz]))
           Bosh::OpenStackCloud::Openstack.new(openstack_options).send(fog[:method_name])
@@ -198,20 +195,18 @@ describe Bosh::OpenStackCloud::Openstack do
       end
 
       context 'when last retry succeeds' do
-
         before do
           retry_count = 0
           allow(fog[:clazz]).to receive(:new) do
             retry_count += 1
             if retry_count < Bosh::OpenStackCloud::Cloud::CONNECT_RETRY_COUNT
-              raise Excon::Error::GatewayTimeout.new('Gateway Timeout')
+              raise Excon::Error::GatewayTimeout, 'Gateway Timeout'
             end
             instance_double(fog[:clazz])
           end
         end
 
         it 'does not raise a GatewayTimeout error' do
-
           expect {
             Bosh::OpenStackCloud::Openstack.new(openstack_options)
           }.to_not raise_error
@@ -219,7 +214,6 @@ describe Bosh::OpenStackCloud::Openstack do
       end
 
       context 'when used multiple times' do
-
         it 'creates the connection lazy and caches it' do
           expect(fog[:clazz]).to receive(:new).once.and_return(instance_double(fog[:clazz]))
           openstack = Bosh::OpenStackCloud::Openstack.new(openstack_options)
@@ -233,7 +227,6 @@ describe Bosh::OpenStackCloud::Openstack do
     end
   end
 
-
   describe 'wait_resource' do
     let(:resource) { double('resource', id: 'foobar', reload: {}) }
     before { allow(resource).to receive(:status).and_return(:start, :stop) }
@@ -241,14 +234,14 @@ describe Bosh::OpenStackCloud::Openstack do
 
     it 'does not raise if one of the target states is reached' do
       expect {
-        subject.wait_resource(resource, [:stop, :deleted], :status, false)
+        subject.wait_resource(resource, %i[stop deleted], :status, false)
       }.to_not raise_error
     end
 
     it 'waits for configured amount of time' do
       expect(subject).to receive(:sleep).with(3)
 
-      subject.wait_resource(resource, [:stop, :deleted], :status, false)
+      subject.wait_resource(resource, %i[stop deleted], :status, false)
     end
 
     context 'when the resource status never changes' do
@@ -289,7 +282,7 @@ describe Bosh::OpenStackCloud::Openstack do
       end
 
       context 'when additional fault is provided by OpenStack' do
-        let(:resource) { double('resource', id: 'foobar', reload: {}, fault: {'message' => 'fault message ', 'details' => 'fault details'}) }
+        let(:resource) { double('resource', id: 'foobar', reload: {}, fault: { 'message' => 'fault message ', 'details' => 'fault details' }) }
 
         it 'raises Bosh::Clouds::CloudError' do
           expect {
@@ -320,7 +313,7 @@ describe Bosh::OpenStackCloud::Openstack do
       end
 
       context 'when additional fault is provided by OpenStack' do
-        let(:resource) { double('resource', id: 'foobar', reload: {}, fault: {'message' => 'fault message ', 'details' => 'fault details'}) }
+        let(:resource) { double('resource', id: 'foobar', reload: {}, fault: { 'message' => 'fault message ', 'details' => 'fault details' }) }
 
         it 'raises Bosh::Clouds::CloudError' do
           expect {
@@ -351,7 +344,7 @@ describe Bosh::OpenStackCloud::Openstack do
       end
 
       context 'when additional fault is provided by OpenStack' do
-        let(:resource) { double('resource', id: 'foobar', reload: {}, fault: {'message' => 'fault message ', 'details' => 'fault details'}) }
+        let(:resource) { double('resource', id: 'foobar', reload: {}, fault: { 'message' => 'fault message ', 'details' => 'fault details' }) }
 
         it 'raises Bosh::Clouds::CloudError' do
           expect {
@@ -400,7 +393,7 @@ describe Bosh::OpenStackCloud::Openstack do
           'overLimit' => {
             'message' => 'No server is available to handle this request.',
             'code' => 503,
-          }
+          },
         }
       end
       let(:response) { Excon::Response.new(body: JSON.dump(body), headers: headers) }
@@ -415,8 +408,8 @@ describe Bosh::OpenStackCloud::Openstack do
       end
 
       it 'retries until the max number of retries is reached' do
-        allow(subject).to receive(:servers).exactly(11).times.
-          and_raise(Excon::Error::ServiceUnavailable.new('', '', response))
+        allow(subject).to receive(:servers).exactly(11).times
+                                           .and_raise(Excon::Error::ServiceUnavailable.new('', '', response))
         expect(subject).to receive(:sleep).with(3).exactly(10).times
 
         expect {
@@ -424,8 +417,7 @@ describe Bosh::OpenStackCloud::Openstack do
             subject.servers
           end
         }.to raise_error(Bosh::Clouds::CloudError,
-          'OpenStack API Service Unavailable error. Check task debug log for details.')
-
+                         'OpenStack API Service Unavailable error. Check task debug log for details.')
       end
     end
 
@@ -436,8 +428,8 @@ describe Bosh::OpenStackCloud::Openstack do
           'overLimit' => {
             'message' => 'This request was rate-limited.',
             'code' => 413,
-            'details' => 'Only 10 POST request(s) can be made to * every minute.'
-          }
+            'details' => 'Only 10 POST request(s) can be made to * every minute.',
+          },
         }
       end
       let(:response) { Excon::Response.new(body: JSON.dump(body), headers: headers) }
@@ -460,8 +452,8 @@ describe Bosh::OpenStackCloud::Openstack do
       end
 
       it 'retries until the max number of retries is reached' do
-        allow(subject).to receive(:servers).exactly(11).times.
-          and_raise(Excon::Error::RequestEntityTooLarge.new('', '', response))
+        allow(subject).to receive(:servers).exactly(11).times
+                                           .and_raise(Excon::Error::RequestEntityTooLarge.new('', '', response))
         expect_any_instance_of(Kernel).to receive(:sleep).with(3).exactly(10).times
 
         expect {
@@ -469,7 +461,7 @@ describe Bosh::OpenStackCloud::Openstack do
             subject.servers
           end
         }.to raise_error(Bosh::Clouds::CloudError,
-          /OpenStack API Request Entity Too Large error:/)
+                         /OpenStack API Request Entity Too Large error:/)
       end
 
       context 'when the response includes a retryAfter in the body' do
@@ -497,15 +489,14 @@ describe Bosh::OpenStackCloud::Openstack do
       end
 
       context 'when OpenStack error message contains overLimit,' do
-
         let(:body) do
           {
             'overLimit' => {
               'message' => 'Specific OpenStack error message',
               'code' => 413,
               'details' => 'Only 10 POST request(s) can be made to * every minute.',
-              'retryAfter' => 0
-            }
+              'retryAfter' => 0,
+            },
           }
         end
 
@@ -523,15 +514,14 @@ describe Bosh::OpenStackCloud::Openstack do
       end
 
       context 'when OpenStack error message does not contain overLimit,' do
-
         let(:body) do
           {
-            "notOverLimit" => "arbitrary content"
+            'notOverLimit' => 'arbitrary content',
           }
         end
 
         it 'enriches the BOSH error message with the whole response body' do
-          expected_response_body = JSON.dump({"notOverLimit" => "arbitrary content"})
+          expected_response_body = JSON.dump('notOverLimit' => 'arbitrary content')
           expected_message = "OpenStack API Request Entity Too Large error: #{expected_response_body}\nCheck task debug log for details."
 
           expect {
@@ -544,7 +534,6 @@ describe Bosh::OpenStackCloud::Openstack do
     end
 
     context 'when openstack raises BadRequest' do
-
       before do
         response = Excon::Response.new(body: body)
         expect(subject).to receive(:servers).and_raise(Excon::Error::BadRequest.new('', '', response))
@@ -553,7 +542,7 @@ describe Bosh::OpenStackCloud::Openstack do
       let(:body) { JSON.dump({}) }
 
       context 'when the error includes a `message` property on 2nd level of body' do
-        let(:body) { JSON.dump('SomeError' => {'message' => 'some-message'}) }
+        let(:body) { JSON.dump('SomeError' => { 'message' => 'some-message' }) }
 
         it 'should raise a CloudError exception with OpenStack API message' do
           expect {
@@ -561,12 +550,12 @@ describe Bosh::OpenStackCloud::Openstack do
               subject.servers
             end
           }.to raise_error(Bosh::Clouds::CloudError,
-            'OpenStack API Bad Request (some-message). Check task debug log for details.')
+                           'OpenStack API Bad Request (some-message). Check task debug log for details.')
         end
       end
 
       context 'when the error does not include a message' do
-        let(:body) { JSON.dump('SomeError' => {'some_key' => 'some_val'}) }
+        let(:body) { JSON.dump('SomeError' => { 'some_key' => 'some_val' }) }
 
         it 'should raise a CloudError exception with OpenStack API message without anything from body' do
           expect {
@@ -574,7 +563,7 @@ describe Bosh::OpenStackCloud::Openstack do
               subject.servers
             end
           }.to raise_error(Bosh::Clouds::CloudError,
-            'OpenStack API Bad Request. Check task debug log for details.')
+                           'OpenStack API Bad Request. Check task debug log for details.')
         end
       end
 
@@ -587,7 +576,7 @@ describe Bosh::OpenStackCloud::Openstack do
               subject.servers
             end
           }.to raise_error(Bosh::Clouds::CloudError,
-            'OpenStack API Bad Request. Check task debug log for details.')
+                           'OpenStack API Bad Request. Check task debug log for details.')
         end
       end
     end
@@ -601,7 +590,7 @@ describe Bosh::OpenStackCloud::Openstack do
       let(:body) { JSON.dump({}) }
 
       context 'when the error includes a `message` property on 2nd level of body' do
-        let(:body) { JSON.dump('SomeError' => {'message' => 'some-message'}) }
+        let(:body) { JSON.dump('SomeError' => { 'message' => 'some-message' }) }
 
         it 'should raise a CloudError exception with OpenStack API message' do
           expect {
@@ -609,12 +598,12 @@ describe Bosh::OpenStackCloud::Openstack do
               subject.servers
             end
           }.to raise_error(Bosh::Clouds::CloudError,
-            'OpenStack API Conflict (some-message). Check task debug log for details.')
+                           'OpenStack API Conflict (some-message). Check task debug log for details.')
         end
       end
 
       context 'when the error does not include a message' do
-        let(:body) { JSON.dump('SomeError' => {'some_key' => 'some_val'}) }
+        let(:body) { JSON.dump('SomeError' => { 'some_key' => 'some_val' }) }
 
         it 'should raise a CloudError exception with OpenStack API message without anything from body' do
           expect {
@@ -622,7 +611,7 @@ describe Bosh::OpenStackCloud::Openstack do
               subject.servers
             end
           }.to raise_error(Bosh::Clouds::CloudError,
-            'OpenStack API Conflict. Check task debug log for details.')
+                           'OpenStack API Conflict. Check task debug log for details.')
         end
       end
 
@@ -635,7 +624,7 @@ describe Bosh::OpenStackCloud::Openstack do
               subject.servers
             end
           }.to raise_error(Bosh::Clouds::CloudError,
-            'OpenStack API Conflict. Check task debug log for details.')
+                           'OpenStack API Conflict. Check task debug log for details.')
         end
       end
     end
@@ -643,7 +632,7 @@ describe Bosh::OpenStackCloud::Openstack do
     context 'when openstack raises InternalServerError' do
       it 'should retry the max number of retries before raising a CloudError exception' do
         expect(subject).to receive(:servers).exactly(11)
-          .and_raise(Excon::Error::InternalServerError.new('InternalServerError'))
+                                            .and_raise(Excon::Error::InternalServerError.new('InternalServerError'))
         expect_any_instance_of(Kernel).to receive(:sleep).with(3).exactly(10)
 
         expect {
@@ -651,7 +640,7 @@ describe Bosh::OpenStackCloud::Openstack do
             subject.servers
           end
         }.to raise_error(Bosh::Clouds::CloudError,
-          'OpenStack API Internal Server error. Check task debug log for details.')
+                         'OpenStack API Internal Server error. Check task debug log for details.')
       end
     end
 
@@ -662,12 +651,11 @@ describe Bosh::OpenStackCloud::Openstack do
         expect {
           subject.with_openstack { raise Fog::Errors::NotFound, openstack_error_message }
         }.to raise_error(Bosh::Clouds::CloudError,
-          "OpenStack API service not found error: #{openstack_error_message}\nCheck task debug log for details.")
+                         "OpenStack API service not found error: #{openstack_error_message}\nCheck task debug log for details.")
       end
     end
 
     context 'when openstack raises Forbidden' do
-
       before do
         response = Excon::Response.new(body: body)
         expect(subject).to receive(:servers).and_raise(Excon::Error::Forbidden.new('', '', response))
@@ -676,7 +664,7 @@ describe Bosh::OpenStackCloud::Openstack do
       let(:body) { JSON.dump({}) }
 
       context 'when the error includes a `message` property on 2nd level of body' do
-        let(:body) { JSON.dump('Forbidden' => {'message' => 'some-message'}) }
+        let(:body) { JSON.dump('Forbidden' => { 'message' => 'some-message' }) }
 
         it 'should raise a CloudError exception with OpenStack API message' do
           expect {
@@ -684,12 +672,12 @@ describe Bosh::OpenStackCloud::Openstack do
               subject.servers
             end
           }.to raise_error(Bosh::Clouds::CloudError,
-              'OpenStack API Forbidden (some-message). Check task debug log for details.')
+                           'OpenStack API Forbidden (some-message). Check task debug log for details.')
         end
       end
 
       context 'when the error does not include a message' do
-        let(:body) { JSON.dump('SomeError' => {'some_key' => 'some_val'}) }
+        let(:body) { JSON.dump('SomeError' => { 'some_key' => 'some_val' }) }
 
         it 'should raise a CloudError exception with OpenStack API message without anything from body' do
           expect {
@@ -697,7 +685,7 @@ describe Bosh::OpenStackCloud::Openstack do
               subject.servers
             end
           }.to raise_error(Bosh::Clouds::CloudError,
-              'OpenStack API Forbidden. Check task debug log for details.')
+                           'OpenStack API Forbidden. Check task debug log for details.')
         end
       end
 
@@ -710,7 +698,7 @@ describe Bosh::OpenStackCloud::Openstack do
               subject.servers
             end
           }.to raise_error(Bosh::Clouds::CloudError,
-              'OpenStack API Forbidden. Check task debug log for details.')
+                           'OpenStack API Forbidden. Check task debug log for details.')
         end
       end
     end
@@ -718,43 +706,43 @@ describe Bosh::OpenStackCloud::Openstack do
 
   describe 'parse_openstack_response' do
     it 'should return nil if response has no body' do
-      response = Excon::Response.new()
+      response = Excon::Response.new
 
       expect(subject.parse_openstack_response(response, 'key')).to be_nil
     end
 
     it 'should return nil if response has an empty string body' do
-      response = Excon::Response.new(:body => JSON.dump(''))
+      response = Excon::Response.new(body: JSON.dump(''))
 
       expect(subject.parse_openstack_response(response, 'key')).to be_nil
     end
 
     it 'should return nil if response has a nil body' do
-      response = Excon::Response.new(:body => JSON.dump(nil))
+      response = Excon::Response.new(body: JSON.dump(nil))
 
       expect(subject.parse_openstack_response(response, 'key')).to be_nil
     end
 
     it 'should return nil if response is not JSON' do
-      response = Excon::Response.new(:body => 'foo = bar')
+      response = Excon::Response.new(body: 'foo = bar')
 
       expect(subject.parse_openstack_response(response, 'key')).to be_nil
     end
 
     it 'should return nil if response is no key is found' do
-      response = Excon::Response.new(:body => JSON.dump({'foo' => 'bar'}))
+      response = Excon::Response.new(body: JSON.dump('foo' => 'bar'))
 
       expect(subject.parse_openstack_response(response, 'key')).to be_nil
     end
 
     it 'should return the contents if key is found' do
-      response = Excon::Response.new(:body => JSON.dump({'key' => 'foo'}))
+      response = Excon::Response.new(body: JSON.dump('key' => 'foo'))
 
       expect(subject.parse_openstack_response(response, 'key')).to eql('foo')
     end
 
     it 'should return the contents of the first key found' do
-      response = Excon::Response.new(:body => JSON.dump({'key1' => 'foo', 'key2' => 'bar'}))
+      response = Excon::Response.new(body: JSON.dump('key1' => 'foo', 'key2' => 'bar'))
 
       expect(subject.parse_openstack_response(response, 'key2', 'key1')).to eql('bar')
     end

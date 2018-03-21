@@ -1,7 +1,7 @@
 require 'spec_helper'
 
 describe Bosh::OpenStackCloud::Cloud do
-  let(:disk) { double('disk', :id => 'i-foobar', :metadata => double('metadata')) }
+  let(:disk) { double('disk', id: 'i-foobar', metadata: double('metadata')) }
   let(:metadata) { { 'deployment' => 'deployment-x' } }
 
   context 'when disk exists' do
@@ -14,7 +14,7 @@ describe Bosh::OpenStackCloud::Cloud do
 
     it 'should tag with given metadata' do
       @cloud.set_disk_metadata('i-foobar', metadata)
-      expect(@cloud.volume).to have_received(:update_metadata).with('i-foobar', {'deployment' => 'deployment-x'})
+      expect(@cloud.volume).to have_received(:update_metadata).with('i-foobar', 'deployment' => 'deployment-x')
     end
   end
 

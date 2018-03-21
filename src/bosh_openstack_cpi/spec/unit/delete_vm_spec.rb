@@ -1,18 +1,17 @@
 require 'spec_helper'
 
 describe Bosh::OpenStackCloud::Cloud do
-
   let(:registry_key) { 'vm-registry-key' }
 
   let(:server_metadata) do
     [
-      double('metadatum', :key => 'lbaas_pool_0', :value => 'pool-id-0/membership-id-0'),
-      double('metadatum', :key => 'job', :value => 'bosh'),
-      double('metadatum', key: 'registry_key', value: registry_key)
+      double('metadatum', key: 'lbaas_pool_0', value: 'pool-id-0/membership-id-0'),
+      double('metadatum', key: 'job', value: 'bosh'),
+      double('metadatum', key: 'registry_key', value: registry_key),
     ]
   end
 
-  let(:server) { double('server', :id => 'i-foobar', :name => 'i-foobar', :metadata => server_metadata) }
+  let(:server) { double('server', id: 'i-foobar', name: 'i-foobar', metadata: server_metadata) }
   let(:cloud) do
     mock_cloud do |fog|
       allow(fog.compute.servers).to receive(:get).with('i-foobar').and_return(server)
@@ -21,7 +20,7 @@ describe Bosh::OpenStackCloud::Cloud do
 
   let(:loadbalancer_configurator) { instance_double(Bosh::OpenStackCloud::LoadbalancerConfigurator) }
 
-  let(:server_groups) {instance_double(Bosh::OpenStackCloud::ServerGroups)}
+  let(:server_groups) { instance_double(Bosh::OpenStackCloud::ServerGroups) }
 
   before(:each) do
     @registry = mock_registry
@@ -47,7 +46,7 @@ describe Bosh::OpenStackCloud::Cloud do
     end
 
     it 'stops and raises' do
-      expect{
+      expect {
         cloud.delete_vm('i-foobar')
       }.to raise_error('BOOM!')
     end
@@ -75,14 +74,12 @@ describe Bosh::OpenStackCloud::Cloud do
     cloud.delete_vm('i-foobar')
 
     expect(loadbalancer_configurator).to have_received(:cleanup_memberships).with(
-      {
-        'lbaas_pool_0' => 'pool-id-0/membership-id-0',
-        'job' => 'bosh',
-        'registry_key' => 'vm-registry-key'
-      }
+      'lbaas_pool_0' => 'pool-id-0/membership-id-0',
+      'job' => 'bosh',
+      'registry_key' => 'vm-registry-key',
     ).ordered
     expect(server).to have_received(:destroy).ordered
-    expect(cloud.openstack).to have_received(:wait_resource).with(server, [:terminated, :deleted], :state, true).ordered
+    expect(cloud.openstack).to have_received(:wait_resource).with(server, %i[terminated deleted], :state, true).ordered
     expect(Bosh::OpenStackCloud::NetworkConfigurator).to have_received(:cleanup_ports).with(any_args, ['port_id']).ordered
     expect(@registry).to have_received(:delete_settings).with(registry_key)
   end
@@ -91,7 +88,7 @@ describe Bosh::OpenStackCloud::Cloud do
     cloud.delete_vm('i-foobar')
 
     expect(server).to have_received(:destroy).ordered
-    expect(cloud.openstack).to have_received(:wait_resource).with(server, [:terminated, :deleted], :state, true).ordered
+    expect(cloud.openstack).to have_received(:wait_resource).with(server, %i[terminated deleted], :state, true).ordered
     expect(server_groups).to have_received(:delete_if_no_members).ordered
   end
 
@@ -99,7 +96,7 @@ describe Bosh::OpenStackCloud::Cloud do
     it 'stops and raises' do
       allow(server).to receive(:destroy).and_raise('BOOM!')
 
-      expect{
+      expect {
         cloud.delete_vm('i-foobar')
       }.to raise_error('BOOM!')
     end
@@ -109,7 +106,7 @@ describe Bosh::OpenStackCloud::Cloud do
     it 'stops and raises' do
       allow(Bosh::OpenStackCloud::NetworkConfigurator).to receive(:port_ids).and_raise('BOOM!')
 
-      expect{
+      expect {
         cloud.delete_vm('i-foobar')
       }.to raise_error('BOOM!')
     end
@@ -125,11 +122,9 @@ describe Bosh::OpenStackCloud::Cloud do
 
       expect(@registry).to have_received(:delete_settings).with(registry_key)
       expect(loadbalancer_configurator).to have_received(:cleanup_memberships).with(
-        {
-          'lbaas_pool_0' => 'pool-id-0/membership-id-0',
-          'job' => 'bosh',
-          'registry_key' => 'vm-registry-key'
-        }
+        'lbaas_pool_0' => 'pool-id-0/membership-id-0',
+        'job' => 'bosh',
+        'registry_key' => 'vm-registry-key',
       )
     end
   end
@@ -138,33 +133,29 @@ describe Bosh::OpenStackCloud::Cloud do
     it 'does everything else and fails' do
       allow(loadbalancer_configurator).to receive(:cleanup_memberships).and_raise('BOOM!')
 
-      expect{
+      expect {
         cloud.delete_vm('i-foobar')
       }.to raise_error(/BOOM!/)
-
 
       expect(Bosh::OpenStackCloud::NetworkConfigurator).to have_received(:cleanup_ports).with(any_args, ['port_id'])
       expect(@registry).to have_received(:delete_settings).with(registry_key)
     end
   end
 
-
   context 'when port cleanup and LBaaS membership cleanup fails' do
     it 'fails with both errors, but deletes the registry settings' do
       allow(Bosh::OpenStackCloud::NetworkConfigurator).to receive(:cleanup_ports).and_raise('BOOM!')
       allow(loadbalancer_configurator).to receive(:cleanup_memberships).and_raise('BOOM!')
 
-      expect{
+      expect {
         cloud.delete_vm('i-foobar')
       }.to raise_error(Bosh::Clouds::CloudError)
 
       expect(Bosh::OpenStackCloud::NetworkConfigurator).to have_received(:cleanup_ports).with(any_args, ['port_id'])
       expect(loadbalancer_configurator).to have_received(:cleanup_memberships).with(
-        {
-          'lbaas_pool_0' => 'pool-id-0/membership-id-0',
-          'job' => 'bosh',
-          'registry_key' => 'vm-registry-key'
-        }
+        'lbaas_pool_0' => 'pool-id-0/membership-id-0',
+        'job' => 'bosh',
+        'registry_key' => 'vm-registry-key',
       )
       expect(@registry).to have_received(:delete_settings).with(registry_key)
     end
@@ -183,18 +174,17 @@ describe Bosh::OpenStackCloud::Cloud do
         Deleting registry settings: BOOM3!
       EOF
 
-      expect{
+      expect {
         cloud.delete_vm('i-foobar')
       }.to raise_error(Bosh::Clouds::CloudError, expected_error_msg.chomp)
     end
   end
 
   context 'when server is not tagged with `registry_key`' do
-
     let(:server_metadata) do
       [
-          double('metadatum', :key => 'lbaas_pool_0', :value => 'pool-id-0/membership-id-0'),
-          double('metadatum', :key => 'job', :value => 'bosh'),
+        double('metadatum', key: 'lbaas_pool_0', value: 'pool-id-0/membership-id-0'),
+        double('metadatum', key: 'job', value: 'bosh'),
       ]
     end
 

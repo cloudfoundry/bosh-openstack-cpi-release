@@ -16,9 +16,7 @@ module Bosh::OpenStackCloud
     #
     # @param [Hash] spec Raw network spec passed by director
     def initialize(spec, allowed_address_pairs = nil)
-      unless spec.is_a?(Hash)
-        raise ArgumentError, "Invalid spec, Hash expected, #{spec.class} provided"
-      end
+      raise ArgumentError, "Invalid spec, Hash expected, #{spec.class} provided" unless spec.is_a?(Hash)
 
       @network_spec = spec
       @logger = Bosh::Clouds::Config.logger
@@ -32,7 +30,7 @@ module Bosh::OpenStackCloud
         initialize_network(name, network_spec)
       end
 
-      cloud_error("At least one dynamic or manual network should be defined") if @networks.empty?
+      cloud_error('At least one dynamic or manual network should be defined') if @networks.empty?
       add_vrrp_ip_to_default_network(allowed_address_pairs) if allowed_address_pairs
     end
 
@@ -72,31 +70,31 @@ module Bosh::OpenStackCloud
       network_type = NetworkConfigurator.network_type(network_spec)
 
       case network_type
-        when "dynamic"
-          cloud_error("Only one dynamic network per instance should be defined") if @dynamic_network
-          net_id = NetworkConfigurator.extract_net_id(network_spec)
-          cloud_error("Dynamic network with id #{net_id} is already defined") if @net_ids.include?(net_id)
-          network = DynamicNetwork.new(name, network_spec)
-          @security_groups += extract_security_groups(network_spec)
-          @networks << network
-          @net_ids << net_id
-          @dynamic_network = network
-        when "manual"
-          net_id = NetworkConfigurator.extract_net_id(network_spec)
-          cloud_error("Manual network must have net_id") if net_id.nil?
-          cloud_error("Manual network with id #{net_id} is already defined") if @net_ids.include?(net_id)
-          network = ManualNetwork.new(name, network_spec)
-          @security_groups += extract_security_groups(network_spec)
-          @networks << network
-          @net_ids << net_id
-        when "vip"
-          cloud_error("Only one VIP network per instance should be defined") if @vip_network
-          @vip_network = VipNetwork.new(name, network_spec)
-          @security_groups += extract_security_groups(network_spec)
-        else
-          cloud_error("Invalid network type `#{network_type}': OpenStack " \
-                      "CPI can only handle `dynamic', 'manual' or `vip' " \
-                      "network types")
+      when 'dynamic'
+        cloud_error('Only one dynamic network per instance should be defined') if @dynamic_network
+        net_id = NetworkConfigurator.extract_net_id(network_spec)
+        cloud_error("Dynamic network with id #{net_id} is already defined") if @net_ids.include?(net_id)
+        network = DynamicNetwork.new(name, network_spec)
+        @security_groups += extract_security_groups(network_spec)
+        @networks << network
+        @net_ids << net_id
+        @dynamic_network = network
+      when 'manual'
+        net_id = NetworkConfigurator.extract_net_id(network_spec)
+        cloud_error('Manual network must have net_id') if net_id.nil?
+        cloud_error("Manual network with id #{net_id} is already defined") if @net_ids.include?(net_id)
+        network = ManualNetwork.new(name, network_spec)
+        @security_groups += extract_security_groups(network_spec)
+        @networks << network
+        @net_ids << net_id
+      when 'vip'
+        cloud_error('Only one VIP network per instance should be defined') if @vip_network
+        @vip_network = VipNetwork.new(name, network_spec)
+        @security_groups += extract_security_groups(network_spec)
+      else
+        cloud_error("Invalid network type `#{network_type}': OpenStack " \
+                    "CPI can only handle `dynamic', 'manual' or `vip' " \
+                    'network types')
       end
 
       @security_groups.uniq!
@@ -105,11 +103,11 @@ module Bosh::OpenStackCloud
     def self.get_gateway_network(network_spec)
       private_network_specs = private_network_specs(network_spec)
       spec = if private_network_specs.size == 1
-        private_network_specs.first
-      else
-        private_network_specs.select do |spec|
-          spec['defaults'] && spec['defaults'].include?('gateway')
-        end.first
+               private_network_specs.first
+             else
+               private_network_specs.select do |spec|
+                 spec['defaults']&.include?('gateway')
+               end.first
       end
       spec
     end
@@ -121,7 +119,7 @@ module Bosh::OpenStackCloud
 
     def self.matching_gateway_subnet_ids_for_ip(network_spec, openstack, ip)
       network_id = get_gateway_network_id(network_spec)
-      network_subnets = openstack.network.list_subnets({ 'network_id' => network_id }).body['subnets']
+      network_subnets = openstack.network.list_subnets('network_id' => network_id).body['subnets']
       network_subnets.select do |subnet|
         NetAddr::CIDR.create(subnet['cidr']).matches?(ip)
       end.map { |subnet| subnet['id'] }
@@ -139,7 +137,7 @@ module Bosh::OpenStackCloud
         end
 
         openstack.with_openstack {
-          return server.addresses.values.first.dig(0,'addr')
+          return server.addresses.values.first.dig(0, 'addr')
         }
       end
     end
@@ -155,9 +153,7 @@ module Bosh::OpenStackCloud
         network.configure(openstack, server)
       end
 
-      if @vip_network
-        @vip_network.configure(openstack, server, NetworkConfigurator.get_gateway_network_id(@network_spec))
-      end
+      @vip_network&.configure(openstack, server, NetworkConfigurator.get_gateway_network_id(@network_spec))
     end
 
     ##
@@ -165,7 +161,7 @@ module Bosh::OpenStackCloud
     #
     # @return [Array] security groups
     def security_groups
-        @security_groups.sort
+      @security_groups.sort
     end
 
     ##
@@ -173,19 +169,18 @@ module Bosh::OpenStackCloud
     #
     # @return [Array] nics
     def nics
-      @networks.inject([]) do |memo, network|
+      @networks.each_with_object([]) do |network, memo|
         nic = network.nic
         memo << nic if nic.any?
-        memo
       end
     end
 
     def self.port_ids(openstack, server_id)
       return [] if openstack.use_nova_networking?
       ports = openstack.with_openstack {
-        openstack.network.ports.all(:device_id => server_id)
+        openstack.network.ports.all(device_id: server_id)
       }
-      return ports.map { |port| port.id }
+      ports.map(&:id)
     end
 
     def self.cleanup_ports(openstack, port_ids)
@@ -202,6 +197,7 @@ module Bosh::OpenStackCloud
     end
 
     private
+
     def add_vrrp_ip_to_default_network(allowed_address_pairs)
       @networks.each do |network|
         network.allowed_address_pairs = allowed_address_pairs if default_network?(network)
@@ -219,7 +215,7 @@ module Bosh::OpenStackCloud
     end
 
     def self.private_network_specs(network_spec)
-      network_spec.values.select { |spec| spec['type'] != 'vip' }
+      network_spec.values.reject { |spec| spec['type'] == 'vip' }
     end
 
     def multiple_private_networks?
@@ -233,13 +229,11 @@ module Bosh::OpenStackCloud
     # @return [Array] security groups
     # @raise [ArgumentError] if the security groups in the network_spec is not an Array
     def extract_security_groups(network_spec)
-      if network_spec && network_spec["cloud_properties"]
-        cloud_properties = network_spec["cloud_properties"]
-        if cloud_properties && cloud_properties.has_key?("security_groups")
-          unless cloud_properties["security_groups"].is_a?(Array)
-            raise ArgumentError, "security groups must be an Array"
-          end
-          return cloud_properties["security_groups"]
+      if network_spec && network_spec['cloud_properties']
+        cloud_properties = network_spec['cloud_properties']
+        if cloud_properties&.key?('security_groups')
+          raise ArgumentError, 'security groups must be an Array' unless cloud_properties['security_groups'].is_a?(Array)
+          return cloud_properties['security_groups']
         end
       end
       []
@@ -251,11 +245,9 @@ module Bosh::OpenStackCloud
     # @param [Hash] network_spec Network specification
     # @return [Hash] network ID
     def self.extract_net_id(network_spec)
-      if network_spec && network_spec["cloud_properties"]
-        cloud_properties = network_spec["cloud_properties"]
-        if cloud_properties && cloud_properties.has_key?("net_id")
-          return cloud_properties["net_id"]
-        end
+      if network_spec && network_spec['cloud_properties']
+        cloud_properties = network_spec['cloud_properties']
+        return cloud_properties['net_id'] if cloud_properties&.key?('net_id')
       end
       nil
     end

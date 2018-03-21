@@ -34,10 +34,8 @@ module Bosh::OpenStackCloud
     end
 
     def self.get_port_id(openstack, server_id, network_id)
-      port = openstack.network.ports.all(:device_id => server_id, :network_id => network_id).first
-      unless port
-        cloud_error("Server has no port in network '#{network_id}'")
-      end
+      port = openstack.network.ports.all(device_id: server_id, network_id: network_id).first
+      cloud_error("Server has no port in network '#{network_id}'") unless port
       port.id
     end
 
@@ -45,7 +43,7 @@ module Bosh::OpenStackCloud
       floating_ips = openstack.network.list_floating_ips('floating_ip_address' => ip).body['floatingips']
       if floating_ips.length > 1
         cloud_error("Floating IP '#{ip}' found in multiple networks: #{floating_ips.map { |ip| "'#{ip['floating_network_id']}'" }.join(', ')}")
-      elsif floating_ips.length == 0
+      elsif floating_ips.empty?
         cloud_error("Floating IP '#{ip}' not allocated")
       end
       floating_ips.first
@@ -65,6 +63,5 @@ module Bosh::OpenStackCloud
         cloud_error("Floating IP #{ip} not allocated")
       end
     end
-
   end
 end

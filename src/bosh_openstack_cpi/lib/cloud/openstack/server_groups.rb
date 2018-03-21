@@ -2,7 +2,7 @@ module Bosh::OpenStackCloud
   class ServerGroups
     include Helpers
 
-    POLICY = 'soft-anti-affinity'
+    POLICY = 'soft-anti-affinity'.freeze
 
     def initialize(openstack)
       @openstack = openstack
@@ -28,7 +28,7 @@ module Bosh::OpenStackCloud
             end
             raise error
           rescue Excon::Error::BadRequest => error
-            if error.message.match(/Invalid input.*'soft-anti-affinity' is not one of/)
+            if error.message.match?(/Invalid input.*'soft-anti-affinity' is not one of/)
               message = "Auto-anti-affinity is only supported on OpenStack Mitaka or higher. Please upgrade or set 'openstack.enable_auto_anti_affinity=false'."
               cloud_error(message, error)
             end
@@ -42,9 +42,7 @@ module Bosh::OpenStackCloud
       @openstack.with_openstack do
         lock_by_file(bosh_group) do
           server_group = find(name(uuid, bosh_group))
-          if server_group&.members&.empty?
-            @openstack.compute.delete_server_group(server_group.id)
-          end
+          @openstack.compute.delete_server_group(server_group.id) if server_group&.members&.empty?
         end
       end
     end
@@ -66,7 +64,7 @@ module Bosh::OpenStackCloud
 
     def find(name)
       groups = @openstack.compute.server_groups.all
-      groups.find {|group| group.name == name && group.policies.include?(POLICY)}
+      groups.find { |group| group.name == name && group.policies.include?(POLICY) }
     end
   end
 end

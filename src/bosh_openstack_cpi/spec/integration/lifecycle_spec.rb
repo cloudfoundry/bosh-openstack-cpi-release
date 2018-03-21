@@ -5,10 +5,10 @@ describe Bosh::OpenStackCloud::Cloud do
   before(:all) do
     @config = IntegrationConfig.new
     @cpi_for_stemcell = @config.create_cpi
-    @stemcell_id, _ = upload_stemcell(@cpi_for_stemcell, @config.stemcell_path)
+    @stemcell_id, = upload_stemcell(@cpi_for_stemcell, @config.stemcell_path)
   end
   # @formatter:on
-  
+
   before { allow(Bosh::Clouds::Config).to receive(:logger).and_return(@config.logger) }
 
   after(:all) do
@@ -37,19 +37,19 @@ describe Bosh::OpenStackCloud::Cloud do
         'default' => {
           'type' => 'dynamic',
           'cloud_properties' => {
-            'net_id' => @config.net_id
-          }
-        }
+            'net_id' => @config.net_id,
+          },
+        },
       }
     end
 
     context 'without existing disks and with a floating ip' do
       let(:network_spec_with_vip_network) do
         {
-            'vip_network' => {
-                'type' => 'vip',
-                'ip' => @config.floating_ip
-            }
+          'vip_network' => {
+            'type' => 'vip',
+              'ip' => @config.floating_ip,
+          },
         }.merge(network_spec)
       end
 
@@ -95,9 +95,9 @@ describe Bosh::OpenStackCloud::Cloud do
           'type' => 'manual',
           'ip' => @config.manual_ip,
           'cloud_properties' => {
-            'net_id' => @config.net_id
-          }
-        }
+            'net_id' => @config.net_id,
+          },
+        },
       }
     end
 
@@ -110,7 +110,6 @@ describe Bosh::OpenStackCloud::Cloud do
     end
 
     context 'with existing disks' do
-
       before do
         @temp_vm_cid = create_vm(@stemcell_id, network_spec, [])
         @existing_volume_id = cpi.create_disk(2048, {}, @temp_vm_cid)
@@ -127,24 +126,23 @@ describe Bosh::OpenStackCloud::Cloud do
     end
 
     context 'with multiple networks and config_drive' do
-
       let(:multiple_network_spec) do
         {
           'network_1' => {
             'type' => 'manual',
             'ip' => @config.no_dhcp_manual_ip_1,
             'cloud_properties' => {
-              'net_id' => @config.net_id_no_dhcp_1
-            }
+              'net_id' => @config.net_id_no_dhcp_1,
+            },
           },
           'network_2' => {
             'type' => 'manual',
             'ip' => @config.no_dhcp_manual_ip_2,
             'cloud_properties' => {
-              'net_id' => @config.net_id_no_dhcp_2
+              'net_id' => @config.net_id_no_dhcp_2,
             },
-            'use_dhcp' => false
-          }
+            'use_dhcp' => false,
+          },
         }
       end
 
@@ -172,30 +170,29 @@ describe Bosh::OpenStackCloud::Cloud do
         expect(network_interface_1['OS-EXT-IPS-MAC:mac_addr']).to eq(registry_settings['networks']['network_1']['mac'])
         expect(network_interface_2['OS-EXT-IPS-MAC:mac_addr']).to eq(registry_settings['networks']['network_2']['mac'])
 
-        ports = openstack.network.ports.all(:device_id => @multiple_nics_vm_id)
+        ports = openstack.network.ports.all(device_id: @multiple_nics_vm_id)
         clean_up_vm(@multiple_nics_vm_id) if @multiple_nics_vm_id
         expect(ports.find { |port| openstack.network.ports.get port.id }).to be_nil
       end
 
       def where_ip_address_is(ip)
-        lambda { |network_interface| network_interface['addr'] == ip }
+        ->(network_interface) { network_interface['addr'] == ip }
       end
     end
 
     context 'with vrrp' do
-
-      before { @vm_with_vrrp_ip = create_vm(@stemcell_id, network_spec, [], {"allowed_address_pairs" =>  @config.allowed_address_pairs}) }
-      after { clean_up_vm(@vm_with_vrrp_ip) if@vm_with_vrrp_ip }
+      before { @vm_with_vrrp_ip = create_vm(@stemcell_id, network_spec, [], { 'allowed_address_pairs' => @config.allowed_address_pairs }) }
+      after { clean_up_vm(@vm_with_vrrp_ip) if @vm_with_vrrp_ip }
 
       it 'adds vrrp_ip as allowed_address_pairs' do
-        vrrp_port = openstack.network.ports.all(:fixed_ips => "ip_address=#{@config.manual_ip}")[0]
+        vrrp_port = openstack.network.ports.all(fixed_ips: "ip_address=#{@config.manual_ip}")[0]
         port_info = openstack.network.get_port(vrrp_port.id)
         expect(port_info).to be
 
-        allowed_address_pairs = port_info[:body]["port"]["allowed_address_pairs"]
+        allowed_address_pairs = port_info[:body]['port']['allowed_address_pairs']
         expect(allowed_address_pairs.size).not_to be_zero
 
-        assigned_allowed_address_pairs = allowed_address_pairs[0]["ip_address"]
+        assigned_allowed_address_pairs = allowed_address_pairs[0]['ip_address']
 
         expect(assigned_allowed_address_pairs).to eq(@config.allowed_address_pairs)
       end
@@ -210,9 +207,9 @@ describe Bosh::OpenStackCloud::Cloud do
           'type' => 'manual',
           'ip' => @config.manual_ip,
           'cloud_properties' => {
-            'net_id' => @config.net_id
-          }
-        }
+            'net_id' => @config.net_id,
+          },
+        },
       }
     end
 
@@ -233,21 +230,21 @@ describe Bosh::OpenStackCloud::Cloud do
       let(:boot_from_volume) { false }
 
       it 'creates a vm with boot_volume on /dev/vda' do
-        test_boot_volume({'boot_from_volume' => true})
+        test_boot_volume({ 'boot_from_volume' => true })
       end
     end
 
     context 'and flavor has root disk size 0' do
       let(:resource_pool) do
         {
-          'instance_type' => @config.instance_type_with_no_root_disk
+          'instance_type' => @config.instance_type_with_no_root_disk,
         }
       end
 
       context 'and root disk size given in manifest' do
         before do
           resource_pool['root_disk'] = {
-            'size' => 20
+            'size' => 20,
           }
         end
 
@@ -257,7 +254,6 @@ describe Bosh::OpenStackCloud::Cloud do
       end
 
       context 'and root disk size not given in manifest' do
-
         it 'raises an error' do
           expect {
             vm_lifecycle(@stemcell_id, network_spec, nil, {}, resource_pool)
@@ -275,9 +271,9 @@ describe Bosh::OpenStackCloud::Cloud do
         'default' => {
           'type' => 'dynamic',
           'cloud_properties' => {
-            'net_id' => @config.net_id
-          }
-        }
+            'net_id' => @config.net_id,
+          },
+        },
       }
     end
 
@@ -296,9 +292,9 @@ describe Bosh::OpenStackCloud::Cloud do
         'default' => {
           'type' => 'dynamic',
           'cloud_properties' => {
-            'net_id' => @config.net_id
-          }
-        }
+            'net_id' => @config.net_id,
+          },
+        },
       }
     end
 
@@ -316,13 +312,13 @@ describe Bosh::OpenStackCloud::Cloud do
           'type' => 'manual',
           'ip' => @config.manual_ip,
           'cloud_properties' => {
-            'net_id' => @config.net_id
-          }
+            'net_id' => @config.net_id,
+          },
         },
         'vip' => {
           'type' => 'vip',
           'ip' => '255.255.255.255',
-        }
+        },
       }
     end
 
@@ -334,8 +330,8 @@ describe Bosh::OpenStackCloud::Cloud do
 
     def no_port_remaining?(net_id, ip)
       openstack.network.ports
-        .select { |port| port.network_id == net_id }
-        .none? { |port| port.fixed_ips.detect { |ips| ips['ip_address'] == ip }}
+               .select { |port| port.network_id == net_id }
+               .none? { |port| port.fixed_ips.detect { |ips| ips['ip_address'] == ip } }
     end
 
     it 'cleans up vm' do
@@ -352,9 +348,9 @@ describe Bosh::OpenStackCloud::Cloud do
         'default' => {
           'type' => 'dynamic',
           'cloud_properties' => {
-            'net_id' => '00000000-0000-0000-0000-000000000000'
-          }
-        }
+            'net_id' => '00000000-0000-0000-0000-000000000000',
+          },
+        },
       }
       expect {
         create_vm(@stemcell_id, network_spec_with_wrong_net_id, [])
@@ -369,9 +365,9 @@ describe Bosh::OpenStackCloud::Cloud do
         'default' => {
           'type' => 'dynamic',
           'cloud_properties' => {
-            'net_id' => @config.net_id
-          }
-        }
+            'net_id' => @config.net_id,
+          },
+        },
       }
     end
 
@@ -380,7 +376,7 @@ describe Bosh::OpenStackCloud::Cloud do
 
       expect {
         @config.logger.info("Detaching disk vm_id=#{vm_id} disk_id=non-existing-disk")
-        cpi.detach_disk(vm_id, "non-existing-disk")
+        cpi.detach_disk(vm_id, 'non-existing-disk')
       }.to_not raise_error
 
       clean_up_vm(vm_id)
@@ -390,12 +386,12 @@ describe Bosh::OpenStackCloud::Cloud do
   describe 'use_nova_networking=true' do
     let(:network_spec) do
       {
-          'default' => {
-              'type' => 'dynamic',
-              'cloud_properties' => {
-                  'net_id' => @config.net_id
-              }
-          }
+        'default' => {
+          'type' => 'dynamic',
+            'cloud_properties' => {
+              'net_id' => @config.net_id,
+            },
+        },
       }
     end
 
@@ -412,12 +408,12 @@ describe Bosh::OpenStackCloud::Cloud do
   end
 
   describe 'light stemcell' do
-    let(:light_stemcell_id){ "#{@stemcell_id} light" }
+    let(:light_stemcell_id) { "#{@stemcell_id} light" }
 
     describe '#create_stemcell' do
       it 'returns the stemcell id with ` light` suffix' do
         cloud_properties = {
-          'image_id' => @stemcell_id
+          'image_id' => @stemcell_id,
         }
 
         expect(cpi.create_stemcell('not_relevant_path', cloud_properties)).to eq(light_stemcell_id)
@@ -426,10 +422,10 @@ describe Bosh::OpenStackCloud::Cloud do
       context 'when referenced image does not exist' do
         it 'raises an error' do
           cloud_properties = {
-            'image_id' => 'non-existing-id'
+            'image_id' => 'non-existing-id',
           }
 
-          expect{
+          expect {
             cpi.create_stemcell('not_relevant_path', cloud_properties)
           }.to raise_error Bosh::Clouds::CloudError
         end
@@ -442,9 +438,9 @@ describe Bosh::OpenStackCloud::Cloud do
           'default' => {
             'type' => 'dynamic',
             'cloud_properties' => {
-              'net_id' => @config.net_id
-            }
-          }
+              'net_id' => @config.net_id,
+            },
+          },
         }
       end
 
@@ -464,7 +460,7 @@ describe Bosh::OpenStackCloud::Cloud do
         'deployment' => 'my-deployment',
         'job' => 'my-job',
         'index' => 'my-index',
-        'some_key' => 'some_value'
+        'some_key' => 'some_value',
       }
     end
 
@@ -486,16 +482,14 @@ describe Bosh::OpenStackCloud::Cloud do
         'default' => {
           'type' => 'dynamic',
           'cloud_properties' => {
-            'net_id' => @config.net_id
-          }
-        }
+            'net_id' => @config.net_id,
+          },
+        },
       }
     end
 
     before(:all) do
-      unless @config.test_auto_anti_affinity
-        skip('Tests for auto-anti-affinity are not activated.')
-      end
+      skip('Tests for auto-anti-affinity are not activated.') unless @config.test_auto_anti_affinity
     end
 
     before(:each) do
@@ -535,9 +529,7 @@ describe Bosh::OpenStackCloud::Cloud do
 
   describe 'when using load balancer pool' do
     before(:all) do
-      unless @config.lbaas_pool_name
-        skip('No lbaas pool configured')
-      end
+      skip('No lbaas pool configured') unless @config.lbaas_pool_name
     end
 
     let(:network_spec) do
@@ -545,27 +537,27 @@ describe Bosh::OpenStackCloud::Cloud do
         'default' => {
           'type' => 'dynamic',
           'cloud_properties' => {
-            'net_id' => @config.net_id
-          }
-        }
+            'net_id' => @config.net_id,
+          },
+        },
       }
     end
 
     let(:resource_pool_spec_with_lbaas_pools) do
       {
         'loadbalancer_pools' => [
-          { 'name' => @config.lbaas_pool_name, 'port' => 4443 }
+          { 'name' => @config.lbaas_pool_name, 'port' => 4443 },
         ],
         'key_name' => @config.default_key_name,
         'availability_zone' => @config.availability_zone,
-        'instance_type' => @config.instance_type
+        'instance_type' => @config.instance_type,
       }
     end
 
     it 'exercises vm lifecycle' do
       vm_id = nil
 
-      expect{
+      expect {
         vm_id = create_vm(@stemcell_id, network_spec, [], resource_pool_spec_with_lbaas_pools)
       }.to_not raise_error
 
@@ -605,24 +597,23 @@ describe Bosh::OpenStackCloud::Cloud do
   rescue Exception => create_error
   ensure
     funcs = [
-      lambda { clean_up_disk(disk_id) },
-      lambda { clean_up_vm(vm_id) },
+      -> { clean_up_disk(disk_id) },
+      -> { clean_up_vm(vm_id) },
     ]
-    funcs.unshift(lambda { clean_up_disk_snapshot(disk_snapshot_id) }) unless @config.disable_snapshots
+    funcs.unshift(-> { clean_up_disk_snapshot(disk_snapshot_id) }) unless @config.disable_snapshots
     run_all_and_raise_any_errors(create_error, funcs)
   end
 
-  def create_vm(stemcell_id, network_spec, disk_locality, resource_pool = {}, environment = { 'bosh' => {  'group' => 'instance-group-1' } })
+  def create_vm(stemcell_id, network_spec, disk_locality, resource_pool = {}, environment = { 'bosh' => { 'group' => 'instance-group-1' } })
     @config.logger.info("Creating VM with stemcell_id=#{stemcell_id}")
     vm_id = cpi.create_vm(
       'agent-007',
       stemcell_id,
       { 'instance_type' => @config.instance_type,
-        'availability_zone' => @config.availability_zone
-      }.merge(resource_pool),
+        'availability_zone' => @config.availability_zone}.merge(resource_pool),
       network_spec,
       disk_locality,
-      environment
+      environment,
     )
     expect(vm_id).to be
 
@@ -662,13 +653,13 @@ describe Bosh::OpenStackCloud::Cloud do
   def create_disk_snapshot(disk_id)
     @config.logger.info("Creating disk snapshot disk_id=#{disk_id}")
     disk_snapshot_id = cpi.snapshot_disk(disk_id, {
-      :deployment => 'deployment',
-      :job => 'openstack_cpi_spec',
-      :index => '0',
-      :instance_id => 'instance',
-      :agent_id => 'agent',
-      :director_name => 'Director',
-      :director_uuid => '6d06b0cc-2c08-43c5-95be-f1b2dd247e18',
+      deployment: 'deployment',
+      job: 'openstack_cpi_spec',
+      index: '0',
+      instance_id: 'instance',
+      agent_id: 'agent',
+      director_name: 'Director',
+      director_uuid: '6d06b0cc-2c08-43c5-95be-f1b2dd247e18',
     })
     expect(disk_snapshot_id).to be
 

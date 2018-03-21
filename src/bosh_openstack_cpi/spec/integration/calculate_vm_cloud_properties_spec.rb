@@ -20,11 +20,11 @@ describe Bosh::OpenStackCloud::Cloud do
   let(:boot_from_volume) { false }
 
   it 'maps cloud agnostic VM properties to OpenStack-specific cloud_properties' do
-    cloud_props = cpi_for_cloud_props.calculate_vm_cloud_properties({
+    cloud_props = cpi_for_cloud_props.calculate_vm_cloud_properties(
       'ram' => 512,
       'cpu' => 1,
       'ephemeral_disk_size' => 2 * 1024,
-    })
+    )
 
     expect(cloud_props).to include('instance_type')
     instance_type = cloud_props['instance_type']
@@ -41,11 +41,11 @@ describe Bosh::OpenStackCloud::Cloud do
     let(:boot_from_volume) { true }
 
     it 'sets custom root disk size if no flavor has enough ephemeral disk' do
-      cloud_props = cpi_for_cloud_props.calculate_vm_cloud_properties({
+      cloud_props = cpi_for_cloud_props.calculate_vm_cloud_properties(
         'ram' => 512,
         'cpu' => 1,
-        'ephemeral_disk_size' => 10000 * 1024, # assumes no flavor has 10TB disks
-      })
+        'ephemeral_disk_size' => 10_000 * 1024, # assumes no flavor has 10TB disks
+      )
 
       expect(cloud_props).to include('instance_type')
       instance_type = cloud_props['instance_type']
@@ -58,7 +58,7 @@ describe Bosh::OpenStackCloud::Cloud do
 
       custom_root_disk = cloud_props['root_disk']
       expect(custom_root_disk).to_not be_nil
-      expect(custom_root_disk['size']).to be >= 10000
+      expect(custom_root_disk['size']).to be >= 10_000
     end
   end
 end

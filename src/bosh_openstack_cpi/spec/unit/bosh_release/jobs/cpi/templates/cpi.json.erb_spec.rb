@@ -27,7 +27,7 @@ describe 'cpi.json.erb' do
           'default_security_groups' => 'openstack.default_security_groups',
           'wait_resource_poll_interval' => 'openstack.wait_resource_poll_interval',
           'human_readable_vm_names' => false,
-          'ignore_server_availability_zone' => 'openstack.ignore_server_availability_zone'
+          'ignore_server_availability_zone' => 'openstack.ignore_server_availability_zone',
         },
         'blobstore' => {
           'provider' => 'local',
@@ -41,26 +41,26 @@ describe 'cpi.json.erb' do
         'nats' => {
           'address' => 'nats_address.example.com',
           'password' => 'nats-password',
-          'user' => 'nats-user'
+          'user' => 'nats-user',
         },
-      }
+      },
     }
   end
 
   it 'is able to render the erb given most basic manifest properties' do
-    expect(subject).to eq({
+    expect(subject).to eq(
       'cloud' => {
         'plugin' => 'openstack',
         'properties' => {
           'agent' => {
             'blobstore' => {
               'options' => {
-                'blobstore_path' => 'blobstore-local-path'
+                'blobstore_path' => 'blobstore-local-path',
               },
-              'provider' => 'local'
+              'provider' => 'local',
             },
             'mbus' => 'nats://nats-user:nats-password@nats_address.example.com:4222',
-            'ntp' => []
+            'ntp' => [],
           },
           'openstack' => {
             'api_key' => 'openstack.api_key',
@@ -79,17 +79,17 @@ describe 'cpi.json.erb' do
             'human_readable_vm_names' => false,
             'use_nova_networking' => false,
             'default_volume_type' => nil,
-            'enable_auto_anti_affinity' => false
+            'enable_auto_anti_affinity' => false,
           },
           'registry' => {
             'address' => 'registry.host',
             'endpoint' => 'http://registry.host:25777',
             'password' => 'registry.password',
-            'user' => 'registry.username'
-          }
-        }
-      }
-    })
+            'user' => 'registry.username',
+          },
+        },
+      },
+    )
   end
 
   context 'when using an s3 blobstore' do
@@ -97,34 +97,32 @@ describe 'cpi.json.erb' do
 
     context 'when provided a minimal configuration' do
       before do
-        manifest['properties']['blobstore'].merge!({
+        manifest['properties']['blobstore'].merge!(
           'provider' => 's3',
           'bucket_name' => 'my_bucket',
           'access_key_id' => 'blobstore-access-key-id',
           'secret_access_key' => 'blobstore-secret-access-key',
-        })
+        )
       end
 
       it 'renders the s3 provider section with the correct defaults' do
         expect(rendered_blobstore).to eq(
-          {
-            'provider' => 's3',
-            'options' => {
-              'bucket_name' => 'my_bucket',
-              'access_key_id' => 'blobstore-access-key-id',
-              'secret_access_key' => 'blobstore-secret-access-key',
-              'use_ssl' => true,
-              'ssl_verify_peer' => true,
-              'port' => 443,
-            }
-          }
+          'provider' => 's3',
+          'options' => {
+            'bucket_name' => 'my_bucket',
+            'access_key_id' => 'blobstore-access-key-id',
+            'secret_access_key' => 'blobstore-secret-access-key',
+            'use_ssl' => true,
+            'ssl_verify_peer' => true,
+            'port' => 443,
+          },
         )
       end
     end
 
     context 'when provided a maximal configuration' do
       before do
-        manifest['properties']['blobstore'].merge!({
+        manifest['properties']['blobstore'].merge!(
           'provider' => 's3',
           'bucket_name' => 'my_bucket',
           'access_key_id' => 'blobstore-access-key-id',
@@ -134,26 +132,24 @@ describe 'cpi.json.erb' do
           's3_port' => 21,
           'host' => 'blobstore-host',
           'ssl_verify_peer' => true,
-          's3_signature_version' => '11'
-        })
+          's3_signature_version' => '11',
+        )
       end
 
       it 'renders the s3 provider section correctly' do
         expect(rendered_blobstore).to eq(
-          {
-            'provider' => 's3',
-            'options' => {
-              'bucket_name' => 'my_bucket',
-              'access_key_id' => 'blobstore-access-key-id',
-              'secret_access_key' => 'blobstore-secret-access-key',
-              'region' => 'blobstore-region',
-              'use_ssl' => false,
-              'host' => 'blobstore-host',
-              'port' => 21,
-              'ssl_verify_peer' => true,
-              'signature_version' => '11',
-            }
-          }
+          'provider' => 's3',
+          'options' => {
+            'bucket_name' => 'my_bucket',
+            'access_key_id' => 'blobstore-access-key-id',
+            'secret_access_key' => 'blobstore-secret-access-key',
+            'region' => 'blobstore-region',
+            'use_ssl' => false,
+            'host' => 'blobstore-host',
+            'port' => 21,
+            'ssl_verify_peer' => true,
+            'signature_version' => '11',
+          },
         )
       end
 
@@ -168,10 +164,10 @@ describe 'cpi.json.erb' do
             'host' => 'agent-host',
             'ssl_verify_peer' => true,
             's3_signature_version' => '99',
-          }
+          },
         }
 
-        manifest['properties']['blobstore'].merge!({
+        manifest['properties']['blobstore'].merge!(
           'access_key_id' => 'blobstore_access_key_id',
           'secret_access_key' => 'blobstore_secret_access_key',
           's3_region' => 'blobstore-region',
@@ -180,7 +176,7 @@ describe 'cpi.json.erb' do
           'host' => 'blobstore-host',
           'ssl_verify_peer' => false,
           's3_signature_version' => '11',
-        })
+        )
 
         expect(rendered_blobstore['options']['access_key_id']).to eq('agent_access_key_id')
         expect(rendered_blobstore['options']['secret_access_key']).to eq('agent_secret_access_key')
@@ -199,9 +195,9 @@ describe 'cpi.json.erb' do
       manifest['properties']['registry']['endpoint'] = nil
       manifest['properties']['openstack']['human_readable_vm_names'] = true
 
-      expect{subject}.to raise_error RuntimeError,
-                                     "Property 'human_readable_vm_names' can only be used together with" +
-                                     " 'registry.endpoint'. Please refer to http://bosh.io/docs/openstack-registry.html."
+      expect { subject }.to raise_error RuntimeError,
+                                        "Property 'human_readable_vm_names' can only be used together with" \
+                                        " 'registry.endpoint'. Please refer to http://bosh.io/docs/openstack-registry.html."
     end
 
     it 'template render succeeds if registry endpoint is set' do
@@ -262,7 +258,7 @@ class TemplateEvaluationContext
       return result unless result.nil?
     end
     return args[1] if args.length == 2
-    raise UnknownProperty.new(names)
+    raise UnknownProperty, names
   end
 
   def if_p(*names)
@@ -295,13 +291,13 @@ class TemplateEvaluationContext
 
   def openstruct(object)
     case object
-      when Hash
-        mapped = object.inject({}) { |h, (k,v)| h[k] = openstruct(v); h }
-        OpenStruct.new(mapped)
-      when Array
-        object.map { |item| openstruct(item) }
-      else
-        object
+    when Hash
+      mapped = object.each_with_object({}) { |(k, v), h| h[k] = openstruct(v); }
+      OpenStruct.new(mapped)
+    when Array
+      object.map { |item| openstruct(item) }
+    else
+      object
     end
   end
 
@@ -326,9 +322,11 @@ class TemplateEvaluationContext
     def initialize(template)
       @context = template
     end
+
     def else
       yield
     end
+
     def else_if_p(*names, &block)
       @context.if_p(*names, &block)
     end
@@ -336,6 +334,7 @@ class TemplateEvaluationContext
 
   class InactiveElseBlock
     def else; end
+
     def else_if_p(*_)
       InactiveElseBlock.new
     end

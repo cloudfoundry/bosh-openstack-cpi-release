@@ -3,7 +3,6 @@ module Bosh::OpenStackCloud
   # Represents OpenStack vip network: where users sets VM's IP (floating IP's
   # in OpenStack)
   class VipNetwork < Network
-
     ##
     # Creates a new vip network
     #
@@ -20,14 +19,11 @@ module Bosh::OpenStackCloud
     # @param [Fog::Compute::OpenStack::Server] server OpenStack server to
     #   configure
     def configure(openstack, server, network_id)
-      if @ip.nil?
-        cloud_error("No IP provided for vip network `#{@name}'")
-      end
+      cloud_error("No IP provided for vip network `#{@name}'") if @ip.nil?
 
       openstack.with_openstack do
         FloatingIp.reassociate(openstack, @ip, server, network_id)
       end
     end
-
   end
 end

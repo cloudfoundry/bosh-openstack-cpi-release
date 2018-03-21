@@ -1,7 +1,6 @@
 require 'spec_helper'
 
 describe Bosh::OpenStackCloud::Helpers do
-
   let(:logger) { double('logger', error: nil) }
 
   let(:helpers_user) do
@@ -18,7 +17,6 @@ describe Bosh::OpenStackCloud::Helpers do
   }
 
   describe '.fail_on_error' do
-
     context 'when no error is given' do
       it 'does not raise an error' do
         expect {
@@ -37,7 +35,7 @@ describe Bosh::OpenStackCloud::Helpers do
 
     context 'when a single error is given' do
       it 'creates a cloud error with the message of the single error' do
-        expect{
+        expect {
           subject.fail_on_error(StandardError.new('error1'))
         }.to raise_error(Bosh::Clouds::CloudError, 'error1')
       end
@@ -45,23 +43,23 @@ describe Bosh::OpenStackCloud::Helpers do
 
     context 'when multiple errors' do
       it 'creates a cloud error with joined error messages' do
-        expect{
+        expect {
           subject.fail_on_error(
             StandardError.new('error1'),
-            StandardError.new('error2')
+            StandardError.new('error2'),
           )
         }.to raise_error(Bosh::Clouds::CloudError, "Multiple cloud errors occurred:\nerror1\nerror2")
       end
 
       it 'logs all errors' do
         allow(logger).to receive(:error)
-        errors = %w(error1 error2).map do |text|
+        errors = %w[error1 error2].map do |text|
           error = StandardError.new(text)
           error.set_backtrace("backtrace #{text}")
           error
         end
 
-        expect{
+        expect {
           subject.fail_on_error(*errors)
         }.to raise_error(Bosh::Clouds::CloudError)
 
@@ -89,7 +87,7 @@ describe Bosh::OpenStackCloud::Helpers do
       error = nil
 
       expect {
-        error = subject.catch_error { }
+        error = subject.catch_error {}
       }.to_not raise_error
 
       expect(error).to eq(nil)

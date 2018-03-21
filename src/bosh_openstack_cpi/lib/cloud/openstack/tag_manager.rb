@@ -1,6 +1,5 @@
 module Bosh::OpenStackCloud
   class TagManager
-
     MAX_TAG_KEY_LENGTH = 255
     MAX_TAG_VALUE_LENGTH = 255
 

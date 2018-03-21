@@ -1,7 +1,5 @@
 module Bosh::OpenStackCloud
-
   module Helpers
-
     def self.included(base)
       base.extend(Helpers)
     end
@@ -28,10 +26,10 @@ module Bosh::OpenStackCloud
         @logger.error(error.backtrace)
       end
 
-      message = errors.map { |error| error.message }.join("\n")
+      message = errors.map(&:message).join("\n")
       prefix = errors.size > 1 ? "Multiple cloud errors occurred:\n" : ''
 
-      raise Bosh::Clouds::CloudError.new(prefix + message)
+      raise Bosh::Clouds::CloudError, prefix + message
     end
 
     def catch_error(prefix = nil)
@@ -40,11 +38,11 @@ module Bosh::OpenStackCloud
       return nil unless block_given?
       begin
         yield
-      rescue => e
+      rescue StandardError => e
         result = if prefix
-          wrap_error(e, prefix)
-        else
-          e
+                   wrap_error(e, prefix)
+                 else
+                   e
         end
       end
 
@@ -54,7 +52,7 @@ module Bosh::OpenStackCloud
     private
 
     def raise_error(error_class, exception, message)
-      @logger.error(message) if @logger
+      @logger&.error(message)
       @logger.error(exception) if @logger && exception
       raise error_class, message
     end

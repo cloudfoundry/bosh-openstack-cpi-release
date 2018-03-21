@@ -1,10 +1,10 @@
 require 'spec_helper'
 
 describe Bosh::OpenStackCloud::Cloud do
-  let(:server_metadata) {[]}
-  let(:server) { double('server', :id => 'i-test', :name => 'i-test', :flavor =>  { 'id' => 'f-test'}, :metadata => server_metadata) }
-  let(:volume) { double('volume', :id => 'v-foobar') }
-  let(:flavor) { double('flavor', :id => 'f-test', :ephemeral => 10, :swap => '') }
+  let(:server_metadata) { [] }
+  let(:server) { double('server', id: 'i-test', name: 'i-test', flavor: { 'id' => 'f-test' }, metadata: server_metadata) }
+  let(:volume) { double('volume', id: 'v-foobar') }
+  let(:flavor) { double('flavor', id: 'f-test', ephemeral: 10, swap: '') }
   let(:cloud) do
     mock_cloud(cloud_options['properties']) do |fog|
       expect(fog.compute.servers).to receive(:get).with('i-test').and_return(server)
@@ -15,26 +15,26 @@ describe Bosh::OpenStackCloud::Cloud do
   let(:cloud_options) { mock_cloud_options }
 
   before(:each) do
-    allow(server.metadata).to receive(:get).with(:registry_key).and_return(double('metadatum',{'value' => 'i-test'}))
+    allow(server.metadata).to receive(:get).with(:registry_key).and_return(double('metadatum', 'value' => 'i-test'))
     @registry = mock_registry
   end
 
   it 'attaches an OpenStack volume to a server' do
     volume_attachments = []
-    attachment = double('attachment', :device => '/dev/sdc')
+    attachment = double('attachment', device: '/dev/sdc')
 
     expect(server).to receive(:volume_attachments).and_return(volume_attachments)
     expect(server).to receive(:attach_volume).with(volume.id, '/dev/sdc').and_return(attachment)
     expect(cloud.openstack).to receive(:wait_resource).with(volume, :'in-use')
 
-    old_settings = { 'foo' => 'bar'}
+    old_settings = { 'foo' => 'bar' }
     new_settings = {
       'foo' => 'bar',
       'disks' => {
         'persistent' => {
-          'v-foobar' => '/dev/sdc'
-        }
-      }
+          'v-foobar' => '/dev/sdc',
+        },
+      },
     }
 
     expect(@registry).to receive(:read_settings).with('i-test').and_return(old_settings)
@@ -44,22 +44,22 @@ describe Bosh::OpenStackCloud::Cloud do
   end
 
   it 'picks available device name' do
-    volume_attachments = [{'volumeId' => 'v-c', 'device' => '/dev/vdc'},
-                          {'volumeId' => 'v-d', 'device' => '/dev/xvdd'}]
-    attachment = double('attachment', :device => '/dev/sdd')
+    volume_attachments = [{ 'volumeId' => 'v-c', 'device' => '/dev/vdc' },
+                          { 'volumeId' => 'v-d', 'device' => '/dev/xvdd' }]
+    attachment = double('attachment', device: '/dev/sdd')
 
     expect(server).to receive(:volume_attachments).and_return(volume_attachments)
     expect(server).to receive(:attach_volume).with(volume.id, '/dev/sde').and_return(attachment)
     expect(cloud.openstack).to receive(:wait_resource).with(volume, :'in-use')
 
-    old_settings = { 'foo' => 'bar'}
+    old_settings = { 'foo' => 'bar' }
     new_settings = {
       'foo' => 'bar',
       'disks' => {
         'persistent' => {
-          'v-foobar' => '/dev/sde'
-        }
-      }
+          'v-foobar' => '/dev/sde',
+        },
+      },
     }
 
     expect(@registry).to receive(:read_settings).with('i-test').and_return(old_settings)
@@ -69,9 +69,8 @@ describe Bosh::OpenStackCloud::Cloud do
   end
 
   it 'raises an error when sdc..sdz are all reserved' do
-    volume_attachments = ('c'..'z').inject([]) do |array, char|
-      array << {'volumeId' => "v-#{char}", 'device' => "/dev/sd#{char}"}
-      array
+    volume_attachments = ('c'..'z').each_with_object([]) do |char, array|
+      array << { 'volumeId' => "v-#{char}", 'device' => "/dev/sd#{char}" }
     end
 
     expect(server).to receive(:volume_attachments).and_return(volume_attachments)
@@ -82,7 +81,7 @@ describe Bosh::OpenStackCloud::Cloud do
   end
 
   it 'bypasses the attaching process when volume is already attached to a server' do
-    volume_attachments = [{'volumeId' => 'v-foobar', 'device' => '/dev/sdc'}]
+    volume_attachments = [{ 'volumeId' => 'v-foobar', 'device' => '/dev/sdc' }]
 
     cloud = mock_cloud do |fog|
       expect(fog.compute.servers).to receive(:get).with('i-test').and_return(server)
@@ -92,14 +91,14 @@ describe Bosh::OpenStackCloud::Cloud do
     expect(server).to receive(:volume_attachments).and_return(volume_attachments)
     expect(volume).not_to receive(:attach)
 
-    old_settings = { 'foo' => 'bar'}
+    old_settings = { 'foo' => 'bar' }
     new_settings = {
-        'foo' => 'bar',
-        'disks' => {
-            'persistent' => {
-                'v-foobar' => '/dev/sdc'
-            }
-        }
+      'foo' => 'bar',
+      'disks' => {
+        'persistent' => {
+          'v-foobar' => '/dev/sdc',
+        },
+      },
     }
 
     expect(@registry).to receive(:read_settings).with('i-test').and_return(old_settings)
@@ -116,7 +115,7 @@ describe Bosh::OpenStackCloud::Cloud do
     end
     subject(:attach_disk) { cloud.attach_disk('i-test', 'v-foobar') }
 
-    let(:flavor) { double('flavor', :id => 'f-test', :ephemeral => 0, :swap => '') }
+    let(:flavor) { double('flavor', id: 'f-test', ephemeral: 0, swap: '') }
 
     context 'when there is no ephemeral, swap disk and config drive' do
       it 'return letter b' do
@@ -126,7 +125,7 @@ describe Bosh::OpenStackCloud::Cloud do
     end
 
     context 'when there is ephemeral disk' do
-      let(:flavor) { double('flavor', :id => 'f-test', :ephemeral => 1024, :swap => '') }
+      let(:flavor) { double('flavor', id: 'f-test', ephemeral: 1024, swap: '') }
 
       it 'return letter c' do
         expect(server).to receive(:attach_volume).with(volume.id, '/dev/sdc')
@@ -135,7 +134,7 @@ describe Bosh::OpenStackCloud::Cloud do
     end
 
     context 'when there is swap disk' do
-      let(:flavor) { double('flavor', :id => 'f-test', :ephemeral => 0, :swap => 200) }
+      let(:flavor) { double('flavor', id: 'f-test', ephemeral: 0, swap: 200) }
 
       it 'return letter c' do
         expect(server).to receive(:attach_volume).with(volume.id, '/dev/sdc')
@@ -157,7 +156,7 @@ describe Bosh::OpenStackCloud::Cloud do
     end
 
     context 'when there is ephemeral and swap disk' do
-      let(:flavor) { double('flavor', :id => 'f-test', :ephemeral => 1024, :swap => 200) }
+      let(:flavor) { double('flavor', id: 'f-test', ephemeral: 1024, swap: 200) }
 
       it 'returns letter d' do
         expect(server).to receive(:attach_volume).with(volume.id, '/dev/sdd')
@@ -166,7 +165,7 @@ describe Bosh::OpenStackCloud::Cloud do
     end
 
     context 'when there is ephemeral, swap disk and config drive is disk' do
-      let(:flavor) { double('flavor', :id => 'f-test', :ephemeral => 1024, :swap => 200) }
+      let(:flavor) { double('flavor', id: 'f-test', ephemeral: 1024, swap: 200) }
       let(:cloud_options) do
         cloud_options = mock_cloud_options
         cloud_options['properties']['openstack']['config_drive'] = 'disk'
@@ -188,4 +187,4 @@ describe Bosh::OpenStackCloud::Cloud do
       end
     end
   end
- end
+end

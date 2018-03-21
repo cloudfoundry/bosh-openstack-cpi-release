@@ -39,11 +39,10 @@ module Bosh::OpenStackCloud
     # @return [String] availability zone to use or nil
     # @note this is a private method that is public to make it easier to test
     def ensure_same_availability_zone(disks, default)
-      zones = disks.map { |disk| disk.availability_zone }
+      zones = disks.map(&:availability_zone)
       zones << default if default
       zones.uniq!
-      cloud_error "can't use multiple availability zones: %s" %
-        zones.join(', ') unless zones.size == 1
+      cloud_error format("can't use multiple availability zones: %s", zones.join(', ')) unless zones.size == 1
     end
   end
 end

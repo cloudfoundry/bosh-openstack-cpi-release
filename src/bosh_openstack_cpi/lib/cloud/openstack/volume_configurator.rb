@@ -1,5 +1,4 @@
 module Bosh::OpenStackCloud
-
   class VolumeConfigurator
     include Helpers
 
@@ -16,9 +15,7 @@ module Bosh::OpenStackCloud
         flavor.disk
       else
         root_disk_size = resource_pool['root_disk']['size']
-        if root_disk_size == nil || root_disk_size < 1
-          raise ArgumentError, 'Minimum root_disk size is 1 GiB'
-        end
+        raise ArgumentError, 'Minimum root_disk size is 1 GiB' if root_disk_size.nil? || root_disk_size < 1
         @logger.debug("Using root_disk of size '#{root_disk_size}', instead of flavor.disk")
 
         root_disk_size
@@ -26,12 +23,9 @@ module Bosh::OpenStackCloud
     end
 
     def boot_from_volume?(boot_from_volume, resource_pool)
-      if resource_pool['boot_from_volume'].nil?
-        return boot_from_volume
-      end
+      return boot_from_volume if resource_pool['boot_from_volume'].nil?
 
       resource_pool['boot_from_volume']
     end
-
   end
 end

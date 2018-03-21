@@ -1,7 +1,6 @@
 
 module Bosh::OpenStackCloud
   class PrivateNetwork < Network
-
     attr_reader :nic
     attr_accessor :allowed_address_pairs
 
@@ -12,8 +11,8 @@ module Bosh::OpenStackCloud
     end
 
     def net_id
-      @spec.fetch("cloud_properties", {})
-          .fetch("net_id"          , nil)
+      @spec.fetch('cloud_properties', {})
+           .fetch('net_id', nil)
     end
   end
 end

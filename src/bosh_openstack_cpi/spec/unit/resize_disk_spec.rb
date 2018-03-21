@@ -1,12 +1,12 @@
-require "spec_helper"
+require 'spec_helper'
 require 'excon'
 
-describe Bosh::OpenStackCloud::Cloud, "resize_disk" do
-  let(:volume) { double("volume", :id => 'disk-id') }
+describe Bosh::OpenStackCloud::Cloud, 'resize_disk' do
+  let(:volume) { double('volume', id: 'disk-id') }
   let(:cloud) {
     mock_cloud do |fog|
-      expect(fog.volume.volumes).to receive(:get).
-          with('disk-id').and_return(volume)
+      expect(fog.volume.volumes).to receive(:get)
+        .with('disk-id').and_return(volume)
     end
   }
 
@@ -19,7 +19,7 @@ describe Bosh::OpenStackCloud::Cloud, "resize_disk" do
   it 'uses the OpenStack endpoint to resize a disk' do
     allow(volume).to receive(:extend)
     allow(cloud.openstack).to receive(:wait_resource).with(volume, :available)
-    
+
     return_value = cloud.resize_disk('disk-id', 4096)
 
     expect(return_value).to eq(nil)
@@ -59,8 +59,8 @@ describe Bosh::OpenStackCloud::Cloud, "resize_disk" do
   context 'when trying to resize a non existing disk' do
     let(:cloud) {
       mock_cloud do |fog|
-        allow(fog.volume.volumes).to receive(:get).
-            with('non-existing-disk-id').and_return(nil)
+        allow(fog.volume.volumes).to receive(:get)
+          .with('non-existing-disk-id').and_return(nil)
       end
     }
 
@@ -98,7 +98,7 @@ describe Bosh::OpenStackCloud::Cloud, "resize_disk" do
       allow(volume).to receive(:extend).and_raise(Excon::Error::BadRequest.new('', '', response))
     end
 
-    let(:body) { JSON.dump('badRequest' => {'message' => 'some-message'}) }
+    let(:body) { JSON.dump('badRequest' => { 'message' => 'some-message' }) }
 
     it 'raises an error' do
       expect {

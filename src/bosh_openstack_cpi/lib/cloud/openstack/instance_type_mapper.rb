@@ -8,10 +8,9 @@ module Bosh::OpenStackCloud
 
       possible_flavors = find_possible_flavors(normalized_requirements, flavors, boot_from_volume)
       if possible_flavors.empty?
-        raise ["Unable to meet requested VM requirements: #{requirements['cpu']} CPU, #{requirements['ram']} MB RAM, #{requirements['ephemeral_disk_size']/1024.0} GB Disk.\n",
-          "Available flavors:\n",
-          flavors.map { |flavor| "#{flavor.name}: #{flavor.vcpus} CPU, #{flavor.ram} MB RAM, #{flavor.disk} GB Disk\n" }
-        ].join
+        raise ["Unable to meet requested VM requirements: #{requirements['cpu']} CPU, #{requirements['ram']} MB RAM, #{requirements['ephemeral_disk_size'] / 1024.0} GB Disk.\n",
+               "Available flavors:\n",
+               flavors.map { |flavor| "#{flavor.name}: #{flavor.vcpus} CPU, #{flavor.ram} MB RAM, #{flavor.disk} GB Disk\n" }].join
       end
 
       closest_match = possible_flavors.min_by do |flavor|
@@ -50,7 +49,7 @@ module Bosh::OpenStackCloud
 
       flavors_meeting_root_requirement = valid_flavors.select do |flavor|
         flavor.ephemeral == NO_DISK &&
-        flavor.disk >= requirements['ephemeral_disk_size'].ceil + OS_OVERHEAD_IN_GB
+          flavor.disk >= requirements['ephemeral_disk_size'].ceil + OS_OVERHEAD_IN_GB
       end
 
       flavors_meeting_root_requirement
@@ -58,21 +57,21 @@ module Bosh::OpenStackCloud
 
     def convert_disk_to_GB(requirements)
       normalized = requirements.clone
-      normalized['ephemeral_disk_size'] = requirements['ephemeral_disk_size']/1024.0
+      normalized['ephemeral_disk_size'] = requirements['ephemeral_disk_size'] / 1024.0
       normalized
     end
 
     def vm_cloud_properties(requirements, closest_match, boot_from_volume)
       properties = {
-          'instance_type' => closest_match.name,
+        'instance_type' => closest_match.name,
       }
 
       if boot_from_volume && root_disk_size(closest_match) < required_boot_volume_size(requirements)
-        properties.merge({
+        properties.merge(
           'root_disk' => {
             'size' => required_boot_volume_size(requirements),
           },
-        })
+        )
       else
         properties
       end

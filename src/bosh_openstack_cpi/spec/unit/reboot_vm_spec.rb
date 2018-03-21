@@ -1,9 +1,8 @@
 require 'spec_helper'
 
 describe Bosh::OpenStackCloud::Cloud do
-
   before :each do
-    @server = double('server', :id => 'i-foobar')
+    @server = double('server', id: 'i-foobar')
 
     @cloud = mock_cloud(mock_cloud_options['properties']) do |fog|
       allow(fog.compute.servers).to receive(:get).with('i-foobar').and_return(@server)
@@ -26,5 +25,4 @@ describe Bosh::OpenStackCloud::Cloud do
     expect(@cloud.openstack).to receive(:wait_resource).with(@server, :active, :state)
     @cloud.send(:hard_reboot, @server)
   end
-
 end

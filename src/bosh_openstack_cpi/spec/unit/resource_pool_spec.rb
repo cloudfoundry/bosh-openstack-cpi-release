@@ -17,18 +17,17 @@ describe Bosh::OpenStackCloud::ResourcePool do
     context 'when security_group is not an array' do
       it 'raises an error' do
         expect {
-          Bosh::OpenStackCloud::ResourcePool.security_groups({'security_groups' => 'not an array'})
+          Bosh::OpenStackCloud::ResourcePool.security_groups('security_groups' => 'not an array')
         }.to raise_error ArgumentError, 'security groups must be an Array'
       end
     end
 
     context 'when security_groups is an array' do
       it 'returns the security_group array' do
-        expect(Bosh::OpenStackCloud::ResourcePool.security_groups({
-            'security_groups' => ['some-security-group']
-        })).to eq(['some-security-group'])
+        expect(Bosh::OpenStackCloud::ResourcePool.security_groups(
+                 'security_groups' => ['some-security-group'],
+        )).to eq(['some-security-group'])
       end
     end
   end
-
 end

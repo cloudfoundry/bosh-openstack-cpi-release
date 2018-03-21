@@ -1,4 +1,4 @@
-$LOAD_PATH.unshift File.expand_path('../../lib', __FILE__)
+$LOAD_PATH.unshift File.expand_path('../lib', __dir__)
 
 require 'tmpdir'
 require 'zlib'
@@ -10,7 +10,7 @@ require 'timecop'
 
 require 'cloud/openstack'
 
-def mock_cloud_options(api_version=2)
+def mock_cloud_options(api_version = 2)
   if api_version == 2
     {
       'plugin' => 'openstack',
@@ -24,18 +24,18 @@ def mock_cloud_options(api_version=2)
           'state_timeout' => 1,
           'wait_resource_poll_interval' => 3,
           'use_dhcp' => true,
-          'stemcell_public_visibility' => false
+          'stemcell_public_visibility' => false,
         },
         'registry' => {
           'endpoint' => 'localhost:42288',
           'user' => 'admin',
-          'password' => 'admin'
+          'password' => 'admin',
         },
         'agent' => {
           'foo' => 'bar',
-          'baz' => 'zaz'
-        }
-      }
+          'baz' => 'zaz',
+        },
+      },
     }
   elsif api_version == 3
     {
@@ -51,18 +51,18 @@ def mock_cloud_options(api_version=2)
           'state_timeout' => 1,
           'wait_resource_poll_interval' => 3,
           'use_dhcp' => true,
-          'stemcell_public_visibility' => false
+          'stemcell_public_visibility' => false,
         },
         'registry' => {
           'endpoint' => 'localhost:42288',
           'user' => 'admin',
-          'password' => 'admin'
+          'password' => 'admin',
         },
         'agent' => {
           'foo' => 'bar',
-          'baz' => 'zaz'
-        }
-      }
+          'baz' => 'zaz',
+        },
+      },
     }
   end
 end
@@ -72,7 +72,7 @@ def make_cloud(options = nil)
 end
 
 def mock_registry(endpoint = 'http://registry:3333')
-  registry = double('registry', :endpoint => endpoint)
+  registry = double('registry', endpoint: endpoint)
   allow(Bosh::Cpi::RegistryClient).to receive(:new).and_return(registry)
   registry
 end
@@ -108,8 +108,8 @@ def mock_cloud(options = nil)
   allow(Fog::Compute).to receive(:new).and_return(compute)
 
   fog = Struct
-      .new(:compute, :network, :image, :volume)
-      .new(compute, network, image, volume)
+        .new(:compute, :network, :image, :volume)
+        .new(compute, network, image, volume)
 
   yield(fog) if block_given?
 
@@ -144,9 +144,9 @@ def dynamic_network_spec
   {
     'type' => 'dynamic',
     'cloud_properties' => {
-      'security_groups' => %w[default]
+      'security_groups' => %w[default],
     },
-    'use_dhcp' => true
+    'use_dhcp' => true,
   }
 end
 
@@ -156,9 +156,9 @@ def manual_network_spec(net_id: 'net', ip: '0.0.0.0', defaults: nil, overwrites:
     'defaults' => defaults,
     'cloud_properties' => {
       'security_groups' => %w[default],
-      'net_id' => net_id
+      'net_id' => net_id,
     },
-    'use_dhcp' => true
+    'use_dhcp' => true,
   }.merge(overwrites)
 end
 
@@ -166,7 +166,7 @@ def manual_network_without_netid_spec
   {
     'cloud_properties' => {
       'security_groups' => %w[default],
-    }
+    },
   }
 end
 
@@ -175,8 +175,8 @@ def dynamic_network_with_netid_spec
     'type' => 'dynamic',
     'cloud_properties' => {
       'security_groups' => %w[default],
-      'net_id' => 'net'
-    }
+      'net_id' => 'net',
+    },
   }
 end
 
@@ -190,7 +190,7 @@ end
 def combined_network_spec
   {
     'network_a' => dynamic_network_spec,
-    'network_b' => vip_network_spec
+    'network_b' => vip_network_spec,
   }
 end
 
@@ -198,7 +198,7 @@ def resource_pool_spec
   {
     'key_name' => 'test_key',
     'availability_zone' => 'foobar-1a',
-    'instance_type' => 'm1.tiny'
+    'instance_type' => 'm1.tiny',
   }
 end
 
@@ -207,7 +207,7 @@ def resource_pool_spec_with_root_disk
     'key_name' => 'test_key',
     'availability_zone' => 'foobar-1a',
     'instance_type' => 'm1.tiny',
-    'root_disk' => { 'size' => 10240 }
+    'root_disk' => { 'size' => 10_240 },
   }
 end
 
@@ -216,27 +216,27 @@ def resource_pool_spec_with_0_root_disk
     'key_name' => 'test_key',
     'availability_zone' => 'foobar-1a',
     'instance_type' => 'm1.tiny',
-    'root_disk' => { 'size' => 0 }
+    'root_disk' => { 'size' => 0 },
   }
 end
 
 RSpec.configure do |config|
-  config.before(:each) { allow(Bosh::Clouds::Config).to receive(:logger).and_return(double.as_null_object)  }
+  config.before(:each) { allow(Bosh::Clouds::Config).to receive(:logger).and_return(double.as_null_object) }
 end
 
 class LifecycleHelper
   extend WebMock::API
 
-  def self.get_config(key, default=:none)
+  def self.get_config(key, default = :none)
     env_file = ENV['LIFECYCLE_ENV_FILE']
     env_name = ENV['LIFECYCLE_ENV_NAME']
     env_key = "BOSH_OPENSTACK_#{key.to_s.upcase}"
 
     value = if env_file
-      config = load_config_from_file(env_file, env_name)
-      config[key.to_s]
-    else
-      ENV[env_key]
+              config = load_config_from_file(env_file, env_name)
+              config[key.to_s]
+            else
+              ENV[env_key]
     end
 
     value_empty = value.to_s.empty?
@@ -250,23 +250,16 @@ class LifecycleHelper
   def self.load_config_from_file(env_file, env_name)
     @configs ||= YAML.load_file(env_file)
     config =
-        if env_name
-          unless @configs[env_name]
-            raise "no such env #{env_name} in #{env_file} (available: #{@configs.keys.sort.join(", ")})"
-          end
-          @configs[env_name]
-        else
-          @configs
-        end
+      if env_name
+        raise "no such env #{env_name} in #{env_file} (available: #{@configs.keys.sort.join(', ')})" unless @configs[env_name]
+        @configs[env_name]
+      else
+        @configs
+      end
     config
   end
-
 end
 
 def str_to_bool(string)
-  if string == 'true'
-    true
-  else
-    false
-  end
+  string == 'true'
 end

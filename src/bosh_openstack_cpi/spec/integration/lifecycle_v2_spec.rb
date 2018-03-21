@@ -22,10 +22,9 @@ describe Bosh::OpenStackCloud::Cloud do
   describe 'Basic Keystone V2 support' do
     context 'with missing VM id' do
       it 'should return false' do
-        logger.info("Checking VM existence")
+        logger.info('Checking VM existence')
         expect(cpi).to_not have_vm('non-existing-vm-id')
       end
     end
   end
 end
-

@@ -3,7 +3,7 @@ require 'spec_helper'
 describe Bosh::OpenStackCloud::ExconLoggingInstrumentor do
   describe '.instrument' do
     let(:name) { 'foo' }
-    let(:params) { { foo: 'bar'} }
+    let(:params) { { foo: 'bar' } }
     let(:logger) { instance_double('Logger') }
 
     subject {
@@ -22,7 +22,7 @@ describe Bosh::OpenStackCloud::ExconLoggingInstrumentor do
     end
 
     it 'does not manipulate the original hash' do
-      params_with_body = { body: '{}'}
+      params_with_body = { body: '{}' }
       old_body = params_with_body.fetch(:body)
 
       subject.instrument(name, params_with_body)
@@ -31,12 +31,13 @@ describe Bosh::OpenStackCloud::ExconLoggingInstrumentor do
     end
 
     context 'with non-json text in body' do
-      let(:params) { {
+      let(:params) {
+        {
           body: 'non-json',
           headers: {
-              'Content-Type' => 'text/plain'
-          }
-      } }
+            'Content-Type' => 'text/plain',
+          },
+        } }
 
       it 'returns original body' do
         redacted_params = subject.redact(params)
@@ -46,12 +47,13 @@ describe Bosh::OpenStackCloud::ExconLoggingInstrumentor do
     end
 
     context 'when content is not valid JSON' do
-      let(:params) { {
+      let(:params) {
+        {
           body: 'non-json',
           headers: {
-              'Content-Type' => 'application/json'
-          }
-      } }
+            'Content-Type' => 'application/json',
+          },
+        } }
 
       it 'returns the original body' do
         redacted_params = subject.redact(params)
@@ -61,19 +63,21 @@ describe Bosh::OpenStackCloud::ExconLoggingInstrumentor do
     end
 
     context 'with v2 password in body' do
-      let(:body) { {
+      let(:body) {
+        {
           auth: {
-              passwordCredentials: {
-                  password: 'my-password'
-              }
-          }
-      } }
-      let(:params) { {
+            passwordCredentials: {
+              password: 'my-password',
+            },
+          },
+        } }
+      let(:params) {
+        {
           body: JSON.dump(body),
           headers: {
-              'Content-Type' => 'application/json'
-          }
-      } }
+            'Content-Type' => 'application/json',
+          },
+        } }
 
       it 'redacts v2 password' do
         redacted_params = subject.redact(params)
@@ -85,7 +89,7 @@ describe Bosh::OpenStackCloud::ExconLoggingInstrumentor do
 
     context 'with non-string body (could be File)' do
       it 'does nothing' do
-        params_with_file_body = {body: 5}
+        params_with_file_body = { body: 5 }
 
         subject.instrument(name, params_with_file_body)
 
@@ -94,23 +98,25 @@ describe Bosh::OpenStackCloud::ExconLoggingInstrumentor do
     end
 
     context 'with v3 password in body' do
-      let(:body) { {
+      let(:body) {
+        {
           auth: {
-              identity: {
-                  password: {
-                      user: {
-                        password: 'my-password'
-                      }
-                  }
-              }
-          }
-      } }
-      let(:params) { {
+            identity: {
+              password: {
+                user: {
+                  password: 'my-password',
+                },
+              },
+            },
+          },
+        } }
+      let(:params) {
+        {
           body: JSON.dump(body),
           headers: {
-              'Content-Type' => 'application/json'
-          }
-      } }
+            'Content-Type' => 'application/json',
+          },
+        } }
 
       it 'redacts v3 password' do
         redacted_params = subject.redact(params)
@@ -118,21 +124,22 @@ describe Bosh::OpenStackCloud::ExconLoggingInstrumentor do
         parsed_body = JSON.parse(redacted_params[:body])
         expect(parsed_body['auth']['identity']['password']['user']['password']).to eq('<redacted>')
       end
-
     end
 
     context 'with server.user_data in body' do
-      let(:body) { {
+      let(:body) {
+        {
           server: {
-              user_data: 'user data'
-          }
-      } }
-      let(:params) { {
+            user_data: 'user data',
+          },
+        } }
+      let(:params) {
+        {
           body: JSON.dump(body),
           headers: {
-              'Content-Type' => 'application/json'
-          }
-      } }
+            'Content-Type' => 'application/json',
+          },
+        } }
 
       it 'redacts server.user_data' do
         redacted_params = subject.redact(params)
@@ -143,9 +150,10 @@ describe Bosh::OpenStackCloud::ExconLoggingInstrumentor do
     end
 
     context 'with x-auth-token in header' do
-      let(:headers) { {
-          'X-Auth-Token' => 'token'
-      } }
+      let(:headers) {
+        {
+          'X-Auth-Token' => 'token',
+        } }
       let(:params) { { headers: headers } }
 
       it 'redacts params' do
@@ -153,12 +161,10 @@ describe Bosh::OpenStackCloud::ExconLoggingInstrumentor do
 
         expect(redacted_params[:headers]['X-Auth-Token']).to eq('<redacted>')
       end
-
     end
 
     it 'yields' do
       expect { |b| Bosh::OpenStackCloud::ExconLoggingInstrumentor.instrument(name, params, &b) }.to yield_control
     end
-
   end
 end
