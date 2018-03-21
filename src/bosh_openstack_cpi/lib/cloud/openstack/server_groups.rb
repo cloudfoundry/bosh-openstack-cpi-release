@@ -25,6 +25,9 @@ module Bosh::OpenStackCloud
             if error.message.include?('Quota exceeded, too many server groups')
               message = "You have reached your quota for server groups for project '#{@openstack.params[:openstack_tenant]}'. Please disable auto-anti-affinity server groups or increase your quota."
               cloud_error(message, error)
+            elsif error.message.include?('Quota exceeded, too many servers in group')
+              message = "You have reached your quota for members in a server group for project '#{@openstack.params[:openstack_tenant]}'. Please disable auto-anti-affinity server groups or increase your quota."
+              cloud_error(message, error)
             end
             raise error
           rescue Excon::Error::BadRequest => error
