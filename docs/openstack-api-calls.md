@@ -64,6 +64,7 @@ PUT /v2.0/floatingips/<resource_id> body: {"floatingip":{"port_id":"<resource_id
 PUT /v2.0/floatingips/<resource_id> body: {"floatingip":{"port_id":null}}
 ```
 ### All calls for API endpoint 'object-store (Objectstore)'
+### All calls for API endpoint 'object-store-infra (Objectstore-Infra)'
 ### All calls for API endpoint 'object-store-test (Objectstore-Test)'
 ### All calls for API endpoint 'orchestration (heat)'
 ### All calls for API endpoint 'volume (cinder)'
