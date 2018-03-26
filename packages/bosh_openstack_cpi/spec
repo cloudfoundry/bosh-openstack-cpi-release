@@ -7,4 +7,4 @@ files:
 - bosh_openstack_cpi/Gemfile.lock
 - bosh_openstack_cpi/bin/**/*
 - bosh_openstack_cpi/lib/**/*
-- bosh_openstack_cpi/vendor/package/**/*
+
