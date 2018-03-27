@@ -32,15 +32,9 @@ $ bundle exec rspec spec/unit
 ### Running manual tests
 *Note:* This is not required for opening a pull request. Having green unit tests is good enough from our perspective.
 
-If you still want to run manual tests (e.g. in order to validate your use case) this is how you do it: 
+If you still want to run manual tests (e.g. in order to validate your use case) this is how you do it:
 
-- Create a dev release and deploy a BOSH director using it. 
- 
-- If you changed any ruby dependency, run the vendoring script first:
-    
-    ```bash
-    $ ./src/bosh_openstack_cpi/vendor_gems
-    ```
+- Create a dev release and deploy a BOSH director using it.
 
 - Create the BOSH release:
 
