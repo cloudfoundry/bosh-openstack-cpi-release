@@ -11,8 +11,7 @@ git fetch origin master:refs/remotes/origin/master
 git rebase origin/master
 
 echo "Looking for new gem versions"
-rm Gemfile.lock
-bundle install
+bundle update
 
 git diff --exit-code Gemfile.lock || exit_code=$?
 if [ -v exit_code ]; then
