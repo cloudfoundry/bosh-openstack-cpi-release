@@ -6,7 +6,22 @@ module Bosh::OpenStackCloud
       def instrument(name, params = {})
         redacted_params = redact(params)
 
-        Bosh::Clouds::Config.logger.debug("#{name} #{redacted_params}")
+        if name == 'excon.response'
+          message = ResponseMessage.new(redacted_params).format
+          Bosh::Clouds::Config.logger.debug("#{name} #{message}")
+
+        elsif name == 'excon.request'
+          message = RequestMessage.new(redacted_params).format
+          Bosh::Clouds::Config.logger.debug("#{name} #{message}")
+
+        elsif name == 'excon.error' && redacted_params[:error].respond_to?(:response)
+          message = ResponseMessage.new(redacted_params[:error].response.data).format
+          Bosh::Clouds::Config.logger.debug("#{name} #{message}")
+
+        else
+          Bosh::Clouds::Config.logger.debug("#{name} #{redacted_params}")
+        end
+
         yield if block_given?
       end
 
@@ -36,12 +51,12 @@ module Bosh::OpenStackCloud
 
       def redact_headers(params, property)
         return unless params.key?(:headers)
+        return unless params[:headers].key?(property)
 
         headers = params[:headers] = params[:headers].dup
 
         headers.store(property, REDACTED)
       end
-
     end
   end
 end
