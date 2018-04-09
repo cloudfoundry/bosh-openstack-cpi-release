@@ -5,6 +5,7 @@ require 'cloud'
 require 'tempfile'
 require 'logger'
 require 'ostruct'
+require 'bosh/cpi'
 
 RSpec.configure do |config|
   config.before(:all) { WebMock.allow_net_connect! }

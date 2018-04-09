@@ -43,7 +43,7 @@ class IntegrationConfig
       @tenant                        = LifecycleHelper.get_config(:tenant, LifecycleHelper.get_config(:project))
     end
 
-    @logger                          = Logger.new(STDERR)
+    @logger                          = Bosh::Cpi::Logger.new(STDERR)
 
     @ca_cert_content                 = LifecycleHelper.get_config(:ca_cert, nil)
     if @ca_cert_content && !@ca_cert_content.empty? && @ca_cert_content != 'null'
@@ -83,18 +83,17 @@ class IntegrationConfig
     Bosh::Clouds::Config.configure(OpenStruct.new(logger: @logger, cpi_task_log: nil))
   end
 
-  def create_cpi(boot_from_volume: false, config_drive: nil, human_readable_vm_names: false, use_nova_networking: false, use_dhcp: true, default_volume_type: nil, enable_auto_anti_affinity: false)
+  def create_cpi(boot_from_volume: false, config_drive: nil, human_readable_vm_names: false, use_nova_networking: false, use_dhcp: true, default_volume_type: nil, enable_auto_anti_affinity: false, request_id: nil)
     properties = {
       'openstack' => openstack_properties(boot_from_volume, config_drive, human_readable_vm_names, use_nova_networking, use_dhcp, default_volume_type, enable_auto_anti_affinity),
+      'request_id' => request_id,
       'registry' => {
         'endpoint' => 'fake',
         'user' => 'fake',
         'password' => 'fake',
       },
     }
-    Bosh::OpenStackCloud::Cloud.new(
-      properties,
-    )
+    Bosh::OpenStackCloud::Cloud.new(properties)
   end
 
   def create_openstack

@@ -29,6 +29,9 @@ module Bosh::OpenStackCloud
       initialize_registry
 
       @logger = Bosh::Clouds::Config.logger
+      request_id = options['request_id']
+      @logger.set_request_id(request_id) if request_id
+
 
       @agent_properties = @options.fetch('agent', {})
       openstack_properties = @options['openstack']
