@@ -7,7 +7,7 @@ describe Bosh::OpenStackCloud::Cloud do
     @config = IntegrationConfig.new
   end
 
-  let(:logger) { Logger.new(STDERR) }
+  let(:logger) { @config.logger }
 
   before do
     delegate = double('delegate', logger: logger, cpi_task_log: nil)

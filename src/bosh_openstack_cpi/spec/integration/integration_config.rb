@@ -43,9 +43,10 @@ class IntegrationConfig
       @tenant                        = LifecycleHelper.get_config(:tenant, LifecycleHelper.get_config(:project))
     end
 
-    @logger                          = Bosh::Cpi::Logger.new(STDERR)
+    @logger = Bosh::Cpi::Logger.new(STDERR)
+    @logger.set_request_id("fake-#{Random.rand(100000..999999)}")
 
-    @ca_cert_content                 = LifecycleHelper.get_config(:ca_cert, nil)
+    @ca_cert_content = LifecycleHelper.get_config(:ca_cert, nil)
     if @ca_cert_content && !@ca_cert_content.empty? && @ca_cert_content != 'null'
       @ca_cert_file = write_ca_cert(logger)
       @ca_cert_path = @ca_cert_file.path
@@ -86,7 +87,6 @@ class IntegrationConfig
   def create_cpi(boot_from_volume: false, config_drive: nil, human_readable_vm_names: false, use_nova_networking: false, use_dhcp: true, default_volume_type: nil, enable_auto_anti_affinity: false, request_id: nil)
     properties = {
       'openstack' => openstack_properties(boot_from_volume, config_drive, human_readable_vm_names, use_nova_networking, use_dhcp, default_volume_type, enable_auto_anti_affinity),
-      'request_id' => request_id,
       'registry' => {
         'endpoint' => 'fake',
         'user' => 'fake',

@@ -7,7 +7,7 @@ describe Bosh::OpenStackCloud::Cloud do
     @config = IntegrationConfig.new
   end
 
-  let(:logger) { Logger.new(STDERR) }
+  let(:logger) { @config.logger }
   let(:openstack) { @config.create_openstack }
 
   before do

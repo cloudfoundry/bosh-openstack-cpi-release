@@ -53,7 +53,7 @@ module Bosh::OpenStackCloud
 
           if retries < MAX_RETRIES
             wait_time = overlimit['retryAfter'] || e.response.headers['Retry-After'] || DEFAULT_RETRY_TIMEOUT
-            @logger&.debug("OpenStack API Over Limit (#{details}), waiting #{wait_time} seconds before retrying")
+            @logger.debug("OpenStack API Over Limit (#{details}), waiting #{wait_time} seconds before retrying")
             sleep(wait_time.to_i)
             retries += 1
             retry
@@ -65,7 +65,7 @@ module Bosh::OpenStackCloud
       rescue Excon::Error::ServiceUnavailable => e
         unless retries >= MAX_RETRIES
           retries += 1
-          @logger&.debug("OpenStack API Service Unavailable error, retrying (#{retries})")
+          @logger.debug("OpenStack API Service Unavailable error, retrying (#{retries})")
           sleep(DEFAULT_RETRY_TIMEOUT)
           retry
         end
@@ -79,7 +79,7 @@ module Bosh::OpenStackCloud
       rescue Excon::Error::InternalServerError => e
         unless retries >= MAX_RETRIES
           retries += 1
-          @logger&.debug("OpenStack API Internal Server error, retrying (#{retries})")
+          @logger.debug("OpenStack API Internal Server error, retrying (#{retries})")
           sleep(DEFAULT_RETRY_TIMEOUT)
           retry
         end

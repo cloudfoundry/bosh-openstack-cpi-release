@@ -9,16 +9,14 @@ describe Bosh::OpenStackCloud::ExconLoggingInstrumentor do
 
   let(:logger) { Bosh::Cpi::Logger.new(log) }
   let(:log) { StringIO.new('') }
+  let(:request_id) { '1234' }
+  let(:cpi) { @config.create_cpi(boot_from_volume: boot_from_volume) }
+  let(:boot_from_volume) { false }
 
   before do
-    delegate = double('delegate', logger: logger, cpi_task_log: nil)
-    Bosh::Clouds::Config.configure(delegate)
+    logger.set_request_id(request_id)
     allow(Bosh::Clouds::Config).to receive(:logger).and_return(logger)
   end
-
-  let(:cpi) { @config.create_cpi(boot_from_volume: boot_from_volume, request_id: 1234) }
-
-  let(:boot_from_volume) { false }
 
   it 'logs excon messages' do
     cpi.calculate_vm_cloud_properties(

@@ -1,23 +1,21 @@
 require_relative './spec_helper'
 
 describe Bosh::OpenStackCloud::Cloud do
-  before do
+  subject(:cpi) { @config.create_cpi }
+
+  before(:all) do
     @config = IntegrationConfig.new(:v2)
   end
 
   let(:boot_from_volume) { false }
   let(:config_drive) { nil }
+  let(:logger) { @config.logger }
 
-  subject(:cpi) do
-    @config.create_cpi
-  end
   before do
     delegate = double('delegate', logger: logger, cpi_task_log: nil)
     Bosh::Clouds::Config.configure(delegate)
+    allow(Bosh::Clouds::Config).to receive(:logger).and_return(logger)
   end
-
-  before { allow(Bosh::Clouds::Config).to receive(:logger).and_return(logger) }
-  let(:logger) { Logger.new(STDERR) }
 
   describe 'Basic Keystone V2 support' do
     context 'with missing VM id' do

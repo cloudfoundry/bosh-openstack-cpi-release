@@ -3,14 +3,14 @@ require_relative './spec_helper'
 describe Bosh::OpenStackCloud::Cloud do
   include Bosh::OpenStackCloud::Helpers
 
-  let(:logger) { Logger.new(STDERR) }
-  let(:cpi_for_cloud_props) { IntegrationConfig.new.create_cpi }
-  let(:server_groups) { Bosh::OpenStackCloud::ServerGroups.new(cpi_for_cloud_props.openstack) }
-
   before(:all) do
     @config = IntegrationConfig.new
     skip('Tests for auto-anti-affinity are not activated.') unless @config.test_auto_anti_affinity
   end
+
+  let(:logger) { @config.logger }
+  let(:cpi_for_cloud_props) { IntegrationConfig.new.create_cpi }
+  let(:server_groups) { Bosh::OpenStackCloud::ServerGroups.new(cpi_for_cloud_props.openstack) }
 
   before(:each) do
     delegate = double('delegate', logger: logger)

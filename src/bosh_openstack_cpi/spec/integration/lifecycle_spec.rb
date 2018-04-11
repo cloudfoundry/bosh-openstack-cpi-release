@@ -1,13 +1,11 @@
 require_relative './spec_helper'
 
 describe Bosh::OpenStackCloud::Cloud do
-  # @formatter:off
   before(:all) do
     @config = IntegrationConfig.new
     @cpi_for_stemcell = @config.create_cpi
     @stemcell_id, = upload_stemcell(@cpi_for_stemcell, @config.stemcell_path)
   end
-  # @formatter:on
 
   before { allow(Bosh::Clouds::Config).to receive(:logger).and_return(@config.logger) }
 

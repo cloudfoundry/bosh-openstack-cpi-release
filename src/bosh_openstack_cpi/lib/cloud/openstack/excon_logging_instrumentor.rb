@@ -5,21 +5,22 @@ module Bosh::OpenStackCloud
     class << self
       def instrument(name, params = {})
         redacted_params = redact(params)
+        logger = Bosh::Clouds::Config.logger
 
         if name == 'excon.response'
           message = ResponseMessage.new(redacted_params).format
-          Bosh::Clouds::Config.logger.debug("#{name} #{message}")
+          logger.debug("#{name} #{message}")
 
         elsif name == 'excon.request'
           message = RequestMessage.new(redacted_params).format
-          Bosh::Clouds::Config.logger.debug("#{name} #{message}")
+          logger.debug("#{name} #{message}")
 
         elsif name == 'excon.error' && redacted_params[:error].respond_to?(:response)
           message = ResponseMessage.new(redacted_params[:error].response.data).format
-          Bosh::Clouds::Config.logger.debug("#{name} #{message}")
+          logger.debug("#{name} #{message}")
 
         else
-          Bosh::Clouds::Config.logger.debug("#{name} #{redacted_params}")
+          logger.debug("#{name} #{redacted_params}")
         end
 
         yield if block_given?

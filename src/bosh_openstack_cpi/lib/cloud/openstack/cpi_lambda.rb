@@ -23,6 +23,9 @@ module Bosh::OpenStackCloud
           connection_options['ssl_ca_file'] = ca_cert_from_context
         end
 
+        request_id = context['request_id']
+        Bosh::Clouds::Config.logger.set_request_id(request_id) if request_id
+
         Bosh::Clouds::Openstack.new(cloud_properties)
       end
     end
