@@ -4,7 +4,7 @@
 DELETE /v2.1/<tenant_id>/os-server-groups/<resource_id>
 DELETE /v2.1/<tenant_id>/servers/<resource_id>
 DELETE /v2.1/<tenant_id>/servers/<resource_id>/os-volume_attachments/<resource_id>
-GET /v2.1/<tenant_id>//servers/<resource_id>/os-volume_attachments
+GET /v2.1/<tenant_id>/servers/<resource_id>/os-volume_attachments
 GET /v2.1/<tenant_id>/flavors/detail
 GET /v2.1/<tenant_id>/os-keypairs
 GET /v2.1/<tenant_id>/os-security-groups
