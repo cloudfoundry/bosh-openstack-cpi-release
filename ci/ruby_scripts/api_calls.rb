@@ -84,51 +84,36 @@ def unescape_double_quote(string)
   string.gsub('\"', '"') if string
 end
 
-def update_catalog(catalog, line)
-  catalog_response_regex = /excon\.response {.*?:body=>"({.*?serviceCatalog.*?})"/
-  catalog_matched = catalog_response_regex.match(line)
-  if catalog_matched
-    catalog[:v2] = JSON.parse(unescape_double_quote(catalog_matched[1]))
-  end
-
-  catalog_response_regex = /excon\.response {.*?:body=>"({.*?catalog.*?})"/
-  catalog_matched = catalog_response_regex.match(line)
-  if catalog_matched
-    catalog[:v3] = JSON.parse(unescape_double_quote(catalog_matched[1]))
-  end
-
-  catalog
+def update_catalog_endpoints(line)
+  body_regex = /body: ({.*})/
+  body = JSON.parse(unescape_double_quote(body_regex.match(line)[1]))
+  body.dig("token", "catalog") || body.dig("access", "serviceCatalog")
 end
 
 def run
-  catalog = {
-    v2: {},
-    v3: {}
-  }
   requests = []
+  endpoints = nil
   STDIN.each_line do |line|
-    update_catalog(catalog, line)
+    endpoints ||= update_catalog_endpoints(line) if line =~ /excon\.response .*?(catalog|serviceCatalog)/
 
-    request_regex = /^.*excon\.request ({.*})$/
+    request_regex = /^.*excon\.request (.*)$/
     matched = request_regex.match(line)
     if matched
-      method_regex = /:method=>"([^"]*)"/
-      host_regex = /:host=>"([^"]*)"/
-      port_regex = /:port=>([0-9]*)/
-      path_regex = /:path=>"([^"]*)"/
-      query_regex = /:query=>({.*?})/
-      body_regex = /:body=>"({.*?})"/
+      host_regex = /"host":"([^"]*)"/
+      query_regex = /"query":({.*?})/
+      body_regex = /body: ({.*})/
+
+      log_regex = /^(?<method>\w+) .*?:\/\/.*?:(?<port>\d+)(?<path>.*?) params:/
+      log_matched = log_regex.match(matched[1])
 
       request = {
-        method: method_regex.match(matched[1])[1],
+        method: log_matched[:method],
+        port: log_matched[:port],
+        path: log_matched[:path],
         host: host_regex.match(matched[1])[1],
-        port: port_regex.match(matched[1])[1],
-        path: path_regex.match(matched[1])[1],
       }
       query = query_regex.match(matched[1])
-      if query && query[1] != '{}'
-        request[:query] = to_query_string(query[1])
-      end
+      request[:query] = json_to_query_string(query[1]) if query
       body = body_regex.match(matched[1])
       request[:body] = unescape_double_quote(body[1]) if body
 
@@ -136,12 +121,8 @@ def run
     end
   end
 
-  if !catalog[:v3].empty?
-    endpoints = catalog[:v3]['token']['catalog']
-  elsif !catalog[:v2].empty?
-    endpoints = catalog[:v2]['access']['serviceCatalog']
-  else
-    raise 'No catalog found'
+  unless endpoints
+    raise 'No catalog with endpoints found'
   end
 
   scrub_random_values!(requests)
@@ -166,22 +147,11 @@ def request_of(catalog_entry_type)
   lambda { |request| request[:target][:type] == catalog_entry_type }
 end
 
-def to_query_string(query_hash_string)
-  def remove_colon(symbol_string)
-    symbol_string[1..-1]
+def json_to_query_string(query_hash_string)
+  if query_hash_string != '{}'
+    parsed_query = JSON.parse(unescape_double_quote(query_hash_string))
+    parsed_query.keys.map { |key| "#{key}=#{parsed_query[key]}" }.join('&')
   end
-
-  def remove_braces(hash_string)
-    hash_string[1..hash_string.length-2]
-  end
-
-  remove_braces(query_hash_string)
-      .split(', ')
-      .map { |key_value| remove_colon(key_value)
-                             .gsub('=>', '=')
-                             .gsub('"', '') }
-      .sort
-      .join('&')
 end
 
 def to_formatted_line
