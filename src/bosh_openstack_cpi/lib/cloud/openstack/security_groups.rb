@@ -36,10 +36,19 @@ module Bosh::OpenStackCloud
 
     def self.map_to_security_groups_in_openstack(picked_security_groups, openstack_security_groups)
       picked_security_groups.map do |configured_sg|
-        openstack_security_group = openstack_security_groups.find { |openstack_sg| openstack_sg.name == configured_sg }
+        openstack_security_group = find_openstack_sg_by_name(openstack_security_groups, configured_sg)
+        openstack_security_group ||= find_openstack_sg_by_id(openstack_security_groups, configured_sg)
         cloud_error("Security group `#{configured_sg}' not found") unless openstack_security_group
         openstack_security_group
       end
+    end
+
+    def self.find_openstack_sg_by_name(openstack_security_groups, security_group_name)
+      openstack_security_groups.find { |openstack_sg| openstack_sg.name == security_group_name }
+    end
+
+    def self.find_openstack_sg_by_id(openstack_security_groups, security_group_id)
+      openstack_security_groups.find { |openstack_sg| openstack_sg.id == security_group_id }
     end
   end
 end

@@ -261,24 +261,39 @@ describe Bosh::OpenStackCloud::Cloud do
     end
   end
 
-  context 'when using cloud_properties' do
+  context 'when using cloud_properties and specifying security groups' do
     let(:cloud_properties) { { 'type' => @config.volume_type } }
-
+    let(:security_group) {}
     let(:network_spec) do
       {
         'default' => {
           'type' => 'dynamic',
           'cloud_properties' => {
             'net_id' => @config.net_id,
+            'security_groups' => [security_group],
           },
         },
       }
     end
 
-    it 'exercises the vm lifecycle' do
-      expect {
-        vm_lifecycle(@stemcell_id, network_spec, nil, cloud_properties)
-      }.to_not raise_error
+    context 'when security group is specified by name' do
+      let(:security_group) { @config.security_group_name }
+
+      it 'exercises the vm lifecycle' do
+        expect {
+          vm_lifecycle(@stemcell_id, network_spec, nil, cloud_properties)
+        }.to_not raise_error
+      end
+    end
+
+    context 'when security group is specified by id' do
+      let(:security_group) { @config.security_group_id }
+
+      it 'exercises the vm lifecycle' do
+        expect {
+          vm_lifecycle(@stemcell_id, network_spec, nil, cloud_properties)
+        }.to_not raise_error
+      end
     end
   end
 

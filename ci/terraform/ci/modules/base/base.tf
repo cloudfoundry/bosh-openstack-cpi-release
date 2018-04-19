@@ -42,6 +42,10 @@ output "security_group" {
   value = "${var.add_security_group == 1 ? var.prefix : ""}"
 }
 
+output "security_group_id" {
+  value = "${var.add_security_group == 1 ? openstack_networking_secgroup_v2.secgroup.0.id : ""}"
+}
+
 # key pairs
 
 resource "openstack_compute_keypair_v2" "openstack_compute_keypair_v2" {

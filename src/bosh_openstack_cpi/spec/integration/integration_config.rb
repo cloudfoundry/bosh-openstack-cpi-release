@@ -23,6 +23,8 @@ class IntegrationConfig
               :availability_zone,
               :region,
               :floating_ip,
+              :security_group_id,
+              :security_group_name,
               :ca_cert_path,
               :insecure,
               :lbaas_pool_name,
@@ -76,6 +78,8 @@ class IntegrationConfig
     @instance_type_with_no_root_disk = LifecycleHelper.get_config(:flavor_with_no_root_disk)
     @availability_zone               = LifecycleHelper.get_config(:availability_zone, nil)
     @floating_ip                     = LifecycleHelper.get_config(:floating_ip)
+    @security_group_id               = LifecycleHelper.get_config(:security_group_id)
+    @security_group_name             = LifecycleHelper.get_config(:security_group_name)
     @lbaas_pool_name                 = LifecycleHelper.get_config(:lbaas_pool_name, nil)
     @test_auto_anti_affinity         = LifecycleHelper.get_config(:test_auto_anti_affinity, nil).to_s == 'true'
     @allowed_address_pairs           = LifecycleHelper.get_config(:allowed_address_pairs, nil)

@@ -136,6 +136,7 @@ jobs:
           env_name: lifecycle
           terraform_source: bosh-cpi-src-in/ci/terraform/ci/lifecycle
           vars:
+            prefix: "lifecycle"
             auth_url: ((openstack_auth_url_v3))
             cacert_file: ((tf_ca_file_path))
             user_name: ((lifecycle_openstack_username_v3))
