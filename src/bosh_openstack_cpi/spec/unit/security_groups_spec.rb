@@ -13,7 +13,7 @@ describe Bosh::OpenStackCloud::SecurityGroups do
     context 'security group picking' do
       let(:security_groups) {
         [
-          double('default-security-group', name: 'default-security-group'),
+          double('default-security-group', name: 'default-security-group', id: 'default-security-group-id'),
           double('network-spec-security-group', name: 'network-spec-security-group'),
           double('resource-pool-spec-security-group', name: 'resource-pool-spec-security-group'),
         ]
@@ -29,6 +29,19 @@ describe Bosh::OpenStackCloud::SecurityGroups do
           )
           expect(picked_security_groups.size).to eq(1)
           expect(picked_security_groups.first.name).to eq('resource-pool-spec-security-group')
+        end
+      end
+
+      context 'when security group id is specified instead of name' do
+        it 'picks the security group by id' do
+          picked_security_groups = Bosh::OpenStackCloud::SecurityGroups.select_and_retrieve(
+            openstack,
+            ['default-security-group-id'],
+            [],
+            [],
+          )
+          expect(picked_security_groups.size).to eq(1)
+          expect(picked_security_groups.first.name).to eq('default-security-group')
         end
       end
 

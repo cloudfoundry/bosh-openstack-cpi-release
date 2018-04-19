@@ -17,7 +17,7 @@ module "base" {
   concourse_external_network_cidr = ""
   openstack_default_key_public_key = "${var.openstack_default_key_public_key}"
   prefix = "lifecycle"
-  add_security_group = "0"
+  add_security_group = "1"
 }
 
 module "lifecycle" {
@@ -85,6 +85,10 @@ variable "use_lbaas" {
   description = "When set to 'true', all necessary LBaaS V2 resources are created."
 }
 
+variable "prefix" {
+  description = "This is the prefix used to identify resources in each job, e.g. for the actual public key name"
+}
+
 output "net_id" {
   value = "${module.lifecycle.lifecycle_openstack_net_id}"
 }
@@ -135,4 +139,12 @@ output "floating_ip" {
 
 output "loadbalancer_pool_name" {
   value = "${module.lifecycle.lifecycle_lb_pool_name}"
+}
+
+output "security_group_id" {
+  value = "${module.base.security_group_id}"
+}
+
+output "security_group_name" {
+  value = "${module.base.security_group}"
 }
