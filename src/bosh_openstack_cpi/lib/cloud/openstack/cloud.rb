@@ -279,7 +279,7 @@ module Bosh::OpenStackCloud
           volume_params[:volume_type] = @default_volume_type
         end
 
-        if server_id && @az_provider.constrain_to_server_availability_zone?
+        if server_id && @az_provider.use_server_availability_zone?
           server = @openstack.with_openstack { @openstack.compute.servers.get(server_id) }
           volume_params[:availability_zone] = server.availability_zone if server&.availability_zone
         end
