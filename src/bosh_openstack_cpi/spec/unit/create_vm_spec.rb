@@ -678,8 +678,8 @@ describe Bosh::OpenStackCloud::Cloud, 'create_vm' do
   end
 
   describe 'failing to select an AZ' do
-    let(:volume_foo) { double('volume', availability_zone: 'foo') }
-    let(:volume_bar) { double('volume', availability_zone: 'bar') }
+    let(:volume_foo) { double('volume', id: 'foo_id', availability_zone: 'foo') }
+    let(:volume_bar) { double('volume', id: 'bar_id', availability_zone: 'bar') }
 
     it 'should raise an error when the disks are from different zones' do
       allow(cloud.volume.volumes).to receive(:get).and_return(volume_foo, volume_bar)

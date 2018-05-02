@@ -13,6 +13,8 @@ describe Bosh::OpenStackCloud::AvailabilityZoneProvider do
     allow(openstack).to receive(:compute).and_return(compute)
     allow(openstack).to receive(:volume).and_return(volume)
     allow(openstack).to receive(:with_openstack) { |&block| block.call }
+    allow(bar_volume).to receive(:id).and_return('bar_id')
+    allow(foo_volume).to receive(:id).and_return('foo_id')
     allow(foo_volume).to receive(:availability_zone).and_return('west_az')
     allow(volumes).to receive(:get).with('foo_id').and_return(foo_volume)
     allow(volumes).to receive(:get).with('bar_id').and_return(bar_volume)
@@ -56,13 +58,13 @@ describe Bosh::OpenStackCloud::AvailabilityZoneProvider do
 
       describe 'when the disks are from different AZs and no resource pool AZ is provided' do
         before do
-          expect(bar_volume).to receive(:availability_zone).and_return('east_az')
+          allow(bar_volume).to receive(:availability_zone).and_return('east_az')
         end
 
         it 'should raise an error' do
           expect {
             az_provider.select(%w[foo_id bar_id], nil)
-          }.to raise_error(Bosh::Clouds::CloudError)
+          }.to raise_error Bosh::Clouds::CloudError, "can't use multiple availability zones: VM is created in default AZ, disk 'foo_id' is in AZ 'west_az', disk 'bar_id' is in AZ 'east_az'. Enable 'openstack.ignore_server_availability_zone' to allow VMs and disks to be in different AZs, or use the same AZ for both."
         end
       end
 
@@ -79,37 +81,37 @@ describe Bosh::OpenStackCloud::AvailabilityZoneProvider do
 
       describe 'when there is a volume in a different AZ from other volumes or the resource pool AZ' do
         before do
-          expect(bar_volume).to receive(:availability_zone).and_return('east_az')
+          allow(bar_volume).to receive(:availability_zone).and_return('east_az')
         end
 
         it 'should raise an error' do
           expect {
             az_provider.select(%w[foo_id bar_id], 'west_az')
-          }.to raise_error(Bosh::Clouds::CloudError)
+          }.to raise_error Bosh::Clouds::CloudError, "can't use multiple availability zones: VM is created in AZ 'west_az', disk 'foo_id' is in AZ 'west_az', disk 'bar_id' is in AZ 'east_az'. Enable 'openstack.ignore_server_availability_zone' to allow VMs and disks to be in different AZs, or use the same AZ for both."
         end
       end
 
       describe 'when the disk AZs do not match the resource pool AZ' do
         before do
-          expect(bar_volume).to receive(:availability_zone).and_return('west_az')
+          allow(bar_volume).to receive(:availability_zone).and_return('west_az')
         end
 
         it 'should raise an error' do
           expect {
             az_provider.select(%w[foo_id bar_id], 'south_az')
-          }.to raise_error(Bosh::Clouds::CloudError)
+          }.to raise_error Bosh::Clouds::CloudError, "can't use multiple availability zones: VM is created in AZ 'south_az', disk 'foo_id' is in AZ 'west_az', disk 'bar_id' is in AZ 'west_az'. Enable 'openstack.ignore_server_availability_zone' to allow VMs and disks to be in different AZs, or use the same AZ for both."
         end
       end
 
       describe 'when all AZs provided are mismatched' do
         before do
-          expect(bar_volume).to receive(:availability_zone).and_return('east_az')
+          allow(bar_volume).to receive(:availability_zone).and_return('east_az')
         end
 
         it 'should raise an error' do
           expect {
             az_provider.select(%w[foo_id bar_id], 'south_az')
-          }.to raise_error(Bosh::Clouds::CloudError)
+          }.to raise_error Bosh::Clouds::CloudError, "can't use multiple availability zones: VM is created in AZ 'south_az', disk 'foo_id' is in AZ 'west_az', disk 'bar_id' is in AZ 'east_az'. Enable 'openstack.ignore_server_availability_zone' to allow VMs and disks to be in different AZs, or use the same AZ for both."
         end
       end
 
