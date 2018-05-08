@@ -729,7 +729,7 @@ resources:
     tags: ((worker_tags))
     source:
       uri: https://github.com/cloudfoundry/bosh-acceptance-tests.git
-      branch: gocli-bats
+      branch: master
 
   - name: bosh-release
     type: bosh-io-release
