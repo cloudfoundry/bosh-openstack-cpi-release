@@ -46,6 +46,7 @@ require 'cloud/openstack/stemcell'
 require 'cloud/openstack/stemcell_creator'
 require 'cloud/openstack/instance_type_mapper'
 require 'cloud/openstack/server_groups'
+require 'cloud/openstack/server'
 
 module Bosh
   module Clouds
