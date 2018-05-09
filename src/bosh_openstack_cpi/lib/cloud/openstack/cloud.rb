@@ -152,11 +152,7 @@ module Bosh::OpenStackCloud
 
         pick_availability_zone(server_params, disk_locality, resource_pool['availability_zone'])
         configure_volumes(server_params, flavor, resource_pool)
-
         pick_server_groups(server_params, environment)
-
-        availability_zone = @az_provider.select(disk_locality, resource_pool['availability_zone'])
-        server_params[:availability_zone] = availability_zone if availability_zone
 
         begin
           @openstack.with_openstack { network_configurator.prepare(@openstack, picked_security_groups.map(&:id)) }
