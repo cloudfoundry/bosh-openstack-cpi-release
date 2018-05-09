@@ -531,20 +531,6 @@ module Bosh::OpenStackCloud
       )
     end
 
-    ##
-    # Selects the availability zone to use from a list of disk volumes,
-    # resource pool availability zone (if any) and the default availability
-    # zone.
-    #
-    # @param [Array] volumes OpenStack volume UUIDs to attach to the vm
-    # @param [String] resource_pool_az availability zone specified in
-    #   the resource pool (may be nil)
-    # @return [String] availability zone to use or nil
-    # @note this is a private method that is public to make it easier to test
-    def select_availability_zone(volumes, resource_pool_az)
-      @az_provider.select(volumes, resource_pool_az)
-    end
-
     def is_v3
       @options['openstack']['auth_url'].match(/\/v3(?=\/|$)/)
     end
