@@ -27,7 +27,7 @@ RUN CURRENT=$PWD && \
     make install && \
     cd $CURRENT
 
-RUN python -m ensurepip && pip install pytz && pip install python-openstackclient==2.6.0 && \
+RUN python -m ensurepip && pip install pytz && pip install python-openstackclient==3.12.0 && \
     pip install python-neutronclient==6.0.0 && pip install awscli
 
 # install newest git CLI
