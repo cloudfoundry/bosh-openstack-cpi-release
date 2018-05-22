@@ -31,8 +31,12 @@ describe Bosh::OpenStackCloud::ServerGroups do
   before do
     allow(Bosh::Clouds::Config).to receive(:logger).and_return(logger)
     allow(openstack).to receive(:with_openstack) { |&block| block.call }
-    allow(openstack).to receive(:params).and_return(openstack_tenant: 'my-project')
+    allow(openstack).to receive(:is_v3).and_return(version == 'v3' ? true : false)
   end
+
+  let(:version) {
+    'v3'
+  }
 
   it 'uses name derived from uuid and bosh groups' do
     server_groups.find_or_create('fake-uuid', bosh_group)
@@ -109,27 +113,43 @@ describe Bosh::OpenStackCloud::ServerGroups do
     end
   end
 
-  context 'when quota of server groups is reached' do
-    before(:each) do
-      allow(fog_server_groups).to receive(:create).and_raise(Excon::Error::Forbidden.new('Quota exceeded, too many server groups'))
-    end
+  %w(v2 v3).each do |keystone_version|
+    context "when keystone #{keystone_version} is used" do
+      let(:version) {
+        keystone_version
+      }
 
-    it 'raises a cloud error' do
-      expect {
-        server_groups.find_or_create('fake-uuid', bosh_group)
-      }.to raise_error(Bosh::Clouds::CloudError, "You have reached your quota for server groups for project '#{openstack.params[:openstack_tenant]}'. Please disable auto-anti-affinity server groups or increase your quota.")
-    end
-  end
+      before(:each) do
+        if keystone_version == 'v2'
+          allow(openstack).to receive(:params).and_return(openstack_tenant: 'my-project')
+        else
+          allow(openstack).to receive(:params).and_return(openstack_project_name: 'my-project')
+        end
+      end
 
-  context 'when quota of members in a server group is reached' do
-    before(:each) do
-      allow(fog_server_groups).to receive(:create).and_raise(Excon::Error::Forbidden.new('Quota exceeded, too many servers in group'))
-    end
+      context 'when quota of server groups is reached' do
+        before(:each) do
+          allow(fog_server_groups).to receive(:create).and_raise(Excon::Error::Forbidden.new('Quota exceeded, too many server groups'))
+        end
 
-    it 'raises a cloud error' do
-      expect{
-        server_groups.find_or_create('fake-uuid', bosh_group)
-      }.to raise_error(Bosh::Clouds::CloudError, "You have reached your quota for members in a server group for project '#{openstack.params[:openstack_tenant]}'. Please disable auto-anti-affinity server groups or increase your quota.")
+        it 'raises a cloud error' do
+          expect {
+            server_groups.find_or_create('fake-uuid', bosh_group)
+          }.to raise_error(Bosh::Clouds::CloudError, "You have reached your quota for server groups for project 'my-project'. Please disable auto-anti-affinity server groups or increase your quota.")
+        end
+      end
+
+      context 'when quota of members in a server group is reached' do
+        before(:each) do
+          allow(fog_server_groups).to receive(:create).and_raise(Excon::Error::Forbidden.new('Quota exceeded, too many servers in group'))
+        end
+
+        it 'raises a cloud error' do
+          expect{
+            server_groups.find_or_create('fake-uuid', bosh_group)
+          }.to raise_error(Bosh::Clouds::CloudError, "You have reached your quota for members in a server group for project 'my-project'. Please disable auto-anti-affinity server groups or increase your quota.")
+        end
+      end
     end
   end
 
@@ -156,4 +176,5 @@ describe Bosh::OpenStackCloud::ServerGroups do
       expect(exception_logged).to be(true)
     end
   end
+
 end
