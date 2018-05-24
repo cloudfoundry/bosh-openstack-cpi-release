@@ -89,6 +89,10 @@ module Bosh::OpenStackCloud
       end
     end
 
+    def project_name
+      is_v3 ? params[:openstack_project_name] : params[:openstack_tenant]
+    end
+
     def use_nova_networking?
       @use_nova_networking
     end

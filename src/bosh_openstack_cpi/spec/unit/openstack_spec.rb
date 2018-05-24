@@ -16,6 +16,23 @@ describe Bosh::OpenStackCloud::Openstack do
     end
   end
 
+  describe :project_name do
+
+    context 'when keystone version is v3' do
+      let(:openstack_options) { openstack_options_v2 }
+      it 'returns the project name' do
+        expect(subject.project_name).to eq('admin')
+      end
+    end
+
+    context 'when keystone version is v2' do
+      let(:openstack_options) { openstack_options_v3 }
+      it 'returns the tenant name' do
+        expect(subject.project_name).to eq('admin')
+      end
+    end
+  end
+
   describe :new do
     context 'when auth_url does not include tokens' do
       context 'when auth_url is v2' do

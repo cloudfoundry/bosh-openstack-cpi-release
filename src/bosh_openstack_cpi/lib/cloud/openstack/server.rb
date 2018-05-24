@@ -103,7 +103,7 @@ module Bosh::OpenStackCloud
           raise Bosh::Clouds::VMCreationFailed.new(false), cloud_error_message
         rescue Excon::Error::Forbidden => e
           raise e unless e.message.include? 'Quota exceeded, too many servers in group'
-          raise Bosh::Clouds::CloudError, "You have reached your quota for members in a server group for project '#{@openstack.params[:openstack_tenant]}'. Please disable auto-anti-affinity server groups or increase your quota."
+          raise Bosh::Clouds::CloudError, "You have reached your quota for members in a server group for project '#{@openstack.project_name}'. Please disable auto-anti-affinity server groups or increase your quota."
         end
       end
       server

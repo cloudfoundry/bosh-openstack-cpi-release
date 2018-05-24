@@ -121,9 +121,9 @@ describe Bosh::OpenStackCloud::ServerGroups do
 
       before(:each) do
         if keystone_version == 'v2'
-          allow(openstack).to receive(:params).and_return(openstack_tenant: 'my-project')
+          allow(openstack).to receive(:project_name).and_return('my-project')
         else
-          allow(openstack).to receive(:params).and_return(openstack_project_name: 'my-project')
+          allow(openstack).to receive(:project_name).and_return('my-project')
         end
       end
 
