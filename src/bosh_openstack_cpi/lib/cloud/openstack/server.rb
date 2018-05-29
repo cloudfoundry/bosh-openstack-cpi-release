@@ -13,24 +13,25 @@ module Bosh::OpenStackCloud
       @use_dhcp = use_dhcp
     end
 
+    attr_reader :use_dhcp
+
     def create(
-      agent_id, environment, flavor,
+      agent_settings,
       network_configurator,
-      network_spec,
-      picked_security_groups, registry_key, resource_pool, server_params
+      resource_pool, create_vm_params
     )
 
+      create_vm_params = create_vm_params.dup
+
       begin
-        @openstack.with_openstack { network_configurator.prepare(@openstack, picked_security_groups.map(&:id)) }
-        nics = pick_nics(server_params, network_configurator)
-        server = create_server(server_params, nics)
+        @openstack.with_openstack { network_configurator.prepare(@openstack) }
+        pick_nics(create_vm_params, network_configurator)
+        server = create_server(create_vm_params)
         configure_server(network_configurator, server)
 
         server_tags = {}
-        tag_server(server_tags, server, registry_key, network_spec, resource_pool.fetch('loadbalancer_pools', []))
-
-        update_server_settings(server, registry_key, agent_id, network_configurator.network_spec, environment,
-                               flavor_has_ephemeral_disk?(flavor))
+        tag_server(server_tags, server, agent_settings.registry_key, network_configurator.network_spec, resource_pool.fetch('loadbalancer_pools', []))
+        update_server_settings(server, agent_settings)
 
         server.id.to_s
       rescue StandardError => e
@@ -74,30 +75,29 @@ module Bosh::OpenStackCloud
 
     private
 
-    def pick_nics(server_params, network_configurator)
+    def pick_nics(create_vm_params, network_configurator)
       nics = network_configurator.nics
       @logger.debug("Using NICs: `#{nics.join(', ')}'")
-      server_params[:nics] = nics
-      server_params[:user_data] = JSON.dump(user_data(server_params[:name], network_configurator.network_spec))
-      nics
+      create_vm_params[:nics] = nics
+      create_vm_params[:user_data] = JSON.dump(user_data(create_vm_params[:name], network_configurator.network_spec))
     end
 
-    def create_server(server_params, nics)
-      @logger.debug("Using boot parms: `#{Bosh::Cpi::Redactor.clone_and_redact(server_params, 'user_data').inspect}'")
+    def create_server(create_vm_params)
+      @logger.debug("Using boot parms: `#{Bosh::Cpi::Redactor.clone_and_redact(create_vm_params, 'user_data').inspect}'")
       server = @openstack.with_openstack do
         begin
-          @openstack.compute.servers.create(server_params)
+          @openstack.compute.servers.create(create_vm_params)
         rescue Excon::Error::Timeout => e
           @logger.debug(e.backtrace)
-          cloud_error_message = "VM creation with name '#{server_params[:name]}' received a timeout. " \
+          cloud_error_message = "VM creation with name '#{create_vm_params[:name]}' received a timeout. " \
                                 "The VM might still have been created by OpenStack.\nOriginal message: "
           raise Bosh::Clouds::VMCreationFailed.new(false), cloud_error_message + e.message
         rescue Excon::Error::BadRequest, Excon::Error::NotFound, Fog::Compute::OpenStack::NotFound => e
           raise e if @openstack.use_nova_networking?
-          not_existing_net_ids = not_existing_net_ids(nics)
+          not_existing_net_ids = not_existing_net_ids(create_vm_params[:nics])
           raise e if not_existing_net_ids.empty?
           @logger.debug(e.backtrace)
-          cloud_error_message = "VM creation with name '#{server_params[:name]}' failed. Following network " \
+          cloud_error_message = "VM creation with name '#{create_vm_params[:name]}' failed. Following network " \
                                 "IDs are not existing or not accessible from this project: '#{not_existing_net_ids.join(',')}'. " \
                                 'Make sure you do not use subnet IDs'
           raise Bosh::Clouds::VMCreationFailed.new(false), cloud_error_message
@@ -148,22 +148,13 @@ module Bosh::OpenStackCloud
       end
     end
 
-    def update_server_settings(server, registry_key, agent_id, network_spec, environment, ephemeral_disk)
-      settings = initial_agent_settings(registry_key, agent_id, network_spec, environment, ephemeral_disk)
+    def update_server_settings(server, agent_settings)
+      settings = initial_agent_settings(agent_settings)
       @logger.info("Updating settings for server `#{server.id}'...")
-      @registry.update_settings(registry_key, settings)
+      @registry.update_settings(agent_settings.registry_key, settings)
     rescue StandardError => e
       @logger.warn("Failed to register server: #{e.message}")
       raise Bosh::Clouds::VMCreationFailed.new(false), e.message
-    end
-
-    ##
-    # Checks if the OpenStack flavor has ephemeral disk
-    #
-    # @param [Fog::Compute::OpenStack::Flavor] OpenStack flavor
-    # @return [Boolean] true if flavor has ephemeral disk, false otherwise
-    def flavor_has_ephemeral_disk?(flavor)
-      flavor.ephemeral && flavor.ephemeral.to_i > 0
     end
 
     ##
@@ -217,21 +208,21 @@ module Bosh::OpenStackCloud
     # @param [Hash] environment Environment settings
     # @param [Boolean] has_ephemeral Has Ephemeral disk?
     # @return [Hash] Agent settings
-    def initial_agent_settings(uuid, agent_id, network_spec, environment, has_ephemeral)
+    def initial_agent_settings(agent_settings)
       settings = {
         'vm' => {
-          'name' => uuid,
+          'name' => agent_settings.registry_key,
         },
-        'agent_id' => agent_id,
-        'networks' => agent_network_spec(network_spec),
+        'agent_id' => agent_settings.agent_id,
+        'networks' => agent_network_spec(agent_settings.network_spec),
         'disks' => {
           'system' => '/dev/sda',
           'persistent' => {},
         },
       }
 
-      settings['disks']['ephemeral'] = has_ephemeral ? '/dev/sdb' : nil
-      settings['env'] = environment if environment
+      settings['disks']['ephemeral'] = agent_settings.has_ephemeral ? '/dev/sdb' : nil
+      settings['env'] = agent_settings.environment if agent_settings.environment
       settings.merge(@agent_properties)
     end
 

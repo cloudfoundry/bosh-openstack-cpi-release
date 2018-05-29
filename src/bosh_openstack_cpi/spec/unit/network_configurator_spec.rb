@@ -18,14 +18,16 @@ describe Bosh::OpenStackCloud::NetworkConfigurator do
     }
   end
   let(:openstack) { instance_double(Bosh::OpenStackCloud::Openstack) }
+  let(:spec) {
+    {
+      'network_a' => { 'type' => 'dynamic' },
+    }
+  }
+
 
   before { allow(openstack).to receive(:with_openstack) { |&block| block.call } }
 
   it 'exposes network_spec as attribute' do
-    spec = {
-      'network_a' => { 'type' => 'dynamic' },
-    }
-
     nc = Bosh::OpenStackCloud::NetworkConfigurator.new(spec)
     expect(nc.network_spec).to eq(spec)
   end
@@ -192,7 +194,7 @@ describe Bosh::OpenStackCloud::NetworkConfigurator do
       context 'and no port id is available in network spec' do
         let(:openstack) { instance_double(Bosh::OpenStackCloud::Openstack, use_nova_networking?: true) }
         it 'should set fixed ip only' do
-          nc.prepare(openstack, nil)
+          nc.prepare(openstack)
 
           expect(nc.nics).to eq([{ 'net_id' => 'net', 'v4_fixed_ip' => '10.0.0.1' }])
         end
@@ -206,7 +208,7 @@ describe Bosh::OpenStackCloud::NetworkConfigurator do
         end
 
         it 'should set port id only' do
-          nc.prepare(openstack, nil)
+          nc.prepare(openstack)
 
           expect(nc.nics).to eq([{ 'net_id' => 'net', 'port_id' => '117717c1-81cb-4ac4-96ab-99aaf1be9ca8' }])
         end
@@ -216,7 +218,7 @@ describe Bosh::OpenStackCloud::NetworkConfigurator do
         let(:openstack) { instance_double(Bosh::OpenStackCloud::Openstack, use_nova_networking?: true) }
         it 'should extract net_id and IP address from all' do
           nc = Bosh::OpenStackCloud::NetworkConfigurator.new(several_manual_networks)
-          nc.prepare(openstack, nil)
+          nc.prepare(openstack)
 
           expect(nc.nics).to eq([
                                   { 'net_id' => 'net', 'v4_fixed_ip' => '10.0.0.1' },
@@ -248,11 +250,25 @@ describe Bosh::OpenStackCloud::NetworkConfigurator do
         'network_c' => dynamic_network_spec,
       )
 
-      nc.prepare(openstack, [])
+      nc.prepare(openstack)
 
       networks.each do |network|
         expect(network).to have_received(:prepare).with(anything, anything)
       end
+    end
+  end
+
+  describe '#pick_groups' do
+      let(:default_security_groups) { 'fake-group' }
+      let(:resource_pool_groups) { 'fake-group' }
+      let(:security_groups) { [double('security_-group', name: 'group')] }
+
+    it 'picks a group and logs  it' do
+      allow(Bosh::OpenStackCloud::SecurityGroups).to receive(:select_and_retrieve).and_return(security_groups)
+      nc = Bosh::OpenStackCloud::NetworkConfigurator.new(spec)
+      nc.pick_groups(openstack, default_security_groups, resource_pool_groups)
+      expect(Bosh::OpenStackCloud::SecurityGroups).to have_received(:select_and_retrieve).with(openstack, default_security_groups, [], resource_pool_groups)
+      expect(Bosh::Clouds::Config.logger).to have_received(:debug).with("Using security groups: `group'")
     end
   end
 

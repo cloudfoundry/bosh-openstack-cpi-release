@@ -121,7 +121,7 @@ module Bosh::OpenStackCloud
     #   the director to locate and talk to the agent
     # @param [String] stemcell_id OpenStack image UUID that will be used to
     #   power on new server
-    # @param [Hash] resource_pool cloud specific properties describing the
+    # @param [Hash] cloud_properties cloud specific properties describing the
     #   resources needed for this VM
     # @param [Hash] network_spec list of networks and their settings needed for
     #   this VM
@@ -131,36 +131,29 @@ module Bosh::OpenStackCloud
     #   zone is the same as disk availability zone)
     # @param [optional, Hash] environment Data to be merged into agent settings
     # @return [String] OpenStack server UUID
-    def create_vm(agent_id, stemcell_id, resource_pool,
+    def create_vm(agent_id, stemcell_id, cloud_properties,
                   network_spec = nil, disk_locality = nil, environment = nil)
       with_thread_name("create_vm(#{agent_id}, ...)") do
         @logger.info('Creating new server...')
+        @logger.debug("Using scheduler hints: `#{cloud_properties['scheduler_hints']}'") if cloud_properties['scheduler_hints']
         registry_key = "vm-#{generate_unique_name}"
-        server_params = {
+        create_vm_params = {
           name: registry_key,
-          os_scheduler_hints: resource_pool['scheduler_hints'],
+          os_scheduler_hints: cloud_properties['scheduler_hints'],
           config_drive: @use_config_drive,
         }
-
-        network_configurator = NetworkConfigurator.new(network_spec, resource_pool['allowed_address_pairs'])
-        picked_security_groups = pick_security_groups(server_params, network_configurator, ResourcePool.security_groups(resource_pool))
-        pick_stemcell(server_params, stemcell_id)
-        flavor = pick_flavor(server_params, resource_pool)
-        pick_key_name(server_params, resource_pool)
-
-        @logger.debug("Using scheduler hints: `#{resource_pool['scheduler_hints']}'") if resource_pool['scheduler_hints']
-
-        pick_availability_zone(server_params, disk_locality, resource_pool['availability_zone'])
-        configure_volumes(server_params, flavor, resource_pool)
-        pick_server_groups(server_params, environment)
-
         server = Server.new(@agent_properties, @human_readable_vm_names, @logger, @openstack, @registry, @use_dhcp)
-        server.create(
-          agent_id, environment, flavor,
-          network_configurator, network_spec,
-          picked_security_groups, registry_key, resource_pool, server_params
+
+        openstack_properties = OpenStruct.new(
+          boot_from_volume: @boot_from_volume,
+          default_key_name: @default_key_name,
+          enable_auto_anti_affinity: @enable_auto_anti_affinity,
+          default_security_groups: @default_security_groups,
         )
 
+        vm_factory = VmFactory.new(@openstack, server, create_vm_params, disk_locality, @az_provider, openstack_properties)
+        network_configurator = NetworkConfigurator.new(network_spec, cloud_properties['allowed_address_pairs'])
+        vm_factory.create_vm(network_configurator, agent_id, environment, stemcell_id, cloud_properties)
       end
     end
 
@@ -562,90 +555,6 @@ module Bosh::OpenStackCloud
 
     private
 
-    def pick_security_groups(server_params, network_configurator, resource_pool_groups)
-      network_configurator.check_preconditions(@openstack.use_nova_networking?, @use_config_drive, @use_dhcp)
-
-      picked_security_groups = SecurityGroups.select_and_retrieve(
-        @openstack,
-        @default_security_groups,
-        network_configurator.security_groups,
-        resource_pool_groups,
-      )
-      @logger.debug("Using security groups: `#{picked_security_groups.map(&:name).join(', ')}'")
-      server_params[:security_groups] = picked_security_groups.map(&:name)
-      picked_security_groups
-    end
-
-    def pick_key_name(server_params, resource_pool)
-      keyname = resource_pool['key_name'] || @default_key_name
-      validate_key_exists(keyname)
-      server_params[:key_name] = keyname
-    end
-
-    def pick_flavor(server_params, resource_pool)
-      flavor = @openstack.with_openstack { @openstack.compute.flavors.find { |f| f.name == resource_pool['instance_type'] } }
-      cloud_error("Flavor `#{resource_pool['instance_type']}' not found") if flavor.nil?
-      if flavor_has_ephemeral_disk?(flavor)
-        if flavor.ram
-          # Ephemeral disk size should be at least the double of the vm total memory size, as agent will need:
-          # - vm total memory size for swapon,
-          # - the rest for /var/vcap/data
-          min_ephemeral_size = (flavor.ram / 1024) * 2
-          if flavor.ephemeral < min_ephemeral_size
-            cloud_error("Flavor `#{resource_pool['instance_type']}' should have at least #{min_ephemeral_size}Gb " \
-                        'of ephemeral disk')
-          end
-        end
-      end
-      @logger.debug("Using flavor: `#{resource_pool['instance_type']}'")
-      server_params[:flavor_ref] = flavor.id
-      flavor
-    end
-
-    def pick_stemcell(server_params, stemcell_id)
-      stemcell = Stemcell.create(@logger, @openstack, stemcell_id)
-      stemcell.validate_existence
-      server_params[:image_ref] = stemcell.image_id
-    end
-
-    def pick_availability_zone(server_params, disk_locality, resource_pool_zone)
-      availability_zone = @az_provider.select(disk_locality, resource_pool_zone)
-      server_params[:availability_zone] = availability_zone if availability_zone
-    end
-
-    def configure_volumes(server_params, flavor, resource_pool)
-      volume_configurator = Bosh::OpenStackCloud::VolumeConfigurator.new(@logger)
-      return unless volume_configurator.boot_from_volume?(@boot_from_volume, resource_pool)
-
-      boot_vol_size = volume_configurator.select_boot_volume_size(flavor, resource_pool)
-      server_params[:block_device_mapping_v2] = [{
-        uuid: server_params[:image_ref],
-        source_type: 'image',
-        destination_type: 'volume',
-        volume_size: boot_vol_size,
-        boot_index: '0',
-        delete_on_termination: '1',
-        device_name: '/dev/vda',
-      }]
-      server_params.delete(:image_ref)
-    end
-
-    def pick_server_groups(server_params, environment)
-      return unless @enable_auto_anti_affinity
-      bosh_group = environment.dig('bosh', 'group')
-      return unless bosh_group
-
-      if server_params.dig(:os_scheduler_hints, 'group')
-        @logger.debug("Won't create/use server group for bosh group '#{bosh_group}'. Using provided server group with id '#{server_params[:os_scheduler_hints]['group']}'.")
-        return
-      end
-
-      server_group_id = ServerGroups.new(@openstack).find_or_create(Bosh::Clouds::Config.uuid, bosh_group)
-      server_group_hint = { 'group' => server_group_id }
-      return server_params[:os_scheduler_hints].merge!(server_group_hint) if server_params[:os_scheduler_hints]
-      server_params[:os_scheduler_hints] = server_group_hint
-    end
-
     def mib_to_gib(size)
       (size / 1024.0).ceil
     end
@@ -870,12 +779,6 @@ module Bosh::OpenStackCloud
         end
       end
       options
-    end
-
-    def validate_key_exists(keyname)
-      keypair = @openstack.with_openstack { @openstack.compute.key_pairs.find { |k| k.name == keyname } }
-      cloud_error("Key-pair `#{keyname}' not found") if keypair.nil?
-      @logger.debug("Using key-pair: `#{keypair.name}' (#{keypair.fingerprint})")
     end
 
     def metadata_to_tags(fog_metadata)

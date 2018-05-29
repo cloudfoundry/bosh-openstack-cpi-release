@@ -9,7 +9,7 @@ module Bosh::OpenStackCloud
   class NetworkConfigurator
     include Helpers
 
-    attr_reader :network_spec, :networks
+    attr_reader :network_spec, :networks, :picked_security_groups
 
     ##
     # Creates new network spec
@@ -23,6 +23,7 @@ module Bosh::OpenStackCloud
       @networks = []
       @vip_network = nil
       @security_groups = []
+      @picked_security_groups = []
       @net_ids = []
       @dynamic_network = nil
 
@@ -48,7 +49,18 @@ module Bosh::OpenStackCloud
       end
     end
 
-    def prepare(openstack, security_group_ids)
+    def pick_groups(openstack, default_security_groups, resource_pool_groups)
+      @picked_security_groups = SecurityGroups.select_and_retrieve(
+        openstack,
+        default_security_groups,
+        security_groups,
+        resource_pool_groups,
+      )
+      @logger.debug("Using security groups: `#{@picked_security_groups.map(&:name).join(', ')}'")
+    end
+
+    def prepare(openstack)
+      security_group_ids = picked_security_groups.map(&:id)
       @networks.each do |network|
         network.prepare(openstack, security_group_ids)
       end

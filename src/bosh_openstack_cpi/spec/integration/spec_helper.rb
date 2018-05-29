@@ -1,6 +1,7 @@
 require 'spec_helper'
 require 'webmock/rspec'
-require_relative './integration_config'
+require_relative './support/integration_config'
+require_relative './support/lifecycle_helpers'
 require 'cloud'
 require 'tempfile'
 require 'logger'

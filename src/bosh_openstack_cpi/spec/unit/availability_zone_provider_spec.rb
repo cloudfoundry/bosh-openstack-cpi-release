@@ -21,11 +21,50 @@ describe Bosh::OpenStackCloud::AvailabilityZoneProvider do
     allow(volume).to receive(:volumes).and_return(volumes)
   end
 
-  describe 'when the server availability zone of the server must be the same as the disk' do
+  describe '.use_multiple_azs?' do
+    let(:ignore_server_az) { true }
+    let(:multiple_azs_cloud_properties) { { 'availability_zones' => %w[]} }
+    let(:single_az_cloud_properties) { { 'availability_zone' => '' } }
+    let(:invalid_cloud_properties) { { 'availability_zone' => '', 'availability_zones' => [] } }
+    let(:empty_cloud_properties) { {} }
+
+    it 'returns true if list is set' do
+      expect(az_provider.use_multiple_azs?(multiple_azs_cloud_properties)).to be_truthy
+    end
+
+    it 'returns false if single_az is set' do
+      expect(az_provider.use_multiple_azs?(single_az_cloud_properties)).to be_falsey
+    end
+
+    it 'should return false if neither is given' do
+      expect(az_provider.use_multiple_azs?(empty_cloud_properties)).to be_falsey
+    end
+
+    it 'raises an exception if both are configured' do
+      expect {
+        az_provider.use_multiple_azs?(invalid_cloud_properties)
+      }.to raise_error(Bosh::Clouds::CloudError, 'Invalid cloud_properties: only one property of "availability_zone" and "availability_zones" allowed.')
+    end
+
+    context 'when ignore_server is false' do
+      let(:ignore_server_az) { false }
+      let(:cloud_properties) { { } }
+
+      it 'raises an error if az list is given and ignore_server_availability_zone is false' do
+        expect {
+          az_provider.use_multiple_azs?(multiple_azs_cloud_properties)
+        }.to raise_error(Bosh::Clouds::CloudError, 'Cannot use multiple azs without openstack.ignore_server_availability_zone')
+      end
+    end
+
+    # end
+  end
+
+  context 'when the server availability zone of the server must be the same as the disk' do
     let(:ignore_server_az) { false }
 
-    describe 'when the volume IDs are present' do
-      describe 'when az of volume is empty string' do
+    context 'when the volume IDs are present' do
+      context 'when az of volume is empty string' do
         before do
           allow(bar_volume).to receive(:availability_zone).and_return('')
         end
@@ -35,7 +74,7 @@ describe Bosh::OpenStackCloud::AvailabilityZoneProvider do
         end
       end
 
-      describe 'when az of volume is nil' do
+      context 'when az of volume is nil' do
         before do
           allow(bar_volume).to receive(:availability_zone).and_return(nil)
         end
@@ -45,7 +84,7 @@ describe Bosh::OpenStackCloud::AvailabilityZoneProvider do
         end
       end
 
-      describe 'when the volumes and resource pool are all from the same availability zone' do
+      context 'when the volumes and resource pool are all from the same availability zone' do
         before do
           expect(bar_volume).to receive(:availability_zone).and_return('west_az')
         end
@@ -56,7 +95,7 @@ describe Bosh::OpenStackCloud::AvailabilityZoneProvider do
         end
       end
 
-      describe 'when the disks are from different AZs and no resource pool AZ is provided' do
+      context 'when the disks are from different AZs and no resource pool AZ is provided' do
         before do
           allow(bar_volume).to receive(:availability_zone).and_return('east_az')
         end
@@ -68,7 +107,7 @@ describe Bosh::OpenStackCloud::AvailabilityZoneProvider do
         end
       end
 
-      describe 'when the disks are from the same AZ and no resource pool AZ is provided' do
+      context 'when the disks are from the same AZ and no resource pool AZ is provided' do
         before do
           expect(bar_volume).to receive(:availability_zone).and_return('west_az')
         end
@@ -79,7 +118,7 @@ describe Bosh::OpenStackCloud::AvailabilityZoneProvider do
         end
       end
 
-      describe 'when there is a volume in a different AZ from other volumes or the resource pool AZ' do
+      context 'when there is a volume in a different AZ from other volumes or the resource pool AZ' do
         before do
           allow(bar_volume).to receive(:availability_zone).and_return('east_az')
         end
@@ -91,7 +130,7 @@ describe Bosh::OpenStackCloud::AvailabilityZoneProvider do
         end
       end
 
-      describe 'when the disk AZs do not match the resource pool AZ' do
+      context 'when the disk AZs do not match the resource pool AZ' do
         before do
           allow(bar_volume).to receive(:availability_zone).and_return('west_az')
         end
@@ -103,7 +142,7 @@ describe Bosh::OpenStackCloud::AvailabilityZoneProvider do
         end
       end
 
-      describe 'when all AZs provided are mismatched' do
+      context 'when all AZs provided are mismatched' do
         before do
           allow(bar_volume).to receive(:availability_zone).and_return('east_az')
         end
@@ -115,23 +154,29 @@ describe Bosh::OpenStackCloud::AvailabilityZoneProvider do
         end
       end
 
-      describe 'when there are no disks IDs' do
+      context 'when there are no disks IDs' do
         it 'should return the resource pool AZ value' do
           expect(az_provider.select([], nil)).to eq nil
-          expect(az_provider.select([], 'north_az')).to eq 'north_az'
+          expect(az_provider.select([], 'north_az')).to eq('north_az')
 
-          expect(az_provider.select(nil, 'north_az')).to eq 'north_az'
+          expect(az_provider.select(nil, 'north_az')).to eq('north_az')
         end
       end
     end
-  end
 
-  describe 'when the server availability zone of the server can be different from the disk' do
-    let(:ignore_server_az) { true }
+    context '.select_azs' do
+      context 'when the server availability zone of the server can be different from the disk' do
+        let(:availability_zones) { double }
+        let(:cloud_properties) { { 'availability_zones' => availability_zones } }
 
-    it 'should return the resource pool availabilty zone' do
-      selected_availability_zone = az_provider.select(%w[foo_id bar_id], 'north_id')
-      expect(selected_availability_zone).to eq('north_id')
+        it 'should return the multiple availability zones' do
+          allow(availability_zones).to receive(:shuffle).and_return(%w[multiple_id multiple_id2])
+          selected_availability_zones = az_provider.select_azs(cloud_properties)
+
+          expect(availability_zones).to have_received(:shuffle)
+          expect(selected_availability_zones).to include('multiple_id', 'multiple_id2')
+        end
+      end
     end
   end
 end

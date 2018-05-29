@@ -7,8 +7,22 @@ module Bosh::OpenStackCloud
       @ignore_server_availability_zone = ignore_server_availability_zone
     end
 
+    def use_multiple_azs?(cloud_properties)
+      single_az = cloud_properties.key?('availability_zone')
+      multiple_azs = cloud_properties.key?('availability_zones')
+      cloud_error('Invalid cloud_properties: only one property of "availability_zone" and "availability_zones" allowed.') if single_az && multiple_azs
+      cloud_error('Cannot use multiple azs without openstack.ignore_server_availability_zone') if use_server_availability_zone? && multiple_azs
+      return true if multiple_azs
+      false
+    end
+
+    def select_azs(cloud_properties)
+      multiple_azs = cloud_properties['availability_zones']
+      multiple_azs.shuffle
+    end
+
     def select(volume_ids, resource_pool_az)
-      return resource_pool_az if volume_ids_empty?(volume_ids) || @ignore_server_availability_zone
+      return resource_pool_az if array_empty?(volume_ids) || @ignore_server_availability_zone
 
       volumes = volumes(volume_ids)
       volume_azs = volumes.map(&:availability_zone)
@@ -16,7 +30,7 @@ module Bosh::OpenStackCloud
         all_azs = volume_azs + [resource_pool_az]
         same_availability_zone?(all_azs) ? resource_pool_az : fail_for_different_azs(resource_pool_az, volumes)
       else
-        same_availability_zone?(volume_azs) ? first_volume_az(volume_azs): fail_for_different_azs(resource_pool_az, volumes)
+        same_availability_zone?(volume_azs) ? first_volume_az(volume_azs) : fail_for_different_azs(resource_pool_az, volumes)
       end
     end
 
@@ -36,8 +50,8 @@ module Bosh::OpenStackCloud
           resource_pool_az_description(resource_pool_az), disk_az_description(volumes))
     end
 
-    def volume_ids_empty?(volume_ids)
-      volume_ids.nil? || volume_ids.empty?
+    def array_empty?(array)
+      array.nil? || array.empty?
     end
 
     def same_availability_zone?(azs)

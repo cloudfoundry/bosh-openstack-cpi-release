@@ -115,7 +115,6 @@ describe Bosh::OpenStackCloud::Cloud, 'create_vm' do
 
   it "creates an OpenStack server and polls until it's ready" do
     vm_id = cloud.create_vm('agent-id', 'sc-id', resource_pool_spec, { 'network_a' => dynamic_network_spec }, nil, environment)
-
     expect(cloud.openstack).to have_received(:wait_resource).with(server, :active, :state)
     expect(vm_id).to eq('i-test')
   end
@@ -300,7 +299,7 @@ describe Bosh::OpenStackCloud::Cloud, 'create_vm' do
 
     it 'calls NetworkConfigurator#prepare and NetworkConfigurator#nics' do
       expect(Bosh::OpenStackCloud::NetworkConfigurator).to receive(:new).with(anything, nil).and_call_original
-      expect_any_instance_of(Bosh::OpenStackCloud::NetworkConfigurator).to receive(:prepare).with(anything, ['default_sec_group_id'])
+      expect_any_instance_of(Bosh::OpenStackCloud::NetworkConfigurator).to receive(:prepare).with(anything)
       expect_any_instance_of(Bosh::OpenStackCloud::NetworkConfigurator).to receive(:nics).and_return(nics)
 
       cloud.create_vm('agent-id', 'sc-id', resource_pool_spec, several_manual_networks, nil, environment)
@@ -315,7 +314,7 @@ describe Bosh::OpenStackCloud::Cloud, 'create_vm' do
 
       it 'calls NetworkConfigurator#prepare and NetworkConfigurator#nics' do
         expect(Bosh::OpenStackCloud::NetworkConfigurator).to receive(:new).with(anything, '10.0.0.10').and_call_original
-        expect_any_instance_of(Bosh::OpenStackCloud::NetworkConfigurator).to receive(:prepare).with(anything, ['default_sec_group_id'])
+        expect_any_instance_of(Bosh::OpenStackCloud::NetworkConfigurator).to receive(:prepare).with(anything)
         expect_any_instance_of(Bosh::OpenStackCloud::NetworkConfigurator).to receive(:nics).and_return(nics)
 
         cloud.create_vm('agent-id', 'sc-id', resource_pool_with_vrrp, several_manual_networks, nil, environment)
@@ -685,9 +684,10 @@ describe Bosh::OpenStackCloud::Cloud, 'create_vm' do
         expected_openstack_params = openstack_params
         expected_openstack_params[:key_name] = 'default_key_name'
 
+        expect_any_instance_of(Bosh::OpenStackCloud::VmFactory).to receive(:validate_key_exists).with(options['openstack']['default_key_name'])
+
         cloud.create_vm('agent-id', 'sc-id', resource_pool_spec_no_key, { 'network_a' => dynamic_network_spec }, nil, environment)
 
-        expect(cloud).to have_received(:validate_key_exists).with(options['openstack']['default_key_name'])
         expect(cloud.compute.servers).to have_received(:create).with(expected_openstack_params)
       end
     end
@@ -704,9 +704,8 @@ describe Bosh::OpenStackCloud::Cloud, 'create_vm' do
       end
 
       it 'takes the key_name from resource pool' do
+        expect_any_instance_of(Bosh::OpenStackCloud::VmFactory).to receive(:validate_key_exists).with('test_key')
         cloud.create_vm('agent-id', 'sc-id', resource_pool_spec, { 'network_a' => dynamic_network_spec }, nil, environment)
-
-        expect(cloud).to have_received(:validate_key_exists).with('test_key')
       end
     end
 
@@ -956,6 +955,52 @@ describe Bosh::OpenStackCloud::Cloud, 'create_vm' do
         cloud.create_vm('agent-id', 'sc-id', resource_pool_spec, { 'network_a' => dynamic_network_spec }, nil, environment)
         expect(Bosh::OpenStackCloud::ServerGroups).to_not have_received(:new)
       end
+    end
+  end
+
+  describe 'when multiple azs are configured' do
+    let(:options) do
+      options = mock_cloud_options['properties']
+      options['openstack']['ignore_server_availability_zone'] = true
+      options
+    end
+
+    let(:azs) { ['az-1', 'az-2'] }
+    let(:resource_pool_spec) do
+      {
+        'key_name' => 'test_key',
+        'availability_zones' => azs,
+        'instance_type' => 'm1.tiny',
+      }
+    end
+
+    it 'creates the vm in one of the configured azs' do
+      expect(cloud.compute.servers).to receive(:create).with(include(availability_zone: 'az-1').or include(availability_zone: 'az-2'))
+
+      cloud.create_vm('agent-id', 'sc-id', resource_pool_spec, { 'network_a' => dynamic_network_spec }, nil, environment)
+    end
+
+    it 'iterates over the azs till it can create a vm in one of the configured azs' do
+      allow_any_instance_of(Bosh::OpenStackCloud::AvailabilityZoneProvider).to receive(:select_azs).and_return(azs)
+      allow(cloud.compute.servers)
+        .to receive(:create)
+        .with(include(availability_zone: 'az-1'))
+        .and_raise Bosh::Clouds::CloudError.new('Example exception from infrastructure')
+
+      cloud.create_vm('agent-id', 'sc-id', resource_pool_spec, { 'network_a' => dynamic_network_spec }, nil, environment)
+
+      expect(cloud.compute.servers).to have_received(:create).with(include(availability_zone: 'az-1'))
+      expect(cloud.compute.servers).to have_received(:create).with(include(availability_zone: 'az-2'))
+    end
+
+    it 'raises an error if last try fails' do
+      allow(cloud.compute.servers).to receive(:create).and_raise Bosh::Clouds::CloudError.new('Example exception from infrastructure')
+
+      expect {
+        cloud.create_vm('agent-id', 'sc-id', resource_pool_spec, { 'network_a' => dynamic_network_spec }, nil, environment)
+      }.to raise_error(Bosh::Clouds::CloudError)
+      expect(cloud.compute.servers).to have_received(:create).with(include(availability_zone: 'az-1'))
+      expect(cloud.compute.servers).to have_received(:create).with(include(availability_zone: 'az-2'))
     end
   end
 end
