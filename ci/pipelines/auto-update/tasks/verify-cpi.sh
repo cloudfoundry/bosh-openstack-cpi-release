@@ -4,8 +4,10 @@ BASE_DIR="$PWD"
 
 mkdir $BASE_DIR/verify-cpi
 
+pushd packages-src-out
 echo 'Creating CPI release...'
-bosh-go create-release --dir packages-src-out --tarball=$BASE_DIR/verify-cpi/cpi-release.tgz
+bosh-go create-release --tarball=$BASE_DIR/verify-cpi/cpi-release.tgz
+popd
 
 cd $BASE_DIR/validator-src-in
 
