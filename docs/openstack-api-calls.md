@@ -12,7 +12,6 @@ GET /v2.1/<tenant_id>/os-server-groups
 GET /v2.1/<tenant_id>/servers/<resource_id>
 GET /v2.1/<tenant_id>/servers/<resource_id>/metadata/registry_key
 POST /v2.1/<tenant_id>/os-server-groups body: {"server_group":{"name":"<name>","policies":["soft-anti-affinity"]}}
-POST /v2.1/<tenant_id>/servers body: {"server":{"flavorRef":"<flavorRef_id>","name":"<name>","imageRef":"<resource_id>","availability_zone":"<availability_zone>","user_data":"<user_data>","key_name":"<key_name>","security_groups":[{"name":"<name>"}],"networks":[{"uuid":"<resource_id>","port":"<resource_id>"}]}}
 POST /v2.1/<tenant_id>/servers body: {"server":{"flavorRef":"<flavorRef_id>","name":"<name>","imageRef":"<resource_id>","availability_zone":"<availability_zone>","user_data":"<user_data>","key_name":"<key_name>","security_groups":[{"name":"<name>"}],"networks":[{"uuid":"<resource_id>"}]}}
 POST /v2.1/<tenant_id>/servers body: {"server":{"flavorRef":"<flavorRef_id>","name":"<name>","imageRef":"<resource_id>","user_data":"<user_data>","key_name":"<key_name>","config_drive":true,"security_groups":[{"name":"<name>"}],"networks":[{"uuid":"<resource_id>","port":"<resource_id>"},{"uuid":"<resource_id>","port":"<resource_id>"}]}}
 POST /v2.1/<tenant_id>/servers body: {"server":{"flavorRef":"<flavorRef_id>","name":"<name>","imageRef":"<resource_id>","user_data":"<user_data>","key_name":"<key_name>","config_drive":true,"security_groups":[{"name":"<name>"}],"networks":[{"uuid":"<resource_id>"}]}}
