@@ -79,8 +79,9 @@ bosh-go int ../bosh-deployment/bosh.yml \
     --vars-store ./credentials.yml \
     -o ../bosh-deployment/misc/powerdns.yml \
     -o ../bosh-deployment/openstack/cpi.yml \
-    -o ../bosh-deployment/experimental/blobstore-https.yml \
     -o ../bosh-deployment/external-ip-with-registry-not-recommended.yml \
+    -o ../bosh-deployment/experimental/blobstore-https.yml \
+    -o ../bosh-deployment/experimental/bpm.yml \
     -o ../bosh-cpi-src-in/ci/ops_files/deployment-configuration.yml \
     -o ../bosh-cpi-src-in/ci/ops_files/custom-manual-networking.yml \
     -o ../bosh-cpi-src-in/ci/ops_files/timeouts.yml \
