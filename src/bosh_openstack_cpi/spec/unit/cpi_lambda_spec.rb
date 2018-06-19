@@ -2,6 +2,7 @@ require 'spec_helper'
 
 describe Bosh::OpenStackCloud::CpiLambda do
   subject { described_class.create(cpi_config, cpi_log, ssl_ca_file, ca_cert_from_context) }
+  let(:version) { nil }
   let(:cpi_config) {
     {
       'cloud' => {
@@ -22,7 +23,7 @@ describe Bosh::OpenStackCloud::CpiLambda do
     it 'passes parts of the cpi config to openstack' do
       expect(Bosh::Clouds::Openstack).to receive(:new).with('openstack' => cpi_config['cloud']['properties']['openstack'],
                                                             'cpi_log' => cpi_log)
-      subject.call({})
+      subject.call({}, version)
     end
 
     context 'if invalid cpi config is given' do
@@ -30,7 +31,7 @@ describe Bosh::OpenStackCloud::CpiLambda do
 
       it 'raises an error' do
         expect {
-          subject.call({})
+          subject.call({}, version)
         }.to raise_error /Could not find cloud properties in the configuration/
       end
     end
@@ -41,7 +42,7 @@ describe Bosh::OpenStackCloud::CpiLambda do
       it 'sets ssl_ca_file that is passed and removes ca_certs' do
         expect(Bosh::Clouds::Openstack).to receive(:new).with('openstack' => { 'connection_options' => { 'ssl_ca_file' => ssl_ca_file } },
                                                               'cpi_log' => cpi_log)
-        subject.call({})
+        subject.call({}, version)
       end
     end
 
@@ -57,7 +58,7 @@ describe Bosh::OpenStackCloud::CpiLambda do
                                                                                'newkey' => 'newvalue',
                                                                                'newkey2' => 'newvalue2' },
                                                               'cpi_log' => cpi_log)
-        subject.call(context)
+        subject.call(context, version)
       end
 
       it 'writes the given ca_cert to the disk and sets ssl_ca_file to its path' do
@@ -72,7 +73,7 @@ describe Bosh::OpenStackCloud::CpiLambda do
                                                                                'connection_options' => { 'ssl_ca_file' => ca_cert_from_context } },
                                                               'cpi_log' => cpi_log)
 
-        subject.call(context)
+        subject.call(context, version)
         expect(File.read(ca_cert_from_context)).to eq('xyz')
       end
 
@@ -80,7 +81,7 @@ describe Bosh::OpenStackCloud::CpiLambda do
         it 'does not write into the file' do
           allow(Bosh::Clouds::Openstack).to receive(:new)
 
-          subject.call({})
+          subject.call({}, version)
 
           expect(File.read(ca_cert_from_context)).to eq('')
         end
