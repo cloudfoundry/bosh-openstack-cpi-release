@@ -49,7 +49,7 @@ export BOSH_OPENSTACK_STEMCELL_PATH="${PWD}/openstack-lifecycle-stemcell/stemcel
 
 cd bosh-cpi-src-in/src/bosh_openstack_cpi
 
-bundle install
+BUNDLE_CACHE_PATH="vendor/package" bundle install
 
 if [ -n "${BOSH_OPENSTACK_AUTH_URL_V2}" ]; then
   bundle exec rspec -f d spec/integration 2>&1 | tee ../../../output/lifecycle.log
