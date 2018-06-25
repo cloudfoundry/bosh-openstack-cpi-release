@@ -16,6 +16,7 @@ source bosh-cpi-src-in/ci/tasks/utils.sh
 : ${BOSH_OPENSTACK_WRITE_TIMEOUT:?}
 : ${BOSH_OPENSTACK_FLAVOR_WITH_NO_ROOT_DISK:?}
 : ${BOSH_OPENSTACK_TEST_AUTO_ANTI_AFFINITY:-""}
+: ${BOSH_OPENSTACK_EXCLUDE_CINDER_V1:-""}
 : ${BOSH_OPENSTACK_AUTH_URL_V2:-""}
 : ${BOSH_OPENSTACK_USERNAME_V2:-""}
 : ${BOSH_OPENSTACK_API_KEY_V2:-""}
@@ -51,9 +52,14 @@ cd bosh-cpi-src-in/src/bosh_openstack_cpi
 
 bundle install
 
+if [ -n "BOSH_OPENSTACK_EXCLUDE_CINDER_V1" ]; then
+  rspec_args="--tag ~cinder_v1"
+fi
+
+
 if [ -n "${BOSH_OPENSTACK_AUTH_URL_V2}" ]; then
-  bundle exec rspec -f d spec/integration 2>&1 | tee ../../../output/lifecycle.log
+  bundle exec rspec -f d $rspec_args spec/integration 2>&1 | tee ../../../output/lifecycle.log
 else
   echo "Excluding Keystone V2 tests."
-  bundle exec rspec -f d spec/integration --exclude-pattern spec/integration/lifecycle_v2_spec.rb 2>&1 | tee ../../../output/lifecycle.log
+  bundle exec rspec -f d $rspec_args spec/integration --exclude-pattern spec/integration/lifecycle_v2_spec.rb 2>&1 | tee ../../../output/lifecycle.log
 fi

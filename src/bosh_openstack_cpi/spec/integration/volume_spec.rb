@@ -130,7 +130,7 @@ describe Bosh::OpenStackCloud::Cloud do
     end
   end
 
-  describe 'Cinder V1 support' do
+  describe 'Cinder V1 support', cinder_v1: true do
     let(:cpi_for_volume) { @config.create_cpi }
     before do
       force_volume_v1
