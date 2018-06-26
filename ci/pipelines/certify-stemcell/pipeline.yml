@@ -412,8 +412,8 @@ jobs:
           time_server_1:                        ((time_server_1))
           time_server_2:                        ((time_server_2))
           distro:                               "centos"
-          old_openstack_cpi_release_version:    28
-          old_openstack_cpi_release_sha1:       beae72c7a105923ee74e7dfd6930e9aa75d86e05
+          old_openstack_cpi_release_version:    35
+          old_openstack_cpi_release_sha1:       314b040cb0df72651174d262892aa8c4d75f9031
           old_bosh_stemcell_name:               bosh-openstack-kvm-centos-7-go_agent
           old_bosh_stemcell_version:            3421.26
           old_bosh_stemcell_sha1:               2f3cf19d5631a9af565f47baa0f005d52885d652
