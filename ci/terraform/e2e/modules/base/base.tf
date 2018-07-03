@@ -106,7 +106,7 @@ resource "openstack_networking_router_v2" "e2e_router" {
   region           = "${var.region_name}"
   name             = "${var.prefix}-router"
   admin_state_up   = "true"
-  external_gateway = "${var.ext_net_id}"
+  external_network_id = "${var.ext_net_id}"
 }
 
 resource "openstack_networking_router_interface_v2" "v3_e2e_port" {

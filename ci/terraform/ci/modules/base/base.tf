@@ -58,7 +58,7 @@ resource "openstack_networking_router_v2" "default_router" {
   region           = "${var.region_name}"
   name             = "${var.prefix}-router"
   admin_state_up   = "true"
-  external_gateway = "${var.ext_net_id}"
+  external_network_id = "${var.ext_net_id}"
 }
 
 resource "openstack_networking_secgroup_v2" "secgroup" {
