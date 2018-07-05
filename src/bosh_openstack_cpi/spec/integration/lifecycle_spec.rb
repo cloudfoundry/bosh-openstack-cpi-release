@@ -542,7 +542,7 @@ describe Bosh::OpenStackCloud::Cloud do
 
   describe 'when using load balancer pool' do
     before(:all) do
-      skip('q``o lbaas pool configured') unless @config.lbaas_pool_name
+      skip('No lbaas pool configured') unless @config.lbaas_pool_name
     end
 
     let(:network_spec) do
