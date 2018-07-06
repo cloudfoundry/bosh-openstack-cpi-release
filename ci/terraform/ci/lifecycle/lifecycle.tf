@@ -148,3 +148,7 @@ output "security_group_id" {
 output "security_group_name" {
   value = "${module.base.security_group}"
 }
+
+output "use_lbaas" {
+  value = "${var.use_lbaas}"
+}
