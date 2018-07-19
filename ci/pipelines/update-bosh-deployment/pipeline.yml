@@ -1,0 +1,63 @@
+---
+jobs:
+  - name: update-cpi-version
+    serial: true
+    plan:
+      - aggregate:
+        - {trigger: true,  get: bosh-openstack-cpi-release, timeout: 2h}
+        - {trigger: false, get: bosh-cpi-src, timeout: 2h}
+        - {trigger: false, get: bosh-deployment-src, timeout: 2h}
+
+      - task: update-cpi-version
+        timeout: 2h
+        file: bosh-cpi-src/ci/pipelines/update-bosh-deployment/tasks/update-cpi-version.yml
+
+      - put: bosh-deployment-fork
+        timeout: 2h
+        params: {repository: bosh-deployment-fork, force: true}
+
+  - name: create-pull-request
+    serial: true
+    plan:
+      - aggregate:
+        - {trigger: true, get: bosh-deployment-fork, passed: [update-cpi-version], timeout: 2h}
+        - {trigger: false, get: bosh-deployment-src, passed: [update-cpi-version], timeout: 2h}
+        - {trigger: false, get: bosh-cpi-src, passed: [update-cpi-version], timeout: 2h}
+
+      - task: pull-request
+        timeout: 2h
+        file: bosh-cpi-src/ci/pipelines/update-bosh-deployment/tasks/pull-request.yml
+        params:
+          github_token: ((github-token))
+          pr_message: "auto-bump openstack CPI"
+          head_repo: bosh-deployment-fork
+          head_owner: openstack-cpi
+          head_branch: bump-openstack-cpi
+          base_repo: bosh-deployment-src
+          base_branch: master
+
+resources:
+  - name: bosh-cpi-src
+    type: git
+    source:
+      uri: https://github.com/cloudfoundry-incubator/bosh-openstack-cpi-release.git
+      branch: master
+
+  - name: bosh-openstack-cpi-release
+    type: bosh-io-release
+    source:
+      repository: cloudfoundry-incubator/bosh-openstack-cpi-release
+
+  - name: bosh-deployment-src
+    type: git
+    source:
+      uri: https://github.com/cloudfoundry/bosh-deployment.git
+      branch: master
+
+  - name: bosh-deployment-fork
+    type: git
+    source:
+      uri: https://github.com/openstack-cpi/bosh-deployment.git
+      branch: bump-openstack-cpi
+      username: openstack-cpi
+      password: ((github-token))
