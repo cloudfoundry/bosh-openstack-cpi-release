@@ -719,6 +719,39 @@ describe Bosh::OpenStackCloud::Openstack do
         end
       end
     end
+
+    context 'when error is Excon::Error::Timeout' do
+      before do
+        allow(subject).to receive(:servers).and_raise(Excon::Error::Timeout.new('foo'))
+        stub_const("Bosh::OpenStackCloud::Openstack::DEFAULT_RETRY_TIMEOUT", 0)
+      end
+
+      context 'when request is retryable' do
+        it 'should retry request MAX_RETRIES times' do
+          expect {
+            subject.with_openstack(retryable: true) do
+              subject.servers
+            end
+          }.to raise_error(Bosh::Clouds::CloudError,
+            "Timeout: foo\nCheck task debug log for details.")
+
+          expect(subject).to have_received(:servers).exactly(Bosh::OpenStackCloud::Openstack::MAX_RETRIES).times
+        end
+      end
+
+      context 'when request is not retryable' do
+        it 'should retry request MAX_RETRIES times' do
+          expect {
+            subject.with_openstack(retryable: false) do
+              subject.servers
+            end
+          }.to raise_error(Bosh::Clouds::CloudError,
+            "Timeout: foo\nCheck task debug log for details.")
+
+          expect(subject).to have_received(:servers).once
+        end
+      end
+    end
   end
 
   describe 'parse_openstack_response' do

@@ -39,7 +39,7 @@ module Bosh::OpenStackCloud
       }.merge(retry_options_overwrites)
     end
 
-    def with_openstack
+    def with_openstack(retryable: false)
       retries = 0
       begin
         yield
@@ -86,6 +86,13 @@ module Bosh::OpenStackCloud
         cloud_error('OpenStack API Internal Server error. Check task debug log for details.', e)
       rescue Fog::Errors::NotFound => e
         cloud_error("OpenStack API service not found error: #{e.message}\nCheck task debug log for details.", e)
+      rescue Excon::Error::Timeout => e
+        retries += 1
+        if MAX_RETRIES <= retries || !retryable
+          cloud_error("Timeout: #{e.message}\nCheck task debug log for details.", e)
+        end
+        sleep(DEFAULT_RETRY_TIMEOUT)
+        retry
       end
     end
 
