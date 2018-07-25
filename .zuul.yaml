@@ -8,6 +8,14 @@
         - bosh-openstack-cpi-release-acceptance-test-ocata
         - bosh-openstack-cpi-release-acceptance-test-newton
         - bosh-openstack-cpi-release-acceptance-test-mitaka
+    periodic:
+      jobs:
+        - bosh-openstack-cpi-release-acceptance-test
+        - bosh-openstack-cpi-release-acceptance-test-queens
+        - bosh-openstack-cpi-release-acceptance-test-pike
+        - bosh-openstack-cpi-release-acceptance-test-ocata
+        - bosh-openstack-cpi-release-acceptance-test-newton
+        - bosh-openstack-cpi-release-acceptance-test-mitaka
 
 - job:
     name: bosh-openstack-cpi-release-acceptance-test
