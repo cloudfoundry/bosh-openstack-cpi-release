@@ -1,0 +1,63 @@
+---
+- project:
+    check:
+      jobs:
+        - bosh-openstack-cpi-release-acceptance-test
+        - bosh-openstack-cpi-release-acceptance-test-queens
+        - bosh-openstack-cpi-release-acceptance-test-pike
+        - bosh-openstack-cpi-release-acceptance-test-ocata
+        - bosh-openstack-cpi-release-acceptance-test-newton
+        - bosh-openstack-cpi-release-acceptance-test-mitaka
+
+- job:
+    name: bosh-openstack-cpi-release-acceptance-test
+    parent: init-test
+    description: |
+      This job validation tests of bosh-openstack-cpi-release aganist OpenStack master branch
+    run: .zuul/playbooks/bosh-openstack-cpi-release-acceptance-test/run.yaml
+
+- job:
+    name: bosh-openstack-cpi-release-acceptance-test-queens
+    parent: bosh-openstack-cpi-release-acceptance-test
+    description: |
+      This job validation tests of bosh-openstack-cpi-release aganist OpenStack Queens release
+    vars:
+      global_env:
+        OS_BRANCH: stable/queens
+
+- job:
+    name: bosh-openstack-cpi-release-acceptance-test-pike
+    parent: bosh-openstack-cpi-release-acceptance-test
+    description: |
+      This job validation tests of bosh-openstack-cpi-release aganist OpenStack Pike release
+    vars:
+      global_env:
+        OS_BRANCH: stable/pike
+
+- job:
+    name: bosh-openstack-cpi-release-acceptance-test-ocata
+    parent: bosh-openstack-cpi-release-acceptance-test
+    description: |
+      This job validation tests of bosh-openstack-cpi-release aganist OpenStack Ocata release
+    vars:
+      global_env:
+        OS_BRANCH: stable/ocata
+
+- job:
+    name: bosh-openstack-cpi-release-acceptance-test-newton
+    parent: bosh-openstack-cpi-release-acceptance-test
+    description: |
+      This job validation tests of bosh-openstack-cpi-release aganist OpenStack Newton release
+    vars:
+      global_env:
+        OS_BRANCH: stable/newton
+
+- job:
+    name: bosh-openstack-cpi-release-acceptance-test-mitaka
+    parent: bosh-openstack-cpi-release-acceptance-test
+    description: |
+      This job validation tests of bosh-openstack-cpi-release aganist OpenStack Mitaka release
+    vars:
+      global_env:
+        OS_BRANCH: stable/mitaka
+    nodeset: ubuntu-trusty
