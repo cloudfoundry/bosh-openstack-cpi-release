@@ -39,7 +39,7 @@ module Bosh::OpenStackCloud
       }.merge(retry_options_overwrites)
     end
 
-    def with_openstack(retryable: false)
+    def with_openstack(retryable: false, ignore_not_found: false)
       retries = 0
       begin
         yield
@@ -85,7 +85,11 @@ module Bosh::OpenStackCloud
         end
         cloud_error('OpenStack API Internal Server error. Check task debug log for details.', e)
       rescue Fog::Errors::NotFound => e
-        cloud_error("OpenStack API service not found error: #{e.message}\nCheck task debug log for details.", e)
+        if ignore_not_found
+          @logger.debug("Suppressed 'not found' error message: #{e.message}")
+        else
+          cloud_error("OpenStack API service not found error: #{e.message}\nCheck task debug log for details.", e)
+        end
       rescue Excon::Error::Timeout => e
         retries += 1
         if MAX_RETRIES <= retries || !retryable
@@ -190,8 +194,8 @@ module Bosh::OpenStackCloud
     # @param [Fog::Model] resource Resource to query
     # @param [Array<Symbol>] target_state Resource's state desired
     # @param [Symbol] state_method Resource's method to fetch state
-    # @param [Boolean] allow_notfound true if resource could be not found
-    def wait_resource(resource, target_state, state_method = :status, allow_notfound = false)
+    # @param [Boolean] ignore_not_found true if resource could be not found
+    def wait_resource(resource, target_state, state_method = :status, ignore_not_found = false)
       started_at = Time.now
       desc = resource.class.name.split('::').last.to_s + ' `' + resource.id.to_s + "'"
       target_state = Array(target_state)
@@ -205,9 +209,9 @@ module Bosh::OpenStackCloud
 
         # If resource reload is nil, perhaps it's because resource went away
         # (ie: a destroy operation). Don't raise an exception if this is
-        # expected (allow_notfound).
+        # expected (ignore_not_found).
         if with_openstack { resource.reload.nil? }
-          break if allow_notfound
+          break if ignore_not_found
           cloud_error("#{desc}: Resource not found")
         else
           state = with_openstack { resource.send(state_method).downcase.to_sym }

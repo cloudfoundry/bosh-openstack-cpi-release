@@ -670,6 +670,14 @@ describe Bosh::OpenStackCloud::Openstack do
         }.to raise_error(Bosh::Clouds::CloudError,
                          "OpenStack API service not found error: #{openstack_error_message}\nCheck task debug log for details.")
       end
+
+      context 'when NotFound is ignored' do
+        it 'should not raise a CloudError' do
+          expect {
+            subject.with_openstack(ignore_not_found: true) { raise Fog::Errors::NotFound }
+          }.to_not raise_error
+        end
+      end
     end
 
     context 'when openstack raises Forbidden' do
