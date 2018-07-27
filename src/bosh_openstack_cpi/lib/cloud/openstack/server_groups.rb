@@ -11,41 +11,24 @@ module Bosh::OpenStackCloud
 
     def find_or_create(uuid, bosh_group)
       name = name(uuid, bosh_group)
-      @openstack.with_openstack do
-        lock_by_file(bosh_group) do
-          begin
-            server_group = find(name)
-            if server_group
-              server_group.id
-            else
-              result = @openstack.compute.server_groups.create(name, POLICY)
-              result.id
-            end
-          rescue Excon::Error::Forbidden => error
-            if error.message.include?('Quota exceeded, too many server groups')
-              message = "You have reached your quota for server groups for project '#{@openstack.project_name}'. Please disable auto-anti-affinity server groups or increase your quota."
-              cloud_error(message, error)
-            elsif error.message.include?('Quota exceeded, too many servers in group')
-              message = "You have reached your quota for members in a server group for project '#{@openstack.project_name}'. Please disable auto-anti-affinity server groups or increase your quota."
-              cloud_error(message, error)
-            end
-            raise error
-          rescue Excon::Error::BadRequest => error
-            if error.message.match?(/Invalid input.*'soft-anti-affinity' is not one of/)
-              message = "Auto-anti-affinity is only supported on OpenStack Mitaka or higher. Please upgrade or set 'openstack.enable_auto_anti_affinity=false'."
-              cloud_error(message, error)
-            end
-            raise error
-          end
+      lock_by_file(bosh_group) do
+        server_group = find(name)
+        if server_group
+          server_group.id
+        else
+          result = create_server_group(name, POLICY)
+          result.id
         end
       end
     end
 
     def delete_if_no_members(uuid, bosh_group)
-      @openstack.with_openstack do
-        lock_by_file(bosh_group) do
-          server_group = find(name(uuid, bosh_group))
-          @openstack.compute.delete_server_group(server_group.id) if server_group&.members&.empty?
+      lock_by_file(bosh_group) do
+        server_group = find(name(uuid, bosh_group))
+        if server_group&.members&.empty?
+          @openstack.with_openstack(retryable: true, ignore_not_found: true) do
+            @openstack.compute.delete_server_group(server_group.id)
+          end
         end
       end
     end
@@ -66,8 +49,34 @@ module Bosh::OpenStackCloud
     end
 
     def find(name)
-      groups = @openstack.compute.server_groups.all
+      groups = @openstack.with_openstack(retryable: true) { @openstack.compute.server_groups.all }
       groups.find { |group| group.name == name && group.policies.include?(POLICY) }
+    end
+
+    def create_server_group(name, policy)
+      @openstack.with_openstack do
+        begin
+          @openstack.compute.server_groups.create(name, policy)
+        rescue Excon::Error::Forbidden => error
+          if error.message.include?('Quota exceeded, too many server groups')
+            message = "You have reached your quota for server groups for project '#{@openstack.project_name}'." \
+                      " Please disable auto-anti-affinity server groups or increase your quota."
+            cloud_error(message, error)
+          elsif error.message.include?('Quota exceeded, too many servers in group')
+            message = "You have reached your quota for members in a server group for project '#{@openstack.project_name}'." \
+                      " Please disable auto-anti-affinity server groups or increase your quota."
+            cloud_error(message, error)
+          end
+          raise error
+        rescue Excon::Error::BadRequest => error
+          if error.message.match?(/Invalid input.*'soft-anti-affinity' is not one of/)
+            message = "Auto-anti-affinity is only supported on OpenStack Mitaka or higher." \
+                      " Please upgrade or set 'openstack.enable_auto_anti_affinity=false'."
+            cloud_error(message, error)
+          end
+          raise error
+        end
+      end
     end
   end
 end

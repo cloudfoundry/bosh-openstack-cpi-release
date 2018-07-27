@@ -24,7 +24,7 @@ module Bosh::OpenStackCloud
       create_vm_params = create_vm_params.dup
 
       begin
-        @openstack.with_openstack { network_configurator.prepare(@openstack) }
+        network_configurator.prepare(@openstack)
         pick_nics(create_vm_params, network_configurator)
         server = create_server(create_vm_params)
         configure_server(network_configurator, server)
@@ -42,9 +42,7 @@ module Bosh::OpenStackCloud
         end
 
         begin
-          @openstack.with_openstack {
-            network_configurator.cleanup(@openstack)
-          }
+          network_configurator.cleanup(@openstack)
         rescue StandardError => cleanup_error
           @logger.warn("Failed to cleanup network resources: #{cleanup_error.message}")
         end
@@ -59,7 +57,7 @@ module Bosh::OpenStackCloud
       bosh_group = "#{server_tags['director']}-#{server_tags['deployment']}-#{server_tags['instance_group']}"
 
       lbaas_error = catch_error('Removing lbaas pool memberships') { LoadbalancerConfigurator.new(@openstack, @logger).cleanup_memberships(server_tags) }
-      @openstack.with_openstack { server.destroy }
+      @openstack.with_openstack(retryable: true, ignore_not_found: true) { server.destroy }
       fail_on_error(
         catch_error('Wait for server deletion') { @openstack.wait_resource(server, %i[terminated deleted], :state, true) },
         catch_error('Removing ports') { NetworkConfigurator.cleanup_ports(@openstack, server_port_ids) },
@@ -115,7 +113,7 @@ module Bosh::OpenStackCloud
         @openstack.wait_resource(server, :active, :state)
 
         @logger.info("Configuring network for server `#{server.id}'...")
-        @openstack.with_openstack { network_configurator.configure(@openstack, server) }
+        network_configurator.configure(@openstack, server)
       rescue StandardError => e
         @logger.warn("Failed to create server: #{e.message}")
         raise Bosh::Clouds::VMCreationFailed.new(true), e.message

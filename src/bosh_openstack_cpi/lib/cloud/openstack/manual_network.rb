@@ -46,15 +46,18 @@ module Bosh::OpenStackCloud
 
     def cleanup(openstack)
       unless openstack.use_nova_networking?
-        port = openstack.network.ports.get(@nic['port_id'])
-        port&.destroy
+        ports = openstack.with_openstack { openstack.network.ports }
+        port = openstack.with_openstack(retryable: true) { ports.get(@nic['port_id']) }
+        openstack.with_openstack(retryable: true, ignore_not_found: true) { port&.destroy }
       end
     end
 
     private
 
     def vrrp_port?(openstack)
-      vrrp_port = openstack.with_openstack { openstack.network.ports.all(fixed_ips: "ip_address=#{@allowed_address_pairs}") }
+      vrrp_port = openstack.with_openstack(retryable: true) {
+        openstack.network.ports.all(fixed_ips: "ip_address=#{@allowed_address_pairs}")
+      }
       !(vrrp_port.nil? || vrrp_port.empty?)
     end
   end

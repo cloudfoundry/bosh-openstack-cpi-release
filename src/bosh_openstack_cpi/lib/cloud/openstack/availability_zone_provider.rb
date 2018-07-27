@@ -60,8 +60,8 @@ module Bosh::OpenStackCloud
     end
 
     def volumes(volume_ids)
-      fog_volume_map = @openstack.volume.volumes
-      volume_ids.map {|vid| @openstack.with_openstack {fog_volume_map.get(vid)}}
+      fog_volume_map = @openstack.with_openstack { @openstack.volume.volumes }
+      volume_ids.map { |vid| @openstack.with_openstack(retryable: true) { fog_volume_map.get(vid) } }
     end
 
     def resource_pool_az_description(resource_pool_az)

@@ -21,7 +21,7 @@ module Bosh::OpenStackCloud
     end
 
     def validate_existence
-      image = @openstack.with_openstack { @openstack.image.images.find_by_id(image_id) }
+      image = @openstack.with_openstack(retryable: true) { @openstack.image.images.find_by_id(image_id) }
       cloud_error("Image `#{id}' not found") if image.nil?
       @logger.debug("Using image: `#{id}'")
     end
@@ -36,9 +36,9 @@ module Bosh::OpenStackCloud
     end
 
     def delete
-      image = @openstack.with_openstack { @openstack.image.images.find_by_id(image_id) }
+      image = @openstack.with_openstack(retryable: true) { @openstack.image.images.find_by_id(image_id) }
       if image
-        @openstack.with_openstack { image.destroy }
+        @openstack.with_openstack(retryable: true, ignore_not_found: true) { image.destroy }
         @logger.info("Stemcell `#{image_id}' is now deleted")
       else
         @logger.info("Stemcell `#{image_id}' not found. Skipping.")
