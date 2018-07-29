@@ -19,7 +19,7 @@ Follow these steps to make a contribution to any of CF open source repositories:
 ## Development
 
 ### Prerequisites:
-- ruby 2.x
+- ruby 2.4 and above
 - bundler
 
 ### Running unit tests
