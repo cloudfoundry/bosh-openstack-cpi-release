@@ -30,7 +30,15 @@
         curl -Lo ./bosh https://s3.amazonaws.com/bosh-cli-artifacts/bosh-cli-3.0.1-linux-amd64
         chmod +x ./bosh
         mv ./bosh /usr/local/bin/bosh
-        apt-get install -y build-essential zlibc zlib1g-dev ruby ruby-dev openssl libxslt-dev libxml2-dev libssl-dev libreadline6 libreadline6-dev libyaml-dev libsqlite3-dev sqlite3
+        apt-get install -y gnupg2 build-essential zlibc zlib1g-dev openssl libxslt-dev libxml2-dev libssl-dev libreadline6 libreadline6-dev libyaml-dev libsqlite3-dev sqlite3
+
+        # install rvm and stable ruby version
+        curl -sSL https://rvm.io/mpapis.asc | gpg2 --import -
+        curl -sSL https://get.rvm.io | bash -s stable
+        source /etc/profile.d/rvm.sh
+        rvm install ruby-2.4-head
+        rvm --default use ruby-2.4-head
+
         gem install bundler
 
         # Create latest cpi release
