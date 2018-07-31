@@ -83,7 +83,7 @@ describe Bosh::OpenStackCloud::Cloud do
     filtered_catalog = yield get_catalog(token)
     filtered_token = set_response_catalog(filtered_catalog, token)
 
-    expected_status = is_v3(@config.auth_url) ? 201 : 200
+    expected_status = is_v2(@config.auth_url) ? 200 : 201
 
     stub_request(:post, token_uri(@config.auth_url)).to_return(body: filtered_token.to_json, status: expected_status)
 
@@ -92,10 +92,10 @@ describe Bosh::OpenStackCloud::Cloud do
 
   def find_service_url(service_catalog, service_type)
     endpoints = service_catalog.find { |service| service['type'] == service_type }['endpoints']
-    if is_v3(@config.auth_url)
-      endpoints.find { |endpoint| endpoint['interface'] == 'public' }['url']
-    else
+    if is_v2(@config.auth_url)
       endpoints.first['publicURL']
+    else
+      endpoints.find { |endpoint| endpoint['interface'] == 'public' }['url']
     end
   end
 
@@ -105,18 +105,18 @@ describe Bosh::OpenStackCloud::Cloud do
   end
 
   def get_catalog(token)
-    if is_v3(@config.auth_url)
-      token['token']['catalog']
-    else
+    if is_v2(@config.auth_url)
       token['access']['serviceCatalog']
+    else
+      token['token']['catalog']
     end
   end
 
   def set_response_catalog(catalog, response)
-    if is_v3(@config.auth_url)
-      response['token']['catalog'] = catalog
-    else
+    if is_v2(@config.auth_url)
       response['access']['serviceCatalog'] = catalog
+    else
+      response['token']['catalog'] = catalog
     end
     response
   end
@@ -125,7 +125,17 @@ describe Bosh::OpenStackCloud::Cloud do
     token_response_uri = token_uri(@config.auth_url)
     http = create_http_connection(token_response_uri)
     token_request = Net::HTTP::Post.new(token_response_uri.request_uri, 'Content-Type' => 'application/json')
-    token_request.body = if is_v3(@config.auth_url)
+    token_request.body = if is_v2(@config.auth_url)
+                           {
+                             'auth' => {
+                               'tenantName' => @config.tenant,
+                               'passwordCredentials' => {
+                                 'username' => @config.username,
+                                 'password' => @config.api_key,
+                               },
+                             },
+                           }.to_json
+                         else
                            {
                              'auth' => {
                                identity: {
@@ -150,16 +160,6 @@ describe Bosh::OpenStackCloud::Cloud do
                                },
                              },
                            }.to_json
-                         else
-                           {
-                             'auth' => {
-                               'tenantName' => @config.tenant,
-                               'passwordCredentials' => {
-                                 'username' => @config.username,
-                                 'password' => @config.api_key,
-                               },
-                             },
-                           }.to_json
     end
     token_response = http.request(token_request)
     JSON.parse(token_response.body)
@@ -168,17 +168,17 @@ describe Bosh::OpenStackCloud::Cloud do
   def token_uri(auth_url)
     token_response_uri = URI.parse(auth_url)
 
-    token_response_uri.path = if is_v3(auth_url)
-                                '/v3/auth/tokens'
-                              else
+    token_response_uri.path = if is_v2(auth_url)
                                 '/v2.0/tokens'
+                              else
+                                '/v3/auth/tokens'
                               end
 
     token_response_uri
   end
 
-  def is_v3(auth_url)
-    auth_url.match(/\/v3(?=\/|$)/)
+  def is_v2(auth_url)
+    auth_url.match(/\/v2.0(?=\/|$)/)
   end
 
   def stub_root_service_versions(service_url)
