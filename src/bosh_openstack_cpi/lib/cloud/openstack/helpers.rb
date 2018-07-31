@@ -17,50 +17,56 @@ module Bosh::OpenStackCloud
       raise_error(Bosh::Clouds::NotSupported, exception, message)
     end
 
-    def fail_on_error(*errors)
-      errors = errors.compact
-      return if errors.empty?
+    def fail_on_error(*error_wrappers)
+      error_wrappers = error_wrappers.compact
+      return if error_wrappers.empty?
 
-      errors.each do |error|
-        @logger.error(error)
-        @logger.error(error.backtrace)
+      error_wrappers.each do |error_wrapper|
+        @logger.error(error_wrapper.error)
+        @logger.error(error_wrapper.error.backtrace)
       end
 
-      message = errors.map(&:message).join("\n")
-      prefix = errors.size > 1 ? "Multiple cloud errors occurred:\n" : ''
+      message = error_wrappers.map(&:message).join("\n")
+      prefix = error_wrappers.size > 1 ? "Multiple cloud errors occurred:\n" : ''
 
       raise Bosh::Clouds::CloudError, prefix + message
     end
 
     def catch_error(prefix = nil)
-      result = nil
-
       return nil unless block_given?
       begin
         yield
       rescue StandardError => e
-        result = if prefix
-                   wrap_error(e, prefix)
-                 else
-                   e
-        end
+        return ErrorWrapper.new(e, prefix)
       end
 
-      result
+      nil
     end
 
     private
+
+    class ErrorWrapper
+      attr_reader :error, :prefix
+
+      def initialize(error, prefix=nil)
+        @error = error
+        @prefix = prefix
+      end
+
+      def message
+        if prefix
+          "#{prefix}: #{error.message}"
+        else
+          error.message
+        end
+      end
+    end
+
 
     def raise_error(error_class, exception, message)
       @logger&.error(message)
       @logger.error(exception) if @logger && exception
       raise error_class, message
-    end
-
-    def wrap_error(error, prefix)
-      wrapped_error = error.class.new("#{prefix}: #{error.message}")
-      wrapped_error.set_backtrace(error.backtrace)
-      wrapped_error
     end
   end
 end
