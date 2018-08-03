@@ -286,12 +286,14 @@ module Bosh::OpenStackCloud
     end
 
     def append_url_sufix(url)
-      unless url.match?(/\/tokens$/)
-        url += '/auth' if !@is_v2
-        url += '/tokens'
-      end
+      return url if url.match?(/\/tokens$/)
+      return "#{url}/tokens" if @is_v2
 
-      url
+      if url.end_with?('/v3')
+        "#{url}/auth/tokens"
+      else
+        "#{url}/v3/auth/tokens"
+      end
     end
 
     def build_auth_url(url)
