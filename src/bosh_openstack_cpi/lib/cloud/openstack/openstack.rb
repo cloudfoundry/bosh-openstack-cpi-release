@@ -8,15 +8,15 @@ module Bosh::OpenStackCloud
     MAX_RETRIES = 10 # Max number of retries
     DEFAULT_RETRY_TIMEOUT = 3 # Default timeout before retrying a call (in seconds)
 
-    attr_reader :auth_url, :params, :is_v3, :state_timeout
+    attr_reader :auth_url, :params, :is_v2, :state_timeout
 
-    def self.is_v3(auth_url)
-      auth_url.match(/\/v3(?=\/|$)/)
+    def self.is_v2(auth_url)
+      auth_url.match(/\/v2.0(?=\/|$)/)
     end
 
     def initialize(options, retry_options_overwrites = {}, extra_connection_options = { 'instrumentor' => Bosh::OpenStackCloud::ExconLoggingInstrumentor })
       @logger = Bosh::Clouds::Config.logger
-      @is_v3 = Openstack.is_v3(options['auth_url'])
+      @is_v2 = Openstack.is_v2(options['auth_url'])
 
       @auth_url = build_auth_url(options['auth_url'])
 
@@ -101,7 +101,7 @@ module Bosh::OpenStackCloud
     end
 
     def project_name
-      is_v3 ? params[:openstack_project_name] : params[:openstack_tenant]
+      is_v2 ? params[:openstack_tenant] : params[:openstack_project_name]
     end
 
     def use_nova_networking?
@@ -286,12 +286,14 @@ module Bosh::OpenStackCloud
     end
 
     def append_url_sufix(url)
-      unless url.match?(/\/tokens$/)
-        url += '/auth' if @is_v3
-        url += '/tokens'
-      end
+      return url if url.match?(/\/tokens$/)
+      return "#{url}/tokens" if @is_v2
 
-      url
+      if url.end_with?('/v3')
+        "#{url}/auth/tokens"
+      else
+        "#{url}/v3/auth/tokens"
+      end
     end
 
     def build_auth_url(url)

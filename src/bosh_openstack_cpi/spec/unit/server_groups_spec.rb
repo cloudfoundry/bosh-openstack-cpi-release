@@ -31,7 +31,7 @@ describe Bosh::OpenStackCloud::ServerGroups do
   before do
     allow(Bosh::Clouds::Config).to receive(:logger).and_return(logger)
     allow(openstack).to receive(:with_openstack) { |&block| block.call }
-    allow(openstack).to receive(:is_v3).and_return(version == 'v3' ? true : false)
+    allow(openstack).to receive(:is_v2).and_return(version == 'v2.0' ? true : false)
   end
 
   let(:version) {

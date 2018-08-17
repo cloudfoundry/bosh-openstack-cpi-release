@@ -477,8 +477,8 @@ module Bosh::OpenStackCloud
       )
     end
 
-    def is_v3
-      @options['openstack']['auth_url'].match(/\/v3(?=\/|$)/)
+    def is_v2
+      @options['openstack']['auth_url'].match(/\/v2.0(?=\/|$)/)
     end
 
     ##
@@ -751,12 +751,12 @@ module Bosh::OpenStackCloud
           },
           optional('agent') => Hash,
         }
-        if Bosh::OpenStackCloud::Openstack.is_v3(auth_url)
-          openstack_options_schema['openstack']['project'] = String
-          openstack_options_schema['openstack']['domain'] = String
-        else
+        if Bosh::OpenStackCloud::Openstack.is_v2(auth_url)
           openstack_options_schema['openstack']['tenant'] = String
           openstack_options_schema['openstack'][optional('domain')] = String
+        else
+          openstack_options_schema['openstack']['project'] = String
+          openstack_options_schema['openstack']['domain'] = String
         end
         openstack_options_schema
       end
