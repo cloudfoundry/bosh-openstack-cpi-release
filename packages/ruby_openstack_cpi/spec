@@ -1,7 +1,7 @@
 ---
 name: ruby_openstack_cpi
 files:
-- ruby_openstack_cpi/yaml-0.1.7.tar.gz
-- ruby_openstack_cpi/ruby-2.4.3.tar.gz
-- ruby_openstack_cpi/rubygems-2.7.3.tar.gz
-- ruby_openstack_cpi/bundler-1.16.1.gem
+- ruby_openstack_cpi/yaml-0.2.1.tar.gz
+- ruby_openstack_cpi/ruby-2.5.1.tar.gz
+- ruby_openstack_cpi/rubygems-2.7.7.tar.gz
+- ruby_openstack_cpi/bundler-1.16.4.gem

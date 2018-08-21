@@ -13,8 +13,8 @@ if [ $openssl_major_version == 0 ]; then
 fi
 
 echo "Installing yaml"
-tar xzf ruby_openstack_cpi/yaml-0.1.7.tar.gz
-pushd yaml-0.1.7 > /dev/null
+tar xzf ruby_openstack_cpi/yaml-0.2.1.tar.gz
+pushd yaml-0.2.1 > /dev/null
   if [ `uname -m` == "ppc64le" ]; then
     CFLAGS='-fPIC' ./configure --build=ppc64le --prefix=${BOSH_INSTALL_TARGET} --disable-shared
   else
@@ -25,17 +25,17 @@ pushd yaml-0.1.7 > /dev/null
 popd > /dev/null
 
 echo "Installing ruby"
-tar xzf ruby_openstack_cpi/ruby-2.4.3.tar.gz
-pushd ruby-2.4.3 > /dev/null
+tar xzf ruby_openstack_cpi/ruby-2.5.1.tar.gz
+pushd ruby-2.5.1 > /dev/null
   LDFLAGS="-Wl,-rpath -Wl,${BOSH_INSTALL_TARGET}" CFLAGS='-fPIC' ./configure --prefix=${BOSH_INSTALL_TARGET} --disable-install-doc --with-opt-dir=/usr/local/opt/openssl:${BOSH_INSTALL_TARGET}
   make
   make install
 popd > /dev/null
 
 echo "Installing rubygems"
-tar zxvf ruby_openstack_cpi/rubygems-2.7.3.tar.gz
-pushd rubygems-2.7.3
+tar zxvf ruby_openstack_cpi/rubygems-2.7.7.tar.gz
+pushd rubygems-2.7.7
   ${BOSH_INSTALL_TARGET}/bin/ruby setup.rb
 popd > /dev/null
 
-${BOSH_INSTALL_TARGET}/bin/gem install ruby_openstack_cpi/bundler-1.16.1.gem --local --no-ri --no-rdoc --force
+${BOSH_INSTALL_TARGET}/bin/gem install ruby_openstack_cpi/bundler-1.16.4.gem --local --no-ri --no-rdoc --force
