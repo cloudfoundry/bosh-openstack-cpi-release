@@ -48,7 +48,6 @@ GET /
 GET /v2.0/floatingips?floating_ip_address=<floating_ip_address>
 GET /v2.0/lbaas/loadbalancers/<resource_id>
 GET /v2.0/lbaas/pools/<resource_id>
-GET /v2.0/lbaas/pools/<resource_id>/members
 GET /v2.0/lbaas/pools?name=<name>
 GET /v2.0/networks/<resource_id>
 GET /v2.0/ports/<resource_id>
