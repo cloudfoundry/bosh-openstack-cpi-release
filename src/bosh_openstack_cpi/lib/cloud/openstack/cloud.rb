@@ -572,7 +572,7 @@ module Bosh::OpenStackCloud
     end
 
     def openstack_server(server_id)
-      servers = @openstack.with_openstack { openstack.compute.servers }
+      servers = @openstack.with_openstack { @openstack.compute.servers }
       @openstack.with_openstack(retryable: true) { servers.get(server_id) }
     end
 
