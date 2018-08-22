@@ -774,7 +774,7 @@ describe Bosh::OpenStackCloud::Openstack do
               subject.servers
             end
           }.to raise_error(Bosh::Clouds::CloudError,
-            "Timeout: foo (SocketError)\nCheck task debug log for details.")
+            "SocketError: foo (SocketError)\nCheck task debug log for details.")
 
           expect(subject).to have_received(:servers).exactly(Bosh::OpenStackCloud::Openstack::MAX_RETRIES).times
         end
@@ -787,7 +787,7 @@ describe Bosh::OpenStackCloud::Openstack do
               subject.servers
             end
           }.to raise_error(Bosh::Clouds::CloudError,
-            "Timeout: foo (SocketError)\nCheck task debug log for details.")
+            "SocketError: foo (SocketError)\nCheck task debug log for details.")
 
           expect(subject).to have_received(:servers).once
         end
