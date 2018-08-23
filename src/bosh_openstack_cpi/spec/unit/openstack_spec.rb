@@ -763,33 +763,55 @@ describe Bosh::OpenStackCloud::Openstack do
 
     context 'when error is Excon::Error::Socket' do
       before do
-        allow(subject).to receive(:servers).and_raise(Excon::Error::Socket.new(SocketError.new('foo')))
         stub_const("Bosh::OpenStackCloud::Openstack::DEFAULT_RETRY_TIMEOUT", 0)
       end
 
-      context 'when request is retryable' do
-        it 'should retry request MAX_RETRIES times' do
-          expect {
-            subject.with_openstack(retryable: true) do
-              subject.servers
-            end
-          }.to raise_error(Bosh::Clouds::CloudError,
-            "SocketError: foo (SocketError)\nCheck task debug log for details.")
-
-          expect(subject).to have_received(:servers).exactly(Bosh::OpenStackCloud::Openstack::MAX_RETRIES).times
+      context "when a SocketError is raised with 'getaddrinfo'" do
+        before do
+          allow(subject).to receive(:servers).and_raise(Excon::Error::Socket.new(SocketError.new('getaddrinfo: nodename nor servname provided, or not known')))
         end
-      end
 
-      context 'when request is not retryable' do
         it 'should retry request MAX_RETRIES times' do
           expect {
             subject.with_openstack(retryable: false) do
               subject.servers
             end
           }.to raise_error(Bosh::Clouds::CloudError,
-            "SocketError: foo (SocketError)\nCheck task debug log for details.")
+                           "SocketError: getaddrinfo: nodename nor servname provided, or not known (SocketError)\nCheck task debug log for details.")
 
-          expect(subject).to have_received(:servers).once
+          expect(subject).to have_received(:servers).exactly(Bosh::OpenStackCloud::Openstack::MAX_RETRIES).times
+        end
+      end
+
+      context "when a SocketError is not raised with 'getaddrinfo'" do
+        before do
+          allow(subject).to receive(:servers).and_raise(Excon::Error::Socket.new(SocketError.new('foo')))
+        end
+
+        context 'when request is retryable' do
+          it 'should retry request MAX_RETRIES times' do
+            expect {
+              subject.with_openstack(retryable: true) do
+                subject.servers
+              end
+            }.to raise_error(Bosh::Clouds::CloudError,
+                             "SocketError: foo (SocketError)\nCheck task debug log for details.")
+
+            expect(subject).to have_received(:servers).exactly(Bosh::OpenStackCloud::Openstack::MAX_RETRIES).times
+          end
+        end
+
+        context 'when request is not retryable' do
+          it 'should not retry request' do
+            expect {
+              subject.with_openstack(retryable: false) do
+                subject.servers
+              end
+            }.to raise_error(Bosh::Clouds::CloudError,
+                             "SocketError: foo (SocketError)\nCheck task debug log for details.")
+
+            expect(subject).to have_received(:servers).once
+          end
         end
       end
     end

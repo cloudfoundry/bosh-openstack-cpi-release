@@ -87,11 +87,11 @@ module Bosh::OpenStackCloud
           cloud_error("OpenStack API service not found error: #{e.message}\nCheck task debug log for details.", e)
         end
       rescue Excon::Error::Timeout => e
-        cloud_error("Timeout: #{e.message}\nCheck task debug log for details.", e) unless retryable && (MAX_RETRIES > retries + 1)
+        cloud_error("Timeout: #{e.message}\nCheck task debug log for details.", e) unless retryable && MAX_RETRIES > retries + 1
         retries = sleep_and_count_retries("OpenStack API Timeout error #{e.message}", retries)
         retry
       rescue Excon::Error::Socket => e
-        cloud_error("SocketError: #{e.message}\nCheck task debug log for details.", e) unless retryable && (MAX_RETRIES > retries + 1)
+        cloud_error("SocketError: #{e.message}\nCheck task debug log for details.", e) unless (e.message =~ /getaddrinfo/ || retryable)  && MAX_RETRIES > retries + 1
         retries = sleep_and_count_retries("OpenStack API SocketError #{e.message}", retries)
         retry
       end
