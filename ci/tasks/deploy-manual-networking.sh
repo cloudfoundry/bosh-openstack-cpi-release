@@ -80,6 +80,7 @@ bosh-go int ../bosh-deployment/bosh.yml \
     -o ../bosh-deployment/misc/powerdns.yml \
     -o ../bosh-deployment/openstack/cpi.yml \
     -o ../bosh-deployment/external-ip-with-registry-not-recommended.yml \
+    -o ../bosh-deployment/misc/source-releases/bosh.yml \
     -o ../bosh-cpi-src-in/ci/ops_files/deployment-configuration.yml \
     -o ../bosh-cpi-src-in/ci/ops_files/custom-manual-networking.yml \
     -o ../bosh-cpi-src-in/ci/ops_files/timeouts.yml \
