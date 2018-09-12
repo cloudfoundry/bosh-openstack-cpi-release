@@ -31,6 +31,16 @@ module Bosh::OpenStackCloud
       end
     end
 
+    def cleanup(openstack)
+      unless openstack.use_nova_networking?
+        ports = openstack.with_openstack { openstack.network.ports }
+        port = openstack.with_openstack(retryable: true) { ports.get(@nic['port_id']) }
+        openstack.with_openstack(retryable: true, ignore_not_found: true) { port&.destroy }
+      end
+    end
+
+    private
+
     def create_port_for_manual_network(openstack, net_id, security_group_ids)
       port_properties = {
         network_id: net_id,
@@ -41,18 +51,32 @@ module Bosh::OpenStackCloud
         cloud_error("Configured VRRP port with ip '#{@allowed_address_pairs}' does not exist.") unless vrrp_port?(openstack)
         port_properties[:allowed_address_pairs] = [{ ip_address: @allowed_address_pairs }]
       end
-      openstack.with_openstack { openstack.network.ports.create(port_properties) }
-    end
+      openstack.with_openstack do
+        retried = false
+        begin
+          openstack.network.ports.create(port_properties)
+        rescue Excon::Error::Conflict => e
+          raise e if openstack.use_nova_networking?
 
-    def cleanup(openstack)
-      unless openstack.use_nova_networking?
-        ports = openstack.with_openstack { openstack.network.ports }
-        port = openstack.with_openstack(retryable: true) { ports.get(@nic['port_id']) }
-        openstack.with_openstack(retryable: true, ignore_not_found: true) { port&.destroy }
+          neutron_error = openstack.parse_openstack_response(e.response, 'NeutronError')
+          raise e if neutron_error.nil? || neutron_error['type'] != 'IpAddressAlreadyAllocated'
+
+          delete_conflicting_unused_ports(openstack, net_id)
+          raise e if retried
+
+          @logger.info("Retrying to create port for IP #{@ip} in network #{net_id}")
+          retried = true
+          retry
+        end
       end
     end
 
-    private
+    def delete_conflicting_unused_ports(openstack, net_id)
+      ports = openstack.network.ports.all("fixed_ips": ["ip_address=#{@ip}", "network_id": net_id])
+      detached_port_ids = ports.select { |p| p.status == 'DOWN' && p.device_id.empty? && p.device_owner.empty? }.map(&:id)
+      @logger.warn("IpAddressAlreadyAllocated (IP #{@ip}): Deleting conflicting unused ports with ids=#{detached_port_ids}")
+      NetworkConfigurator.cleanup_ports(openstack, detached_port_ids)
+    end
 
     def vrrp_port?(openstack)
       vrrp_port = openstack.with_openstack(retryable: true) {

@@ -3,6 +3,7 @@ require 'spec_helper'
 describe Bosh::OpenStackCloud::ManualNetwork do
   subject { Bosh::OpenStackCloud::ManualNetwork.new(network_name, network_spec) }
   let(:openstack) { double(Bosh::OpenStackCloud::Openstack) }
+  let(:security_groups_to_be_used) { ['default-security-group-id'] }
 
   before { allow(openstack).to receive(:with_openstack) { |&block| block.call } }
 
@@ -34,7 +35,6 @@ describe Bosh::OpenStackCloud::ManualNetwork do
   describe '#prepare' do
     let(:network_name) { 'network_a' }
     let(:network_spec) { manual_network_spec(ip: '10.0.0.1') }
-    let(:security_groups_to_be_used) { ['default-security-group-id'] }
 
     context "with 'use_nova_networking=false'" do
       before(:each) do
@@ -103,12 +103,90 @@ describe Bosh::OpenStackCloud::ManualNetwork do
           end
         end
       end
+
+      context 'when IpAddressAlreadyAllocated error is raised' do
+        let(:error) { Excon::Error::Conflict.new('some error message') }
+        let(:network_spec) { manual_network_spec(net_id: 'net', ip: '10.0.0.1') }
+
+        context 'when Excon::Error::Conflict is thrown but has not the type IpAddressAlreadyAllocated' do
+          it 'will raise an Excon::Error::Conflict error with NotIpAddressAlreadyAllocated' do
+            allow(ports).to receive(:create).and_raise(error)
+            allow(openstack).to receive(:parse_openstack_response).and_return(JSON.dump('type' => 'NotIpAddressAlreadyAllocated'))
+
+            expect {
+              subject.prepare(openstack, [])
+            }.to raise_error(error)
+          end
+        end
+
+        context 'when Excon::Error::Conflict is thrown and has not a NeutronError entry' do
+          it 'will raise an Excon::Error::Conflict error' do
+            allow(ports).to receive(:create).and_raise(error)
+            allow(openstack).to receive(:parse_openstack_response).and_return(nil)
+
+            expect {
+              subject.prepare(openstack, [])
+            }.to raise_error(error)
+          end
+        end
+
+        context 'when conflicting ports exist but it has already been retried' do
+          it 'will raise an Excon::Error::Conflict error and clean up conflicting ports' do
+            allow(ports).to receive(:create).exactly(2).times.and_raise(error)
+            allow(openstack).to receive(:parse_openstack_response).exactly(2).and_return('type' => 'IpAddressAlreadyAllocated')
+            allow(ports).to receive(:all).exactly(2).times.and_return([])
+
+            expect {
+              subject.prepare(openstack, [])
+            }.to raise_error(error)
+          end
+        end
+
+        context 'when conflicting ports exist' do
+          let(:all_ports) {
+            [
+              double('port1', id: 'id-1', network_id: 'net', status: 'DOWN', device_id: '', device_owner: ''),
+              double('port2', id: 'id-2', network_id: 'net', status: 'ACTIVE', device_id: '', device_owner: ''),
+              double('port3', id: 'id-3', network_id: 'net', status: 'DOWN', device_id: 'd_id', device_owner: ''),
+              double('port4', id: 'id-4', network_id: 'net', status: 'DOWN', device_id: '', device_owner: 'd_owner'),
+              double('port5', id: 'id-5', network_id: 'net', status: 'ACTIVE', device_id: 'd_id', device_owner: 'd_owner'),
+              double('port6', id: 'id-6', network_id: 'net', status: 'DOWN', device_id: '', device_owner: ''),
+              double('port7', id: 'id-7', network_id: 'net', status: 'DOWN', device_id: 'd_id', device_owner: 'd_owner'),
+              double('port8', id: 'id-8', network_id: 'net', status: 'ACTIVE', device_id: 'd_id', device_owner: ''),
+              double('port9', id: 'id-9', network_id: 'net', status: 'ACTIVE', device_id: '', device_owner: 'd_owner'),
+            ]
+          }
+
+          let(:new_port) { double('new-port', id: 'new-port-id', mac_address: 'mac') }
+
+          it 'will delete the conflicting ports and retry to create the ports for that IP exactly once' do
+            retried = false
+            allow(ports).to receive(:create) do
+              unless retried
+                retried = true
+                raise error
+              end
+
+              new_port
+            end
+
+            allow(ports).to receive(:all).and_return(all_ports)
+            allow(openstack).to receive(:parse_openstack_response).and_return('type' => 'IpAddressAlreadyAllocated')
+
+            allow(Bosh::OpenStackCloud::NetworkConfigurator).to receive(:cleanup_ports)
+
+            subject.prepare(openstack, [])
+
+            expect(ports).to have_received(:all).with(fixed_ips: [anything, network_id: 'net'])
+            expect(Bosh::OpenStackCloud::NetworkConfigurator).to have_received(:cleanup_ports)
+              .once.with(openstack, %w[id-1 id-6])
+          end
+        end
+      end
     end
 
     context "with 'use_nova_networking=true'" do
       let(:manual_network) { manual_network_spec(ip: '10.0.0.1') }
-      let(:security_groups_to_be_used) { ['default-security-group-id'] }
-
       let(:openstack) { instance_double(Bosh::OpenStackCloud::Openstack, use_nova_networking?: true, network: double('Fog::Network')) }
 
       it 'does not use Fog::Network' do
