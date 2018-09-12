@@ -178,6 +178,34 @@ describe Bosh::OpenStackCloud::Cloud do
       end
     end
 
+    context 'when a neutron port already exists for a given IP' do
+      before do
+        clean_up_port(@config.manual_ip, @config.net_id)
+        openstack.network.create_port(
+          @config.net_id,
+          fixed_ips: [{ ip_address: @config.manual_ip }],
+          security_groups: [@config.security_group_id],
+        )
+      end
+
+      after do
+        clean_up_vm(@vm_id) if @vm_id
+        clean_up_port(@config.manual_ip, @config.net_id)
+      end
+
+      it 'can still create the VM' do
+        expect {
+          @vm_id = create_vm(@stemcell_id, network_spec, [])
+        }.to_not raise_error
+      end
+
+      def clean_up_port(ip, net_id)
+        ports = openstack.network.ports.all("fixed_ips": ["ip_address=#{ip}", "network_id": net_id])
+        port_ids = ports.select { |p| p.status == 'DOWN' && p.device_id.empty? && p.device_owner.empty? }.map(&:id)
+        openstack.network.delete_port(port_ids.first) unless port_ids.empty?
+      end
+    end
+
     context 'with vrrp' do
       before { @vm_with_vrrp_ip = create_vm(@stemcell_id, network_spec, [], { 'allowed_address_pairs' => @config.allowed_address_pairs }) }
       after { clean_up_vm(@vm_with_vrrp_ip) if @vm_with_vrrp_ip }
