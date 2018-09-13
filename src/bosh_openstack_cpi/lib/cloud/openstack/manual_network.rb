@@ -57,12 +57,7 @@ module Bosh::OpenStackCloud
           openstack.network.ports.create(port_properties)
         rescue Excon::Error::Conflict => e
           raise e if retried
-
-          neutron_error = openstack.parse_openstack_response(e.response, 'NeutronError')
-          raise e if neutron_error.nil? || neutron_error['type'] != 'IpAddressAlreadyAllocated'
-
           delete_conflicting_unused_ports(openstack, net_id)
-
           @logger.info("Retrying to create port for IP #{@ip} in network #{net_id}")
           retried = true
           retry
@@ -73,7 +68,7 @@ module Bosh::OpenStackCloud
     def delete_conflicting_unused_ports(openstack, net_id)
       ports = openstack.network.ports.all("fixed_ips": ["ip_address=#{@ip}", "network_id": net_id])
       detached_port_ids = ports.select { |p| p.status == 'DOWN' && p.device_id.empty? && p.device_owner.empty? }.map(&:id)
-      @logger.warn("IpAddressAlreadyAllocated (IP #{@ip}): Deleting conflicting unused ports with ids=#{detached_port_ids}")
+      @logger.warn("IP #{@ip} already allocated: Deleting conflicting unused ports with ids=#{detached_port_ids}")
       NetworkConfigurator.cleanup_ports(openstack, detached_port_ids)
     end
 
