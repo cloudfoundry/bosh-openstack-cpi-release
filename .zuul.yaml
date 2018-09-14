@@ -7,7 +7,6 @@
         - bosh-openstack-cpi-release-acceptance-test-pike
         - bosh-openstack-cpi-release-acceptance-test-ocata
         - bosh-openstack-cpi-release-acceptance-test-newton
-        - bosh-openstack-cpi-release-acceptance-test-mitaka
     periodic:
       jobs:
         - bosh-openstack-cpi-release-acceptance-test:
@@ -19,8 +18,6 @@
         - bosh-openstack-cpi-release-acceptance-test-ocata:
             branches: master
         - bosh-openstack-cpi-release-acceptance-test-newton:
-            branches: master
-        - bosh-openstack-cpi-release-acceptance-test-mitaka:
             branches: master
 
 - job:
@@ -65,13 +62,3 @@
     vars:
       global_env:
         OS_BRANCH: stable/newton
-
-- job:
-    name: bosh-openstack-cpi-release-acceptance-test-mitaka
-    parent: bosh-openstack-cpi-release-acceptance-test
-    description: |
-      This job validation tests of bosh-openstack-cpi-release aganist OpenStack Mitaka release
-    vars:
-      global_env:
-        OS_BRANCH: stable/mitaka
-    nodeset: ubuntu-trusty
