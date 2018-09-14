@@ -2,7 +2,9 @@ require 'spec_helper'
 
 describe Bosh::OpenStackCloud::Openstack do
   let(:openstack_options_v2) { mock_cloud_options['properties']['openstack'] }
+  let(:openstack_options_v2_devstack) { mock_cloud_options(2, true)['properties']['openstack'] }
   let(:openstack_options_v3) { mock_cloud_options(3)['properties']['openstack'] }
+  let(:openstack_options_v3_devstack) { mock_cloud_options(3, true)['properties']['openstack'] }
   let(:openstack_options) { openstack_options_v2 }
   subject(:subject) { Bosh::OpenStackCloud::Openstack.new(openstack_options) }
 
@@ -36,16 +38,32 @@ describe Bosh::OpenStackCloud::Openstack do
   describe :new do
     context 'when auth_url does not include tokens' do
       context 'when auth_url is v2' do
-        it 'should update the auth_url with tokens' do
-          expect(subject.auth_url).to eq('http://127.0.0.1:5000/v2.0/tokens')
+        it 'should remove the auth_url version' do
+          expect(subject.auth_url).to eq('http://127.0.0.1:5000')
+        end
+      end
+
+      context 'when auth_url is a devstack v2' do
+        let(:openstack_options) { openstack_options_v2_devstack }
+
+        it 'should remove the auth_url version' do
+          expect(subject.auth_url).to eq('http://127.0.0.1:5000/identity')
         end
       end
 
       context 'when auth_url is v3' do
         let(:openstack_options) { openstack_options_v3 }
 
-        it 'should update the auth_url with tokens' do
-          expect(subject.auth_url).to eq('http://127.0.0.1:5000/v3/auth/tokens')
+        it 'should remove the auth_url version' do
+          expect(subject.auth_url).to eq('http://127.0.0.1:5000')
+        end
+      end
+
+      context 'when auth_url is a devstack v3 url' do
+        let(:openstack_options) { openstack_options_v3_devstack }
+
+        it 'should remove the auth_url version' do
+          expect(subject.auth_url).to eq('http://127.0.0.1:5000/identity')
         end
       end
     end
@@ -56,8 +74,18 @@ describe Bosh::OpenStackCloud::Openstack do
           openstack_options_v2['auth_url'] = 'http://fake-auth-url/v2.0/tokens'
         end
 
-        it 'does not change auth_url option' do
-          expect(subject.auth_url).to eq('http://fake-auth-url/v2.0/tokens')
+        it 'removes everything beginning from auth_url version' do
+          expect(subject.auth_url).to eq('http://fake-auth-url')
+        end
+      end
+
+      context 'when auth_url is v2 devstack url' do
+        before do
+          openstack_options_v2['auth_url'] = 'http://fake-auth-url/identity/v2.0/tokens'
+        end
+
+        it 'removes everything beginning from the auth_url version' do
+          expect(subject.auth_url).to eq('http://fake-auth-url/identity')
         end
       end
 
@@ -67,8 +95,19 @@ describe Bosh::OpenStackCloud::Openstack do
           openstack_options_v3['auth_url'] = 'http://fake-auth-url/v3/auth/tokens'
         end
 
-        it 'does not change auth_url option' do
-          expect(subject.auth_url).to eq('http://fake-auth-url/v3/auth/tokens')
+        it 'removes everything beginning from the auth_url version' do
+          expect(subject.auth_url).to eq('http://fake-auth-url')
+        end
+      end
+
+      context 'when auth_url is v3 devstack url' do
+        let(:openstack_options) { openstack_options_v3 }
+        before do
+          openstack_options_v3['auth_url'] = 'http://fake-auth-url/identity/v3/auth/tokens'
+        end
+
+        it 'removes everything beginning from the auth_url version' do
+          expect(subject.auth_url).to eq('http://fake-auth-url/identity')
         end
       end
 
@@ -77,8 +116,8 @@ describe Bosh::OpenStackCloud::Openstack do
           openstack_options_v2['auth_url'] = 'http://fake-auth-url/v2.0/'
         end
 
-        it 'removes the trailing slash' do
-          expect(subject.auth_url).to eq('http://fake-auth-url/v2.0/tokens')
+        it 'removes the trailing slash and version' do
+          expect(subject.auth_url).to eq('http://fake-auth-url')
         end
       end
     end
@@ -161,7 +200,7 @@ describe Bosh::OpenStackCloud::Openstack do
 
       context 'when the backend call raises a SocketError' do
         let(:socket_error) { Excon::Error::Socket.new(SocketError.new('getaddrinfo: nodename nor servname provided, or not known')) }
-        let(:expected_error_message) { "Unable to connect to the OpenStack Keystone API #{openstack_options['auth_url']}/tokens\ngetaddrinfo: nodename nor servname provided, or not known (SocketError)" }
+        let(:expected_error_message) { "Unable to connect to the OpenStack Keystone API http://127.0.0.1:5000\ngetaddrinfo: nodename nor servname provided, or not known (SocketError)" }
 
         it 'raises a CloudError exception enriched with the targeted OpenStack KeyStone API url for service API' do
           allow(fog[:clazz]).to receive(:new).and_raise(socket_error)

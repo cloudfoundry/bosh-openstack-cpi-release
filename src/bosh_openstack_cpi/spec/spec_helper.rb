@@ -10,61 +10,43 @@ require 'timecop'
 
 require 'cloud/openstack'
 
-def mock_cloud_options(api_version = 2)
-  if api_version == 2
-    {
+def mock_cloud_options(api_version = 2, devstack = false)
+  cloud_properties = {
       'plugin' => 'openstack',
       'properties' => {
-        'openstack' => {
-          'auth_url' => 'http://127.0.0.1:5000/v2.0',
-          'username' => 'admin',
-          'api_key' => 'nova',
-          'tenant' => 'admin',
-          'region' => 'RegionOne',
-          'state_timeout' => 1,
-          'wait_resource_poll_interval' => 3,
-          'use_dhcp' => true,
-          'stemcell_public_visibility' => false,
-        },
-        'registry' => {
-          'endpoint' => 'localhost:42288',
-          'user' => 'admin',
-          'password' => 'admin',
-        },
-        'agent' => {
-          'foo' => 'bar',
-          'baz' => 'zaz',
-        },
+          'openstack' => {
+              'auth_url' => 'http://127.0.0.1:5000/v2.0',
+              'username' => 'admin',
+              'api_key' => 'nova',
+              'tenant' => 'admin',
+              'region' => 'RegionOne',
+              'state_timeout' => 1,
+              'wait_resource_poll_interval' => 3,
+              'use_dhcp' => true,
+              'stemcell_public_visibility' => false,
+          },
+          'registry' => {
+              'endpoint' => 'localhost:42288',
+              'user' => 'admin',
+              'password' => 'admin',
+          },
+          'agent' => {
+              'foo' => 'bar',
+              'baz' => 'zaz',
+          },
       },
-    }
-  elsif api_version == 3
-    {
-      'plugin' => 'openstack',
-      'properties' => {
-        'openstack' => {
-          'auth_url' => 'http://127.0.0.1:5000/v3',
-          'username' => 'admin',
-          'api_key' => 'nova',
-          'project' => 'admin',
-          'domain' => 'some_domain',
-          'region' => 'RegionOne',
-          'state_timeout' => 1,
-          'wait_resource_poll_interval' => 3,
-          'use_dhcp' => true,
-          'stemcell_public_visibility' => false,
-        },
-        'registry' => {
-          'endpoint' => 'localhost:42288',
-          'user' => 'admin',
-          'password' => 'admin',
-        },
-        'agent' => {
-          'foo' => 'bar',
-          'baz' => 'zaz',
-        },
-      },
-    }
+  }
+  if api_version == 3
+    keystone_path = devstack ? '/identity/v3' : '/v3'
+    cloud_properties['properties']['openstack']['auth_url'] = "http://127.0.0.1:5000#{keystone_path}"
+    cloud_properties['properties']['openstack']['project'] = 'admin'
+    cloud_properties['properties']['openstack']['domain'] = 'some_domain'
+  else
+    keystone_path = devstack ? '/identity/v2.0' : '/v2.0'
+    cloud_properties['properties']['openstack']['auth_url'] = "http://127.0.0.1:5000#{keystone_path}"
+    cloud_properties['properties']['openstack']['tenant'] = 'admin'
   end
+  cloud_properties
 end
 
 def make_cloud(options = nil)

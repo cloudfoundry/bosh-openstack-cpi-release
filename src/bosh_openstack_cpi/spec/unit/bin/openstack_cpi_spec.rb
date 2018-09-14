@@ -20,7 +20,7 @@ describe 'the openstack_cpi executable' do
 
       expect(result['error']).to eq(
         'type' => 'Unknown',
-        'message' => 'bad URI(is not URI?): 0.0.0.0:5000/v2.0/tokens',
+        'message' => 'bad URI(is not URI?): 0.0.0.0:5000',
         'ok_to_retry' => false,
       )
 

@@ -11,7 +11,7 @@ module Bosh::OpenStackCloud
     attr_reader :auth_url, :params, :is_v3, :state_timeout
 
     def self.is_v3(auth_url)
-      auth_url.match(/\/v3(?=\/|$)/)
+      auth_url.match(/\/v3(?=\/|$)/) || !auth_url.match(/\/v2.0(?=\/|$)/)
     end
 
     def initialize(options, retry_options_overwrites = {}, extra_connection_options = { 'instrumentor' => Bosh::OpenStackCloud::ExconLoggingInstrumentor })
@@ -282,26 +282,29 @@ module Bosh::OpenStackCloud
       "Unable to connect to the OpenStack Keystone API #{auth_url}\n"
     end
 
+    def build_auth_url(url)
+      remove_url_trailing_slash(remove_url_path_from_version(url))
+    end
+
+    def remove_url_path_from_version(url)
+      if auth_url_with_version?(url)
+        version_regex = is_v3 ? /\/v3(?=\/|$)/ : /\/v2.0(?=\/|$)/
+        url.slice(0..(url.index(version_regex)))
+      else
+        url
+      end
+    end
+
+    def auth_url_with_version?(url)
+      url.match(/\/v2.0(?=\/|$)/) || url.match(/\/v3(?=\/|$)/)
+    end
+
     def remove_url_trailing_slash(url)
       if url.end_with?('/')
         url[0..-2]
       else
         url
       end
-    end
-
-    def append_url_sufix(url)
-      unless url.match?(/\/tokens$/)
-        url += '/auth' if @is_v3
-        url += '/tokens'
-      end
-
-      url
-    end
-
-    def build_auth_url(url)
-      url = remove_url_trailing_slash(url)
-      append_url_sufix(url)
     end
 
     def openstack_fault_message(resource)
