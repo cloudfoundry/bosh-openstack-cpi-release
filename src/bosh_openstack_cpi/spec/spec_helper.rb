@@ -96,7 +96,7 @@ def mock_cloud(options = nil)
   allow(Fog::Volume::OpenStack::V2).to receive(:new).and_return(volume)
 
   network = double(Fog::Network::OpenStack)
-  allow(network).to receive(:security_groups).and_return(security_groups)
+  mock_sec_groups(network, security_groups)
   allow(Fog::Network::OpenStack).to receive(:new).and_return(network)
 
   compute = double(Fog::Compute)
@@ -138,6 +138,11 @@ def mock_glance_v2(options = nil)
   yield image if block_given?
 
   cloud
+end
+
+def mock_sec_groups(receiver, sec_groups = [])
+  allow(receiver).to receive(:security_groups).and_return(sec_groups)
+  allow(sec_groups).to receive(:all).and_return(sec_groups)
 end
 
 def dynamic_network_spec

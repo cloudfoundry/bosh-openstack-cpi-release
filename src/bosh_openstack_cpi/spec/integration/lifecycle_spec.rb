@@ -168,9 +168,11 @@ describe Bosh::OpenStackCloud::Cloud do
         expect(network_interface_1['OS-EXT-IPS-MAC:mac_addr']).to eq(registry_settings['networks']['network_1']['mac'])
         expect(network_interface_2['OS-EXT-IPS-MAC:mac_addr']).to eq(registry_settings['networks']['network_2']['mac'])
 
-        ports = openstack.network.ports.all(device_id: @multiple_nics_vm_id)
+        ports = openstack.with_openstack(retryable: true) { openstack.network.ports.all(device_id: @multiple_nics_vm_id) }
         clean_up_vm(@multiple_nics_vm_id) if @multiple_nics_vm_id
-        expect(ports.find { |port| openstack.network.ports.get port.id }).to be_nil
+
+        found_ports = openstack.with_openstack(retryable: true) { ports.find { |port| openstack.network.ports.get port.id } }
+        expect(found_ports).to be_nil
       end
 
       def where_ip_address_is(ip)
@@ -200,9 +202,12 @@ describe Bosh::OpenStackCloud::Cloud do
       end
 
       def clean_up_port(ip, net_id)
-        ports = openstack.network.ports.all("fixed_ips": ["ip_address=#{ip}", "network_id": net_id])
+        ports = openstack.with_openstack(retryable: true) do
+          openstack.network.ports.all("fixed_ips": ["ip_address=#{ip}", "network_id": net_id])
+        end
+
         port_ids = ports.select { |p| p.status == 'DOWN' && p.device_id.empty? && p.device_owner.empty? }.map(&:id)
-        openstack.network.delete_port(port_ids.first) unless port_ids.empty?
+        openstack.with_openstack(retryable: true) { openstack.network.delete_port(port_ids.first) } unless port_ids.empty?
       end
     end
 
@@ -211,8 +216,12 @@ describe Bosh::OpenStackCloud::Cloud do
       after { clean_up_vm(@vm_with_vrrp_ip) if @vm_with_vrrp_ip }
 
       it 'adds vrrp_ip as allowed_address_pairs' do
-        vrrp_port = openstack.network.ports.all(fixed_ips: "ip_address=#{@config.manual_ip}")[0]
-        port_info = openstack.network.get_port(vrrp_port.id)
+        vrrp_port = openstack.with_openstack(retryable: true) do
+          openstack.network.ports.all(fixed_ips: "ip_address=#{@config.manual_ip}")[0]
+        end
+        port_info = openstack.with_openstack(retryable: true) do
+          openstack.network.get_port(vrrp_port.id)
+        end
         expect(port_info).to be
 
         allowed_address_pairs = port_info[:body]['port']['allowed_address_pairs']
@@ -370,9 +379,11 @@ describe Bosh::OpenStackCloud::Cloud do
     end
 
     def no_port_remaining?(net_id, ip)
-      openstack.network.ports
+      openstack.with_openstack(retryable: true) do
+        openstack.network.ports
                .select { |port| port.network_id == net_id }
                .none? { |port| port.fixed_ips.detect { |ips| ips['ip_address'] == ip } }
+      end
     end
 
     it 'cleans up vm' do
@@ -506,12 +517,12 @@ describe Bosh::OpenStackCloud::Cloud do
     end
 
     it 'sets the disk metadata accordingly' do
-      disk = openstack.volume.volumes.get(@disk_id)
+      disk = openstack.with_openstack(retryable: true) { openstack.volume.volumes.get(@disk_id) }
       expect(disk.metadata).not_to include(metadata)
 
       cpi.set_disk_metadata(@disk_id, metadata)
 
-      disk = openstack.volume.volumes.get(@disk_id)
+      disk = openstack.with_openstack(retryable: true) { openstack.volume.volumes.get(@disk_id) }
       expect(disk.metadata).to include(metadata)
     end
   end
@@ -563,7 +574,7 @@ describe Bosh::OpenStackCloud::Cloud do
     it 'resizes the disk' do
       cpi.resize_disk(@disk_id, 4096)
 
-      disk = openstack.volume.volumes.get(@disk_id)
+      disk = openstack.with_openstack(retryable: true) { openstack.volume.volumes.get(@disk_id) }
       expect(disk.size).to eq(4)
     end
   end

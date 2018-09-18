@@ -259,15 +259,22 @@ describe Bosh::OpenStackCloud::NetworkConfigurator do
   end
 
   describe '#pick_groups' do
-      let(:default_security_groups) { 'fake-group' }
-      let(:resource_pool_groups) { 'fake-group' }
-      let(:security_groups) { [double('security_-group', name: 'group')] }
+    let(:default_security_groups) { 'fake-group' }
+    let(:resource_pool_groups) { 'fake-group' }
+    let(:security_groups) { [double('security_-group', name: 'group')] }
+    let(:openstack_security_groups) { instance_double(Bosh::OpenStackCloud::SecurityGroups) }
+
+    before(:each) do
+      allow(Bosh::OpenStackCloud::SecurityGroups).to receive(:new).with(openstack).and_return(openstack_security_groups)
+    end
 
     it 'picks a group and logs  it' do
-      allow(Bosh::OpenStackCloud::SecurityGroups).to receive(:select_and_retrieve).and_return(security_groups)
+      allow(openstack_security_groups).to receive(:select_and_retrieve).and_return(security_groups)
       nc = Bosh::OpenStackCloud::NetworkConfigurator.new(spec)
       nc.pick_groups(openstack, default_security_groups, resource_pool_groups)
-      expect(Bosh::OpenStackCloud::SecurityGroups).to have_received(:select_and_retrieve).with(openstack, default_security_groups, [], resource_pool_groups)
+      expect(openstack_security_groups).to have_received(:select_and_retrieve).with(default_security_groups,
+                                                                                    [],
+                                                                                    resource_pool_groups)
       expect(Bosh::Clouds::Config.logger).to have_received(:debug).with("Using security groups: `group'")
     end
   end

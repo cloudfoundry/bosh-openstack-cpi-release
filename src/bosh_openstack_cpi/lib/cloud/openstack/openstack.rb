@@ -185,7 +185,7 @@ module Bosh::OpenStackCloud
         # If resource reload is nil, perhaps it's because resource went away
         # (ie: a destroy operation). Don't raise an exception if this is
         # expected (ignore_not_found).
-        if with_openstack { resource.reload.nil? }
+        if with_openstack(retryable: true) { resource.reload.nil? }
           break if ignore_not_found
           cloud_error("#{desc}: Resource not found")
         else

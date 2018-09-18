@@ -5,6 +5,7 @@ describe Bosh::OpenStackCloud::FloatingIp do
 
   before(:each) {
     allow(Bosh::Clouds::Config).to receive(:logger).and_return(logger)
+    allow(openstack).to receive(:with_openstack) { |&block| block.call }
   }
   let(:network) { double('network', get_server: nil, list_floating_ips: nil, associate_floating_ip: nil, disassociate_floating_ip: nil, get_port: nil, ports: nil) }
   let(:compute) { double('compute', addresses: nil) }

@@ -37,7 +37,7 @@ module Bosh::OpenStackCloud
     def create(_, _)
       image_id = @cloud_properties['image_id']
       @logger.info("Checking for image with id '#{image_id}' referenced by light stemcell")
-      image = @openstack.image.images.get(image_id)
+      image = @openstack.with_openstack(retryable: true) { @openstack.image.images.get(image_id) }
       if !image || image.status != 'active'
         cloud_error("No active image with id '#{image_id}' referenced by light stemcell found in OpenStack.")
       end

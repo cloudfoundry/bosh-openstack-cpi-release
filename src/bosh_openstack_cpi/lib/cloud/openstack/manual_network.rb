@@ -66,16 +66,18 @@ module Bosh::OpenStackCloud
     end
 
     def delete_conflicting_unused_ports(openstack, net_id)
-      ports = openstack.network.ports.all("fixed_ips": ["ip_address=#{@ip}", "network_id": net_id])
+      ports = openstack.with_openstack(retryable: true) do
+        openstack.network.ports.all("fixed_ips": ["ip_address=#{@ip}", "network_id": net_id])
+      end
       detached_port_ids = ports.select { |p| p.status == 'DOWN' && p.device_id.empty? && p.device_owner.empty? }.map(&:id)
       @logger.warn("IP #{@ip} already allocated: Deleting conflicting unused ports with ids=#{detached_port_ids}")
       NetworkConfigurator.cleanup_ports(openstack, detached_port_ids)
     end
 
     def vrrp_port?(openstack)
-      vrrp_port = openstack.with_openstack(retryable: true) {
+      vrrp_port = openstack.with_openstack(retryable: true) do
         openstack.network.ports.all(fixed_ips: "ip_address=#{@allowed_address_pairs}")
-      }
+      end
       !(vrrp_port.nil? || vrrp_port.empty?)
     end
   end

@@ -213,7 +213,9 @@ module Bosh::OpenStackCloud
       end
 
       def provisioning_status
-        @openstack.network.get_lbaas_loadbalancer(@id).body['loadbalancer']['provisioning_status']
+        @openstack.with_openstack(retryable: true) do
+          @openstack.network.get_lbaas_loadbalancer(@id).body['loadbalancer']['provisioning_status']
+        end
       end
 
       class NotFound < StandardError; end

@@ -181,7 +181,7 @@ describe Bosh::OpenStackCloud::Cloud, 'create_vm' do
     }
 
     before(:each) do
-      allow(cloud.network).to receive(:security_groups).and_return(openstack_security_groups)
+      mock_sec_groups(cloud.network, openstack_security_groups)
     end
 
     context 'defined in both network and resource_pools spec' do
@@ -509,7 +509,7 @@ describe Bosh::OpenStackCloud::Cloud, 'create_vm' do
         before(:each) do
           allow(cloud.compute.servers).to receive(:create).and_raise(not_found_error)
           security_groups = [double('default_sec_group', id: 'default_sec_group_id', name: 'default')]
-          allow(cloud.compute).to receive(:security_groups).and_return(security_groups)
+          mock_sec_groups(cloud.compute, security_groups)
         end
 
         it 'raises a Not Found error with Network service not available' do
@@ -619,7 +619,7 @@ describe Bosh::OpenStackCloud::Cloud, 'create_vm' do
     let(:openstack_security_groups) { [double('foo-sec-group', id: 'foo-sec-group-id', name: 'foo')] }
 
     it 'raises an error' do
-      allow(cloud.network).to receive(:security_groups).and_return(openstack_security_groups)
+      mock_sec_groups(cloud.network, openstack_security_groups)
 
       expect {
         cloud.create_vm('agent-id', 'sc-id', resource_pool_spec, { 'network_a' => dynamic_network_spec }, nil, environment)
