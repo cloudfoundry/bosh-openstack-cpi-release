@@ -178,7 +178,7 @@ describe Bosh::OpenStackCloud::Cloud do
   end
 
   def is_v3(auth_url)
-    auth_url.match(/\/v3(?=\/|$)/)
+    auth_url.match(/\/v3(?=\/|$)/) || !auth_url.match(/\/v2.0(?=\/|$)/)
   end
 
   def stub_root_service_versions(service_url)

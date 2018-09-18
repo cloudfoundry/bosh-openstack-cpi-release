@@ -477,10 +477,6 @@ module Bosh::OpenStackCloud
       )
     end
 
-    def is_v3
-      @options['openstack']['auth_url'].match(/\/v3(?=\/|$)/)
-    end
-
     ##
     # Updates the agent settings
     #
