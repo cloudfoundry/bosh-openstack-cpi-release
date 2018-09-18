@@ -109,6 +109,11 @@ def mock_glance(options = nil)
   cloud
 end
 
+def mock_sec_groups(receiver, sec_groups = [])
+  allow(receiver).to receive(:security_groups).and_return(sec_groups)
+  allow(sec_groups).to receive(:all).and_return(sec_groups)
+end
+
 def dynamic_network_spec
   {
     'type' => 'dynamic',

@@ -182,7 +182,7 @@ module Bosh::OpenStackCloud
         network = @openstack.network
         nics.each do |nic|
           if nic['net_id']
-            result << nic['net_id'] unless network.networks.get(nic['net_id'])
+            result << nic['net_id'] unless @openstack.with_openstack(retryable: true) { network.networks.get(nic['net_id']) }
           end
         end
       rescue StandardError => e

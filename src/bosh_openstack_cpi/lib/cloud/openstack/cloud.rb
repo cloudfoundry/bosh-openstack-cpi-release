@@ -660,8 +660,8 @@ module Bosh::OpenStackCloud
       letter = FIRST_DEVICE_NAME_LETTER.dup
       return letter if server.flavor.nil?
       return letter unless server.flavor.key?('id')
-      flavors = @openstack.with_openstack(retryable: true) { @openstack.compute.flavors }
-      flavor = flavors.find { |f| f.id == server.flavor['id'] }
+      flavors = @openstack.compute.flavors
+      flavor = @openstack.with_openstack(retryable: true) { flavors.find { |f| f.id == server.flavor['id'] } }
       return letter if flavor.nil?
 
       letter.succ! if flavor_has_ephemeral_disk?(flavor)
