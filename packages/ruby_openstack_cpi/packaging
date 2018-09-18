@@ -38,4 +38,4 @@ pushd rubygems-2.7.7
   ${BOSH_INSTALL_TARGET}/bin/ruby setup.rb
 popd > /dev/null
 
-${BOSH_INSTALL_TARGET}/bin/gem install ruby_openstack_cpi/bundler-1.16.4.gem --local --no-ri --no-rdoc --force
+${BOSH_INSTALL_TARGET}/bin/gem install ruby_openstack_cpi/bundler-1.16.5.gem --local --no-ri --no-rdoc --force
