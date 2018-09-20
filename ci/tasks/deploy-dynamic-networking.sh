@@ -47,11 +47,11 @@ private_ssh_key_file="bats.key"
 
 echo "setting up artifacts used in bosh.yml"
 cp ./bosh-cpi-dev-artifacts/${cpi_release_name}-${semver}.tgz ${deployment_dir}/${cpi_release_name}.tgz
-cp ./stemcell/stemcell.tgz ${deployment_dir}/stemcell.tgz
+cp ./stemcell-director/stemcell.tgz ${deployment_dir}/stemcell.tgz
 prepare_bosh_release ${distro}
 
 echo "Calculating MD5 of original stemcell:"
-echo $(md5sum stemcell/stemcell.tgz)
+echo $(md5sum stemcell-director/stemcell.tgz)
 echo "Calculating MD5 of copied stemcell:"
 echo $(md5sum ${deployment_dir}/stemcell.tgz)
 

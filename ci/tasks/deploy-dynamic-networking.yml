@@ -9,7 +9,7 @@ inputs:
   - name: bosh-release
   - name: bosh-cpi-dev-artifacts
   - name: version-semver
-  - name: stemcell
+  - name: stemcell-director
   - name: terraform-cpi
   - name: bosh-deployment
 outputs:
