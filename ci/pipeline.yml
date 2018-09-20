@@ -418,6 +418,7 @@ jobs:
         - {trigger: false, passed: [cleanup], get: version-semver, tags: ((worker_tags)), timeout: *timeouts-long}
         - {trigger: false, passed: [cleanup], get: bosh-cpi-src-in, tags: ((worker_tags)), timeout: *timeouts-long}
         - {trigger: false,                    get: bosh-release, tags: ((worker_tags)), timeout: *timeouts-long}
+        - {trigger: false,                    get: stemcell-director, resource: openstack-ubuntu-stemcell, tags: ((worker_tags)), timeout: *timeouts-long}
         - {trigger: false,                    get: stemcell, resource: openstack-centos-stemcell, tags: ((worker_tags)), timeout: *timeouts-long}
         - {trigger: false,                    get: bats, tags: ((worker_tags)), timeout: *timeouts-long}
         - {trigger: false,                    get: bosh-deployment, tags: ((worker_tags)), timeout: *timeouts-long}
@@ -480,7 +481,7 @@ jobs:
           time_server_1:                        ((time_server_1))
           time_server_2:                        ((time_server_2))
           private_key_data:                     ((bosh_private_key))
-          distro:                               "centos"
+          distro:                               "ubuntu"
           availability_zone:                    ((availability_zone))
           DEBUG_BATS:                           *debug_bats
         <<: *send-failure-email
@@ -523,6 +524,7 @@ jobs:
         - {trigger: false, passed: [cleanup], get: version-semver, tags: ((worker_tags)), timeout: *timeouts-long}
         - {trigger: false, passed: [cleanup], get: bosh-cpi-src-in, tags: ((worker_tags)), timeout: *timeouts-long}
         - {trigger: false,                    get: bosh-release, tags: ((worker_tags)), timeout: *timeouts-long}
+        - {trigger: false,                    get: stemcell-director, resource: openstack-ubuntu-stemcell, tags: ((worker_tags)), timeout: *timeouts-long}
         - {trigger: false,                    get: stemcell, resource: openstack-centos-stemcell, tags: ((worker_tags)), timeout: *timeouts-long}
         - {trigger: false,                    get: bats, tags: ((worker_tags)), timeout: *timeouts-long}
         - {trigger: false,                    get: bosh-deployment, tags: ((worker_tags)), timeout: *timeouts-long}
@@ -581,7 +583,7 @@ jobs:
           time_server_1:                        ((time_server_1))
           time_server_2:                        ((time_server_2))
           private_key_data:                     ((bosh_private_key))
-          distro:                               "centos"
+          distro:                               "ubuntu"
           availability_zone:                    ((availability_zone))
           DEBUG_BATS:                           *debug_bats
         <<: *send-failure-email
