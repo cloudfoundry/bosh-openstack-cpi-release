@@ -212,6 +212,7 @@ jobs:
         - {trigger: false, passed: [cleanup], get: bosh-cpi-src-in, tags: ((worker_tags)), timeout: *timeouts-long}
         - {trigger: false,                    get: bosh-release, tags: ((worker_tags)), timeout: *timeouts-long}
         - {trigger: false,                    get: stemcell-director, resource: openstack-ubuntu-stemcell, tags: ((worker_tags)), timeout: *timeouts-long}
+        - {trigger: false,                    get: stemcell, resource: openstack-ubuntu-stemcell, tags: ((worker_tags)), timeout: *timeouts-long}
         - {trigger: false,                    get: bats, tags: ((worker_tags)), timeout: *timeouts-long}
         - {trigger: false,                    get: bosh-deployment, tags: ((worker_tags)), timeout: *timeouts-long}
 
@@ -318,6 +319,7 @@ jobs:
         - {trigger: false, passed: [cleanup], get: bosh-cpi-src-in, tags: ((worker_tags)), timeout: *timeouts-long}
         - {trigger: false,                    get: bosh-release, tags: ((worker_tags)), timeout: *timeouts-long}
         - {trigger: false,                    get: stemcell-director, resource: openstack-ubuntu-stemcell, tags: ((worker_tags)), timeout: *timeouts-long}
+        - {trigger: false,                    get: stemcell, resource: openstack-ubuntu-stemcell, tags: ((worker_tags)), timeout: *timeouts-long}
         - {trigger: false,                    get: bats, tags: ((worker_tags)), timeout: *timeouts-long}
         - {trigger: false,                    get: bosh-deployment, tags: ((worker_tags)), timeout: *timeouts-long}
 
