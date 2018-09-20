@@ -8,7 +8,7 @@ inputs:
   - name: bosh-cpi-src-in
   - name: bosh-cpi-release
   - name: bosh-release
-  - name: stemcell
+  - name: stemcell-director
   - name: terraform
   - name: bosh-deployment
 outputs:
