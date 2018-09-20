@@ -73,7 +73,7 @@ prepare_bosh_release() {
 find_bosh_compiled_release(){
     local distribution=$1
     local bosh_release_version=${2:-`cat ./bosh-release/version`}
-    local stemcell_version=${3:-`cat ./stemcell/version`}
+    local stemcell_version=${3:-`cat ./stemcell-director/version`}
 
     local s3_path_to_bosh_release=`aws --no-sign-request s3 ls s3://bosh-compiled-release-tarballs | grep -oE "[^ ](\w|-)*$bosh_release_version.+$distribution.+$stemcell_version.*\.tgz" | sort -r | head -1`
     echo ${s3_path_to_bosh_release}
