@@ -132,7 +132,9 @@ module Bosh::OpenStackCloud
             @logger.error("Failed #{tries} times, last failure due to: #{error.inspect}") unless error.nil?
             begin
               @volume = Fog::Volume::OpenStack::V2.new(params_without_provider)
-            rescue Fog::OpenStack::Errors::ServiceUnavailable, Fog::Errors::NotFound
+            rescue Fog::OpenStack::Errors::ServiceUnavailable,
+                   Fog::Errors::NotFound,
+                   Fog::OpenStack::Auth::Catalog::ServiceTypeError
               @volume = Fog::Volume::OpenStack::V1.new(params_without_provider)
             end
           end

@@ -131,14 +131,18 @@ describe Bosh::OpenStackCloud::Cloud do
   end
 
   describe 'Cinder V1 support', cinder_v1: true do
-    let(:cpi_for_volume) { @config.create_cpi }
-    before do
-      force_volume_v1
-    end
+    [Fog::OpenStack::Errors::ServiceUnavailable, Fog::OpenStack::Auth::Catalog::ServiceTypeError].each do |error_type|
+      context "with error type #{error_type}" do
+        let(:cpi_for_volume) { @config.create_cpi }
+        before do
+          force_volume_v1(error_type)
+        end
 
-    it 'exercises the volume lifecycle' do
-      expect(cpi_for_volume.volume.class.to_s).to start_with('Fog::Volume::OpenStack::V1')
-      volume_lifecycle
+        it 'exercises the volume lifecycle' do
+          expect(cpi_for_volume.volume.class.to_s).to start_with('Fog::Volume::OpenStack::V1')
+          volume_lifecycle
+        end
+      end
     end
   end
 
@@ -166,7 +170,7 @@ describe Bosh::OpenStackCloud::Cloud do
     cpi_for_volume.delete_disk(disk_id)
   end
 
-  def force_volume_v1
-    allow(Fog::Volume::OpenStack::V2).to receive(:new).and_raise(Fog::OpenStack::Errors::ServiceUnavailable)
+  def force_volume_v1(error_type)
+    allow(Fog::Volume::OpenStack::V2).to receive(:new).and_raise(error_type)
   end
 end
