@@ -1,5 +1,6 @@
 variable "dns_nameservers" {
   description = "DNS server IPs"
+  type = 'list'
 }
 
 variable "region_name" {}
@@ -73,7 +74,7 @@ resource "openstack_networking_subnet_v2" "lifecycle_subnet" {
   }
   gateway_ip       = "10.0.1.1"
   enable_dhcp      = "true"
-  dns_nameservers = ["${compact(split(",",var.dns_nameservers))}"]
+  dns_nameservers = "${var.dns_nameservers}"
 }
 
 resource "openstack_networking_port_v2" "allowed_address_pairs" {
@@ -99,7 +100,7 @@ resource "openstack_networking_subnet_v2" "lifecycle_subnet_no_dhcp_1" {
   name             = "lifecycle-subnet-no-dhcp-1"
   gateway_ip       = "10.1.1.1"
   enable_dhcp      = "false"
-  dns_nameservers = ["${compact(split(",",var.dns_nameservers))}"]
+  dns_nameservers = "${var.dns_nameservers}"
 }
 
 resource "openstack_networking_network_v2" "lifecycle_net_no_dhcp_2" {
@@ -116,7 +117,7 @@ resource "openstack_networking_subnet_v2" "lifecycle_subnet_no_dhcp_2" {
   name             = "lifecycle-subnet-no-dhcp-2"
   gateway_ip       = "10.2.1.1"
   enable_dhcp      = "false"
-  dns_nameservers = ["${compact(split(",",var.dns_nameservers))}"]
+  dns_nameservers = "${var.dns_nameservers}"
 }
 
 # router

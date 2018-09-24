@@ -111,8 +111,8 @@ variable "ext_net_cidr" {
 }
 
 variable "dns_nameservers" {
-  default = ""
   description = "DNS server IPs"
+  type = "list"
 }
 
 variable "concourse_external_network_cidr" {
@@ -145,7 +145,7 @@ resource "openstack_networking_subnet_v2" "secondary_subnet" {
   }
   gateway_ip       = "${cidrhost(var.secondary_net_cidr, 1)}"
   enable_dhcp      = "true"
-  dns_nameservers  = ["${compact(split(",",var.dns_nameservers))}"]
+  dns_nameservers = "${var.dns_nameservers}"
 }
 
 resource "openstack_networking_router_interface_v2" "secondary_port" {

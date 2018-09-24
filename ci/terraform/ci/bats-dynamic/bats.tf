@@ -95,7 +95,7 @@ variable "ext_net_cidr" {
 }
 
 variable "dns_nameservers" {
-  default = ""
+  type = "list"
   description = "DNS server IPs"
 }
 

@@ -66,8 +66,8 @@ variable "project_name" {
 }
 
 variable "dns_nameservers" {
-   default = ""
-   description = "Comma-separated list of DNS server IPs"
+   type = "list"
+   description = "List of DNS server IPs"
 }
 
 variable "ext_net_name" {

@@ -39,8 +39,8 @@ variable "project_name" {
 }
 
 variable "dns_nameservers" {
-   default = ""
-   description = "Comma-separated list of DNS server IPs"
+   type = "list"
+   description = "List of DNS server IPs"
 }
 
 variable "region_name" {
@@ -80,7 +80,7 @@ resource "openstack_networking_subnet_v2" "v3_e2e_no_dhcp_1_subnet" {
   }
   gateway_ip       = "${cidrhost(var.no_dhcp_net_1_cidr, 1)}"
   enable_dhcp      = "false"
-  dns_nameservers = ["${compact(split(",",var.dns_nameservers))}"]
+  dns_nameservers = "${var.dns_nameservers}"
 }
 
 resource "openstack_networking_router_interface_v2" "v3_e2e_no_dhcp_1_port" {
@@ -107,7 +107,7 @@ resource "openstack_networking_subnet_v2" "v3_e2e_no_dhcp_2_subnet" {
   }
   gateway_ip       = "${cidrhost(var.no_dhcp_net_2_cidr, 1)}"
   enable_dhcp      = "false"
-  dns_nameservers = ["${compact(split(",",var.dns_nameservers))}"]
+  dns_nameservers = "${var.dns_nameservers}"
 }
 
 resource "openstack_networking_router_interface_v2" "v3_e2e_no_dhcp_2_port" {

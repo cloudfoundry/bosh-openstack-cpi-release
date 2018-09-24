@@ -6,6 +6,7 @@ variable "region_name" {
 
 variable "dns_nameservers" {
   description = "DNS server IPs"
+  type = "list"
 }
 
 variable "primary_net_name" {
@@ -46,7 +47,7 @@ resource "openstack_networking_subnet_v2" "primary_subnet" {
   }
   gateway_ip       = "${cidrhost(var.primary_net_cidr, 1)}"
   enable_dhcp      = "true"
-  dns_nameservers = ["${compact(split(",",var.dns_nameservers))}"]
+  dns_nameservers = "${var.dns_nameservers}"
 }
 
 resource "openstack_networking_router_interface_v2" "primary_port" {

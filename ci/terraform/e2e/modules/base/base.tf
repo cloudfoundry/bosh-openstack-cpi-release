@@ -39,8 +39,8 @@ variable "project_name" {
 }
 
 variable "dns_nameservers" {
-   default = ""
-   description = "Comma-separated list of DNS server IPs"
+   description = "List of DNS server IPs"
+   type = "list"
 }
 
 variable "ext_net_name" {
@@ -99,7 +99,7 @@ resource "openstack_networking_subnet_v2" "v3_e2e_subnet" {
   }
   gateway_ip       = "${cidrhost(var.e2e_net_cidr, 1)}"
   enable_dhcp      = "true"
-  dns_nameservers = ["${compact(split(",",var.dns_nameservers))}"]
+  dns_nameservers = "${var.dns_nameservers}"
 }
 
 resource "openstack_networking_router_v2" "e2e_router" {
@@ -230,8 +230,4 @@ output "director_private_ip" {
 
 output "dns" {
   value = "${var.dns_nameservers}"
-}
-
-output "dns_array" {
-  value = "[${var.dns_nameservers}]"
 }
