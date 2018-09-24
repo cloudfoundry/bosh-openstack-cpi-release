@@ -1,6 +1,6 @@
 variable "dns_nameservers" {
   description = "DNS server IPs"
-  type = 'list'
+  type = "list"
 }
 
 variable "region_name" {}
