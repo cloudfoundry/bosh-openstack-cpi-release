@@ -72,8 +72,8 @@ variable "ext_net_name" {
 }
 
 variable "dns_nameservers" {
-  default = ""
   description = "DNS server IPs"
+  type = "list"
 }
 
 variable "openstack_default_key_public_key" {
