@@ -231,10 +231,8 @@ module Bosh::OpenStackCloud
 
         unique_name = generate_unique_name
         volume_params = {
-          # cinder v1 requires display_ prefix
           display_name: "volume-#{unique_name}",
           display_description: '',
-          # cinder v2 does not require prefix
           name: "volume-#{unique_name}",
           description: '',
           size: mib_to_gib(size),
@@ -367,10 +365,8 @@ module Bosh::OpenStackCloud
         description << devices.first.split('/').last unless devices.empty?
         name = "snapshot-#{generate_unique_name}"
         snapshot_params = {
-          # cinder v1 requires display_ prefix
           display_name: name,
           display_description: description.join('/'),
-          # cinder v2 does not require prefix
           name: name,
           description: description.join('/'),
           volume_id: volume.id,
@@ -480,7 +476,7 @@ module Bosh::OpenStackCloud
     ##
     # Updates the agent settings
     #
-    # @param [Fog::Compute::OpenStack::Server] server OpenStack server
+    # @param [Fog::OpenStack::Compute::Server] server OpenStack server
     def update_agent_settings(server)
       raise ArgumentError, 'Block is not provided' unless block_given?
       registry_key = registry_key_for(server)
@@ -592,7 +588,7 @@ module Bosh::OpenStackCloud
     ##
     # Soft reboots an OpenStack server
     #
-    # @param [Fog::Compute::OpenStack::Server] server OpenStack server
+    # @param [Fog::OpenStack::Compute::Server] server OpenStack server
     # @return [void]
     def soft_reboot(server)
       @logger.info("Soft rebooting server `#{server.id}'...")
@@ -603,7 +599,7 @@ module Bosh::OpenStackCloud
     ##
     # Hard reboots an OpenStack server
     #
-    # @param [Fog::Compute::OpenStack::Server] server OpenStack server
+    # @param [Fog::OpenStack::Compute::Server] server OpenStack server
     # @return [void]
     def hard_reboot(server)
       @logger.info("Hard rebooting server `#{server.id}'...")
@@ -614,8 +610,8 @@ module Bosh::OpenStackCloud
     ##
     # Attaches an OpenStack volume to an OpenStack server
     #
-    # @param [Fog::Compute::OpenStack::Server] server OpenStack server
-    # @param [Fog::Compute::OpenStack::Volume] volume OpenStack volume
+    # @param [Fog::OpenStack::Compute::Server] server OpenStack server
+    # @param [Fog::OpenStack::Compute::Volume] volume OpenStack volume
     # @return [String] Device name
     def attach_volume(server, volume)
       @logger.info("Attaching volume `#{volume.id}' to server `#{server.id}'...")
@@ -658,7 +654,7 @@ module Bosh::OpenStackCloud
     ##
     # Returns the first letter to be used on device names
     #
-    # @param [Fog::Compute::OpenStack::Server] server OpenStack server
+    # @param [Fog::OpenStack::Compute::Server] server OpenStack server
     # @return [String] First available letter
     def first_device_name_letter(server)
       letter = FIRST_DEVICE_NAME_LETTER.dup
@@ -677,8 +673,8 @@ module Bosh::OpenStackCloud
     ##
     # Detaches an OpenStack volume from an OpenStack server
     #
-    # @param [Fog::Compute::OpenStack::Server] server OpenStack server
-    # @param [Fog::Compute::OpenStack::Volume] volume OpenStack volume
+    # @param [Fog::OpenStack::Compute::Server] server OpenStack server
+    # @param [Fog::OpenStack::Compute::Volume] volume OpenStack volume
     # @return [void]
     def detach_volume(server, volume)
       @logger.info("Detaching volume `#{volume.id}' from `#{server.id}'...")
@@ -695,7 +691,7 @@ module Bosh::OpenStackCloud
     ##
     # Checks if the OpenStack flavor has ephemeral disk
     #
-    # @param [Fog::Compute::OpenStack::Flavor] OpenStack flavor
+    # @param [Fog::OpenStack::Compute::Flavor] OpenStack flavor
     # @return [Boolean] true if flavor has ephemeral disk, false otherwise
     def flavor_has_ephemeral_disk?(flavor)
       flavor.ephemeral && flavor.ephemeral.to_i > 0
@@ -704,7 +700,7 @@ module Bosh::OpenStackCloud
     ##
     # Checks if the OpenStack flavor has swap disk
     #
-    # @param [Fog::Compute::OpenStack::Flavor] OpenStack flavor
+    # @param [Fog::OpenStack::Compute::Flavor] OpenStack flavor
     # @return [Boolean] true if flavor has swap disk, false otherwise
     def flavor_has_swap_disk?(flavor)
       flavor.swap.nil? || flavor.swap.to_i <= 0 ? false : true

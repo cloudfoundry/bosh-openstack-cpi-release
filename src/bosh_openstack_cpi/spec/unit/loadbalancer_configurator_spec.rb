@@ -1,5 +1,5 @@
 require 'spec_helper'
-require 'fog/compute/openstack/models/server'
+require 'fog/openstack/compute/models/server'
 
 describe Bosh::OpenStackCloud::LoadbalancerConfigurator do
   shared_examples 'changing load balancer resource' do
@@ -87,7 +87,7 @@ describe Bosh::OpenStackCloud::LoadbalancerConfigurator do
       ],
     }
   }
-  let(:server) { instance_double(Fog::Compute::OpenStack::Server, id: 1234) }
+  let(:server) { instance_double(Fog::OpenStack::Compute::Server, id: 1234) }
   let(:pool) {
     {
       'name' => 'my-lb-pool',
@@ -457,7 +457,7 @@ describe Bosh::OpenStackCloud::LoadbalancerConfigurator do
 
     context 'when membership not found' do
       before do
-        allow(network).to receive(:delete_lbaas_pool_member).and_raise(Fog::Network::OpenStack::NotFound)
+        allow(network).to receive(:delete_lbaas_pool_member).and_raise(Fog::OpenStack::Network::NotFound)
       end
 
       it 'does not raise' do
@@ -477,11 +477,11 @@ describe Bosh::OpenStackCloud::LoadbalancerConfigurator do
 
     context 'when membership deletion fails' do
       it 're-raises as CloudError' do
-        allow(network).to receive(:delete_lbaas_pool_member).and_raise(Fog::Network::OpenStack::Error.new('BOOM!!!'))
+        allow(network).to receive(:delete_lbaas_pool_member).and_raise(Fog::OpenStack::Network::Error.new('BOOM!!!'))
 
         expect {
           subject.remove_vm_from_pool(pool_id, membership_id)
-        }.to raise_error(Bosh::Clouds::CloudError, "Deleting load balancer pool membership with pool_id 'pool-id' and membership_id 'membership-id' failed. Reason: Fog::Network::OpenStack::Error BOOM!!!")
+        }.to raise_error(Bosh::Clouds::CloudError, "Deleting load balancer pool membership with pool_id 'pool-id' and membership_id 'membership-id' failed. Reason: Fog::OpenStack::Network::Error BOOM!!!")
       end
     end
 
@@ -565,7 +565,7 @@ describe Bosh::OpenStackCloud::LoadbalancerConfigurator do
 
     context 'when pool does not exist' do
       before(:each) do
-        allow(network).to receive(:get_lbaas_pool).and_raise(Fog::Network::OpenStack::NotFound.new, 'some-error-message')
+        allow(network).to receive(:get_lbaas_pool).and_raise(Fog::OpenStack::Network::NotFound.new, 'some-error-message')
       end
 
       it 'raises an error' do
@@ -597,7 +597,7 @@ describe Bosh::OpenStackCloud::LoadbalancerConfigurator do
     end
 
     it 're-raises the exception' do
-      allow(network).to receive(:delete_lbaas_pool_member).and_raise(Fog::Network::OpenStack::Error.new('BOOM!!!'))
+      allow(network).to receive(:delete_lbaas_pool_member).and_raise(Fog::OpenStack::Network::Error.new('BOOM!!!'))
 
       expect {
         subject.cleanup_memberships(server_metadata)

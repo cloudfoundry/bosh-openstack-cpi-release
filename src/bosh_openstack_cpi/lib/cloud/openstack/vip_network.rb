@@ -16,7 +16,7 @@ module Bosh::OpenStackCloud
     # Configures OpenStack vip network
     #
     # @param [Bosh::OpenStackCloud::Openstack] openstack
-    # @param [Fog::Compute::OpenStack::Server] server OpenStack server to
+    # @param [Fog::OpenStack::Compute::Server] server OpenStack server to
     #   configure
     def configure(openstack, server, network_id)
       cloud_error("No IP provided for vip network `#{@name}'") if @ip.nil?

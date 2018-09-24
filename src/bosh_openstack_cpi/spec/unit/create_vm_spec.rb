@@ -134,7 +134,7 @@ describe Bosh::OpenStackCloud::Cloud, 'create_vm' do
         allow(openstack.compute.flavors).to receive(:find).and_return(flavor)
         allow(openstack.compute.key_pairs).to receive(:find).and_return(key_pair)
         port_result_net = double('ports1', id: '117717c1-81cb-4ac4-96ab-99aaf1be9ca8', network_id: 'net', mac_address: 'AA:AA:AA:AA:AA:AA')
-        ports = double('Fog::Network::OpenStack::Ports')
+        ports = double('Fog::OpenStack::Network::Ports')
         allow(ports).to receive(:create).with(network_id: 'net', fixed_ips: [{ ip_address: '10.0.0.1' }], security_groups: ['default_sec_group_id']).and_return(port_result_net)
         allow(openstack.network).to receive(:ports).and_return(ports)
       end

@@ -87,13 +87,12 @@ describe Bosh::OpenStackCloud::Cloud do
     cpi_for_vm.delete_vm(vm_id)
   end
 
-  describe 'Cinder V2 support' do
+  describe 'Cinder support' do
     context 'with NO global default_volume_type' do
       let(:cpi_for_volume) { @config.create_cpi }
 
       context 'and NO vm_type `type`' do
         it 'sets to nil' do
-          expect(cpi_for_volume.volume.class.to_s).to start_with('Fog::Volume::OpenStack::V2')
           volume_lifecycle
         end
       end
@@ -102,7 +101,6 @@ describe Bosh::OpenStackCloud::Cloud do
         let(:cloud_properties) { { 'type' => supported_volume_type } }
 
         it 'sets to volumes_ceph' do
-          expect(cpi_for_volume.volume.class.to_s).to start_with('Fog::Volume::OpenStack::V2')
           volume_lifecycle(supported_volume_type)
         end
       end
@@ -114,7 +112,6 @@ describe Bosh::OpenStackCloud::Cloud do
         let(:cloud_properties) { { 'type' => supported_volume_type } }
 
         it 'overrides to type' do
-          expect(cpi_for_volume.volume.class.to_s).to start_with('Fog::Volume::OpenStack::V2')
           volume_lifecycle(supported_volume_type)
         end
       end
@@ -123,24 +120,7 @@ describe Bosh::OpenStackCloud::Cloud do
         let(:cpi_for_volume) { @config.create_cpi(default_volume_type: supported_volume_type) }
 
         it 'uses the default_volume_type' do
-          expect(cpi_for_volume.volume.class.to_s).to start_with('Fog::Volume::OpenStack::V2')
           volume_lifecycle(supported_volume_type)
-        end
-      end
-    end
-  end
-
-  describe 'Cinder V1 support', cinder_v1: true do
-    [Fog::OpenStack::Errors::ServiceUnavailable, Fog::OpenStack::Auth::Catalog::ServiceTypeError].each do |error_type|
-      context "with error type #{error_type}" do
-        let(:cpi_for_volume) { @config.create_cpi }
-        before do
-          force_volume_v1(error_type)
-        end
-
-        it 'exercises the volume lifecycle' do
-          expect(cpi_for_volume.volume.class.to_s).to start_with('Fog::Volume::OpenStack::V1')
-          volume_lifecycle
         end
       end
     end
@@ -168,9 +148,5 @@ describe Bosh::OpenStackCloud::Cloud do
     cpi_for_volume.delete_snapshot(disk_snapshot_id)
     cpi_for_volume.detach_disk(vm_id, disk_id)
     cpi_for_volume.delete_disk(disk_id)
-  end
-
-  def force_volume_v1(error_type)
-    allow(Fog::Volume::OpenStack::V2).to receive(:new).and_raise(error_type)
   end
 end

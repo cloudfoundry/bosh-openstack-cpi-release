@@ -25,7 +25,7 @@ module Bosh::OpenStackCloud
     # Configures given server
     #
     # @param [Bosh::OpenStackCloud::Openstack] openstack
-    # @param [Fog::Compute::OpenStack::Server] server OpenStack server to configure
+    # @param [Fog::OpenStack::Compute::Server] server OpenStack server to configure
     def configure(openstack, server); end
 
     def prepare(openstack, security_groups); end

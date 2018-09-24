@@ -120,11 +120,7 @@ describe Bosh::OpenStackCloud::ServerGroups do
       }
 
       before(:each) do
-        if keystone_version == 'v2'
-          allow(openstack).to receive(:project_name).and_return('my-project')
-        else
-          allow(openstack).to receive(:project_name).and_return('my-project')
-        end
+        allow(openstack).to receive(:project_name).and_return('my-project')
       end
 
       context 'when quota of server groups is reached' do

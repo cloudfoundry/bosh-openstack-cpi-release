@@ -17,11 +17,7 @@ module Bosh::OpenStackCloud
       if @cloud_properties.key?('image_id')
         LightStemcellCreator.new(@logger, @openstack, @cloud_properties)
       else
-        if @openstack.image.class.to_s.include?('Fog::Image::OpenStack::V1')
-          StemcellCreatorV1.new(@logger, @openstack, @cloud_properties)
-        else
-          StemcellCreatorV2.new(@logger, @openstack, @cloud_properties)
-        end
+        HeavyStemcellCreator.new(@logger, @openstack, @cloud_properties)
       end
     end
   end
@@ -46,8 +42,31 @@ module Bosh::OpenStackCloud
     end
   end
 
-  module HeavyStemcellCreator
+  class HeavyStemcellCreator
     include Helpers
+
+    def initialize(logger, openstack, cloud_properties)
+      @logger = logger
+      @openstack = openstack
+      @cloud_properties = cloud_properties
+    end
+
+    def set_public_param(image_params, is_public)
+      image_params[:visibility] = is_public ? 'public' : 'private'
+    end
+
+    def set_image_properties(image_params, image_properties)
+      image_params.merge!(image_properties)
+    end
+
+    def upload(image_params, image_location)
+      image = create_openstack_image(image_params)
+      @openstack.wait_resource(image, :queued)
+      @logger.info("Performing file upload for image: '#{image.id}'...")
+      image.upload_data(File.open(image_location, 'rb'))
+      image
+    end
+
     def create(image_path, is_public)
       Dir.mktmpdir do |tmp_dir|
         @logger.info('Creating new image...')
@@ -113,55 +132,6 @@ module Bosh::OpenStackCloud
       else
         image_option
       end
-    end
-  end
-
-  class StemcellCreatorV1
-    include HeavyStemcellCreator
-
-    def initialize(logger, openstack, cloud_properties)
-      @logger = logger
-      @openstack = openstack
-      @cloud_properties = cloud_properties
-    end
-
-    def set_public_param(image_params, is_public)
-      image_params[:is_public] = is_public
-    end
-
-    def set_image_properties(image_params, image_properties)
-      image_params[:properties] = image_properties unless image_properties.empty?
-    end
-
-    def upload(image_params, image_location)
-      image_params[:location] = image_location
-      create_openstack_image(image_params)
-    end
-  end
-
-  class StemcellCreatorV2
-    include HeavyStemcellCreator
-
-    def initialize(logger, openstack, cloud_properties)
-      @logger = logger
-      @openstack = openstack
-      @cloud_properties = cloud_properties
-    end
-
-    def set_public_param(image_params, is_public)
-      image_params[:visibility] = is_public ? 'public' : 'private'
-    end
-
-    def set_image_properties(image_params, image_properties)
-      image_params.merge!(image_properties)
-    end
-
-    def upload(image_params, image_location)
-      image = create_openstack_image(image_params)
-      @openstack.wait_resource(image, :queued)
-      @logger.info("Performing file upload for image: '#{image.id}'...")
-      image.upload_data(File.open(image_location, 'rb'))
-      image
     end
   end
 end

@@ -9,9 +9,9 @@ describe Bosh::OpenStackCloud::Cloud do
     let(:cloud_options) { mock_cloud_options }
 
     before {
-      expect(Fog::Compute).to_not receive(:new)
-      expect(Fog::Image::OpenStack::V1).to_not receive(:new)
-      expect(Fog::Volume::OpenStack::V1).to_not receive(:new)
+      expect(Fog::OpenStack::Compute).to_not receive(:new)
+      expect(Fog::OpenStack::Image).to_not receive(:new)
+      expect(Fog::OpenStack::Volume).to_not receive(:new)
       expect(Fog::Network).to_not receive(:new)
     }
 
@@ -142,11 +142,11 @@ describe Bosh::OpenStackCloud::Cloud do
     let(:connection_options) { nil }
     let(:merged_connection_options) { default_connection_options }
 
-    let(:compute) { instance_double('Fog::Compute') }
-    before { allow(Fog::Compute).to receive(:new).and_return(compute) }
+    let(:compute) { instance_double('Fog::OpenStack::Compute') }
+    before { allow(Fog::OpenStack::Compute).to receive(:new).and_return(compute) }
 
     let(:image) { instance_double('Fog::Image') }
-    before { allow(Fog::Image::OpenStack::V1).to receive(:new).and_return(image) }
+    before { allow(Fog::OpenStack::Image).to receive(:new).and_return(image) }
 
     context 'when server has no registry_key tag' do
       it 'uses the server name as key' do

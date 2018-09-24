@@ -21,7 +21,7 @@ describe Bosh::OpenStackCloud::Cloud do
       allow(cloud).to receive(:generate_unique_name).and_return(unique_name)
       allow(cloud.openstack).to receive(:wait_resource).with(volume, :available)
 
-      expect(Fog::Volume::OpenStack::V2).to receive(:new)
+      expect(Fog::OpenStack::Volume).to receive(:new)
       expect(cloud.create_disk(2048, {})).to eq('v-foobar')
     end
   end

@@ -4,7 +4,7 @@ describe Bosh::OpenStackCloud::Cloud do
   it 'deletes stemcell' do
     image = double('image', id: 'i-foo', name: 'i-foo', properties: {})
 
-    cloud = mock_glance_v2 do |glance|
+    cloud = mock_glance do |glance|
       allow(glance.images).to receive(:find_by_id).with('i-foo').and_return(image)
     end
 
@@ -17,7 +17,7 @@ describe Bosh::OpenStackCloud::Cloud do
     it 'does no operation' do
       image = double('image', id: 'i-foo', name: 'i-foo', properties: {})
 
-      cloud = mock_glance_v2 do |glance|
+      cloud = mock_glance do |glance|
         allow(glance.images).to receive(:find_by_id).with('i-foo').and_return(image)
       end
 

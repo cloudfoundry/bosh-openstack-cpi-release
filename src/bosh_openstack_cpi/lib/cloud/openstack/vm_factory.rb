@@ -118,7 +118,7 @@ module Bosh::OpenStackCloud
     ##
     # Checks if the OpenStack flavor has ephemeral disk
     #
-    # @param [Fog::Compute::OpenStack::Flavor] OpenStack flavor
+    # @param [Fog::OpenStack::Compute::Flavor] OpenStack flavor
     # @return [Boolean] true if flavor has ephemeral disk, false otherwise
     def flavor_has_ephemeral_disk?(flavor)
       flavor.ephemeral && flavor.ephemeral.to_i > 0

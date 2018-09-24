@@ -5,7 +5,7 @@ describe Bosh::OpenStackCloud::AvailabilityZoneProvider do
   let(:bar_volume) { double('bar_volume') }
   let(:volumes) { double('volumes') }
   let(:openstack) { instance_double(Bosh::OpenStackCloud::Openstack) }
-  let(:compute) { double(Fog::Compute) }
+  let(:compute) { double(Fog::OpenStack::Compute) }
   let(:volume) { double(Fog::Volume) }
   let(:az_provider) { Bosh::OpenStackCloud::AvailabilityZoneProvider.new(openstack, ignore_server_az) }
 

@@ -20,17 +20,17 @@ describe Bosh::OpenStackCloud::Openstack do
 
   describe :project_name do
 
-    context 'when keystone version is v3' do
+    context 'when keystone version is v2' do
       let(:openstack_options) { openstack_options_v2 }
       it 'returns the project name' do
-        expect(subject.project_name).to eq('admin')
+        expect(subject.project_name).to eq('dummy_tenant')
       end
     end
 
-    context 'when keystone version is v2' do
+    context 'when keystone version is v3' do
       let(:openstack_options) { openstack_options_v3 }
       it 'returns the tenant name' do
-        expect(subject.project_name).to eq('admin')
+        expect(subject.project_name).to eq('dummy_project')
       end
     end
   end
@@ -190,7 +190,7 @@ describe Bosh::OpenStackCloud::Openstack do
   context 'when the service is not available' do
     describe 'Network' do
       it 'raises a CloudError exception if cannot connect to the service API' do
-        allow(Fog::Network).to receive(:new).and_raise(Fog::Errors::NotFound, 'Not found message')
+        allow(Fog::OpenStack::Network).to receive(:new).and_raise(Fog::Errors::NotFound, 'Not found message')
         expect {
           Bosh::OpenStackCloud::Openstack.new(openstack_options).network
         }.to raise_error(Bosh::Clouds::CloudError,
@@ -199,10 +199,10 @@ describe Bosh::OpenStackCloud::Openstack do
     end
   end
 
-  [{ clazz: Fog::Compute, name: 'Compute', method_name: :compute },
-   { clazz: Fog::Image::OpenStack::V2, name: 'Image', method_name: :image },
-   { clazz: Fog::Volume::OpenStack::V2, name: 'Volume', method_name: :volume },
-   { clazz: Fog::Network, name: 'Network', method_name: :network }].each do |fog|
+  [{ clazz: Fog::OpenStack::Compute, name: 'Compute', method_name: :compute },
+   { clazz: Fog::OpenStack::Image, name: 'Image', method_name: :image },
+   { clazz: Fog::OpenStack::Volume, name: 'Volume', method_name: :volume },
+   { clazz: Fog::OpenStack::Network, name: 'Network', method_name: :network }].each do |fog|
     describe (fog[:name]).to_s do
       let(:retry_options_overwrites) {
         {
@@ -257,7 +257,7 @@ describe Bosh::OpenStackCloud::Openstack do
           allow(fog[:clazz]).to receive(:new).and_return(instance_double(fog[:clazz]))
           Bosh::OpenStackCloud::Openstack.new(openstack_options).send(fog[:method_name])
 
-          expect(fog[:clazz]).to have_received(:new).with(hash_including(openstack_project_name: 'admin'))
+          expect(fog[:clazz]).to have_received(:new).with(hash_including(openstack_project_name: 'dummy_project'))
           expect(fog[:clazz]).to have_received(:new).with(hash_including(openstack_domain_name: 'some_domain'))
         end
       end
@@ -267,7 +267,7 @@ describe Bosh::OpenStackCloud::Openstack do
           allow(fog[:clazz]).to receive(:new).and_return(instance_double(fog[:clazz]))
           Bosh::OpenStackCloud::Openstack.new(openstack_options).send(fog[:method_name])
 
-          expect(fog[:clazz]).to have_received(:new).with(hash_including(openstack_tenant: 'admin'))
+          expect(fog[:clazz]).to have_received(:new).with(hash_including(openstack_tenant: 'dummy_tenant'))
         end
       end
 
@@ -723,7 +723,7 @@ describe Bosh::OpenStackCloud::Openstack do
 
     context 'when openstack raises Fog::Errors::NotFound' do
       it 'should raise a CloudError with the original OpenStack message' do
-        openstack_error_message = 'Could not find service network. Have compute, compute_legacy, identity, image, volume, volumev2'
+        openstack_error_message = 'Could not find service network. Have compute, compute_legacy, identity, image, volume'
 
         expect {
           subject.with_openstack { raise Fog::Errors::NotFound, openstack_error_message }

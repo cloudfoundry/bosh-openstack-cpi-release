@@ -78,7 +78,7 @@ module Bosh::OpenStackCloud
           retry_on_conflict_pending_update(pool_id) {
             @openstack.network.delete_lbaas_pool_member(pool_id, membership_id)
           }
-        rescue Fog::Network::OpenStack::NotFound
+        rescue Fog::OpenStack::Network::NotFound
           @logger.debug("Skipping deletion of load balancer pool membership. Member with pool_id '#{pool_id}' and membership_id '#{membership_id}' does not exist.")
         rescue LoadBalancerResource::NotFound => e
           @logger.debug("Skipping deletion of load balancer pool membership because load balancer resource cannot be found. #{e.message}")
@@ -122,7 +122,7 @@ module Bosh::OpenStackCloud
       pool_response = @openstack.with_openstack(retryable: true) do
         begin
           @openstack.network.get_lbaas_pool(pool_id)
-        rescue Fog::Network::OpenStack::NotFound => e
+        rescue Fog::OpenStack::Network::NotFound => e
           raise LoadBalancerResource::NotFound, "Load balancer ID could not be determined because pool with ID '#{pool_id}' was not found. Reason: #{e.message}"
         end
       end

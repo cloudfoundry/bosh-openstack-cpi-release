@@ -88,7 +88,7 @@ module Bosh::OpenStackCloud
         begin
           Bosh::Common.retryable(@retry_options) do |tries, error|
             @logger.error("Failed #{tries} times, last failure due to: #{error.inspect}") unless error.nil?
-            @compute = Fog::Compute.new(params)
+            @compute = Fog::OpenStack::Compute.new(params)
           end
         rescue Excon::Error::Socket => e
           cloud_error(socket_error_msg + e.message.to_s)
@@ -104,12 +104,7 @@ module Bosh::OpenStackCloud
         begin
           Bosh::Common.retryable(@retry_options) do |tries, error|
             @logger.error("Failed #{tries} times, last failure due to: #{error.inspect}") unless error.nil?
-
-            begin
-              @glance = Fog::Image::OpenStack::V2.new(params_without_provider)
-            rescue Fog::OpenStack::Errors::ServiceUnavailable
-              @glance = Fog::Image::OpenStack::V1.new(params_without_provider)
-            end
+            @glance = Fog::OpenStack::Image.new(params)
           end
         rescue Excon::Error::Socket => e
           cloud_error(socket_error_msg + e.message.to_s)
@@ -130,13 +125,7 @@ module Bosh::OpenStackCloud
         begin
           Bosh::Common.retryable(@retry_options) do |tries, error|
             @logger.error("Failed #{tries} times, last failure due to: #{error.inspect}") unless error.nil?
-            begin
-              @volume = Fog::Volume::OpenStack::V2.new(params_without_provider)
-            rescue Fog::OpenStack::Errors::ServiceUnavailable,
-                   Fog::Errors::NotFound,
-                   Fog::OpenStack::Auth::Catalog::ServiceTypeError
-              @volume = Fog::Volume::OpenStack::V1.new(params_without_provider)
-            end
+            @volume = Fog::OpenStack::Volume.new(params)
           end
         rescue Excon::Error::Socket => e
           cloud_error(socket_error_msg + e.message.to_s)
@@ -153,7 +142,7 @@ module Bosh::OpenStackCloud
         begin
           Bosh::Common.retryable(@retry_options) do |tries, error|
             @logger.error("Failed #{tries} times, last failure due to: #{error.inspect}") unless error.nil?
-            @network = Fog::Network.new(params)
+            @network = Fog::OpenStack::Network.new(params)
           end
         rescue Excon::Error::Socket => e
           cloud_error(socket_error_msg + e.message.to_s)
@@ -268,7 +257,6 @@ module Bosh::OpenStackCloud
       Excon.defaults.merge!(options['connection_options'].map { |k, v| [k.to_sym, v] }.to_h) if options['connection_options']
 
       {
-        provider: 'OpenStack',
         openstack_auth_url: auth_url,
         openstack_username: options['username'],
         openstack_api_key: options['api_key'],
@@ -280,11 +268,7 @@ module Bosh::OpenStackCloud
         connection_options: options['connection_options'].merge(@extra_connection_options),
       }
     end
-
-    def params_without_provider
-      params.reject { |key, _| key == :provider }
-    end
-
+    
     def socket_error_msg
       "Unable to connect to the OpenStack Keystone API #{auth_url}\n"
     end

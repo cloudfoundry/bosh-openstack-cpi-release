@@ -18,7 +18,7 @@ def mock_cloud_options(api_version = 2, devstack = false)
               'auth_url' => 'http://127.0.0.1:5000/v2.0',
               'username' => 'admin',
               'api_key' => 'nova',
-              'tenant' => 'admin',
+              'tenant' => 'dummy_tenant',
               'region' => 'RegionOne',
               'state_timeout' => 1,
               'wait_resource_poll_interval' => 3,
@@ -39,12 +39,11 @@ def mock_cloud_options(api_version = 2, devstack = false)
   if api_version == 3
     keystone_path = devstack ? '/identity/v3' : '/v3'
     cloud_properties['properties']['openstack']['auth_url'] = "http://127.0.0.1:5000#{keystone_path}"
-    cloud_properties['properties']['openstack']['project'] = 'admin'
+    cloud_properties['properties']['openstack']['project'] = 'dummy_project'
     cloud_properties['properties']['openstack']['domain'] = 'some_domain'
   else
     keystone_path = devstack ? '/identity/v2.0' : '/v2.0'
     cloud_properties['properties']['openstack']['auth_url'] = "http://127.0.0.1:5000#{keystone_path}"
-    cloud_properties['properties']['openstack']['tenant'] = 'admin'
   end
   cloud_properties
 end
@@ -68,26 +67,26 @@ def mock_cloud(options = nil)
   key_pairs = double('key_pairs')
   security_groups = [double('default_sec_group', id: 'default_sec_group_id', name: 'default')]
 
-  image = double(Fog::Image::OpenStack::V2)
-  allow(Fog::Image::OpenStack::V2).to receive(:new).and_return(image)
+  image = double(Fog::OpenStack::Image)
+  allow(Fog::OpenStack::Image).to receive(:new).and_return(image)
   allow(image).to receive(:images).and_return(images)
 
-  volume = double(Fog::Volume::OpenStack::V2)
+  volume = double(Fog::OpenStack::Volume)
   allow(volume).to receive(:volumes).and_return(volumes)
   allow(volume).to receive(:snapshots).and_return(snapshots)
-  allow(Fog::Volume::OpenStack::V2).to receive(:new).and_return(volume)
+  allow(Fog::OpenStack::Volume).to receive(:new).and_return(volume)
 
-  network = double(Fog::Network::OpenStack)
+  network = double(Fog::OpenStack::Network)
   allow(network).to receive(:security_groups).and_return(security_groups)
-  allow(Fog::Network::OpenStack).to receive(:new).and_return(network)
+  allow(Fog::OpenStack::Network).to receive(:new).and_return(network)
 
-  compute = double(Fog::Compute)
+  compute = double(Fog::OpenStack::Compute)
 
   allow(compute).to receive(:servers).and_return(servers)
   allow(compute).to receive(:flavors).and_return(flavors)
   allow(compute).to receive(:key_pairs).and_return(key_pairs)
 
-  allow(Fog::Compute).to receive(:new).and_return(compute)
+  allow(Fog::OpenStack::Compute).to receive(:new).and_return(compute)
 
   fog = Struct
         .new(:compute, :network, :image, :volume)
@@ -98,24 +97,12 @@ def mock_cloud(options = nil)
   Bosh::OpenStackCloud::Cloud.new(options || mock_cloud_options['properties'])
 end
 
-def mock_glance_v1(options = nil)
+def mock_glance(options = nil)
   cloud = mock_cloud(options)
 
-  image = double(Fog::Image::OpenStack::V1, images: double('images'))
+  image = double(Fog::OpenStack::Image, images: double('images'))
   allow(cloud.instance_variable_get('@openstack')).to receive(:image).and_return(image)
-  allow(image).to receive(:class).and_return(Fog::Image::OpenStack::V1)
-
-  yield image if block_given?
-
-  cloud
-end
-
-def mock_glance_v2(options = nil)
-  cloud = mock_cloud(options)
-
-  image = double(Fog::Image::OpenStack::V2, images: double('images'))
-  allow(cloud.instance_variable_get('@openstack')).to receive(:image).and_return(image)
-  allow(image).to receive(:class).and_return(Fog::Image::OpenStack::V2)
+  allow(image).to receive(:class).and_return(Fog::OpenStack::Image)
 
   yield image if block_given?
 

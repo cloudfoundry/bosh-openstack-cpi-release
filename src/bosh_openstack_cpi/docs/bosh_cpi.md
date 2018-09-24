@@ -27,7 +27,7 @@ Implementation of `def initialize(options)` method.
 		3.  A New `Fog::Connection` object connects with the remote Cinder Service
 	+ Neutron service
 		1.  Instantiate `Fog::Network` instance
- 		2.  `Fog::Network::OpenStack` instance is created
+ 		2.  `Fog::OpenStack::Network` instance is created
 		3.  A New `Fog::Connection` object connects with the remote Neutron Service  
 
 ![openstack_cpi_createstemcell](images/openstack_cpi_initialize.png)	
