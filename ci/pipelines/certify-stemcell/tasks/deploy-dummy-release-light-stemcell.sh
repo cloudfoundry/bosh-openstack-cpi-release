@@ -92,7 +92,7 @@ resource_pools:
 networks:
   - name: private
     type: dynamic
-    dns: [${dns}]
+    dns: ${dns}
     cloud_properties:
       net_id: ${v3_e2e_net_id}
       security_groups: [${v3_e2e_security_group}]

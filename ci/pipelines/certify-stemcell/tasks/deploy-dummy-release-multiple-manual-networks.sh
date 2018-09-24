@@ -75,7 +75,7 @@ resource_pools:
 networks:
   - name: private
     type: dynamic
-    dns: [${dns}]
+    dns: ${dns}
     cloud_properties:
       net_id: ${v3_e2e_net_id}
       security_groups: [${v3_e2e_security_group}]
@@ -85,7 +85,7 @@ networks:
     subnets:
       - range:   ${network_no_dhcp_1_range}
         gateway: ${network_no_dhcp_1_gateway}
-        dns:    [${dns}]
+        dns:     ${dns}
         static:  [${network_no_dhcp_1_ip}]
         cloud_properties:
           net_id: ${network_no_dhcp_1_id}
@@ -96,7 +96,7 @@ networks:
     subnets:
       - range:   ${network_no_dhcp_2_range}
         gateway: ${network_no_dhcp_2_gateway}
-        dns:     [${dns}]
+        dns:     ${dns}
         static:  [${network_no_dhcp_2_ip}]
         cloud_properties:
           net_id: ${network_no_dhcp_2_id}

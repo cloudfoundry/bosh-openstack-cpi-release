@@ -87,7 +87,7 @@ bosh-go int ../bosh-deployment/bosh.yml \
     -v default_security_groups=[${v3_e2e_security_group}] \
     -v default_key_name=${v3_e2e_default_key_name} \
     -v director_name='bosh' \
-    -v dns="[${dns}]" \
+    -v dns=${dns} \
     -v internal_ip=${director_private_ip} \
     -v external_ip=${director_public_ip} \
     -v primary_net_id=${v3_e2e_net_id} \
