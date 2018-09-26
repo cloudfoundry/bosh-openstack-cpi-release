@@ -262,6 +262,11 @@ module Bosh::OpenStackCloud
     end
 
     def openstack_params(options)
+      # TODO: remove this workaround as soon as a new fog-openstack version is released
+      # connection_options issue on GitHub: https://github.com/fog/fog-openstack/issues/441
+      # PR which fixes the connection_options: https://github.com/fog/fog-openstack/pull/442
+      Excon.defaults.merge!(options['connection_options'].map { |k, v| [k.to_sym, v] }.to_h) if options['connection_options']
+
       {
         provider: 'OpenStack',
         openstack_auth_url: auth_url,
