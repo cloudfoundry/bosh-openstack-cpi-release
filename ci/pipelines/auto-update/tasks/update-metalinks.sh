@@ -19,7 +19,7 @@ git ls-remote --tags https://github.com/yaml/libyaml.git \
 )
 
 libyaml_url=http://pyyaml.org/download/libyaml/yaml-${libyaml_version}.tar.gz
-libyaml_size=$( curl -sI "$libyaml_url" | grep Content-Length | awk '{ print $2 }' | tr -cd '[:digit:]' )
+libyaml_size=$( curl --silent --head "$libyaml_url" | grep Content-Length | awk '{ print $2 }' | tr -cd '[:digit:]' )
 
 cat > yaml_metalink<<EOF
 <?xml version="1.0" encoding="utf-8"?>
@@ -35,29 +35,11 @@ cat > yaml_metalink<<EOF
 EOF
 
 # Update ruby
-
-ruby_version=$(
-git ls-remote --tags https://github.com/ruby/ruby.git \
-  | cut  -f2 \
-  | grep -v '\^{}' \
-  | grep -E '^refs/tags/.+$' \
-  | sed  -E 's/^refs\/tags\/(.+)$/\1/'  \
-  | sed  's/^v//' \
-  | tr   '_' '.' \
-  | grep -E '^[0-9]+\.[0-9]+\.[0-9]+$' \
-  | sort -r --version-sort \
-  | head -n1
-)
-ruby_version_download_folder=$(echo $ruby_version | sed 's/\.[0-9]$//')
-ruby_url=https://cache.ruby-lang.org/pub/ruby/${ruby_version_download_folder}/ruby-${ruby_version}.tar.gz
-ruby_size=$( curl -sI "$ruby_url" | grep Content-Length | awk '{ print $2 }' | tr -cd '[:digit:]' )
-ruby_sha256=$(
-curl -sL https://www.ruby-lang.org/en/downloads/ \
-   | grep -E -1 "ruby-${ruby_version}.tar.gz\">Ruby" \
-   | grep 'sha256' \
-   | sed  's/^sha256: //; s/<\/li>$//' \
-   | xargs
-)
+ruby_versions=$(curl --silent --location http://cache.ruby-lang.org/pub/ruby/index.txt)
+ruby_version=$(echo "$ruby_versions" | grep "tar.gz" | awk '{print $1}' | grep -E 'ruby-[0-9]+\.[0-9]+\.[0-9]+$' | sort -r --version-sort | head -n1)
+ruby_url=$(echo "$ruby_versions" | grep -E "${ruby_version}\s" | grep "tar.gz" | awk '{print $2}')
+ruby_sha256=$(echo "$ruby_versions" | grep -E "${ruby_version}\s" | grep "tar.gz" | awk '{print $4}')
+ruby_size=$( curl --silent --head "$ruby_url" | grep -i Content-Length | awk '{ print $2 }' | tr -cd '[:digit:]' )
 
 cat > ruby_metalink<<EOF
 <?xml version="1.0" encoding="utf-8"?>
@@ -87,8 +69,8 @@ git ls-remote --tags https://github.com/bundler/bundler.git \
   | head -n1
 )
 bundler_url=https://rubygems.org/downloads/bundler-${bundler_version}.gem
-bundler_size=$( curl -sI "$ruby_url" | grep Content-Length | awk '{ print $2 }' | tr -cd '[:digit:]' )
-bundler_sha256=$( curl -sL https://rubygems.org/gems/bundler/versions/${bundler_version} | grep -A1 'gem__sha' | grep -v 'gem__sha' | xargs )
+bundler_size=$( curl --silent --head "$ruby_url" | grep Content-Length | awk '{ print $2 }' | tr -cd '[:digit:]' )
+bundler_sha256=$( curl --silent --location https://rubygems.org/gems/bundler/versions/${bundler_version} | grep -A1 'gem__sha' | grep -v 'gem__sha' | xargs )
 
 cat > bundler_metalink<<EOF
 <?xml version="1.0" encoding="utf-8"?>
@@ -117,7 +99,7 @@ git ls-remote --tags https://github.com/rubygems/rubygems.git \
   | head -n1
 )
 rubygems_url=https://rubygems.org/rubygems/rubygems-${rubygems_version}.tgz
-rubygems_size=$( curl -sI "${rubygems_url}" | grep Content-Length | awk '{ print $2 }' | tr -cd '[:digit:]' )
+rubygems_size=$( curl --silent --head "${rubygems_url}" | grep Content-Length | awk '{ print $2 }' | tr -cd '[:digit:]' )
 
 cat > rubygems_metalink<<EOF
 <?xml version="1.0" encoding="utf-8"?>
