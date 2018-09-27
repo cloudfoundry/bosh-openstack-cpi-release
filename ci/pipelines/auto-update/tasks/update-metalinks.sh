@@ -45,11 +45,11 @@ cat > ruby_metalink<<EOF
 <?xml version="1.0" encoding="utf-8"?>
 <repository xmlns="https://dpb587.github.io/metalink-repository/schema-0.1.0.xsd">
     <metalink xmlns="urn:ietf:params:xml:ns:metalink">
-      <file name="ruby-${ruby_version}.tar.gz">
+      <file name="${ruby_version}.tar.gz">
         <hash type="sha-256">${ruby_sha256}</hash>
         <size>${ruby_size}</size>
         <url>${ruby_url}</url>
-        <version>${ruby_version}</version>
+        <version>${ruby_version#"ruby-"}</version>
       </file>
     </metalink>
 </repository>
