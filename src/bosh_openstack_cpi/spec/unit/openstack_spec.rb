@@ -139,27 +139,6 @@ describe Bosh::OpenStackCloud::Openstack do
         end
       end
     end
-
-    context 'when connection_options are specified' do
-      let(:openstack_options) do
-        mock_cloud_options(3)['properties']['openstack'].merge(
-          'connection_options' => {
-            'connect_timeout' => 777,
-            'ssl_verify_peer' => false,
-            'ssl_ca_file' => 'path_to_ssl_ca_file',
-          },
-        )
-      end
-
-      it 'merges them on Excon.defaults and keeps original defaults where no value is provided' do
-        subject
-
-        expect(Excon.defaults[:connect_timeout]).to eq(777)
-        expect(Excon.defaults[:ssl_verify_peer]).to eq(false)
-        expect(Excon.defaults[:ssl_ca_file]).to eq('path_to_ssl_ca_file')
-        expect(Excon.defaults[:write_timeout]).to eq(60)
-      end
-    end
   end
 
   describe :use_nova_networking? do
