@@ -34,27 +34,6 @@ cat > yaml_metalink<<EOF
 </repository>
 EOF
 
-# Update ruby
-ruby_versions=$(curl --silent --location http://cache.ruby-lang.org/pub/ruby/index.txt)
-ruby_version=$(echo "$ruby_versions" | grep "tar.gz" | awk '{print $1}' | grep -E 'ruby-[0-9]+\.[0-9]+\.[0-9]+$' | sort -r --version-sort | head -n1)
-ruby_url=$(echo "$ruby_versions" | grep -E "${ruby_version}\s" | grep "tar.gz" | awk '{print $2}')
-ruby_sha256=$(echo "$ruby_versions" | grep -E "${ruby_version}\s" | grep "tar.gz" | awk '{print $4}')
-ruby_size=$( curl --silent --head "$ruby_url" | grep -i Content-Length | awk '{ print $2 }' | tr -cd '[:digit:]' )
-
-cat > ruby_metalink<<EOF
-<?xml version="1.0" encoding="utf-8"?>
-<repository xmlns="https://dpb587.github.io/metalink-repository/schema-0.1.0.xsd">
-    <metalink xmlns="urn:ietf:params:xml:ns:metalink">
-      <file name="${ruby_version}.tar.gz">
-        <hash type="sha-256">${ruby_sha256}</hash>
-        <size>${ruby_size}</size>
-        <url>${ruby_url}</url>
-        <version>${ruby_version#"ruby-"}</version>
-      </file>
-    </metalink>
-</repository>
-EOF
-
 # Update bundler
 
 bundler_version=$(
@@ -114,7 +93,7 @@ cat > rubygems_metalink<<EOF
 </repository>
 EOF
 
-echo "Looking for new package versions of libyaml, bundler, rubygems, or ruby"
+echo "Looking for new package versions of libyaml, bundler, or rubygems"
 git add .
 git diff --cached --exit-code || exit_code=$?
 if [ -v exit_code ]; then
@@ -124,5 +103,5 @@ echo "Creating new commit request"
   git config --global user.name CI
   git commit -m "Bump package version"
 else
-echo "No new libyaml, bundler, rubygems, or ruby version found"
+echo "No new libyaml, bundler, or rubygems version found"
 fi

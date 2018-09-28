@@ -44,7 +44,7 @@ jobs:
         - {trigger: false, get: packages-src-in,  tags: ((worker_tags)), timeout: 2h}
         - {trigger: false, get: validator-src-in, tags: ((worker_tags)), timeout: 2h}
         - {trigger: true,  get: yaml-blob,        tags: ((worker_tags)), timeout: 2h}
-        - {trigger: true,  get: ruby-blob,        tags: ((worker_tags)), timeout: 2h}
+        - {trigger: true,  get: ruby,							tags: ((worker_tags)), timeout: 2h}
         - {trigger: true,  get: bundler-blob,     tags: ((worker_tags)), timeout: 2h}
         - {trigger: true,  get: rubygems-blob,    tags: ((worker_tags)), timeout: 2h}
 
@@ -176,13 +176,6 @@ resources:
       uri: https://raw.githubusercontent.com/cloudfoundry-incubator/bosh-openstack-cpi-release/metalink-update/bundler_metalink
       version: ^1
 
-  - name: ruby-blob
-    type: metalink-repository
-    tags: ((worker_tags))
-    source:
-      uri: https://raw.githubusercontent.com/cloudfoundry-incubator/bosh-openstack-cpi-release/metalink-update/ruby_metalink
-      version: ^2
-
   - name: yaml-blob
     type: metalink-repository
     tags: ((worker_tags))
@@ -190,8 +183,41 @@ resources:
       uri: https://raw.githubusercontent.com/cloudfoundry-incubator/bosh-openstack-cpi-release/metalink-update/yaml_metalink
       version: ^0
 
+  - name: ruby
+    type: dynamic-metalink
+    tags: ((worker_tags))
+    source:
+      version: "2.4.x"
+      version_check: |
+        curl --silent --location http://cache.ruby-lang.org/pub/ruby/index.txt \
+          | grep "tar.gz" \
+          | awk '{print $1}' \
+          | grep -E 'ruby-[0-9]+\.[0-9]+\.[0-9]+$' \
+          | sed -e "s/^ruby-//"
+      metalink_get: |
+        export name="ruby-${version}.tar.gz"
+        export version_entry="$(curl --silent --location http://cache.ruby-lang.org/pub/ruby/index.txt | grep -E "${version//./\\.}\s" | grep "tar.gz")"
+        export url="$(echo "$version_entry" | awk '{print $2}')"
+        export sha256="$(echo "$version_entry" | awk '{print $4}')"
+        export size="$(curl --silent --head "$url" | grep -i Content-Length | awk '{ print $2 }' | tr -cd '[:digit:]')"
+        jq --null-input '
+        {
+         "files": [
+          {
+           "name": env.name,
+           "urls": [ { "url": env.url } ],
+           "hashes": [{ "type": "sha-256", "hash": env.sha256 }],
+           "size": env.size | tonumber
+          }
+         ]
+        }'
+
 resource_types:
 - name: metalink-repository
   type: docker-image
   source:
     repository: dpb587/metalink-repository-resource
+- name: dynamic-metalink
+  type: docker-image
+  source:
+    repository: dpb587/dynamic-metalink-resource

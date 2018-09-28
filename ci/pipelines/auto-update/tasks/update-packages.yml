@@ -8,7 +8,7 @@ inputs:
   - name: bosh-cpi-src-in
   - name: packages-src-in
   - name: yaml-blob
-  - name: ruby-blob
+  - name: ruby
   - name: bundler-blob
   - name: rubygems-blob
 outputs:

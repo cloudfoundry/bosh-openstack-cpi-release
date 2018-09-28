@@ -7,7 +7,7 @@ mkdir blobs
 cp yaml-blob/yaml-*.tar.gz blobs
 cp bundler-blob/bundler-*.gem blobs
 cp rubygems-blob/rubygems-*.tar.gz blobs
-cp ruby-blob/ruby-*.tar.gz blobs
+cp ruby/ruby-*.tar.gz blobs
 
 
 cp -r packages-src-in/. packages-src-out
