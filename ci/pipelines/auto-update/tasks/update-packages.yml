@@ -7,9 +7,9 @@ image_resource:
 inputs:
   - name: bosh-cpi-src-in
   - name: packages-src-in
-  - name: libyaml-test
+  - name: libyaml
   - name: ruby
-  - name: bundler-blob
+  - name: bundler-test
   - name: rubygems-blob
 outputs:
   - name: packages-src-out

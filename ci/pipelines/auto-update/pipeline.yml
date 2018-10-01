@@ -43,9 +43,9 @@ jobs:
         - {trigger: false, get: bosh-cpi-src-in,  tags: ((worker_tags)), timeout: 2h}
         - {trigger: false, get: packages-src-in,  tags: ((worker_tags)), timeout: 2h}
         - {trigger: false, get: validator-src-in, tags: ((worker_tags)), timeout: 2h}
-        - {trigger: true,  get: libyaml-test,     tags: ((worker_tags)), timeout: 2h}
+        - {trigger: true,  get: libyaml,          tags: ((worker_tags)), timeout: 2h}
         - {trigger: true,  get: ruby,							tags: ((worker_tags)), timeout: 2h}
-        - {trigger: true,  get: bundler-blob,     tags: ((worker_tags)), timeout: 2h}
+        - {trigger: true,  get: bundler-test,     tags: ((worker_tags)), timeout: 2h}
         - {trigger: true,  get: rubygems-blob,    tags: ((worker_tags)), timeout: 2h}
 
       - task: update-packages
@@ -169,14 +169,37 @@ resources:
       uri: https://raw.githubusercontent.com/cloudfoundry-incubator/bosh-openstack-cpi-release/metalink-update/rubygems_metalink
       version: ^2
 
-  - name: bundler-blob
-    type: metalink-repository
+  - name: bundler-test
+    type: dynamic-metalink
     tags: ((worker_tags))
     source:
-      uri: https://raw.githubusercontent.com/cloudfoundry-incubator/bosh-openstack-cpi-release/metalink-update/bundler_metalink
       version: ^1
+      version_check: |
+       git ls-remote --tags https://github.com/bundler/bundler.git \
+         | cut -f2 \
+         | grep -v '\^{}' \
+         | grep -E '^refs/tags/.+$' \
+         | sed  -E 's/^refs\/tags\/(.+)$/\1/'  \
+         | sed  's/^v//' \
+         | grep -E '^[0-9]+\.[0-9]+\.[0-9]+$'
+      metalink_get: |
+        export name="bundler-${version}.gem"
+        export url="https://rubygems.org/downloads/bundler-${version}.gem"
+        export size=$( curl --silent --head "$url" | grep Content-Length | awk '{ print $2 }' | tr -cd '[:digit:]' )
+        export sha256=$( curl --silent --location https://rubygems.org/gems/bundler/versions/$version | grep -A1 'gem__sha' | grep -v 'gem__sha' | xargs )
+        jq -n '
+        {
+         "files": [
+          {
+           "name": env.name,
+           "urls": [ { "url": env.url } ],
+           "hashes": [{ "type": "sha-256", "hash": env.sha256 }],
+           "size": env.size | tonumber
+          }
+         ]
+        }'
 
-  - name: libyaml-test
+  - name: libyaml
     type: dynamic-metalink
     tags: ((worker_tags))
     source:

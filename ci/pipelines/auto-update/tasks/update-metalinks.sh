@@ -6,36 +6,6 @@ set -x
 cp -r metalink-src-in/. metalink-src-out
 cd metalink-src-out/
 
-# Update bundler
-
-bundler_version=$(
-git ls-remote --tags https://github.com/bundler/bundler.git \
-  | cut -f2 \
-  | grep -v '\^{}' \
-  | grep -E '^refs/tags/.+$' \
-  | sed  -E 's/^refs\/tags\/(.+)$/\1/'  \
-  | sed  's/^v//' \
-  | grep -E '^[0-9]+\.[0-9]+\.[0-9]+$' \
-  | sort -r --version-sort \
-  | head -n1
-)
-bundler_url=https://rubygems.org/downloads/bundler-${bundler_version}.gem
-bundler_size=$( curl --silent --head "$ruby_url" | grep Content-Length | awk '{ print $2 }' | tr -cd '[:digit:]' )
-bundler_sha256=$( curl --silent --location https://rubygems.org/gems/bundler/versions/${bundler_version} | grep -A1 'gem__sha' | grep -v 'gem__sha' | xargs )
-
-cat > bundler_metalink<<EOF
-<?xml version="1.0" encoding="utf-8"?>
-<repository xmlns="https://dpb587.github.io/metalink-repository/schema-0.1.0.xsd">
-    <metalink xmlns="urn:ietf:params:xml:ns:metalink">
-      <file name="bundler-${bundler_version}.gem">
-        <hash type="sha-256">${bundler_sha256}</hash>
-        <size>${bundler_size}</size>
-        <url>${bundler_url}</url>
-        <version>${bundler_version}</version>
-      </file>
-    </metalink>
-</repository>
-EOF
 
 # Update rubygems
 rubygems_version=$(

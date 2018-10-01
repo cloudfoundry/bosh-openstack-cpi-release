@@ -4,8 +4,8 @@ set -e -x
 
 # put all blobs together
 mkdir blobs
-cp libyaml-test/yaml-*.tar.gz blobs
-cp bundler-blob/bundler-*.gem blobs
+cp libyaml/yaml-*.tar.gz blobs
+cp bundler-test/bundler-*.gem blobs
 cp rubygems-blob/rubygems-*.tar.gz blobs
 cp ruby/ruby-*.tar.gz blobs
 
