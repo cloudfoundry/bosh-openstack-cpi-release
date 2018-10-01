@@ -6,34 +6,6 @@ set -x
 cp -r metalink-src-in/. metalink-src-out
 cd metalink-src-out/
 
-# Update libyaml
-libyaml_version=$(
-git ls-remote --tags https://github.com/yaml/libyaml.git \
-  | cut  -f2 \
-  | grep -v '\^{}' \
-  | grep -E '^refs/tags/.+$' \
-  | sed  -E 's/^refs\/tags\/(.+)$/\1/'  \
-  | grep -E '^[0-9]+\.[0-9]+\.[0-9]+$' \
-  | sort -r --version-sort \
-  | head -n1
-)
-
-libyaml_url=http://pyyaml.org/download/libyaml/yaml-${libyaml_version}.tar.gz
-libyaml_size=$( curl --silent --head "$libyaml_url" | grep Content-Length | awk '{ print $2 }' | tr -cd '[:digit:]' )
-
-cat > yaml_metalink<<EOF
-<?xml version="1.0" encoding="utf-8"?>
-<repository xmlns="https://dpb587.github.io/metalink-repository/schema-0.1.0.xsd">
-    <metalink xmlns="urn:ietf:params:xml:ns:metalink">
-      <file name="yaml-${libyaml_version}.tar.gz">
-        <size>${libyaml_size}</size>
-        <url>${libyaml_url}</url>
-        <version>${libyaml_version}</version>
-      </file>
-    </metalink>
-</repository>
-EOF
-
 # Update bundler
 
 bundler_version=$(

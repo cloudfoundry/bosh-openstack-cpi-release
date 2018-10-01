@@ -43,7 +43,7 @@ jobs:
         - {trigger: false, get: bosh-cpi-src-in,  tags: ((worker_tags)), timeout: 2h}
         - {trigger: false, get: packages-src-in,  tags: ((worker_tags)), timeout: 2h}
         - {trigger: false, get: validator-src-in, tags: ((worker_tags)), timeout: 2h}
-        - {trigger: true,  get: yaml-blob,        tags: ((worker_tags)), timeout: 2h}
+        - {trigger: true,  get: libyaml-test,     tags: ((worker_tags)), timeout: 2h}
         - {trigger: true,  get: ruby,							tags: ((worker_tags)), timeout: 2h}
         - {trigger: true,  get: bundler-blob,     tags: ((worker_tags)), timeout: 2h}
         - {trigger: true,  get: rubygems-blob,    tags: ((worker_tags)), timeout: 2h}
@@ -176,12 +176,32 @@ resources:
       uri: https://raw.githubusercontent.com/cloudfoundry-incubator/bosh-openstack-cpi-release/metalink-update/bundler_metalink
       version: ^1
 
-  - name: yaml-blob
-    type: metalink-repository
+  - name: libyaml-test
+    type: dynamic-metalink
     tags: ((worker_tags))
     source:
-      uri: https://raw.githubusercontent.com/cloudfoundry-incubator/bosh-openstack-cpi-release/metalink-update/yaml_metalink
       version: ^0
+      version_check: |
+       git ls-remote --tags https://github.com/yaml/libyaml.git \
+         | cut  -f2 \
+         | grep -v '\^{}' \
+         | grep -E '^refs/tags/.+$' \
+         | sed  -E 's/^refs\/tags\/(.+)$/\1/'  \
+         | grep -E '^[0-9]+\.[0-9]+\.[0-9]+$'
+      metalink_get: |
+        export name="yaml-${version}.tar.gz"
+        export url="http://pyyaml.org/download/libyaml/yaml-${version}.tar.gz"
+        export size=$( curl --silent --head "$url" | grep Content-Length | awk '{ print $2 }' | tr -cd '[:digit:]' )
+        jq -n '
+        {
+         "files": [
+          {
+           "name": env.name,
+           "urls": [ { "url": env.url } ],
+           "size": env.size | tonumber
+          }
+         ]
+        }'
 
   - name: ruby
     type: dynamic-metalink
@@ -200,7 +220,7 @@ resources:
         export url="$(echo "$version_entry" | awk '{print $2}')"
         export sha256="$(echo "$version_entry" | awk '{print $4}')"
         export size="$(curl --silent --head "$url" | grep -i Content-Length | awk '{ print $2 }' | tr -cd '[:digit:]')"
-        jq --null-input '
+        jq -n '
         {
          "files": [
           {
