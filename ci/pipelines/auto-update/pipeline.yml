@@ -18,24 +18,6 @@ jobs:
         timeout: 2h
         params: {repository: gems-src-out, force: true}
 
-  - name: update-metalinks
-    serial: true
-    plan:
-      - aggregate:
-        - {trigger: true,   get: pipeline-time-trigger, tags: ((worker_tags)), timeout: 2h}
-        - {trigger: false,  get: bosh-cpi-src-in,       tags: ((worker_tags)), timeout: 2h}
-        - {trigger: false,  get: metalink-src-in,       tags: ((worker_tags)), timeout: 2h}
-
-      - task: update-metalinks
-        tags: ((worker_tags))
-        timeout: 2h
-        file: bosh-cpi-src-in/ci/pipelines/auto-update/tasks/update-metalinks.yml
-
-      - put: metalink-src-out
-        tags: ((worker_tags))
-        timeout: 2h
-        params: { repository: metalink-src-out, force: true}
-
   - name: update-packages
     serial: true
     plan:
@@ -45,8 +27,8 @@ jobs:
         - {trigger: false, get: validator-src-in, tags: ((worker_tags)), timeout: 2h}
         - {trigger: true,  get: libyaml,          tags: ((worker_tags)), timeout: 2h}
         - {trigger: true,  get: ruby,							tags: ((worker_tags)), timeout: 2h}
-        - {trigger: true,  get: bundler-test,     tags: ((worker_tags)), timeout: 2h}
-        - {trigger: true,  get: rubygems-test,    tags: ((worker_tags)), timeout: 2h}
+        - {trigger: true,  get: bundler,          tags: ((worker_tags)), timeout: 2h}
+        - {trigger: true,  get: rubygems,         tags: ((worker_tags)), timeout: 2h}
 
       - task: update-packages
         tags: ((worker_tags))
@@ -119,21 +101,6 @@ resources:
       branch:      packages-auto-update
       private_key: ((bosh-openstack-cpi-release-github-key))
 
-  - name: metalink-src-in
-    type: git
-    tags: ((worker_tags))
-    source:
-      uri: https://github.com/cloudfoundry-incubator/bosh-openstack-cpi-release.git
-      branch:      metalink-update
-
-  - name: metalink-src-out
-    type: git
-    tags: ((worker_tags))
-    source:
-      uri: git@github.com:cloudfoundry-incubator/bosh-openstack-cpi-release.git
-      branch:      metalink-update
-      private_key: ((bosh-openstack-cpi-release-github-key))
-
   - name: gems-src-out
     type: git
     tags: ((worker_tags))
@@ -162,7 +129,7 @@ resources:
     source:
       interval: 24h
 
-  - name: rubygems-test
+  - name: rubygems
     type: dynamic-metalink
     tags: ((worker_tags))
     source:
@@ -190,7 +157,7 @@ resources:
          ]
         }'
 
-  - name: bundler-test
+  - name: bundler
     type: dynamic-metalink
     tags: ((worker_tags))
     source:
@@ -277,10 +244,6 @@ resources:
         }'
 
 resource_types:
-- name: metalink-repository
-  type: docker-image
-  source:
-    repository: dpb587/metalink-repository-resource
 - name: dynamic-metalink
   type: docker-image
   source:

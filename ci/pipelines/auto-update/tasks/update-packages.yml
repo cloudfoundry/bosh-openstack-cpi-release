@@ -9,8 +9,8 @@ inputs:
   - name: packages-src-in
   - name: libyaml
   - name: ruby
-  - name: bundler-test
-  - name: rubygems-test
+  - name: bundler
+  - name: rubygems
 outputs:
   - name: packages-src-out
 run:
