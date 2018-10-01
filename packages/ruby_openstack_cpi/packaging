@@ -13,8 +13,8 @@ if [ $openssl_major_version == 0 ]; then
 fi
 
 echo "Installing yaml"
-tar xzf ruby_openstack_cpi/yaml-0.2.1.tar.gz
-pushd yaml-0.2.1 > /dev/null
+tar xzf ruby_openstack_cpi/yaml-0.1.5.tar.gz
+pushd yaml-0.1.5 > /dev/null
   if [ `uname -m` == "ppc64le" ]; then
     CFLAGS='-fPIC' ./configure --build=ppc64le --prefix=${BOSH_INSTALL_TARGET} --disable-shared
   else
