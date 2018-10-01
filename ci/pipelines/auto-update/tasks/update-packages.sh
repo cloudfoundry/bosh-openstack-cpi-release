@@ -6,7 +6,7 @@ set -e -x
 mkdir blobs
 cp libyaml/yaml-*.tar.gz blobs
 cp bundler-test/bundler-*.gem blobs
-cp rubygems-blob/rubygems-*.tar.gz blobs
+cp rubygems-test/rubygems-*.tar.gz blobs
 cp ruby/ruby-*.tar.gz blobs
 
 

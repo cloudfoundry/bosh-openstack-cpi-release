@@ -10,7 +10,7 @@ inputs:
   - name: libyaml
   - name: ruby
   - name: bundler-test
-  - name: rubygems-blob
+  - name: rubygems-test
 outputs:
   - name: packages-src-out
 run:
