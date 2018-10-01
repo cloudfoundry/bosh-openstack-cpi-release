@@ -191,7 +191,6 @@ resources:
     type: dynamic-metalink
     tags: ((worker_tags))
     source:
-      version: ^0
       version_check: |
        git ls-remote --tags https://github.com/yaml/libyaml.git \
          | cut  -f2 \
