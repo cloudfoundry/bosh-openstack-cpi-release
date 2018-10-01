@@ -48,7 +48,7 @@ RUN mkdir /tmp/ruby-install && \
 RUN ruby-install --system ruby 2.4.0
 
 #Bundler
-RUN ["/bin/bash", "-l", "-c", "gem install bundler -v 1.16.0 --no-ri --no-rdoc"]
+RUN ["/bin/bash", "-l", "-c", "gem install bundler -v 1.16.5 --no-ri --no-rdoc"]
 
 #BOSH GO CLI
 RUN wget https://s3.amazonaws.com/bosh-cli-artifacts/bosh-cli-2.0.45-linux-amd64 -O /usr/local/bin/bosh-go
