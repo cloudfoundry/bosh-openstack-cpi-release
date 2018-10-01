@@ -7,7 +7,7 @@ image_resource:
 inputs:
   - name: bosh-cpi-src-in
   - name: packages-src-in
-  - name: libyaml
+  - name: libyaml-test1
   - name: ruby
   - name: bundler
   - name: rubygems
