@@ -81,7 +81,7 @@ module Bosh::OpenStackCloud
     end
 
     def create_server(create_vm_params)
-      @logger.debug("Using boot parms: `#{Bosh::Cpi::Redactor.clone_and_redact(create_vm_params, 'user_data').inspect}'")
+      @logger.debug("Using boot params: `#{Bosh::Cpi::Redactor.clone_and_redact(create_vm_params, 'user_data').inspect}'")
       server = @openstack.with_openstack do
         begin
           @openstack.compute.servers.create(create_vm_params)

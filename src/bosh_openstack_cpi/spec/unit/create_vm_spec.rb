@@ -110,7 +110,7 @@ describe Bosh::OpenStackCloud::Cloud, 'create_vm' do
 
     cloud.create_vm('agent-id', 'sc-id', resource_pool_spec, { 'network_a' => dynamic_network_spec }, nil, environment)
 
-    expect(Bosh::Clouds::Config.logger).to have_received(:debug).with(/Using boot parms:.*"user_data"=>"<redacted>"/)
+    expect(Bosh::Clouds::Config.logger).to have_received(:debug).with(/Using boot params:.*"user_data"=>"<redacted>"/)
   end
 
   it "creates an OpenStack server and polls until it's ready" do
