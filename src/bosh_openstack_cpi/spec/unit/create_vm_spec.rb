@@ -90,13 +90,9 @@ describe Bosh::OpenStackCloud::Cloud, 'create_vm' do
     end
   end
 
-  let(:server_groups) { instance_double(Bosh::OpenStackCloud::ServerGroups) }
-
   before(:each) do
     @registry = mock_registry
     Bosh::Clouds::Config.configure(double('config', uuid: 'director-uuid'))
-    allow(Bosh::OpenStackCloud::ServerGroups).to receive(:new).and_return(server_groups)
-    allow(server_groups).to receive(:delete_if_no_members)
     allow(@registry).to receive(:delete_settings)
     allow(@registry).to receive(:update_settings)
     allow(cloud).to receive(:generate_unique_name).and_return(unique_name)
@@ -867,93 +863,6 @@ describe Bosh::OpenStackCloud::Cloud, 'create_vm' do
             'lbaas_pool_2' => 'pool_id/membership_id',
           )
         end
-      end
-    end
-  end
-
-  describe 'enable_auto_anti_affinity' do
-    let(:environment) do
-      {
-        'bosh' => { 'group' => 'fake-group' },
-      }
-    end
-
-    let(:server_groups) { instance_double(Bosh::OpenStackCloud::ServerGroups) }
-
-    before(:each) do
-      allow(Bosh::Clouds::Config).to receive(:uuid).and_return('fake-uuid')
-      allow(Bosh::OpenStackCloud::ServerGroups).to receive(:new).and_return(server_groups)
-      allow(server_groups).to receive(:find_or_create).and_return('fake-server-group-id')
-    end
-
-    context 'when "enable_auto_anti_affinity" is true' do
-      let(:options) do
-        options = mock_cloud_options['properties']
-        options['openstack']['enable_auto_anti_affinity'] = true
-        options
-      end
-
-      it 'creates the vm with the server group assigned' do
-        cloud.create_vm('agent-id', 'sc-id', resource_pool_spec, { 'network_a' => dynamic_network_spec }, nil, environment)
-
-        expect(Bosh::OpenStackCloud::ServerGroups).to have_received(:new).with(cloud.openstack)
-        expect(server_groups).to have_received(:find_or_create).with('fake-uuid', 'fake-group')
-        expect(cloud.compute.servers).to have_received(:create).with(hash_including(os_scheduler_hints: { 'group' => 'fake-server-group-id' }))
-      end
-
-      it 'does not set server group name if bosh group is missing' do
-        cloud.create_vm('agent-id', 'sc-id', resource_pool_spec, { 'network_a' => dynamic_network_spec }, nil, {})
-        expect(Bosh::OpenStackCloud::ServerGroups).to_not have_received(:new)
-      end
-
-      context 'when quota for members in server groups is reached' do
-        before do
-          allow(cloud.compute.servers).to receive(:create).and_raise Excon::Error::Forbidden.new('Quota exceeded, too many servers in group')
-        end
-
-        it 'raises an cloud error' do
-          expect {
-            cloud.create_vm('agent-id', 'sc-id', resource_pool_spec, { 'network_a' => dynamic_network_spec }, nil, environment)
-          }.to raise_error(Bosh::Clouds::CloudError, "You have reached your quota for members in a server group for project '#{cloud.openstack.params[:openstack_tenant]}'. Please disable auto-anti-affinity server groups or increase your quota.")
-        end
-      end
-
-      context 'when the user specifies a server group' do
-        let(:resource_pool_spec) { { 'scheduler_hints' => { 'group' => 'fake-server-group-uuid' } } }
-
-        before(:each) do
-          allow(Bosh::Clouds::Config.logger).to receive(:debug)
-        end
-
-        it 'uses the specified server group' do
-          cloud.create_vm('agent-id', 'sc-id', resource_pool_spec, { 'network_a' => dynamic_network_spec }, nil, environment)
-
-          expect(Bosh::Clouds::Config.logger).to have_received(:debug).with("Won't create/use server group for bosh group 'fake-group'. Using provided server group with id 'fake-server-group-uuid'.")
-          expect(Bosh::OpenStackCloud::ServerGroups).to_not have_received(:new)
-        end
-      end
-
-      context 'when the user specifies scheduler hints but no group' do
-        let(:resource_pool_spec)  { { 'scheduler_hints' => { 'foo' => 'bar' } } }
-
-        it "merges 'group' to the other hints" do
-          cloud.create_vm('agent-id', 'sc-id', resource_pool_spec, { 'network_a' => dynamic_network_spec }, nil, environment)
-
-          expect(cloud.compute.servers).to have_received(:create).with(hash_including(os_scheduler_hints: { 'group' => 'fake-server-group-id', 'foo' => 'bar' }))
-        end
-      end
-    end
-
-    context 'when "enable_auto_anti_affinity" is false' do
-      let(:options) do
-        options = mock_cloud_options['properties']
-        options['openstack']['enable_auto_anti_affinity'] = false
-        options
-      end
-
-      it 'does not assign a server group' do
-        cloud.create_vm('agent-id', 'sc-id', resource_pool_spec, { 'network_a' => dynamic_network_spec }, nil, environment)
-        expect(Bosh::OpenStackCloud::ServerGroups).to_not have_received(:new)
       end
     end
   end

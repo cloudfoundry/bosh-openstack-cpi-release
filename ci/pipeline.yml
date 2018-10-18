@@ -173,7 +173,6 @@ jobs:
           BOSH_OPENSTACK_FLAVOR_WITH_NO_ROOT_DISK: ((openstack_flavor_with_no_root_disk))
           BOSH_OPENSTACK_AVAILABILITY_ZONE:        ((availability_zone))
           BOSH_OPENSTACK_EXCLUDE_CINDER_V1:        ((lifecycle_exclude_cinder_v1))
-          BOSH_OPENSTACK_TEST_AUTO_ANTI_AFFINITY:  ((lifecycle_test_auto_anti_affinity))
         <<: *send-failure-email
 
       - put: lifecycle-log

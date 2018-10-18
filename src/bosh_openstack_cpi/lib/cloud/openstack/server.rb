@@ -54,14 +54,12 @@ module Bosh::OpenStackCloud
       server_tags ||= {}
       server_port_ids = NetworkConfigurator.port_ids(@openstack, server.id)
       @logger.debug("Network ports: `#{server_port_ids.join(', ')}' found for server #{server.id}")
-      bosh_group = "#{server_tags['director']}-#{server_tags['deployment']}-#{server_tags['instance_group']}"
 
       lbaas_error = catch_error('Removing lbaas pool memberships') { LoadbalancerConfigurator.new(@openstack, @logger).cleanup_memberships(server_tags) }
       @openstack.with_openstack(retryable: true, ignore_not_found: true) { server.destroy }
       fail_on_error(
         catch_error('Wait for server deletion') { @openstack.wait_resource(server, %i[terminated deleted], :state, true) },
         catch_error('Removing ports') { NetworkConfigurator.cleanup_ports(@openstack, server_port_ids) },
-        catch_error('Delete server group if empty') { ServerGroups.new(@openstack).delete_if_no_members(Bosh::Clouds::Config.uuid, bosh_group) },
         lbaas_error,
         catch_error('Deleting registry settings') {
           registry_key = server_tags.fetch(REGISTRY_KEY_TAG.to_s, server.name)
@@ -99,9 +97,6 @@ module Bosh::OpenStackCloud
                                 "IDs are not existing or not accessible from this project: '#{not_existing_net_ids.join(',')}'. " \
                                 'Make sure you do not use subnet IDs'
           raise Bosh::Clouds::VMCreationFailed.new(false), cloud_error_message
-        rescue Excon::Error::Forbidden => e
-          raise e unless e.message.include? 'Quota exceeded, too many servers in group'
-          raise Bosh::Clouds::CloudError, "You have reached your quota for members in a server group for project '#{@openstack.project_name}'. Please disable auto-anti-affinity server groups or increase your quota."
         end
       end
       server

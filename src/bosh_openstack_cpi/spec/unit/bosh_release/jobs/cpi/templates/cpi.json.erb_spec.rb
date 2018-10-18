@@ -79,7 +79,6 @@ describe 'cpi.json.erb' do
             'human_readable_vm_names' => false,
             'use_nova_networking' => false,
             'default_volume_type' => nil,
-            'enable_auto_anti_affinity' => false,
           },
           'registry' => {
             'address' => 'registry.host',
@@ -216,6 +215,19 @@ describe 'cpi.json.erb' do
 
       expect(subject['cloud']['properties']['registry']['endpoint']).to eq('http://127.0.0.1:6901')
       expect(subject['cloud']['properties']['openstack']['human_readable_vm_names']).to be true
+    end
+  end
+
+  describe 'when anti-affinity is configured' do
+    [false, true].each do |prop|
+      context "when anti-affinity is set to #{prop}" do
+        it 'errors to inform the user this is no longer supported' do
+          manifest['properties']['openstack']['enable_auto_anti_affinity'] = prop
+
+          expect { subject }.to raise_error RuntimeError,
+            "Property 'enable_auto_anti_affinity' is no longer supported. Please remove it from your configuration."
+        end
+      end
     end
   end
 end

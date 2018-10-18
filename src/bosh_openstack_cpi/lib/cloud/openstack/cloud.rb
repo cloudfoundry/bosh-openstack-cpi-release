@@ -39,7 +39,6 @@ module Bosh::OpenStackCloud
       @boot_from_volume = openstack_properties['boot_from_volume']
       @use_dhcp = openstack_properties['use_dhcp']
       @human_readable_vm_names = openstack_properties['human_readable_vm_names']
-      @enable_auto_anti_affinity = openstack_properties['enable_auto_anti_affinity']
       @use_config_drive = !!openstack_properties.fetch('config_drive', false)
       @config_drive = openstack_properties['config_drive']
 
@@ -147,7 +146,6 @@ module Bosh::OpenStackCloud
         openstack_properties = OpenStruct.new(
           boot_from_volume: @boot_from_volume,
           default_key_name: @default_key_name,
-          enable_auto_anti_affinity: @enable_auto_anti_affinity,
           default_security_groups: @default_security_groups,
         )
 
