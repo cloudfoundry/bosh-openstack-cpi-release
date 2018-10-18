@@ -18,4 +18,5 @@ group :development, :test do
   gem 'rubocop-git'
   gem 'timecop', '~>0.7.1'
   gem 'webmock', '~>2.3.2'
+  gem 'bosh-template'
 end
