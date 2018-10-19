@@ -324,7 +324,7 @@ describe Bosh::OpenStackCloud::Cloud, 'create_vm' do
       end
 
       it 'calls NetworkConfigurator#cleanup' do
-        allow_any_instance_of(Bosh::OpenStackCloud::NetworkConfigurator).to receive(:cleanup)
+        expect_any_instance_of(Bosh::OpenStackCloud::NetworkConfigurator).to receive(:cleanup)
 
         expect {
           cloud.create_vm('agent-id', 'sc-id', resource_pool_spec, manual_network, nil, environment)
@@ -883,33 +883,118 @@ describe Bosh::OpenStackCloud::Cloud, 'create_vm' do
       }
     end
 
-    it 'creates the vm in one of the configured azs' do
-      expect(cloud.compute.servers).to receive(:create).with(include(availability_zone: 'az-1').or include(availability_zone: 'az-2'))
+    context 'dynamic network' do
+      it 'creates the vm in one of the configured azs' do
+        expect(cloud.compute.servers).to receive(:create).with(
+          include(availability_zone: 'az-1').or(include(availability_zone: 'az-2')),
+        )
 
-      cloud.create_vm('agent-id', 'sc-id', resource_pool_spec, { 'network_a' => dynamic_network_spec }, nil, environment)
-    end
-
-    it 'iterates over the azs till it can create a vm in one of the configured azs' do
-      allow_any_instance_of(Bosh::OpenStackCloud::AvailabilityZoneProvider).to receive(:select_azs).and_return(azs)
-      allow(cloud.compute.servers)
-        .to receive(:create)
-        .with(include(availability_zone: 'az-1'))
-        .and_raise Bosh::Clouds::CloudError.new('Example exception from infrastructure')
-
-      cloud.create_vm('agent-id', 'sc-id', resource_pool_spec, { 'network_a' => dynamic_network_spec }, nil, environment)
-
-      expect(cloud.compute.servers).to have_received(:create).with(include(availability_zone: 'az-1'))
-      expect(cloud.compute.servers).to have_received(:create).with(include(availability_zone: 'az-2'))
-    end
-
-    it 'raises an error if last try fails' do
-      allow(cloud.compute.servers).to receive(:create).and_raise Bosh::Clouds::CloudError.new('Example exception from infrastructure')
-
-      expect {
         cloud.create_vm('agent-id', 'sc-id', resource_pool_spec, { 'network_a' => dynamic_network_spec }, nil, environment)
-      }.to raise_error(Bosh::Clouds::CloudError)
-      expect(cloud.compute.servers).to have_received(:create).with(include(availability_zone: 'az-1'))
-      expect(cloud.compute.servers).to have_received(:create).with(include(availability_zone: 'az-2'))
+      end
+
+      it 'iterates over the azs till it can create a vm in one of the configured azs' do
+        allow_any_instance_of(Bosh::OpenStackCloud::AvailabilityZoneProvider).to receive(:select_azs).and_return(azs)
+        allow(cloud.compute.servers)
+          .to receive(:create)
+          .with(include(availability_zone: 'az-1'))
+          .and_raise Bosh::Clouds::CloudError.new('Example exception from infrastructure')
+
+        cloud.create_vm('agent-id', 'sc-id', resource_pool_spec, { 'network_a' => dynamic_network_spec }, nil, environment)
+
+        expect(cloud.compute.servers).to have_received(:create).with(include(availability_zone: 'az-1'))
+        expect(cloud.compute.servers).to have_received(:create).with(include(availability_zone: 'az-2'))
+      end
+
+      context 'last try fails' do
+        let(:err) { Bosh::Clouds::CloudError.new('Example exception from infrastructure') }
+        before { allow(cloud.compute.servers).to receive(:create).and_raise err }
+
+        it 'raises an error if last try fails' do
+          expect {
+            cloud.create_vm('agent-id', 'sc-id', resource_pool_spec, { 'network_a' => dynamic_network_spec }, nil, environment)
+          }.to raise_error(Bosh::Clouds::CloudError)
+          expect(cloud.compute.servers).to have_received(:create).with(include(availability_zone: 'az-1'))
+          expect(cloud.compute.servers).to have_received(:create).with(include(availability_zone: 'az-2'))
+        end
+      end
+    end
+
+    context 'manual network' do
+      let(:name) do
+        expect(cloud.compute.servers).to have_received(:create).with(include(availability_zone: 'az-1'))
+      end
+
+      let(:ports) { double('Fog::OpenStack::Network::Ports') }
+      let(:cloud) do
+        mock_cloud(options) do |openstack|
+          allow(openstack.compute.servers).to receive(:create).and_return(server)
+          allow(openstack.image.images).to receive(:find_by_id).and_return(image)
+          allow(openstack.compute.flavors).to receive(:find).and_return(flavor)
+          allow(openstack.compute.key_pairs).to receive(:find).and_return(key_pair)
+          allow(openstack.network).to receive(:ports).and_return(ports)
+        end
+      end
+      let(:network_spec) { manual_network_spec(ip: '10.0.0.1') }
+
+      before do
+        allow_any_instance_of(Bosh::OpenStackCloud::AvailabilityZoneProvider).to receive(:select_azs).and_return(azs)
+        allow_any_instance_of(Bosh::OpenStackCloud::NetworkConfigurator).to receive(:cleanup)
+
+        port_result_net = double(
+          'ports1',
+          id: '117717c1-81cb-4ac4-96ab-99aaf1be9ca8',
+          network_id: 'net',
+          mac_address: 'AA:AA:AA:AA:AA:AA',
+        )
+        expect(ports).to receive(:create).once.with(
+          network_id: 'net',
+          fixed_ips: [{ ip_address: '10.0.0.1' }],
+          security_groups: ['default_sec_group_id'],
+        ).and_return(port_result_net)
+      end
+
+      it 'iterates over the azs till it can create a vm in one of the configured azs' do
+        allow(cloud.compute.servers)
+          .to receive(:create)
+          .with(include(availability_zone: 'az-1'))
+          .and_raise Bosh::Clouds::CloudError.new('Example exception from infrastructure')
+
+        expect_any_instance_of(Bosh::OpenStackCloud::NetworkConfigurator).to receive(:prepare).once.and_call_original
+
+        cloud.create_vm('agent-id', 'sc-id', resource_pool_spec, { 'network_a' => network_spec }, nil, environment)
+
+        name
+        expect(cloud.compute.servers).to have_received(:create).with(include(availability_zone: 'az-2'))
+      end
+
+      context 'all azs fail' do
+        let(:err) { Bosh::Clouds::CloudError.new('Example exception from infrastructure') }
+        before { allow(cloud.compute.servers).to receive(:create).and_raise err }
+
+        it 'raises an error if last try fails' do
+          expect_any_instance_of(Bosh::OpenStackCloud::NetworkConfigurator).to receive(:cleanup)
+          expect_any_instance_of(Bosh::OpenStackCloud::NetworkConfigurator).to receive(:prepare).once.and_call_original
+
+          expect {
+            cloud.create_vm('agent-id', 'sc-id', resource_pool_spec, { 'network_a' => network_spec }, nil, environment)
+          }.to raise_error(Bosh::Clouds::CloudError)
+
+          expect(cloud.compute.servers).to have_received(:create).with(include(availability_zone: 'az-1'))
+          expect(cloud.compute.servers).to have_received(:create).with(include(availability_zone: 'az-2'))
+        end
+
+        it 'raises an error on network clean and provide log warning' do
+          cleanup_err = StandardError.new('Exception by network cleanup')
+
+          expect_any_instance_of(Bosh::OpenStackCloud::NetworkConfigurator).to receive(:cleanup).and_raise cleanup_err
+          expect(Bosh::Clouds::Config.logger).to receive(:warn)
+            .with("Failed to cleanup network resources: #{cleanup_err.message}")
+
+          expect {
+            cloud.create_vm('agent-id', 'sc-id', resource_pool_spec, { 'network_a' => network_spec }, nil, environment)
+          }.to raise_error(Bosh::Clouds::CloudError)
+        end
+      end
     end
   end
 end

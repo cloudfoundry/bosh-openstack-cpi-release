@@ -1,9 +1,19 @@
 require 'spec_helper'
 
 describe Bosh::OpenStackCloud::VmCreator do
-  subject(:vm_creator) { described_class.new(network_configurator, server, az_provider, cloud_properties, agent_settings, create_vm_params) }
+  subject(:vm_creator) do
+    described_class.new(
+      nil,
+      network_configurator,
+      server,
+      az_provider,
+      cloud_properties,
+      agent_settings,
+      create_vm_params,
+    )
+  end
 
-  let(:network_configurator) { double }
+  let(:network_configurator) { instance_double(Bosh::OpenStackCloud::NetworkConfigurator, prepare: nil, cleanup: nil) }
   let(:server) { double }
   let(:az_provider) { double }
   let(:cloud_properties) { {} }

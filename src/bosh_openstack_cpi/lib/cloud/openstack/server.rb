@@ -24,7 +24,6 @@ module Bosh::OpenStackCloud
       create_vm_params = create_vm_params.dup
 
       begin
-        network_configurator.prepare(@openstack)
         pick_nics(create_vm_params, network_configurator)
         server = create_server(create_vm_params)
         configure_server(network_configurator, server)
@@ -41,11 +40,6 @@ module Bosh::OpenStackCloud
           @logger.warn("Failed to destroy server: #{destroy_err.message}")
         end
 
-        begin
-          network_configurator.cleanup(@openstack)
-        rescue StandardError => cleanup_error
-          @logger.warn("Failed to cleanup network resources: #{cleanup_error.message}")
-        end
         raise e
       end
     end

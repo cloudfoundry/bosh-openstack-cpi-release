@@ -29,7 +29,15 @@ module Bosh::OpenStackCloud
         network_spec: network_configurator.network_spec,
       )
 
-      VmCreator.new(network_configurator, @server, @az_provider, cloud_properties, agent_settings, @create_vm_params).perform
+      VmCreator.new(
+        @openstack,
+        network_configurator,
+        @server,
+        @az_provider,
+        cloud_properties,
+        agent_settings,
+        @create_vm_params,
+      ).perform
     end
 
     private
