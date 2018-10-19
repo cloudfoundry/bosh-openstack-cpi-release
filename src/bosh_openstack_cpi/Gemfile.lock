@@ -4,6 +4,8 @@ GEM
     addressable (2.5.2)
       public_suffix (>= 2.0.2, < 4.0)
     ast (2.4.0)
+    bosh-template (2.2.0)
+      semi_semantic (~> 1.2.0)
     bosh_common (1.3262.24.0)
       logging (~> 1.8.2)
       semi_semantic (~> 1.2.0)
@@ -25,7 +27,7 @@ GEM
     fog-json (1.2.0)
       fog-core
       multi_json (~> 1.10)
-    fog-openstack (1.0.2)
+    fog-openstack (1.0.3)
       fog-core (~> 2.1)
       fog-json (>= 1.0)
       ipaddress (>= 0.8)
@@ -99,6 +101,7 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
+  bosh-template
   bosh_common
   bosh_cpi (~> 2.4.0)
   excon (~> 0.49)

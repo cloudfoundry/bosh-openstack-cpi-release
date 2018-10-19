@@ -1,7 +1,7 @@
 module Support
   module LifecycleHelpers
     def volumes(vm_id)
-      openstack.compute.servers.get(vm_id).volume_attachments
+      openstack.with_openstack(retryable: true) { openstack.compute.servers.get(vm_id).volume_attachments }
     end
 
     def vm_lifecycle(stemcell_id, network_spec, disk_id = nil, cloud_properties = {}, resource_pool = {})

@@ -4,13 +4,13 @@ module Bosh::OpenStackCloud
 
     def self.reassociate(openstack, ip, server, network_id)
       if openstack.use_nova_networking?
-        nova_reassociate(openstack.compute, ip, server)
+        nova_reassociate(openstack, ip, server)
       else
         floating_ip = get_floating_ip(openstack, ip)
 
         if port_attached?(floating_ip)
-          old_port = openstack.network.get_port(floating_ip['port_id']).body['port']
-          old_server = openstack.compute.get_server_details(old_port['device_id']).body['server']
+          old_port = openstack.with_openstack(retryable: true) { openstack.network.get_port(floating_ip['port_id']).body['port'] }
+          old_server = openstack.with_openstack(retryable: true) { openstack.compute.get_server_details(old_port['device_id']).body['server'] }
           disassociate(openstack, floating_ip, old_server['name'], old_server['id'])
         end
 
@@ -34,13 +34,13 @@ module Bosh::OpenStackCloud
     end
 
     def self.get_port_id(openstack, server_id, network_id)
-      port = openstack.network.ports.all(device_id: server_id, network_id: network_id).first
+      port = openstack.with_openstack(retryable: true) { openstack.network.ports.all(device_id: server_id, network_id: network_id).first }
       cloud_error("Server has no port in network '#{network_id}'") unless port
       port.id
     end
 
     def self.get_floating_ip(openstack, ip)
-      floating_ips = openstack.network.list_floating_ips('floating_ip_address' => ip).body['floatingips']
+      floating_ips = openstack.with_openstack(retryable: true) { openstack.network.list_floating_ips('floating_ip_address' => ip).body['floatingips'] }
       if floating_ips.length > 1
         cloud_error("Floating IP '#{ip}' found in multiple networks: #{floating_ips.map { |ip| "'#{ip['floating_network_id']}'" }.join(', ')}")
       elsif floating_ips.empty?
@@ -49,8 +49,8 @@ module Bosh::OpenStackCloud
       floating_ips.first
     end
 
-    def self.nova_reassociate(compute, ip, server)
-      address = compute.addresses.find { |a| a.ip == ip }
+    def self.nova_reassociate(openstack, ip, server)
+      address = openstack.with_openstack(retryable: true) { openstack.compute.addresses.find { |a| a.ip == ip } }
       if address
         unless address.instance_id.nil?
           Bosh::Clouds::Config.logger.info("Disassociating floating IP '#{ip}' from server '#{address.instance_id}'")

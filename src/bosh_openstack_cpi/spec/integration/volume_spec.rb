@@ -134,16 +134,22 @@ describe Bosh::OpenStackCloud::Cloud do
 
     expect(cpi_for_volume.has_disk?(disk_id)).to be(true)
 
-    expect(openstack.volume.volumes.get(disk_id).volume_type).to eq(volume_type) unless volume_type.nil?
+    found_volume_type = openstack.with_openstack(retryable: true) { openstack.volume.volumes.get(disk_id).volume_type }
+    expect(found_volume_type).to eq(volume_type) unless volume_type.nil?
 
     cpi_for_volume.attach_disk(vm_id, disk_id)
 
     cpi_for_volume.set_disk_metadata(disk_id, disk_metadata)
-    expect(cpi_for_volume.volume.volumes.get(disk_id).metadata).to include(disk_metadata)
+    found_metadata = openstack.with_openstack(retryable: true) { cpi_for_volume.volume.volumes.get(disk_id).metadata }
+    expect(found_metadata).to include(disk_metadata)
 
     disk_snapshot_id = cpi_for_volume.snapshot_disk(disk_id, disk_snapshot_metadata)
     expect(disk_snapshot_id).to be
-    expect(cpi_for_volume.volume.snapshots.get(disk_snapshot_id).metadata).to eq(expected_snapshot_metadata)
+
+    found_snapshot_metadata = openstack.with_openstack(retryable: true) do
+      cpi_for_volume.volume.snapshots.get(disk_snapshot_id).metadata
+    end
+    expect(found_snapshot_metadata).to eq(expected_snapshot_metadata)
 
     cpi_for_volume.delete_snapshot(disk_snapshot_id)
     cpi_for_volume.detach_disk(vm_id, disk_id)

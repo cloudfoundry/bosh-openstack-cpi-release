@@ -2,12 +2,21 @@ require 'spec_helper'
 
 describe Bosh::OpenStackCloud::SecurityGroups do
   let(:security_groups) { [] }
-  let(:compute) { double('compute', security_groups: security_groups) }
-  let(:network) { double('network', security_groups: security_groups) }
+  let(:compute) { double('compute') }
+  let(:network) { double('network') }
   let(:use_nova_networking?) { false }
   let(:openstack) { double('openstack', compute: compute, network: network, use_nova_networking?: use_nova_networking?) }
 
-  before { allow(openstack).to receive(:with_openstack) { |&block| block.call } }
+  subject(:openstack_security_groups) {
+    Bosh::OpenStackCloud::SecurityGroups.new(openstack)
+  }
+
+  before do
+    allow(openstack).to receive(:with_openstack) { |&block| block.call }
+    mock_sec_groups(network, security_groups)
+    mock_sec_groups(compute, security_groups)
+  end
+
 
   describe '.retrieve_and_validate_security_groups' do
     context 'security group picking' do
@@ -21,8 +30,7 @@ describe Bosh::OpenStackCloud::SecurityGroups do
 
       context 'when security groups specified in resource pool spec' do
         it 'picks those' do
-          picked_security_groups = Bosh::OpenStackCloud::SecurityGroups.select_and_retrieve(
-            openstack,
+          picked_security_groups = openstack_security_groups.select_and_retrieve(
             ['default-security-group'],
             [],
             ['resource-pool-spec-security-group'],
@@ -34,8 +42,7 @@ describe Bosh::OpenStackCloud::SecurityGroups do
 
       context 'when security group id is specified instead of name' do
         it 'picks the security group by id' do
-          picked_security_groups = Bosh::OpenStackCloud::SecurityGroups.select_and_retrieve(
-            openstack,
+          picked_security_groups = openstack_security_groups.select_and_retrieve(
             ['default-security-group-id'],
             [],
             [],
@@ -47,8 +54,7 @@ describe Bosh::OpenStackCloud::SecurityGroups do
 
       context 'when security groups specified in network spec' do
         it 'picks those' do
-          picked_security_groups = Bosh::OpenStackCloud::SecurityGroups.select_and_retrieve(
-            openstack,
+          picked_security_groups = openstack_security_groups.select_and_retrieve(
             ['default-security-group'],
             ['network-spec-security-group'],
             [],
@@ -60,8 +66,7 @@ describe Bosh::OpenStackCloud::SecurityGroups do
 
       context 'when resource pool spec and network spec define security groups' do
         it 'picks the resource pool security groups' do
-          picked_security_groups = Bosh::OpenStackCloud::SecurityGroups.select_and_retrieve(
-            openstack,
+          picked_security_groups = openstack_security_groups.select_and_retrieve(
             ['default security group'],
             ['network-spec-security-group'],
             ['resource-pool-spec-security-group'],
@@ -73,8 +78,7 @@ describe Bosh::OpenStackCloud::SecurityGroups do
 
       context 'when security groups are neither specified in network spec nor resource pool spec' do
         it 'picks the default security group' do
-          picked_security_groups = Bosh::OpenStackCloud::SecurityGroups.select_and_retrieve(
-            openstack,
+          picked_security_groups = openstack_security_groups.select_and_retrieve(
             ['default-security-group'],
             [],
             [],
@@ -90,8 +94,7 @@ describe Bosh::OpenStackCloud::SecurityGroups do
 
       it 'raises an error' do
         expect {
-          Bosh::OpenStackCloud::SecurityGroups.select_and_retrieve(
-            openstack,
+          openstack_security_groups.select_and_retrieve(
             ['default-security-group'],
             [],
             [],
@@ -110,8 +113,7 @@ describe Bosh::OpenStackCloud::SecurityGroups do
       }
 
       it 'uses nova to retrieve the security groups' do
-        Bosh::OpenStackCloud::SecurityGroups.select_and_retrieve(
-          openstack,
+        openstack_security_groups.select_and_retrieve(
           ['default-security-group'],
           [],
           [],
@@ -132,8 +134,7 @@ describe Bosh::OpenStackCloud::SecurityGroups do
       }
 
       it 'uses neutron to retrieve the security groups' do
-        Bosh::OpenStackCloud::SecurityGroups.select_and_retrieve(
-          openstack,
+        openstack_security_groups.select_and_retrieve(
           ['default-security-group'],
           [],
           [],

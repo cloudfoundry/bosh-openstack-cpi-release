@@ -19,7 +19,6 @@ module Bosh::OpenStackCloud
       pick_stemcell(@create_vm_params, stemcell_id)
       flavor = pick_flavor(@create_vm_params, cloud_properties)
       pick_key_name(@create_vm_params, cloud_properties)
-      pick_server_groups(@create_vm_params, environment)
       configure_volumes(@create_vm_params, flavor, cloud_properties)
 
       agent_settings = OpenStruct.new(
@@ -80,22 +79,6 @@ module Bosh::OpenStackCloud
       keypair = @openstack.with_openstack(retryable: true) { @openstack.compute.key_pairs.find { |k| k.name == keyname } }
       cloud_error("Key-pair `#{keyname}' not found") if keypair.nil?
       @logger.debug("Using key-pair: `#{keypair.name}' (#{keypair.fingerprint})")
-    end
-
-    def pick_server_groups(server_params, environment)
-      return unless @openstack_properties.enable_auto_anti_affinity
-      bosh_group = environment.dig('bosh', 'group')
-      return unless bosh_group
-
-      if server_params.dig(:os_scheduler_hints, 'group')
-        @logger.debug("Won't create/use server group for bosh group '#{bosh_group}'. Using provided server group with id '#{server_params[:os_scheduler_hints]['group']}'.")
-        return
-      end
-
-      server_group_id = ServerGroups.new(@openstack).find_or_create(Bosh::Clouds::Config.uuid, bosh_group)
-      server_group_hint = { 'group' => server_group_id }
-      return server_params[:os_scheduler_hints].merge!(server_group_hint) if server_params[:os_scheduler_hints]
-      server_params[:os_scheduler_hints] = server_group_hint
     end
 
     def configure_volumes(server_params, flavor, resource_pool)

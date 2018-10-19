@@ -50,8 +50,7 @@ module Bosh::OpenStackCloud
     end
 
     def pick_groups(openstack, default_security_groups, resource_pool_groups)
-      @picked_security_groups = SecurityGroups.select_and_retrieve(
-        openstack,
+      @picked_security_groups = SecurityGroups.new(openstack).select_and_retrieve(
         default_security_groups,
         security_groups,
         resource_pool_groups,
@@ -131,7 +130,7 @@ module Bosh::OpenStackCloud
 
     def self.matching_gateway_subnet_ids_for_ip(network_spec, openstack, ip)
       network_id = get_gateway_network_id(network_spec)
-      network_subnets = openstack.network.list_subnets('network_id' => network_id).body['subnets']
+      network_subnets = openstack.with_openstack(retryable: true) { openstack.network.list_subnets('network_id' => network_id).body['subnets'] }
       network_subnets.select do |subnet|
         NetAddr::CIDR.create(subnet['cidr']).matches?(ip)
       end.map { |subnet| subnet['id'] }
@@ -189,9 +188,9 @@ module Bosh::OpenStackCloud
 
     def self.port_ids(openstack, server_id)
       return [] if openstack.use_nova_networking?
-      ports = openstack.with_openstack(retryable: true) {
+      ports = openstack.with_openstack(retryable: true) do
         openstack.network.ports.all(device_id: server_id)
-      }
+      end
       ports.map(&:id)
     end
 
