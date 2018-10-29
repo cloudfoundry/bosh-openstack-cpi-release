@@ -39,5 +39,5 @@ pushd rubygems-2.7.7
 popd > /dev/null
 ${BOSH_INSTALL_TARGET}/bin/ruby overwrite_shebang.rb "${BOSH_INSTALL_TARGET}/bin/gem" "${BOSH_INSTALL_TARGET}/bin/ruby"
 
-${BOSH_INSTALL_TARGET}/bin/gem install ruby_openstack_cpi/bundler-1.16.6.gem --local --no-ri --no-rdoc --force
+${BOSH_INSTALL_TARGET}/bin/gem install ruby_openstack_cpi/bundler-1.17.1.gem --local --no-ri --no-rdoc --force
 ${BOSH_INSTALL_TARGET}/bin/ruby overwrite_shebang.rb "${BOSH_INSTALL_TARGET}/bin/bundle" "${BOSH_INSTALL_TARGET}/bin/ruby"

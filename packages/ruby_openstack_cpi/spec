@@ -4,5 +4,5 @@ files:
 - ruby_openstack_cpi/yaml-0.2.1.tar.gz
 - ruby_openstack_cpi/ruby-2.4.4.tar.gz
 - ruby_openstack_cpi/rubygems-2.7.7.tar.gz
-- ruby_openstack_cpi/bundler-1.16.6.gem
+- ruby_openstack_cpi/bundler-1.17.1.gem
 - overwrite_shebang.rb
