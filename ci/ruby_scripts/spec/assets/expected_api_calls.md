@@ -23,6 +23,7 @@ POST /v2.0/lbaas/pools/<resource_id>/members body: {"member":{"address":"<addres
 ```
 DELETE /v2/<tenant_id>/volumes/<resource_id>
 GET /v2/<tenant_id>/volumes/<resource_id>
+GET /v2/ports?fixed_ips=["ip_address=<ip_address>", {"network_id":"<network_id>"}]
 POST /v2/<tenant_id>/volumes body: {"volume":{"name":"<name>","description":"<description>","size":"<size>"}}
 POST /v2/<tenant_id>/volumes/<resource_id>/metadata body: {"metadata":"<metadata>"}
 ```

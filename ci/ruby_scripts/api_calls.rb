@@ -40,7 +40,11 @@ def scrub_random_body_hash!(request, key)
 end
 
 def scrub_random_query_value!(query, key)
-  query.gsub!(/(\A|&|=)#{key}=.*?(\Z|&)/, "\\1#{key}=<#{key}>\\2")
+  query.gsub!(/(\A|&|=|")#{key}=.*?(\Z|&|")/, "\\1#{key}=<#{key}>\\2")
+end
+
+def scrub_random_query_has_value!(query, key)
+  query.gsub!(/"#{key}"=>".*?"/, "\"#{key}\":\"<#{key}>\"")
 end
 
 def scrub_random_values!(requests)
@@ -63,6 +67,7 @@ def scrub_random_values!(requests)
     if request[:query]
       keys_to_scrub.each do |key|
         scrub_random_query_value!(request[:query], key)
+        scrub_random_query_has_value!(request[:query], key)
       end
     end
     if request[:body]
@@ -100,7 +105,7 @@ def run
     matched = request_regex.match(line)
     if matched
       host_regex = /"host":"([^"]*)"/
-      query_regex = /"query":({.*?})/
+      query_regex = /"query":({.*?})(,)/
       body_regex = /body: ({.*})/
 
       log_regex = /^(?<method>\w+) .*?:\/\/.*?:(?<port>\d+)(?<path>.*?) params:/
