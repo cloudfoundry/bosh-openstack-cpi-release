@@ -219,16 +219,11 @@ resources:
     source:
       version: "2.4.x"
       version_check: |
-        curl --silent --location http://cache.ruby-lang.org/pub/ruby/index.txt \
-          | grep "tar.gz" \
-          | awk '{print $1}' \
-          | grep -E 'ruby-[0-9]+\.[0-9]+\.[0-9]+$' \
-          | sed -e "s/^ruby-//"
+        curl --silent --location https://raw.githubusercontent.com/postmodern/ruby-versions/master/ruby/stable.txt
       metalink_get: |
         export name="ruby-${version}.tar.gz"
-        export version_entry="$(curl --silent --location http://cache.ruby-lang.org/pub/ruby/index.txt | grep -E "${version//./\\.}\s" | grep "tar.gz")"
-        export url="$(echo "$version_entry" | awk '{print $2}')"
-        export sha256="$(echo "$version_entry" | awk '{print $4}')"
+        export url="http://cache.ruby-lang.org/pub/ruby/${name}"
+        export sha256="$(curl --silent --location https://raw.githubusercontent.com/postmodern/ruby-versions/master/ruby/checksums.sha256 | grep ruby-${version}.tar.gz | awk {'print $1'})"
         export size="$(curl --silent --head "$url" | grep -i Content-Length | awk '{ print $2 }' | tr -cd '[:digit:]')"
         jq -n '
         {
