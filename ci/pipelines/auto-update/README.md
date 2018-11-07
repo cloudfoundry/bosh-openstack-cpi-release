@@ -4,7 +4,7 @@ The `update-packages` job is triggered whenever there is a new bosh package vers
 For each package a separate [dynamic-metalink-resource](https://github.com/dpb587/dynamic-metalink-resource) checks for new versions.
 
 In this concourse resource, a `version_check` script with custom logic must be provided which runs periodically in the `check` step of the concourse resource.
-For example, for ruby this script parses the http://cache.ruby-lang.org/pub/ruby/index.txt website and outputs a list of all semvers.
+For example, for ruby this script parses the https://raw.githubusercontent.com/postmodern/ruby-versions/master/ruby/stable.txt website which contains the most recent stable version for all minor versions.
 For rubygems, bundler, and libyaml git remote tags are listed in order to identify all semvers.
 
 Also,  a `metalink_get` script with custom logic must be provided which runs in the `in` script of the concourse resource.
