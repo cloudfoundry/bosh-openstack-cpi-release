@@ -1,22 +1,18 @@
 ### All calls for API endpoint 'cloudformation (heat-cfn)'
 ### All calls for API endpoint 'compute (nova)'
 ```
-DELETE /v2.1/<tenant_id>/os-server-groups/<resource_id>
 DELETE /v2.1/<tenant_id>/servers/<resource_id>
 DELETE /v2.1/<tenant_id>/servers/<resource_id>/os-volume_attachments/<resource_id>
 GET /v2.1/<tenant_id>/flavors/detail
 GET /v2.1/<tenant_id>/os-keypairs
 GET /v2.1/<tenant_id>/os-security-groups
-GET /v2.1/<tenant_id>/os-server-groups
 GET /v2.1/<tenant_id>/servers/<resource_id>
 GET /v2.1/<tenant_id>/servers/<resource_id>/metadata/registry_key
 GET /v2.1/<tenant_id>/servers/<resource_id>/os-volume_attachments
-POST /v2.1/<tenant_id>/os-server-groups body: {"server_group":{"name":"<name>","policies":["soft-anti-affinity"]}}
 POST /v2.1/<tenant_id>/servers body: {"server":{"flavorRef":"<flavorRef_id>","name":"<name>","imageRef":"<resource_id>","availability_zone":"<availability_zone>","user_data":"<user_data>","key_name":"<key_name>","security_groups":[{"name":"<name>"}],"networks":[{"uuid":"<resource_id>"}]}}
 POST /v2.1/<tenant_id>/servers body: {"server":{"flavorRef":"<flavorRef_id>","name":"<name>","imageRef":"<resource_id>","user_data":"<user_data>","key_name":"<key_name>","config_drive":true,"security_groups":[{"name":"<name>"}],"networks":[{"uuid":"<resource_id>","port":"<resource_id>"},{"uuid":"<resource_id>","port":"<resource_id>"}]}}
 POST /v2.1/<tenant_id>/servers body: {"server":{"flavorRef":"<flavorRef_id>","name":"<name>","imageRef":"<resource_id>","user_data":"<user_data>","key_name":"<key_name>","config_drive":true,"security_groups":[{"name":"<name>"}],"networks":[{"uuid":"<resource_id>"}]}}
 POST /v2.1/<tenant_id>/servers body: {"server":{"flavorRef":"<flavorRef_id>","name":"<name>","imageRef":"<resource_id>","user_data":"<user_data>","key_name":"<key_name>","security_groups":[{"name":"<name>"}],"networks":[{"uuid":"<resource_id>","port":"<resource_id>"}]}}
-POST /v2.1/<tenant_id>/servers body: {"server":{"flavorRef":"<flavorRef_id>","name":"<name>","imageRef":"<resource_id>","user_data":"<user_data>","key_name":"<key_name>","security_groups":[{"name":"<name>"}],"networks":[{"uuid":"<resource_id>"}]},"os:scheduler_hints":{"group":"<resource_id>"}}
 POST /v2.1/<tenant_id>/servers body: {"server":{"flavorRef":"<flavorRef_id>","name":"<name>","imageRef":"<resource_id>","user_data":"<user_data>","key_name":"<key_name>","security_groups":[{"name":"<name>"}],"networks":[{"uuid":"<resource_id>"}]}}
 POST /v2.1/<tenant_id>/servers body: {"server":{"flavorRef":"<flavorRef_id>","name":"<name>","user_data":"<user_data>","key_name":"<key_name>","security_groups":[{"name":"<name>"}],"networks":[{"uuid":"<resource_id>","port":"<resource_id>"}],"block_device_mapping_v2":[{"boot_index":"0","delete_on_termination":"1","destination_type":"volume","device_name":"/dev/vda","source_type":"image","uuid":"<resource_id>","volume_size":"<volume_size>"}]}}
 POST /v2.1/<tenant_id>/servers/<resource_id>/metadata body: {"metadata":"<metadata>"}
@@ -29,12 +25,11 @@ GET /
 ```
 ### All calls for API endpoint 'identity (keystone)'
 ```
-POST /v3/auth/tokens body: {"auth":{"identity":{"methods":["password"],"password":{"user":{"password":"<password>","domain":{"name":"<name>"},"name":"<name>"}}},"scope":{"project":{"name":"<name>","domain":{"name":"<name>"}}}}}
+POST /v3/auth/tokens body: {"auth":{"identity":{"methods":["password"],"password":{"user":{"name":"<name>","domain":{"name":"<name>"},"password":"<password>"}}},"scope":{"project":{"name":"<name>","domain":{"name":"<name>"}}}}}
 ```
 ### All calls for API endpoint 'image (glance)'
 ```
 DELETE /v2/images/<resource_id>
-GET /
 GET /v2/images/<resource_id>
 GET /v2/images/non-existing-id
 POST /v2/images body: {"name":"<name>","disk_format":"qcow2","container_format":"bare","visibility":"private","version":"<version>","os_type":"linux","os_distro":"ubuntu","architecture":"x86_64","auto_disk_config":"true","hypervisor_type":"kvm"}
@@ -44,7 +39,6 @@ PUT /v2/images/<resource_id>/file
 ```
 DELETE /v2.0/lbaas/pools/<resource_id>/members/<resource_id>
 DELETE /v2.0/ports/<resource_id>
-GET /
 GET /v2.0/floatingips?floating_ip_address=<floating_ip_address>
 GET /v2.0/lbaas/loadbalancers/<resource_id>
 GET /v2.0/lbaas/pools/<resource_id>
@@ -53,6 +47,7 @@ GET /v2.0/networks/<resource_id>
 GET /v2.0/ports/<resource_id>
 GET /v2.0/ports?device_id=<device_id>
 GET /v2.0/ports?device_id=<device_id>&network_id=<network_id>
+GET /v2.0/ports?fixed_ips=["ip_address=<ip_address>", {"network_id":"<network_id>"}]
 GET /v2.0/ports?fixed_ips=ip_address=<ip_address>
 GET /v2.0/security-groups
 GET /v2.0/subnets?network_id=<network_id>
