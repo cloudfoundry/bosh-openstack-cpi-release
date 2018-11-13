@@ -62,6 +62,7 @@ PUT /v2.0/floatingips/<resource_id> body: {"floatingip":{"port_id":null}}
 ### All calls for API endpoint 'object-store-test (Objectstore-Test)'
 ### All calls for API endpoint 'orchestration (heat)'
 ### All calls for API endpoint 'placement (placement)'
+### All calls for API endpoint 'resources (resources)'
 ### All calls for API endpoint 'volume (cinder)'
 ### All calls for API endpoint 'volumev2 (cinderv2)'
 ```
