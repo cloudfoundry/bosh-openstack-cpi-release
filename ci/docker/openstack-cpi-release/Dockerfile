@@ -28,7 +28,7 @@ RUN CURRENT=$PWD && \
     cd $CURRENT
 
 RUN python -m ensurepip && pip install pytz && pip install python-openstackclient==3.17.0 && \
-    pip install python-neutronclient==6.0.0 && pip install awscli
+    pip install awscli
 
 # install newest git CLI
 RUN apt-get install software-properties-common -y; \
