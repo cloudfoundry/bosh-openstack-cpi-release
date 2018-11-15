@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 
-set -e
-set -o pipefail
+set -euo pipefail
 
 source bosh-cpi-src-in/ci/tasks/utils.sh
 
