@@ -27,7 +27,7 @@ RUN CURRENT=$PWD && \
     make install && \
     cd $CURRENT
 
-RUN python -m ensurepip && pip install pytz && pip install python-openstackclient==3.12.0 && \
+RUN python -m ensurepip && pip install pytz && pip install python-openstackclient==3.17.0 && \
     pip install python-neutronclient==6.0.0 && pip install awscli
 
 # install newest git CLI
@@ -51,7 +51,7 @@ RUN ruby-install --system ruby 2.4.0
 RUN ["/bin/bash", "-l", "-c", "gem install bundler -v 1.16.5 --no-ri --no-rdoc"]
 
 #BOSH GO CLI
-RUN wget https://s3.amazonaws.com/bosh-cli-artifacts/bosh-cli-2.0.45-linux-amd64 -O /usr/local/bin/bosh-go
+RUN wget https://s3.amazonaws.com/bosh-cli-artifacts/bosh-cli-5.4.0-linux-amd64 -O /usr/local/bin/bosh-go
 RUN chmod +x /usr/local/bin/bosh-go
 
 # receipt generator
