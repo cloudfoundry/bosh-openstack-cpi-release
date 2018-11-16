@@ -290,7 +290,7 @@ describe Bosh::OpenStackCloud::Cloud do
       context 'and root disk size not given in manifest' do
         it 'raises an error' do
           expect {
-            vm_lifecycle(@stemcell_id, network_spec, nil, {}, resource_pool)
+            vm_lifecycle(@stemcell_id, network_spec, nil, resource_pool)
           }.to raise_error(Bosh::Clouds::CloudError, /Flavor '#{@config.instance_type_with_no_root_disk}' has a root disk size of 0/)
         end
       end
@@ -298,7 +298,6 @@ describe Bosh::OpenStackCloud::Cloud do
   end
 
   context 'when using cloud_properties and specifying security groups' do
-    let(:cloud_properties) { { 'type' => @config.volume_type } }
     let(:security_group) {}
     let(:network_spec) do
       {
@@ -317,7 +316,7 @@ describe Bosh::OpenStackCloud::Cloud do
 
       it 'exercises the vm lifecycle' do
         expect {
-          vm_lifecycle(@stemcell_id, network_spec, nil, cloud_properties)
+          vm_lifecycle(@stemcell_id, network_spec)
         }.to_not raise_error
       end
     end
@@ -327,7 +326,7 @@ describe Bosh::OpenStackCloud::Cloud do
 
       it 'exercises the vm lifecycle' do
         expect {
-          vm_lifecycle(@stemcell_id, network_spec, nil, cloud_properties)
+          vm_lifecycle(@stemcell_id, network_spec)
         }.to_not raise_error
       end
     end

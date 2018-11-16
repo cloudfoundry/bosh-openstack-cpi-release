@@ -65,7 +65,7 @@ class IntegrationConfig
     @net_id                          = LifecycleHelper.get_config(:net_id)
     @net_id_no_dhcp_1                = LifecycleHelper.get_config(:net_id_no_dhcp_1)
     @net_id_no_dhcp_2                = LifecycleHelper.get_config(:net_id_no_dhcp_2)
-    @volume_type                     = LifecycleHelper.get_config(:volume_type, nil)
+    @volume_type                     = LifecycleHelper.get_config(:volume_type)
     @manual_ip                       = LifecycleHelper.get_config(:manual_ip)
     @no_dhcp_manual_ip_1             = LifecycleHelper.get_config(:no_dhcp_manual_ip_1)
     @no_dhcp_manual_ip_2             = LifecycleHelper.get_config(:no_dhcp_manual_ip_2)

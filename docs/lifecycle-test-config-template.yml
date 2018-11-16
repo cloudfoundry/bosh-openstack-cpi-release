@@ -17,6 +17,7 @@ username_v3: <replace-me>
 api_key_v3: <replace-me>
 stemcell_path: <replace-me>
 flavor_with_no_root_disk: <replace-me>
+volume_type: <replace-me> # A non-default cinder volume type
 
 # Keystone v2 test options
 #auth_url_v2: <replace-me>
@@ -35,4 +36,3 @@ flavor_with_no_root_disk: <replace-me>
 #connect_timeout: <replace-me>
 #read_timeout: <replace-me>
 #write_timeout: <replace-me>
-#volume_type: <replace-me>

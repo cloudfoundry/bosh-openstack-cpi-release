@@ -4,14 +4,14 @@ module Support
       openstack.with_openstack(retryable: true) { openstack.compute.servers.get(vm_id).volume_attachments }
     end
 
-    def vm_lifecycle(stemcell_id, network_spec, disk_id = nil, cloud_properties = {}, resource_pool = {})
+    def vm_lifecycle(stemcell_id, network_spec, disk_id = nil, resource_pool = {})
       vm_id = create_vm(stemcell_id, network_spec, Array(disk_id), resource_pool)
 
       if disk_id
         @config.logger.info("Reusing disk #{disk_id} for VM vm_id #{vm_id}")
       else
         @config.logger.info("Creating disk for VM vm_id #{vm_id}")
-        disk_id = cpi.create_disk(2048, cloud_properties, vm_id)
+        disk_id = cpi.create_disk(2048, {}, vm_id)
         expect(disk_id).to be
       end
 

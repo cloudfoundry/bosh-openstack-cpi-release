@@ -81,7 +81,7 @@ describe Bosh::OpenStackCloud::Cloud do
 
   let(:cloud_properties) { {} }
 
-  let(:supported_volume_type) { cpi_for_vm.volume.volume_types.first.name }
+  let(:supported_volume_type) { @config.volume_type }
 
   after(:each) do
     cpi_for_vm.delete_vm(vm_id)
@@ -91,32 +91,32 @@ describe Bosh::OpenStackCloud::Cloud do
     context 'with NO global default_volume_type' do
       let(:cpi_for_volume) { @config.create_cpi }
 
-      context 'and NO vm_type `type`' do
-        it 'sets to nil' do
+      context 'and NO `type` set in cloud_properties' do
+        it 'uses default Cinder volume type' do
           volume_lifecycle
         end
       end
 
-      context 'and with vm_type `type`' do
+      context 'and `type` set in cloud_properties' do
         let(:cloud_properties) { { 'type' => supported_volume_type } }
 
-        it 'sets to volumes_ceph' do
+        it 'uses the `type` configured in cloud_properties' do
           volume_lifecycle(supported_volume_type)
         end
       end
     end
 
     context 'with global default_volume_type' do
-      context 'and vm_type `type`' do
+      context 'and `type` set in cloud_properties' do
         let(:cpi_for_volume) { @config.create_cpi(default_volume_type: 'type-to-override') }
         let(:cloud_properties) { { 'type' => supported_volume_type } }
 
-        it 'overrides to type' do
+        it 'uses the `type` configured in cloud_properties' do
           volume_lifecycle(supported_volume_type)
         end
       end
 
-      context 'and NO vm_type `type`' do
+      context 'and no `type` set in cloud_properties' do
         let(:cpi_for_volume) { @config.create_cpi(default_volume_type: supported_volume_type) }
 
         it 'uses the default_volume_type' do
