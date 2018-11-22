@@ -86,11 +86,12 @@ jobs:
         - {trigger: true,  passed: [build-candidate], get: bosh-cpi-src-in, tags: ((worker_tags)), timeout: *timeouts-long}
         - {trigger: true,  passed: [build-candidate], get: bosh-cpi-dev-artifacts, tags: ((worker_tags)), timeout: *timeouts-long}
         - {trigger: false, passed: [build-candidate], get: version-semver, tags: ((worker_tags)), timeout: *timeouts-long}
+        - {trigger: false, get: validator-src-in, tags: ((worker_tags)), timeout: *timeouts-long}
 
       - task: cleanup-lifecycle
         tags: ((worker_tags))
         timeout: *timeouts-long
-        file: bosh-cpi-src-in/ci/tasks/cleanup.yml
+        file: validator-src-in/ci/tasks/cleanup.yml
         params:
            BOSH_OPENSTACK_AUTH_URL:    ((openstack_auth_url_v3))
            BOSH_OPENSTACK_USERNAME:    ((lifecycle_openstack_username_v3))
@@ -103,7 +104,7 @@ jobs:
       - task: cleanup-bats
         tags: ((worker_tags))
         timeout: *timeouts-long
-        file: bosh-cpi-src-in/ci/tasks/cleanup.yml
+        file: validator-src-in/ci/tasks/cleanup.yml
         params:
           BOSH_OPENSTACK_AUTH_URL:    ((openstack_auth_url_v3))
           BOSH_OPENSTACK_USERNAME:    ((openstack_username))
@@ -770,6 +771,13 @@ resources:
     tags: ((worker_tags))
     source:
       uri: https://github.com/cloudfoundry/bosh-deployment.git
+      branch: master
+
+  - name: validator-src-in
+    type: git
+    tags: ((worker_tags))
+    source:
+      uri: https://github.com/cloudfoundry-incubator/cf-openstack-validator
       branch: master
 
 #  - name: send-an-email

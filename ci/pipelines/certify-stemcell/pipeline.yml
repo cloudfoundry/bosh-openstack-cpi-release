@@ -471,6 +471,7 @@ jobs:
     plan:
       - aggregate:
         - {trigger: false, get: bosh-cpi-src-in,   tags: ((worker_tags)), timeout: *timeouts-long}
+        - {trigger: false, get: validator-src-in,  tags: ((worker_tags)), timeout: *timeouts-long}
         - {trigger: true,  get: bosh-cpi-release,  tags: ((worker_tags)), timeout: *timeouts-long, resource: bosh-cpi-dev-artifacts}
         - {trigger: true,  get: bosh-release,      tags: ((worker_tags)), timeout: *timeouts-long}
         - {trigger: true,  get: centos-stemcell,   tags: ((worker_tags)), timeout: *timeouts-long}
@@ -479,7 +480,7 @@ jobs:
       - task: cleanup-e2e
         tags: ((worker_tags))
         timeout: *timeouts-long
-        file: bosh-cpi-src-in/ci/tasks/cleanup.yml
+        file: validator-src-in/ci/tasks/cleanup.yml
         params:
           BOSH_OPENSTACK_DOMAIN_NAME:          ((v3_e2e_domain))
           BOSH_OPENSTACK_AUTH_URL:             ((openstack_auth_url_v3))
@@ -631,6 +632,13 @@ resources:
     tags: ((worker_tags))
     source:
       uri: https://github.com/cloudfoundry/bosh-deployment.git
+      branch: master
+
+  - name: validator-src-in
+    type: git
+    tags: ((worker_tags))
+    source:
+      uri: https://github.com/cloudfoundry-incubator/cf-openstack-validator
       branch: master
 
 #  - name: send-an-email
