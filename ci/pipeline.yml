@@ -99,6 +99,7 @@ jobs:
            BOSH_OPENSTACK_PROJECT:     ((lifecycle_openstack_project))
            BOSH_OPENSTACK_DOMAIN_NAME: ((lifecycle_openstack_domain))
            BOSH_OPENSTACK_CA_CERT:     ((bosh_openstack_ca_cert))
+           BOSH_OPENSTACK_INTERFACE:   ((interface))
         <<: *send-failure-email
 
       - task: cleanup-bats
@@ -112,6 +113,7 @@ jobs:
           BOSH_OPENSTACK_PROJECT:     ((openstack_project))
           BOSH_OPENSTACK_DOMAIN_NAME: ((openstack_domain))
           BOSH_OPENSTACK_CA_CERT:     ((bosh_openstack_ca_cert))
+          BOSH_OPENSTACK_INTERFACE:   ((interface))
         <<: *send-failure-email
 
   - name: lifecycle
