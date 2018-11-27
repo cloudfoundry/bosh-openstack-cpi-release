@@ -17,8 +17,7 @@ source bosh-cpi-src-in/ci/tasks/utils.sh
 : ${v3_e2e_domain:?}
 : ${v3_e2e_username:?}
 : ${v3_e2e_private_key_data:?}
-: ${time_server_1:?}
-: ${time_server_2:?}
+: ${internal_ntp:?}
 : ${distro:?}
 optional_value bosh_openstack_ca_cert
 
@@ -71,10 +70,10 @@ bosh-go int ../bosh-deployment/bosh.yml \
     -o ../bosh-deployment/misc/powerdns.yml \
     -o ../bosh-deployment/openstack/cpi.yml \
     -o ../bosh-deployment/external-ip-with-registry-not-recommended.yml \
+    -o ../bosh-deployment/misc/ntp.yml \
     -o ../bosh-cpi-src-in/ci/ops_files/deployment-configuration.yml \
     -o ../bosh-cpi-src-in/ci/ops_files/custom-manual-networking.yml \
     -o ../bosh-cpi-src-in/ci/ops_files/timeouts.yml \
-    -o ../bosh-cpi-src-in/ci/ops_files/ntp.yml \
     -v auth_url=${v3_e2e_auth_url} \
     -v availability_zone=${availability_zone:-'~'} \
     -v bosh_vcap_password_hash=${bosh_vcap_password_hash} \
@@ -98,8 +97,7 @@ bosh-go int ../bosh-deployment/bosh.yml \
     -v openstack_write_timeout=${v3_e2e_write_timeout} \
     --var-file=private_key=${private_key} \
     -v region=null \
-    -v time_server_1=${time_server_1} \
-    -v time_server_2=${time_server_2} | tee ${manifest_filename}
+    -v internal_ntp=[${internal_ntp}] | tee ${manifest_filename}
 
 echo "upgrading existing BOSH Director VM..."
 bosh-go create-env ${manifest_filename} \

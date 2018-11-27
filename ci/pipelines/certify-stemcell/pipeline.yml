@@ -95,8 +95,7 @@ jobs:
           v3_e2e_blobstore_host:                ((v3_e2e_blobstore_host))
           v3_e2e_blobstore_access_key:          ((v3_e2e_blobstore_access_key))
           v3_e2e_blobstore_secret_key:          ((v3_e2e_blobstore_secret_key))
-          time_server_1:                        ((time_server_1))
-          time_server_2:                        ((time_server_2))
+          internal_ntp:                         ((internal_ntp))
           distro:                               "ubuntu"
           director_ca:                          ((director_ca))
           director_ca_private_key:              ((director_ca_private_key))
@@ -272,8 +271,7 @@ jobs:
           v3_e2e_blobstore_host:                ((v3_e2e_blobstore_host))
           v3_e2e_blobstore_access_key:          ((v3_e2e_blobstore_access_key))
           v3_e2e_blobstore_secret_key:          ((v3_e2e_blobstore_secret_key))
-          time_server_1:                        ((time_server_1))
-          time_server_2:                        ((time_server_2))
+          internal_ntp:                         ((internal_ntp))
           distro:                               "ubuntu"
           director_ca:                          ((director_ca))
           director_ca_private_key:              ((director_ca_private_key))
@@ -413,8 +411,7 @@ jobs:
           v3_e2e_project:                       ((v3_e2e_project))
           v3_e2e_domain:                        ((v3_e2e_domain))
           v3_e2e_username:                      ((v3_e2e_username))
-          time_server_1:                        ((time_server_1))
-          time_server_2:                        ((time_server_2))
+          internal_ntp:                         ((internal_ntp))
           old_openstack_cpi_release_version:    35
           old_openstack_cpi_release_sha1:       314b040cb0df72651174d262892aa8c4d75f9031
           old_bosh_stemcell_name:     bosh-openstack-kvm-ubuntu-trusty-go_agent
@@ -453,8 +450,7 @@ jobs:
           v3_e2e_domain:                        ((v3_e2e_domain))
           v3_e2e_username:                      ((v3_e2e_username))
           v3_e2e_private_key_data:              ((v3_e2e_private_key_data))
-          time_server_1:                        ((time_server_1))
-          time_server_2:                        ((time_server_2))
+          internal_ntp:                         ((internal_ntp))
           distro: "ubuntu"
         <<: *send-failure-email
 

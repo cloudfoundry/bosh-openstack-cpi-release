@@ -31,7 +31,6 @@ params:
   v3_e2e_domain:                       ""
   v3_e2e_username:                     ""
   v3_e2e_private_key_data:             ""
-  time_server_1:                       ""
-  time_server_2:                       ""
+  internal_ntp:                        ""
   distro:                              ""
   bosh_openstack_ca_cert:              replace-me

@@ -21,8 +21,7 @@ source bosh-cpi-src-in/ci/tasks/utils.sh
 : ${v3_e2e_blobstore_host:?}
 : ${v3_e2e_blobstore_access_key:?}
 : ${v3_e2e_blobstore_secret_key:?}
-: ${time_server_1:?}
-: ${time_server_2:?}
+: ${internal_ntp:?}
 : ${director_ca:?}
 : ${director_ca_private_key:?}
 : ${distro:?}
@@ -74,10 +73,10 @@ bosh-go int ../bosh-deployment/bosh.yml \
     -o ../bosh-deployment/misc/powerdns.yml \
     -o ../bosh-deployment/openstack/cpi.yml \
     -o ../bosh-deployment/external-ip-with-registry-not-recommended.yml \
+    -o ../bosh-deployment/misc/ntp.yml \
     -o ../bosh-cpi-src-in/ci/ops_files/deployment-configuration.yml \
     -o ../bosh-cpi-src-in/ci/ops_files/custom-manual-networking.yml \
     -o ../bosh-cpi-src-in/ci/ops_files/timeouts.yml \
-    -o ../bosh-cpi-src-in/ci/ops_files/ntp.yml \
     -o ../bosh-cpi-src-in/ci/ops_files/custom-config-drive.yml \
     -o ../bosh-cpi-src-in/ci/ops_files/custom-blobstore.yml \
     -v auth_url=${v3_e2e_auth_url} \
@@ -109,8 +108,7 @@ bosh-go int ../bosh-deployment/bosh.yml \
     -v v3_e2e_blobstore_host=${v3_e2e_blobstore_host} \
     --var-file=private_key=${private_key} \
     -v region=null \
-    -v time_server_1=${time_server_1} \
-    -v time_server_2=${time_server_2} | tee ${manifest_filename}.yml
+    -v internal_ntp=[${internal_ntp}] | tee ${manifest_filename}.yml
 
 echo "deploying BOSH..."
 bosh-go create-env ${manifest_filename}.yml \
