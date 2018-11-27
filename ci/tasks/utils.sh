@@ -63,7 +63,7 @@ prepare_bosh_release() {
     if [ "${use_compiled_release}" = "false" ];then
        echo "Using BOSH release from sources"
        if [ -z ${bosh_release_version} ];then
-        cp ./bosh-release/release.tgz ${deployment_dir}/bosh-release.tgz
+        cp ./bosh-release/*.tgz ${deployment_dir}/bosh-release.tgz
        else
          wget https://bosh.io/d/github.com/cloudfoundry/bosh?v=${bosh_release_version} -O ${deployment_dir}/bosh-release.tgz
          echo "$old_bosh_release_sha1 $deployment_dir/bosh-release.tgz" | sha1sum -c -

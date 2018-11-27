@@ -34,6 +34,11 @@ export_terraform_variable "security_group"
 
 bosh_vcap_password_hash=$(ruby -rsecurerandom -e 'puts ENV["bosh_vcap_password"].crypt("$6$#{SecureRandom.base64(14)}")')
 
+if [ ! -f "${working_dir}/stemcell/stemcell.tgz" ]; then
+  #  only needed for registry removal
+  mv ${working_dir}/stemcell/*.tgz ${working_dir}/stemcell/stemcell.tgz
+fi
+
 export BAT_STEMCELL="${working_dir}/stemcell/stemcell.tgz"
 export BAT_DIRECTOR=${director_public_ip}
 export BAT_DNS_HOST=${director_public_ip}

@@ -19,8 +19,7 @@ source bosh-cpi-src-in/ci/tasks/utils.sh
 : ${openstack_username:?}
 : ${openstack_api_key:?}
 : ${openstack_domain:?}
-: ${time_server_1:?}
-: ${time_server_2:?}
+: ${internal_ntp:?}
 : ${DEBUG_BATS:?}
 : ${distro:?}
 optional_value bosh_openstack_ca_cert
@@ -50,11 +49,11 @@ private_ssh_key_file="bats.key"
 
 echo "setting up artifacts used in bosh.yml"
 cp ./bosh-cpi-dev-artifacts/${cpi_release_name}-${semver}.tgz ${deployment_dir}/${cpi_release_name}.tgz
-cp ./stemcell-director/stemcell.tgz ${deployment_dir}/stemcell.tgz
+cp ./stemcell-director/*.tgz ${deployment_dir}/stemcell.tgz
 prepare_bosh_release ${distro}
 
 echo "Calculating MD5 of original stemcell:"
-echo $(md5sum stemcell-director/stemcell.tgz)
+echo $(md5sum stemcell-director/*.tgz)
 echo "Calculating MD5 of copied stemcell:"
 echo $(md5sum ${deployment_dir}/stemcell.tgz)
 
@@ -81,10 +80,10 @@ bosh-go int ../bosh-deployment/bosh.yml \
     -o ../bosh-deployment/openstack/cpi.yml \
     -o ../bosh-deployment/external-ip-with-registry-not-recommended.yml \
     -o ../bosh-deployment/misc/source-releases/bosh.yml \
+    -o ../bosh-deployment/misc/ntp.yml \
     -o ../bosh-cpi-src-in/ci/ops_files/deployment-configuration.yml \
     -o ../bosh-cpi-src-in/ci/ops_files/custom-manual-networking.yml \
     -o ../bosh-cpi-src-in/ci/ops_files/timeouts.yml \
-    -o ../bosh-cpi-src-in/ci/ops_files/ntp.yml \
     -v auth_url=${openstack_auth_url} \
     -v availability_zone=${availability_zone:-'~'} \
     -v bosh_vcap_password_hash=${bosh_vcap_password_hash} \
@@ -108,8 +107,7 @@ bosh-go int ../bosh-deployment/bosh.yml \
     -v openstack_write_timeout=${openstack_write_timeout} \
     --var-file=private_key=${private_ssh_key_file} \
     -v region=null \
-    -v time_server_1=${time_server_1} \
-    -v time_server_2=${time_server_2} | tee bosh.yml
+    -v internal_ntp=[${internal_ntp}] | tee bosh.yml
 
 echo "deploying BOSH..."
 bosh-go create-env bosh.yml \

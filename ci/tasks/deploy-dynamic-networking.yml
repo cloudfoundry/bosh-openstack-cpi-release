@@ -7,6 +7,8 @@ image_resource:
 inputs:
   - name: bosh-cpi-src-in
   - name: bosh-release
+  - name: bosh-release-with-registry
+    optional: true
   - name: bosh-cpi-dev-artifacts
   - name: version-semver
   - name: stemcell-director
@@ -33,8 +35,9 @@ params:
   openstack_username:                  ""
   openstack_api_key:                   ""
   openstack_domain:                    ""
-  time_server_1:                       ""
-  time_server_2:                       ""
+  internal_ntp:                        ""
   DEBUG_BATS:                          ""
   distro:                              ""
   availability_zone:                   replace-me
+  bosh_director_cpi_api_version:       "2"
+  stemcell_cpi_api_version:            "1"

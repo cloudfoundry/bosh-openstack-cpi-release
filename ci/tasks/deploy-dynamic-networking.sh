@@ -19,10 +19,11 @@ source bosh-cpi-src-in/ci/tasks/utils.sh
 : ${openstack_username:?}
 : ${openstack_api_key:?}
 : ${openstack_domain:?}
-: ${time_server_1:?}
-: ${time_server_2:?}
+: ${internal_ntp:?}
 : ${DEBUG_BATS:?}
 : ${distro:?}
+: ${bosh_director_cpi_api_version:?}
+: ${stemcell_cpi_api_version:?}
 optional_value bosh_openstack_ca_cert
 optional_value availability_zone
 
@@ -47,11 +48,11 @@ private_ssh_key_file="bats.key"
 
 echo "setting up artifacts used in bosh.yml"
 cp ./bosh-cpi-dev-artifacts/${cpi_release_name}-${semver}.tgz ${deployment_dir}/${cpi_release_name}.tgz
-cp ./stemcell-director/stemcell.tgz ${deployment_dir}/stemcell.tgz
+cp ./stemcell-director/*.tgz ${deployment_dir}/stemcell.tgz
 prepare_bosh_release ${distro}
 
 echo "Calculating MD5 of original stemcell:"
-echo $(md5sum stemcell-director/stemcell.tgz)
+echo $(md5sum stemcell-director/*.tgz)
 echo "Calculating MD5 of copied stemcell:"
 echo $(md5sum ${deployment_dir}/stemcell.tgz)
 
@@ -69,20 +70,37 @@ echo -e "${director_ca_private_key}" > director_ca_private_key
 echo "using bosh CLI version..."
 bosh-go --version
 
+OPS_FILES=()
+OPTIONAL_VARIABLES=()
+
+OPS_FILES+=( "--ops-file=../bosh-deployment/misc/powerdns.yml" )
+OPS_FILES+=( "--ops-file=../bosh-deployment/openstack/cpi.yml" )
+OPS_FILES+=( "--ops-file=../bosh-deployment/external-ip-with-registry-not-recommended.yml" )
+OPS_FILES+=( "--ops-file=../bosh-deployment/misc/source-releases/bosh.yml" )
+OPS_FILES+=( "--ops-file=../bosh-deployment/misc/ntp.yml" )
+OPS_FILES+=( "--ops-file=../bosh-cpi-src-in/ci/ops_files/deployment-configuration.yml" )
+OPS_FILES+=( "--ops-file=../bosh-cpi-src-in/ci/ops_files/custom-dynamic-networking.yml" )
+OPS_FILES+=( "--ops-file=../bosh-cpi-src-in/ci/ops_files/timeouts.yml" )
+
+if [ ${bosh_director_cpi_api_version} = "1" ] ; then
+  rm bosh-release.tgz
+  cp $( find ../bosh-release-with-registry -name "*.tgz" ) bosh-release.tgz
+fi
+
+if [ ${stemcell_cpi_api_version} = "2" ] && [ ${bosh_director_cpi_api_version} = "2" ]; then
+  OPS_FILES+=( "--ops-file=../bosh-cpi-src-in/ci/ops_files/remove-registry.yml" )
+  OPS_FILES+=( "--ops-file=../bosh-cpi-src-in/ci/ops_files/move-agent-properties-to-env-for-create-env.yml" )
+else
+  OPTIONAL_VARIABLES+=( "--var-file=private_key=${private_ssh_key_file}" )
+fi
+
 echo "check bosh deployment interpolation"
 bosh-go int ../bosh-deployment/bosh.yml \
     --var-errs --var-errs-unused \
     --vars-env tf \
     --vars-file ./custom-ca.yml \
     --vars-store ./credentials.yml \
-    -o ../bosh-deployment/misc/powerdns.yml \
-    -o ../bosh-deployment/openstack/cpi.yml \
-    -o ../bosh-deployment/external-ip-with-registry-not-recommended.yml \
-    -o ../bosh-deployment/misc/source-releases/bosh.yml \
-    -o ../bosh-cpi-src-in/ci/ops_files/deployment-configuration.yml \
-    -o ../bosh-cpi-src-in/ci/ops_files/custom-dynamic-networking.yml \
-    -o ../bosh-cpi-src-in/ci/ops_files/timeouts.yml \
-    -o ../bosh-cpi-src-in/ci/ops_files/ntp.yml \
+    "${OPS_FILES[@]}" \
     -v auth_url=${openstack_auth_url} \
     -v availability_zone=${availability_zone:-'~'} \
     -v bosh_vcap_password_hash=${bosh_vcap_password_hash} \
@@ -102,10 +120,9 @@ bosh-go int ../bosh-deployment/bosh.yml \
     -v openstack_state_timeout=${openstack_state_timeout} \
     -v openstack_username=${openstack_username} \
     -v openstack_write_timeout=${openstack_write_timeout} \
-    --var-file=private_key=${private_ssh_key_file} \
     -v region=null \
-    -v time_server_1=${time_server_1} \
-    -v time_server_2=${time_server_2} | tee bosh.yml
+    -v internal_ntp=[${internal_ntp}] \
+    "${OPTIONAL_VARIABLES[@]}" | tee bosh.yml
 
 echo "deploying BOSH..."
 bosh-go create-env bosh.yml \

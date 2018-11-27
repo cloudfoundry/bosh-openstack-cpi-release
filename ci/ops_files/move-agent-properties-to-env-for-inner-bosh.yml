@@ -1,0 +1,7 @@
+- type: remove
+  path: /instance_groups/name=bosh/properties/ntp?
+
+- type: replace
+  path: /instance_groups/name=bosh/properties/agent/env/bosh/ntp?
+  value:
+  - ((internal_ntp))
