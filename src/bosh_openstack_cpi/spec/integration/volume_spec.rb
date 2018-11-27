@@ -13,8 +13,6 @@ describe Bosh::OpenStackCloud::Cloud do
     @cpi_for_stemcell.delete_stemcell(@stemcell_id)
   end
 
-  before { allow(Bosh::Cpi::RegistryClient).to receive(:new).and_return(double('registry').as_null_object) }
-
   let(:disk_metadata) do
     {
       'director' => 'Director',
@@ -66,7 +64,7 @@ describe Bosh::OpenStackCloud::Cloud do
   end
 
   let(:vm_id) do
-    cpi_for_vm.create_vm(
+    created_vm_id, = cpi_for_vm.create_vm(
       'agent-007',
       @stemcell_id,
       {
@@ -77,6 +75,7 @@ describe Bosh::OpenStackCloud::Cloud do
       [],
       'key' => 'value',
     )
+    created_vm_id
   end
 
   let(:cloud_properties) { {} }

@@ -10,7 +10,6 @@ module Bosh::OpenStackCloud
     FIRST_DEVICE_NAME_LETTER = 'b'.freeze
     REGISTRY_KEY_TAG = :registry_key
 
-    attr_reader :registry
     attr_reader :state_timeout
     attr_reader :openstack
     attr_accessor :logger
@@ -22,11 +21,12 @@ module Bosh::OpenStackCloud
     # @option options [Hash] openstack OpenStack specific options
     # @option options [Hash] agent agent options
     # @option options [Hash] registry agent options
-    def initialize(options)
+    # @option cpi_api_version CPI API Version as requested by BOSH director
+    def initialize(options, cpi_api_version)
+      @cpi_api_version = cpi_api_version || 1
       @options = normalize_options(options)
 
       validate_options
-      initialize_registry
 
       @logger = Bosh::Clouds::Config.logger
 
@@ -141,7 +141,7 @@ module Bosh::OpenStackCloud
           os_scheduler_hints: cloud_properties['scheduler_hints'],
           config_drive: @use_config_drive,
         }
-        server = Server.new(@agent_properties, @human_readable_vm_names, @logger, @openstack, @registry, @use_dhcp)
+        server = Server.new(@agent_properties, @human_readable_vm_names, @logger, @openstack, registry, @use_dhcp)
 
         openstack_properties = OpenStruct.new(
           boot_from_volume: @boot_from_volume,
@@ -151,7 +151,13 @@ module Bosh::OpenStackCloud
 
         vm_factory = VmFactory.new(@openstack, server, create_vm_params, disk_locality, @az_provider, openstack_properties)
         network_configurator = NetworkConfigurator.new(network_spec, cloud_properties['allowed_address_pairs'])
-        vm_factory.create_vm(network_configurator, agent_id, environment, stemcell_id, cloud_properties)
+        instance_id = vm_factory.create_vm(network_configurator, agent_id, environment, stemcell_id, cloud_properties)
+
+        if @cpi_api_version >= 2
+          [instance_id, network_configurator.network_spec]
+        else
+          instance_id
+        end
       end
     end
 
@@ -167,7 +173,7 @@ module Bosh::OpenStackCloud
         if server
           server_tags = metadata_to_tags(server.metadata)
           @logger.debug("Server tags: `#{server_tags}' found for server #{server_id}")
-          Server.new(@agent_properties, @human_readable_vm_names, @logger, @openstack, @registry, @use_dhcp).destroy(server, server_tags)
+          Server.new(@agent_properties, @human_readable_vm_names, @logger, @openstack, registry, @use_dhcp).destroy(server, server_tags)
         else
           @logger.info("Server `#{server_id}' not found. Skipping.")
         end
@@ -313,6 +319,10 @@ module Bosh::OpenStackCloud
           settings['disks'] ||= {}
           settings['disks']['persistent'] ||= {}
           settings['disks']['persistent'][disk_id] = device_name
+        end
+
+        if @cpi_api_version >= 2
+          device_name
         end
       end
     end
@@ -479,15 +489,15 @@ module Bosh::OpenStackCloud
       raise ArgumentError, 'Block is not provided' unless block_given?
       registry_key = registry_key_for(server)
       @logger.info("Updating settings for server `#{server.id}' with registry key `#{registry_key}'...")
-      settings = @registry.read_settings(registry_key)
+      settings = registry.read_settings(registry_key)
       yield settings
-      @registry.update_settings(registry_key, settings)
+      registry.update_settings(registry_key, settings)
     end
 
     # Information about Openstack CPI, currently supported stemcell formats
     # @return [Hash] Openstack CPI properties
     def info
-      { 'stemcell_formats' => ['openstack-raw', 'openstack-qcow2', 'openstack-light'] }
+      { 'api_version' => 2, 'stemcell_formats' => ['openstack-raw', 'openstack-qcow2', 'openstack-light'] }
     end
 
     ##
@@ -523,6 +533,26 @@ module Bosh::OpenStackCloud
       nil
     end
 
+    def registry
+      return @registry_instance if @registry_instance
+
+      if cpi_without_registry?
+        @registry_instance = Bosh::OpenStackCloud::NoopRegistry.new
+      else
+        begin
+          registry_properties = @options.fetch('registry')
+          registry_endpoint   = registry_properties.fetch('endpoint')
+          registry_user       = registry_properties.fetch('user')
+          registry_password   = registry_properties.fetch('password')
+        rescue KeyError => e
+          raise ArgumentError, "Invalid CPI properties. Used CPI API version is #{@cpi_api_version} and stemcell "\
+            "version is #{stemcell_api_version}. Since at least one API version is 1, this requires the registry to "\
+            "be configured. Error: #{e.message}"
+        end
+        @registry_instance = Bosh::Cpi::RegistryClient.new(registry_endpoint, registry_user, registry_password)
+      end
+    end
+
     private
 
     def apply_human_readable_name(metadata, server_id)
@@ -547,13 +577,15 @@ module Bosh::OpenStackCloud
     end
 
     def human_readable_name?(server, server_id)
-      registry_tag = @openstack.with_openstack(retryable: true) { server.metadata.get(REGISTRY_KEY_TAG) }
-      if registry_tag
-        true
-      else
-        @logger.debug("VM with id '#{server_id}' has no 'registry_key' tag")
-        false
-      end
+      return true if (@human_readable_vm_names && cpi_without_registry?) ||
+                     @openstack.with_openstack(retryable: true) { server.metadata.get(REGISTRY_KEY_TAG) }
+
+      @logger.debug("VM with id '#{server_id}' has no 'registry_key' tag")
+      false
+    end
+
+    def cpi_without_registry?
+      @cpi_api_version >= 2 && stemcell_api_version >= 2
     end
 
     def openstack_volume(disk_id)
@@ -733,8 +765,9 @@ module Bosh::OpenStackCloud
             optional('human_readable_vm_names') => bool,
             optional('use_dhcp') => bool,
             optional('use_nova_networking') => bool,
+            optional('vm') => Hash,
           },
-          'registry' => {
+          optional('registry') => {
             'endpoint' => String,
             'user' => String,
             'password' => String,
@@ -755,15 +788,8 @@ module Bosh::OpenStackCloud
       raise ArgumentError, "Invalid OpenStack cloud properties: #{e.inspect}"
     end
 
-    def initialize_registry
-      registry_properties = @options.fetch('registry')
-      registry_endpoint   = registry_properties.fetch('endpoint')
-      registry_user       = registry_properties.fetch('user')
-      registry_password   = registry_properties.fetch('password')
-
-      @registry = Bosh::Cpi::RegistryClient.new(registry_endpoint,
-                                                registry_user,
-                                                registry_password)
+    def stemcell_api_version
+      @options.dig('openstack', 'vm', 'stemcell', 'api_version') || 1
     end
 
     def normalize_options(options)

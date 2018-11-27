@@ -48,17 +48,13 @@ def mock_cloud_options(api_version = 2, devstack = false)
   cloud_properties
 end
 
-def make_cloud(options = nil)
-  Bosh::OpenStackCloud::Cloud.new(options || mock_cloud_options['properties'])
-end
-
 def mock_registry(endpoint = 'http://registry:3333')
   registry = double('registry', endpoint: endpoint)
   allow(Bosh::Cpi::RegistryClient).to receive(:new).and_return(registry)
   registry
 end
 
-def mock_cloud(options = nil)
+def mock_cloud(options = nil, cpi_api_version = 1)
   servers = double('servers')
   images = double('images')
   flavors = double('flavors')
@@ -94,7 +90,7 @@ def mock_cloud(options = nil)
 
   yield(fog) if block_given?
 
-  Bosh::OpenStackCloud::Cloud.new(options || mock_cloud_options['properties'])
+  Bosh::OpenStackCloud::Cloud.new(options || mock_cloud_options['properties'], cpi_api_version)
 end
 
 def mock_glance(options = nil)

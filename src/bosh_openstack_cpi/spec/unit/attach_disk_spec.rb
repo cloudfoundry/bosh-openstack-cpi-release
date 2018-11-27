@@ -5,8 +5,9 @@ describe Bosh::OpenStackCloud::Cloud do
   let(:server) { double('server', id: 'i-test', name: 'i-test', flavor: { 'id' => 'f-test' }, metadata: server_metadata) }
   let(:volume) { double('volume', id: 'v-foobar') }
   let(:flavor) { double('flavor', id: 'f-test', ephemeral: 10, swap: '') }
+  let(:cpi_api_version) { 1 }
   let(:cloud) do
-    mock_cloud(cloud_options['properties']) do |fog|
+    mock_cloud(cloud_options['properties'], cpi_api_version) do |fog|
       expect(fog.compute.servers).to receive(:get).with('i-test').and_return(server)
       expect(fog.volume.volumes).to receive(:get).with('v-foobar').and_return(volume)
       expect(fog.compute.flavors).to receive(:find).and_return(flavor)
@@ -185,6 +186,38 @@ describe Bosh::OpenStackCloud::Cloud do
         expect(server).to receive(:attach_volume).with(volume.id, '/dev/sdb')
         attach_disk
       end
+    end
+  end
+
+  context 'when cpi api verion is 1' do
+    let(:cpi_api_version) { 1 }
+
+    before do
+      allow(server).to receive(:volume_attachments).and_return([])
+      allow(cloud.openstack).to receive(:wait_resource)
+      allow(cloud).to receive(:update_agent_settings)
+      allow(server).to receive(:attach_volume)
+    end
+
+    it 'does not return a disk hint' do
+      disk_hint = cloud.attach_disk('i-test', 'v-foobar')
+      expect(disk_hint).to eq(nil)
+    end
+  end
+
+  context 'when cpi api version is 2' do
+    let(:cpi_api_version) { 2 }
+
+    before do
+      allow(server).to receive(:volume_attachments).and_return([])
+      allow(cloud.openstack).to receive(:wait_resource)
+      allow(cloud).to receive(:update_agent_settings)
+      allow(server).to receive(:attach_volume)
+    end
+
+    it 'returns a disk hint' do
+      disk_hint = cloud.attach_disk('i-test', 'v-foobar')
+      expect(disk_hint).to eq('/dev/sdc')
     end
   end
 end

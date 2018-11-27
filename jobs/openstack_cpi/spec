@@ -100,7 +100,6 @@ properties:
 
   ntp:
     description: List of NTP servers
-    default: []
     example: ["0.us.pool.ntp.org", "1.us.pool.ntp.org"]
 
   agent.blobstore.access_key_id:

@@ -24,8 +24,6 @@ describe Bosh::OpenStackCloud::Cloud do
     @config.create_cpi(boot_from_volume: boot_from_volume, config_drive: config_drive, human_readable_vm_names: human_readable_vm_names, use_nova_networking: use_nova_networking, use_dhcp: use_dhcp)
   end
 
-  before { allow(Bosh::Cpi::RegistryClient).to receive(:new).and_return(double('registry').as_null_object) }
-
   describe 'dynamic network' do
     # even for dynamic networking we need to set the net_id as we may be in an environment
     # with multiple networks
@@ -148,13 +146,11 @@ describe Bosh::OpenStackCloud::Cloud do
 
       after { clean_up_vm(@multiple_nics_vm_id) if @multiple_nics_vm_id }
 
-      it 'creates writes the mac addresses of the two networks to the registry' do
-        registry = double('registry')
-        registry_settings = nil
-        allow(Bosh::Cpi::RegistryClient).to receive(:new).and_return(registry)
-        allow(registry).to receive_messages(endpoint: nil, delete_settings: nil)
-        allow(registry).to receive(:update_settings) do |_, settings|
-          registry_settings = settings
+      it 'creates writes the mac addresses of the two networks to the metadata service' do
+        server_user_data_as_string = nil
+        allow_any_instance_of(Bosh::OpenStackCloud::Server).to receive(:create_server).and_wrap_original do |method, *arguments|
+          server_user_data_as_string = arguments[0][:user_data]
+          method.call(*arguments)
         end
 
         @multiple_nics_vm_id = create_vm(@stemcell_id, multiple_network_spec, [])
@@ -164,8 +160,9 @@ describe Bosh::OpenStackCloud::Cloud do
         network_interface_1 = network_interfaces.find(&where_ip_address_is(@config.no_dhcp_manual_ip_1))
         network_interface_2 = network_interfaces.find(&where_ip_address_is(@config.no_dhcp_manual_ip_2))
 
-        expect(network_interface_1['OS-EXT-IPS-MAC:mac_addr']).to eq(registry_settings['networks']['network_1']['mac'])
-        expect(network_interface_2['OS-EXT-IPS-MAC:mac_addr']).to eq(registry_settings['networks']['network_2']['mac'])
+        server_user_data = JSON.parse(server_user_data_as_string)
+        expect(network_interface_1['OS-EXT-IPS-MAC:mac_addr']).to eq(server_user_data['networks']['network_1']['mac'])
+        expect(network_interface_2['OS-EXT-IPS-MAC:mac_addr']).to eq(server_user_data['networks']['network_2']['mac'])
 
         ports = openstack.with_openstack(retryable: true) { openstack.network.ports.all(device_id: @multiple_nics_vm_id) }
         clean_up_vm(@multiple_nics_vm_id) if @multiple_nics_vm_id

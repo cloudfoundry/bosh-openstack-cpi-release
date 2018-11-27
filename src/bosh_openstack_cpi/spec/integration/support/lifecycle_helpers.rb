@@ -37,7 +37,7 @@ module Support
 
     def create_vm(stemcell_id, network_spec, disk_locality, resource_pool = {}, environment = { 'bosh' => { 'group' => 'instance-group-1' } })
       @config.logger.info("Creating VM with stemcell_id=#{stemcell_id}")
-      vm_id = cpi.create_vm(
+      vm_id, = cpi.create_vm(
         'agent-007',
         stemcell_id,
         { 'instance_type' => @config.instance_type,

@@ -32,7 +32,7 @@ end
 
 module ConsoleHelpers
   def cpi
-    @cpi ||= Bosh::OpenStackCloud::Cloud.new(@config)
+    @cpi ||= Bosh::OpenStackCloud::Cloud.new(@config, 2)
   end
 
   def openstack

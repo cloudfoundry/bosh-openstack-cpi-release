@@ -48,6 +48,7 @@ require 'cloud/openstack/instance_type_mapper'
 require 'cloud/openstack/server'
 require 'cloud/openstack/vm_factory'
 require 'cloud/openstack/vm_creator'
+require 'cloud/openstack/noop_registry'
 
 module Bosh
   module Clouds

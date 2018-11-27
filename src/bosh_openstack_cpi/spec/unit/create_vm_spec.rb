@@ -54,9 +54,6 @@ describe Bosh::OpenStackCloud::Cloud, 'create_vm' do
 
   def user_data(unique_name, network_spec, nameserver = nil, openssh = false)
     user_data = {
-      'registry' => {
-        'endpoint' => 'http://registry:3333',
-      },
       'server' => {
         'name' => "vm-#{unique_name}",
       },
@@ -64,6 +61,7 @@ describe Bosh::OpenStackCloud::Cloud, 'create_vm' do
     user_data['openssh'] = { 'public_key' => 'public openssh key' } if openssh
     user_data['networks'] = network_spec
     user_data['dns'] = { 'nameserver' => [nameserver] } if nameserver
+    user_data['registry'] = { 'endpoint' => 'http://registry:3333' }
     user_data
   end
 
@@ -81,14 +79,18 @@ describe Bosh::OpenStackCloud::Cloud, 'create_vm' do
   let(:scheduler_hints) { nil }
   let(:options) { mock_cloud_options['properties'] }
   let(:environment) { { 'test_env' => 'value' } }
+  let(:cpi_api_version) { 1 }
   let(:cloud) do
-    mock_cloud(options) do |fog|
+    mock_cloud(options, cpi_api_version) do |fog|
       allow(fog.image.images).to receive(:find_by_id).and_return(image)
       allow(fog.compute.servers).to receive(:create).and_return(server)
       allow(fog.compute.flavors).to receive(:find).and_return(flavor)
       allow(fog.compute.key_pairs).to receive(:find).and_return(key_pair)
-    end
-  end
+		end
+	end
+	let(:network_configuration){
+		{ 'network_a' => dynamic_network_spec }
+	}
 
   before(:each) do
     @registry = mock_registry
@@ -892,6 +894,143 @@ describe Bosh::OpenStackCloud::Cloud, 'create_vm' do
           expect(cloud.compute.servers).to have_received(:create).with(include(availability_zone: 'az-1'))
           expect(cloud.compute.servers).to have_received(:create).with(include(availability_zone: 'az-2'))
         end
+      end
+    end
+  end
+
+
+  context 'when requested cpi api version is 1' do
+		it 'sets networks in user data' do
+			cloud.create_vm('agent-id', 'sc-id', resource_pool_spec, network_configuration, nil, environment)
+
+			expect(cloud.compute.servers).to have_received(:create).with(hash_including(user_data: /\"networks\":{\"network_a\":{\"type\":\"dynamic\",\"cloud_properties\":{\"security_groups\":\[\"default\"\]},\"use_dhcp\":true}}/ ))
+		end
+
+		context 'when stemcell API v1' do
+			it 'does not set agent_id in user data' do
+        cloud.create_vm('agent-id', 'sc-id', resource_pool_spec, network_configuration, nil, environment)
+
+        expect(cloud.compute.servers).to have_received(:create)
+        expect(cloud.compute.servers).not_to have_received(:create).with(hash_including(user_data: /\"agent_id\":/ ))
+      end
+
+      it 'does not set env in user data' do
+        cloud.create_vm('agent-id', 'sc-id', resource_pool_spec, network_configuration, nil, environment)
+
+        expect(cloud.compute.servers).to have_received(:create)
+        expect(cloud.compute.servers).not_to have_received(:create).with(hash_including(user_data: /\"env\":/ ))
+      end
+    end
+
+    context 'when stemcell API v2' do
+      let(:options) do
+        options = mock_cloud_options['properties']
+        options['openstack']['vm'] = {
+          'stemcell' => {
+            'api_version' => 2,
+          },
+        }
+        options
+      end
+
+      it 'does not set agent_id in user data' do
+        cloud.create_vm('agent-id', 'sc-id', resource_pool_spec, network_configuration, nil, environment)
+
+        expect(cloud.compute.servers).not_to have_received(:create).with(hash_including(user_data: /\"agent_id\":/ ))
+      end
+
+      it 'does not set env in user data' do
+        cloud.create_vm('agent-id', 'sc-id', resource_pool_spec, network_configuration, nil, environment)
+
+        expect(cloud.compute.servers).not_to have_received(:create).with(hash_including(user_data: /\"env\":/ ))
+      end
+
+      it 'sets networks in user data' do
+        cloud.create_vm('agent-id', 'sc-id', resource_pool_spec, network_configuration, nil, environment)
+
+        expect(cloud.compute.servers).to have_received(:create).with(hash_including(user_data: /\"networks\":{\"network_a\":{\"type\":\"dynamic\",\"cloud_properties\":{\"security_groups\":\[\"default\"\]},\"use_dhcp\":true}}/ ))
+      end
+    end
+  end
+
+  context 'when requested cpi api version is 2' do
+    let(:cpi_api_version){2}
+
+		it 'sets networks in user data' do
+			cloud.create_vm('agent-id', 'sc-id', resource_pool_spec, network_configuration, nil, environment)
+
+			expect(cloud.compute.servers).to have_received(:create).with(hash_including(user_data: /\"networks\":{\"network_a\":{\"type\":\"dynamic\",\"cloud_properties\":{\"security_groups\":\[\"default\"\]},\"use_dhcp\":true}}/ ))
+		end
+
+    it 'returns instance_id and network configuration' do
+      res = cloud.create_vm('agent-id', 'sc-id', resource_pool_spec, network_configuration, nil, environment)
+      expect(res).to be_a(Array)
+      expect(res[0]).to eq('i-test')
+      expect(res[1]).to eq(network_configuration)
+    end
+
+    context 'when stemcell API v1' do
+      it 'does not set agent settings in user data' do
+        cloud.create_vm('agent-id', 'sc-id', resource_pool_spec, network_configuration, nil, environment)
+
+        expect(cloud.compute.servers).not_to have_received(:create).with(hash_including(user_data: /\"foo\":/))
+      end
+
+      it 'does not set agent_id in user data' do
+        cloud.create_vm('agent-id', 'sc-id', resource_pool_spec, network_configuration, nil, environment)
+
+        expect(cloud.compute.servers).to have_received(:create)
+        expect(cloud.compute.servers).not_to have_received(:create).with(hash_including(user_data: /\"agent_id\":/))
+      end
+
+      it 'does not set env in user data' do
+        cloud.create_vm('agent-id', 'sc-id', resource_pool_spec, network_configuration, nil, environment)
+
+        expect(cloud.compute.servers).to have_received(:create)
+        expect(cloud.compute.servers).not_to have_received(:create).with(hash_including(user_data: /\"env\":/))
+      end
+
+      it 'does set registry' do
+        cloud.create_vm('agent-id', 'sc-id', resource_pool_spec, network_configuration, nil, environment)
+
+        expect(cloud.compute.servers).to have_received(:create).with(hash_including(user_data: /\"registry\":/))
+      end
+    end
+
+    context 'when stemcell API v2' do
+      let(:options) do
+        options = mock_cloud_options['properties']
+        options['openstack']['vm'] = {
+          'stemcell' => {
+            'api_version' => 2,
+          },
+        }
+        options
+      end
+
+      it 'sets agent settings in user data' do
+        cloud.create_vm('agent-id', 'sc-id', resource_pool_spec, network_configuration, nil, environment)
+
+        expect(cloud.compute.servers).to have_received(:create).with(hash_including(user_data: /\"foo\":\"bar\"/))
+      end
+
+      it 'sets agent_id in user data' do
+        cloud.create_vm('agent-id', 'sc-id', resource_pool_spec, network_configuration, nil, environment)
+
+        expect(cloud.compute.servers).to have_received(:create).with(hash_including(user_data: /\"agent_id\":\"agent-id\"/))
+      end
+
+      it 'sets env in user data' do
+        cloud.create_vm('agent-id', 'sc-id', resource_pool_spec, network_configuration, nil, environment)
+
+        expect(cloud.compute.servers).to have_received(:create).with(hash_including(
+          user_data: /\"env\":{\"test_env\":\"value\"}/))
+      end
+
+      it 'does not set registry' do
+        cloud.create_vm('agent-id', 'sc-id', resource_pool_spec, network_configuration, nil, environment)
+
+        expect(cloud.compute.servers).not_to have_received(:create).with(hash_including(user_data: /\"registry\":/))
       end
     end
   end

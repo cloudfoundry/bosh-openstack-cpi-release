@@ -20,9 +20,9 @@ describe Bosh::OpenStackCloud::CpiLambda do
 
   describe 'when creating a cloud' do
     it 'passes parts of the cpi config to openstack' do
-      expect(Bosh::Clouds::Openstack).to receive(:new).with('openstack' => cpi_config['cloud']['properties']['openstack'],
-                                                            'cpi_log' => cpi_log)
-      subject.call({})
+      expect(Bosh::Clouds::Openstack).to receive(:new).with({'openstack' => cpi_config['cloud']['properties']['openstack'],
+                                                            'cpi_log' => cpi_log}, 1)
+      subject.call({}, 1)
     end
 
     context 'if invalid cpi config is given' do
@@ -30,7 +30,7 @@ describe Bosh::OpenStackCloud::CpiLambda do
 
       it 'raises an error' do
         expect {
-          subject.call({})
+          subject.call({}, 1)
         }.to raise_error /Could not find cloud properties in the configuration/
       end
     end
@@ -39,9 +39,9 @@ describe Bosh::OpenStackCloud::CpiLambda do
       let(:cpi_config) { { 'cloud' => { 'properties' => { 'openstack' => { 'connection_options' => { 'ca_cert' => 'xyz' } } } } } }
 
       it 'sets ssl_ca_file that is passed and removes ca_certs' do
-        expect(Bosh::Clouds::Openstack).to receive(:new).with('openstack' => { 'connection_options' => { 'ssl_ca_file' => ssl_ca_file } },
-                                                              'cpi_log' => cpi_log)
-        subject.call({})
+        expect(Bosh::Clouds::Openstack).to receive(:new).with({'openstack' => { 'connection_options' => { 'ssl_ca_file' => ssl_ca_file } },
+                                                              'cpi_log' => cpi_log}, 1)
+        subject.call({}, 1)
       end
     end
 
@@ -52,12 +52,12 @@ describe Bosh::OpenStackCloud::CpiLambda do
           'newkey2' => 'newvalue2',
         }
 
-        expect(Bosh::Clouds::Openstack).to receive(:new).with('openstack' => { 'key1' => 'value1',
+        expect(Bosh::Clouds::Openstack).to receive(:new).with({'openstack' => { 'key1' => 'value1',
                                                                                'key2' => 'value2',
                                                                                'newkey' => 'newvalue',
                                                                                'newkey2' => 'newvalue2' },
-                                                              'cpi_log' => cpi_log)
-        subject.call(context)
+                                                              'cpi_log' => cpi_log}, 1)
+        subject.call(context, 1)
       end
 
       it 'writes the given ca_cert to the disk and sets ssl_ca_file to its path' do
@@ -66,13 +66,13 @@ describe Bosh::OpenStackCloud::CpiLambda do
           'connection_options' => { 'ca_cert' => 'xyz' },
         }
 
-        expect(Bosh::Clouds::Openstack).to receive(:new).with('openstack' => { 'newkey' => 'newvalue',
+        expect(Bosh::Clouds::Openstack).to receive(:new).with({'openstack' => { 'newkey' => 'newvalue',
                                                                                'key1' => 'value1',
                                                                                'key2' => 'value2',
                                                                                'connection_options' => { 'ssl_ca_file' => ca_cert_from_context } },
-                                                              'cpi_log' => cpi_log)
+                                                              'cpi_log' => cpi_log}, 1)
 
-        subject.call(context)
+        subject.call(context, 1)
         expect(File.read(ca_cert_from_context)).to eq('xyz')
       end
 
@@ -80,7 +80,7 @@ describe Bosh::OpenStackCloud::CpiLambda do
         it 'does not write into the file' do
           allow(Bosh::Clouds::Openstack).to receive(:new)
 
-          subject.call({})
+          subject.call({}, 1)
 
           expect(File.read(ca_cert_from_context)).to eq('')
         end
