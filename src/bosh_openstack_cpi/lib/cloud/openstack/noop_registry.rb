@@ -1,4 +1,3 @@
-
 module Bosh::OpenStackCloud
   class NoopRegistry
     include Helpers
@@ -7,7 +6,7 @@ module Bosh::OpenStackCloud
 
     def update_settings(instance_id, settings) end
 
-    def read_settings(instance_id)
+    def read_settings(_instance_id)
       {}
     end
 

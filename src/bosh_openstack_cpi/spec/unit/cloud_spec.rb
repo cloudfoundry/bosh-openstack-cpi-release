@@ -141,12 +141,18 @@ describe Bosh::OpenStackCloud::Cloud do
 
           it 'raises an error when no project is specified' do
             options['openstack']['domain'] = 'fake_domain'
-            expect { subject }.to raise_error(ArgumentError, /Invalid OpenStack cloud properties: #<Membrane::SchemaValidationError: { openstack => { project => Missing key } }/)
+            expect { subject }
+              .to raise_error(ArgumentError,
+                              Regexp.new('Invalid OpenStack cloud properties: ' \
+                                         '#<Membrane::SchemaValidationError: { openstack => { project => Missing key } }'))
           end
 
           it 'raises an error when no domain is specified' do
             options['openstack']['project'] = 'fake_project'
-            expect { subject }.to raise_error(ArgumentError, /Invalid OpenStack cloud properties: #<Membrane::SchemaValidationError: { openstack => { domain => Missing key } }/)
+            expect { subject }
+              .to raise_error(ArgumentError,
+                              Regexp.new('Invalid OpenStack cloud properties: ' \
+                                         '#<Membrane::SchemaValidationError: { openstack => { domain => Missing key } }'))
           end
 
           context 'when project and domain are specified' do

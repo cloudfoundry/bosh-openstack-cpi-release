@@ -173,7 +173,8 @@ module Bosh::OpenStackCloud
         if server
           server_tags = metadata_to_tags(server.metadata)
           @logger.debug("Server tags: `#{server_tags}' found for server #{server_id}")
-          Server.new(@agent_properties, @human_readable_vm_names, @logger, @openstack, registry, @use_dhcp).destroy(server, server_tags)
+          Server.new(@agent_properties, @human_readable_vm_names, @logger, @openstack, registry, @use_dhcp)
+                .destroy(server, server_tags)
         else
           @logger.info("Server `#{server_id}' not found. Skipping.")
         end
@@ -321,9 +322,7 @@ module Bosh::OpenStackCloud
           settings['disks']['persistent'][disk_id] = device_name
         end
 
-        if @cpi_api_version >= 2
-          device_name
-        end
+        device_name if @cpi_api_version >= 2
       end
     end
 
