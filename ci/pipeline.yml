@@ -1011,7 +1011,7 @@ resources:
     type: git
     tags: ((worker_tags))
     source:
-      uri: https://github.com/cloudfoundry-incubator/bosh-openstack-cpi-release.git
+      uri: https://github.com/cloudfoundry/bosh-openstack-cpi-release.git
       branch: master
       ignore_paths:
         - releases/bosh-openstack-cpi/**
@@ -1023,8 +1023,8 @@ resources:
     type: git
     tags: ((worker_tags))
     source:
-      uri: git@github.com:cloudfoundry-incubator/bosh-openstack-cpi-release.git
-      branch: update-cpi-api-v2
+      uri: git@github.com:cloudfoundry/bosh-openstack-cpi-release.git
+      branch: master
       private_key: ((github_deployment_key__bosh-openstack-cpi-release))
 
   - name: version-semver
@@ -1043,7 +1043,7 @@ resources:
     source:
       initial_version: "35.0.0"
       driver: git
-      uri: git@github.com:cloudfoundry-incubator/bosh-openstack-cpi-release.git
+      uri: git@github.com:cloudfoundry/bosh-openstack-cpi-release.git
       branch: release-semver
       file: VERSION
       private_key: ((github_deployment_key__bosh-openstack-cpi-release))
