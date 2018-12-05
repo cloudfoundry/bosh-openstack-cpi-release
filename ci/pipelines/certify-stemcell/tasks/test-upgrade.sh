@@ -69,7 +69,7 @@ bosh-go int ../bosh-deployment/bosh.yml \
     --vars-file ./custom-ca.yml \
     -o ../bosh-deployment/misc/powerdns.yml \
     -o ../bosh-deployment/openstack/cpi.yml \
-    -o ../bosh-deployment/external-ip-with-registry-not-recommended.yml \
+    -o ../bosh-deployment/external-ip-not-recommended.yml \
     -o ../bosh-deployment/misc/ntp.yml \
     -o ../bosh-cpi-src-in/ci/ops_files/deployment-configuration.yml \
     -o ../bosh-cpi-src-in/ci/ops_files/custom-manual-networking.yml \

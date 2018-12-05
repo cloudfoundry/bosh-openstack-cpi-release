@@ -67,7 +67,7 @@ OPTIONAL_VARIABLES=()
 
 OPS_FILES+=( "--ops-file=../bosh-deployment/misc/powerdns.yml" )
 OPS_FILES+=( "--ops-file=../bosh-deployment/openstack/cpi.yml" )
-OPS_FILES+=( "--ops-file=../bosh-deployment/external-ip-with-registry-not-recommended.yml" )
+OPS_FILES+=( "--ops-file=../bosh-deployment/external-ip-not-recommended.yml" )
 OPS_FILES+=( "--ops-file=../bosh-deployment/misc/source-releases/bosh.yml" )
 OPS_FILES+=( "--ops-file=../bosh-deployment/misc/ntp.yml" )
 OPS_FILES+=( "--ops-file=../bosh-cpi-src-in/ci/ops_files/deployment-configuration.yml" )
