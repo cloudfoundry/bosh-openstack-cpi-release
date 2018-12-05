@@ -13,7 +13,6 @@ source bosh-cpi-src-in/ci/tasks/utils.sh
 : ${openstack_read_timeout:?}
 : ${openstack_write_timeout:?}
 : ${openstack_state_timeout:?}
-: ${private_key_data:?}
 : ${bosh_registry_port:?}
 : ${openstack_auth_url:?}
 : ${openstack_username:?}
@@ -22,8 +21,6 @@ source bosh-cpi-src-in/ci/tasks/utils.sh
 : ${internal_ntp:?}
 : ${DEBUG_BATS:?}
 : ${distro:?}
-: ${bosh_director_cpi_api_version:?}
-: ${stemcell_cpi_api_version:?}
 optional_value bosh_openstack_ca_cert
 optional_value availability_zone
 
@@ -39,12 +36,10 @@ export_terraform_variable "openstack_project"
 export_terraform_variable "primary_net_id"
 export_terraform_variable "dns"
 
-
 semver=`cat version-semver/number`
 cpi_release_name="bosh-openstack-cpi"
 deployment_dir="${PWD}/bosh-director-deployment"
 bosh_vcap_password_hash=$(ruby -rsecurerandom -e 'puts ENV["bosh_vcap_password"].crypt("$6$#{SecureRandom.base64(14)}")')
-private_ssh_key_file="bats.key"
 
 echo "setting up artifacts used in bosh.yml"
 cp ./bosh-cpi-dev-artifacts/${cpi_release_name}-${semver}.tgz ${deployment_dir}/${cpi_release_name}.tgz
@@ -57,9 +52,6 @@ echo "Calculating MD5 of copied stemcell:"
 echo $(md5sum ${deployment_dir}/stemcell.tgz)
 
 cd ${deployment_dir}
-echo "${private_key_data}" > ${private_ssh_key_file}
-# For using key directly while debugging
-chmod 0600 ${private_ssh_key_file}
 
 # Variables from pre-seeded vars store
 echo -e "${bosh_openstack_ca_cert}" > bosh_openstack_ca_cert
@@ -75,24 +67,14 @@ OPTIONAL_VARIABLES=()
 
 OPS_FILES+=( "--ops-file=../bosh-deployment/misc/powerdns.yml" )
 OPS_FILES+=( "--ops-file=../bosh-deployment/openstack/cpi.yml" )
-OPS_FILES+=( "--ops-file=../bosh-deployment/external-ip-with-registry-not-recommended.yml" )
+OPS_FILES+=( "--ops-file=../bosh-deployment/external-ip-not-recommended.yml" )
 OPS_FILES+=( "--ops-file=../bosh-deployment/misc/source-releases/bosh.yml" )
 OPS_FILES+=( "--ops-file=../bosh-deployment/misc/ntp.yml" )
 OPS_FILES+=( "--ops-file=../bosh-cpi-src-in/ci/ops_files/deployment-configuration.yml" )
 OPS_FILES+=( "--ops-file=../bosh-cpi-src-in/ci/ops_files/custom-dynamic-networking.yml" )
 OPS_FILES+=( "--ops-file=../bosh-cpi-src-in/ci/ops_files/timeouts.yml" )
-
-if [ ${bosh_director_cpi_api_version} = "1" ] ; then
-  rm bosh-release.tgz
-  cp $( find ../bosh-release-with-registry -name "*.tgz" ) bosh-release.tgz
-fi
-
-if [ ${stemcell_cpi_api_version} = "2" ] && [ ${bosh_director_cpi_api_version} = "2" ]; then
-  OPS_FILES+=( "--ops-file=../bosh-cpi-src-in/ci/ops_files/remove-registry.yml" )
-  OPS_FILES+=( "--ops-file=../bosh-cpi-src-in/ci/ops_files/move-agent-properties-to-env-for-create-env.yml" )
-else
-  OPTIONAL_VARIABLES+=( "--var-file=private_key=${private_ssh_key_file}" )
-fi
+OPS_FILES+=( "--ops-file=../bosh-cpi-src-in/ci/ops_files/remove-registry.yml" )
+OPS_FILES+=( "--ops-file=../bosh-cpi-src-in/ci/ops_files/move-agent-properties-to-env-for-create-env.yml" )
 
 echo "check bosh deployment interpolation"
 bosh-go int ../bosh-deployment/bosh.yml \

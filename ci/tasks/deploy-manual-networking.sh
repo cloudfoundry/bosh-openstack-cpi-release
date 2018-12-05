@@ -13,7 +13,6 @@ source bosh-cpi-src-in/ci/tasks/utils.sh
 : ${openstack_read_timeout:?}
 : ${openstack_write_timeout:?}
 : ${openstack_state_timeout:?}
-: ${private_key_data:?}
 : ${bosh_registry_port:?}
 : ${openstack_auth_url:?}
 : ${openstack_username:?}
@@ -45,7 +44,6 @@ semver=`cat version-semver/number`
 cpi_release_name="bosh-openstack-cpi"
 deployment_dir="${PWD}/bosh-director-deployment"
 bosh_vcap_password_hash=$(ruby -rsecurerandom -e 'puts ENV["bosh_vcap_password"].crypt("$6$#{SecureRandom.base64(14)}")')
-private_ssh_key_file="bats.key"
 
 echo "setting up artifacts used in bosh.yml"
 cp ./bosh-cpi-dev-artifacts/${cpi_release_name}-${semver}.tgz ${deployment_dir}/${cpi_release_name}.tgz
@@ -58,9 +56,6 @@ echo "Calculating MD5 of copied stemcell:"
 echo $(md5sum ${deployment_dir}/stemcell.tgz)
 
 cd ${deployment_dir}
-echo "${private_key_data}" > ${private_ssh_key_file}
-# For using key directly while debugging
-chmod 0600 ${private_ssh_key_file}
 
 # Variables from pre-seeded vars store
 echo -e "${bosh_openstack_ca_cert}" > bosh_openstack_ca_cert
@@ -78,12 +73,14 @@ bosh-go int ../bosh-deployment/bosh.yml \
     --vars-store ./credentials.yml \
     -o ../bosh-deployment/misc/powerdns.yml \
     -o ../bosh-deployment/openstack/cpi.yml \
-    -o ../bosh-deployment/external-ip-with-registry-not-recommended.yml \
+    -o ../bosh-deployment/external-ip-not-recommended.yml \
     -o ../bosh-deployment/misc/source-releases/bosh.yml \
     -o ../bosh-deployment/misc/ntp.yml \
     -o ../bosh-cpi-src-in/ci/ops_files/deployment-configuration.yml \
     -o ../bosh-cpi-src-in/ci/ops_files/custom-manual-networking.yml \
     -o ../bosh-cpi-src-in/ci/ops_files/timeouts.yml \
+    -o ../bosh-cpi-src-in/ci/ops_files/remove-registry.yml \
+    -o ../bosh-cpi-src-in/ci/ops_files/move-agent-properties-to-env-for-create-env.yml \
     -v auth_url=${openstack_auth_url} \
     -v availability_zone=${availability_zone:-'~'} \
     -v bosh_vcap_password_hash=${bosh_vcap_password_hash} \
@@ -105,7 +102,6 @@ bosh-go int ../bosh-deployment/bosh.yml \
     -v openstack_state_timeout=${openstack_state_timeout} \
     -v openstack_username=${openstack_username} \
     -v openstack_write_timeout=${openstack_write_timeout} \
-    --var-file=private_key=${private_ssh_key_file} \
     -v region=null \
     -v internal_ntp=[${internal_ntp}] | tee bosh.yml
 
