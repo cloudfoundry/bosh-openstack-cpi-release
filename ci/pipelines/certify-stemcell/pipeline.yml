@@ -50,7 +50,7 @@ jobs:
         - {trigger: false, get: dummy-release,                       tags: ((worker_tags)), timeout: *timeouts-long}
         - {trigger: true,  get: bosh-cpi-release, passed: [cleanup], tags: ((worker_tags)), timeout: *timeouts-long, resource: bosh-cpi-dev-artifacts}
         - {trigger: true,  get: bosh-release,     passed: [cleanup], tags: ((worker_tags)), timeout: *timeouts-long}
-        - {trigger: true,  get: stemcell-director, passed: [cleanup], tags: ((worker_tags)), timeout: *timeouts-long, resource: ubuntu-stemcell}
+        - {trigger: true,  get: stemcell-director, passed: [cleanup], tags: ((worker_tags)), timeout: *timeouts-long, resource: ubuntu-xenial-stemcell}
         - {trigger: true,  get: stemcell,         passed: [cleanup], tags: ((worker_tags)), timeout: *timeouts-long, resource: centos-stemcell}
         - {trigger: false, get: bosh-deployment,                     tags: ((worker_tags)), timeout: *timeouts-long}
 
@@ -146,8 +146,8 @@ jobs:
         - {trigger: false, get: dummy-release,                       tags: ((worker_tags)), timeout: *timeouts-long}
         - {trigger: true,  get: bosh-cpi-release, passed: [cleanup], tags: ((worker_tags)), timeout: *timeouts-long, resource: bosh-cpi-dev-artifacts}
         - {trigger: true,  get: bosh-release,     passed: [cleanup], tags: ((worker_tags)), timeout: *timeouts-long}
-        - {trigger: true,  get: stemcell-director, passed: [cleanup], tags: ((worker_tags)), timeout: *timeouts-long, resource: ubuntu-stemcell}
-        - {trigger: true,  get: stemcell,         passed: [cleanup], tags: ((worker_tags)), timeout: *timeouts-long, resource: ubuntu-stemcell}
+        - {trigger: true,  get: stemcell-director, passed: [cleanup], tags: ((worker_tags)), timeout: *timeouts-long, resource: ubuntu-xenial-stemcell}
+        - {trigger: true,  get: stemcell,         passed: [cleanup], tags: ((worker_tags)), timeout: *timeouts-long, resource: ubuntu-xenial-stemcell}
         - {trigger: false, get: bosh-deployment,                     tags: ((worker_tags)), timeout: *timeouts-long}
 
       - task: write_ca_file
@@ -222,7 +222,7 @@ jobs:
         - {trigger: false, get: dummy-release,                       tags: ((worker_tags)), timeout: *timeouts-long}
         - {trigger: true,  get: bosh-cpi-release, passed: [cleanup], tags: ((worker_tags)), timeout: *timeouts-long, resource: bosh-cpi-dev-artifacts}
         - {trigger: true,  get: bosh-release,     passed: [cleanup], tags: ((worker_tags)), timeout: *timeouts-long}
-        - {trigger: true,  get: stemcell-director, passed: [cleanup], tags: ((worker_tags)), timeout: *timeouts-long, resource: ubuntu-stemcell}
+        - {trigger: true,  get: stemcell-director, passed: [cleanup], tags: ((worker_tags)), timeout: *timeouts-long, resource: ubuntu-xenial-stemcell}
         - {trigger: true,  get: stemcell,         passed: [cleanup], tags: ((worker_tags)), timeout: *timeouts-long, resource: centos-stemcell}
         - {trigger: false, get: bosh-deployment,                     tags: ((worker_tags)), timeout: *timeouts-long}
 
@@ -305,8 +305,8 @@ jobs:
         - {trigger: false, get: dummy-release,                       tags: ((worker_tags)), timeout: *timeouts-long}
         - {trigger: true,  get: bosh-cpi-release, passed: [cleanup], tags: ((worker_tags)), timeout: *timeouts-long, resource: bosh-cpi-dev-artifacts}
         - {trigger: true,  get: bosh-release,     passed: [cleanup], tags: ((worker_tags)), timeout: *timeouts-long}
-        - {trigger: true,  get: stemcell-director, passed: [cleanup], tags: ((worker_tags)), timeout: *timeouts-long, resource: ubuntu-stemcell}
-        - {trigger: true,  get: stemcell,         passed: [cleanup], tags: ((worker_tags)), timeout: *timeouts-long, resource: ubuntu-stemcell}
+        - {trigger: true,  get: stemcell-director, passed: [cleanup], tags: ((worker_tags)), timeout: *timeouts-long, resource: ubuntu-xenial-stemcell}
+        - {trigger: true,  get: stemcell,         passed: [cleanup], tags: ((worker_tags)), timeout: *timeouts-long, resource: ubuntu-xenial-stemcell}
         - {trigger: false, get: bosh-deployment,                     tags: ((worker_tags)), timeout: *timeouts-long}
 
       - task: write_ca_file
@@ -366,8 +366,8 @@ jobs:
         - {trigger: false, get: dummy-release,                       tags: ((worker_tags)), timeout: *timeouts-long}
         - {trigger: true,  get: bosh-cpi-release, passed: [cleanup], tags: ((worker_tags)), timeout: *timeouts-long, resource: bosh-cpi-dev-artifacts}
         - {trigger: true,  get: bosh-release,     passed: [cleanup], tags: ((worker_tags)), timeout: *timeouts-long}
-        - {trigger: true,  get: stemcell-director, passed: [cleanup], tags: ((worker_tags)), timeout: *timeouts-long, resource: ubuntu-stemcell}
-        - {trigger: true,  get: stemcell, passed: [cleanup], tags: ((worker_tags)), timeout: *timeouts-long, resource: ubuntu-stemcell}
+        - {trigger: true,  get: stemcell-director, passed: [cleanup], tags: ((worker_tags)), timeout: *timeouts-long, resource: ubuntu-xenial-stemcell}
+        - {trigger: true,  get: stemcell, passed: [cleanup], tags: ((worker_tags)), timeout: *timeouts-long, resource: ubuntu-xenial-stemcell}
         - {trigger: false, get: bosh-deployment,                     tags: ((worker_tags)), timeout: *timeouts-long}
 
       - task: write_ca_file
@@ -471,7 +471,7 @@ jobs:
         - {trigger: true,  get: bosh-cpi-release,  tags: ((worker_tags)), timeout: *timeouts-long, resource: bosh-cpi-dev-artifacts}
         - {trigger: true,  get: bosh-release,      tags: ((worker_tags)), timeout: *timeouts-long}
         - {trigger: true,  get: centos-stemcell,   tags: ((worker_tags)), timeout: *timeouts-long}
-        - {trigger: true,  get: ubuntu-stemcell,   tags: ((worker_tags)), timeout: *timeouts-long}
+        - {trigger: true,  get: ubuntu-xenial-stemcell,   tags: ((worker_tags)), timeout: *timeouts-long}
 
       - task: cleanup-e2e
         tags: ((worker_tags))
@@ -493,7 +493,7 @@ jobs:
         - {trigger: false, get: bosh-cpi-src-in, tags: ((worker_tags)), timeout: *timeouts-long}
         - {trigger: true,  get: bosh-cpi-release, passed: [e2e-ubuntu, e2e-ubuntu-config-drive, test-upgrade-ubuntu], resource: bosh-cpi-dev-artifacts, tags: ((worker_tags)), timeout: *timeouts-long}
         - {trigger: true,  get: bosh-release,     passed: [e2e-ubuntu, e2e-ubuntu-config-drive, test-upgrade-ubuntu], tags: ((worker_tags)), timeout: *timeouts-long}
-        - {trigger: true,  get: stemcell,         passed: [e2e-ubuntu, e2e-ubuntu-config-drive, test-upgrade-ubuntu], resource: ubuntu-stemcell, tags: ((worker_tags)), timeout: *timeouts-long}
+        - {trigger: true,  get: stemcell,         passed: [e2e-ubuntu, e2e-ubuntu-config-drive, test-upgrade-ubuntu], resource: ubuntu-xenial-stemcell, tags: ((worker_tags)), timeout: *timeouts-long}
 
       - task: generate-certification
         tags: ((worker_tags))
@@ -596,7 +596,7 @@ resources:
     source:
       name: bosh-openstack-kvm-centos-7-go_agent
 
-  - name: ubuntu-stemcell
+  - name: ubuntu-xenial-stemcell
     type: bosh-io-stemcell
     tags: ((worker_tags))
     source:
