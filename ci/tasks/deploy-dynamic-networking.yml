@@ -7,8 +7,6 @@ image_resource:
 inputs:
   - name: bosh-cpi-src-in
   - name: bosh-release
-  - name: bosh-release-with-registry
-    optional: true
   - name: bosh-cpi-dev-artifacts
   - name: version-semver
   - name: stemcell-director
@@ -39,5 +37,3 @@ params:
   DEBUG_BATS:                          ""
   distro:                              ""
   availability_zone:                   replace-me
-  bosh_director_cpi_api_version:       "2"
-  stemcell_cpi_api_version:            "1"
