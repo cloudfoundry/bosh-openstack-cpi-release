@@ -40,13 +40,13 @@ resources:
   - name: bosh-cpi-src
     type: git
     source:
-      uri: https://github.com/cloudfoundry-incubator/bosh-openstack-cpi-release.git
+      uri: https://github.com/cloudfoundry/bosh-openstack-cpi-release.git
       branch: master
 
   - name: bosh-openstack-cpi-release
     type: bosh-io-release
     source:
-      repository: cloudfoundry-incubator/bosh-openstack-cpi-release
+      repository: cloudfoundry/bosh-openstack-cpi-release
 
   - name: bosh-deployment-src
     type: git
