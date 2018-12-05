@@ -6,8 +6,8 @@ source bosh-cpi-src-in/ci/tasks/utils.sh
 
 : ${bosh_vcap_password:?}
 : ${v3_e2e_private_key_data:?}
-: ${old_bosh_release_version:?}
-: ${old_bosh_release_sha1:?}
+: ${old_bosh_with_registry_version:?}
+: ${old_bosh_with_registry_sha1:?}
 : ${director_ca:?}
 : ${director_ca_private_key:?}
 : ${v3_e2e_flavor:?}
@@ -48,7 +48,7 @@ export private_key=bosh.pem
 export bosh_vcap_password_hash=$(ruby -e 'require "securerandom";puts ENV["bosh_vcap_password"].crypt("$6$#{SecureRandom.base64(14)}")')
 
 echo "setting up artifacts used in $manifest_filename"
-prepare_bosh_release $distro $old_bosh_release_version $old_bosh_stemcell_version
+prepare_bosh_release $distro $old_bosh_with_registry_version $old_bosh_with_registry_sha1
 export bosh_release_tgz=${deployment_dir}/bosh-release.tgz
 
 cd ${deployment_dir}

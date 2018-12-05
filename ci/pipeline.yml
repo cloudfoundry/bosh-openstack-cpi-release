@@ -268,7 +268,6 @@ jobs:
           openstack_read_timeout:               "180"
           openstack_write_timeout:              "180"
           openstack_state_timeout:              "900"
-          private_key_data:                     ((bosh_private_key))
           bosh_registry_port:                   ((bosh_director_registry_port))
           bosh_openstack_ca_cert:               ((bosh_openstack_ca_cert))
           openstack_auth_url:                   ((openstack_auth_url_v3))
@@ -377,7 +376,6 @@ jobs:
           openstack_api_key:                    ((openstack_api_key))
           openstack_domain:                     ((openstack_domain))
           internal_ntp:                         ((internal_ntp))
-          private_key_data:                     ((bosh_private_key))
           distro:                               "ubuntu"
           availability_zone:                    ((availability_zone))
           DEBUG_BATS:                           *debug_bats
@@ -482,7 +480,6 @@ jobs:
           openstack_api_key:                    ((openstack_api_key))
           openstack_domain:                     ((openstack_domain))
           internal_ntp:                         ((internal_ntp))
-          private_key_data:                     ((bosh_private_key))
           distro:                               "ubuntu"
           availability_zone:                    ((availability_zone))
           DEBUG_BATS:                           *debug_bats
@@ -583,7 +580,6 @@ jobs:
           openstack_api_key:                    ((openstack_api_key))
           openstack_domain:                     ((openstack_domain))
           internal_ntp:                         ((internal_ntp))
-          private_key_data:                     ((bosh_private_key))
           distro:                               "ubuntu"
           availability_zone:                    ((availability_zone))
           DEBUG_BATS:                           *debug_bats

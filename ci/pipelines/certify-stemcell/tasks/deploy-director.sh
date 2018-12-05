@@ -79,6 +79,8 @@ bosh-go int ../bosh-deployment/bosh.yml \
     -o ../bosh-cpi-src-in/ci/ops_files/timeouts.yml \
     -o ../bosh-cpi-src-in/ci/ops_files/custom-config-drive.yml \
     -o ../bosh-cpi-src-in/ci/ops_files/custom-blobstore.yml \
+    -o ../bosh-cpi-src-in/ci/ops_files/remove-registry.yml \
+    -o ../bosh-cpi-src-in/ci/ops_files/move-agent-properties-to-env-for-create-env.yml \
     -v auth_url=${v3_e2e_auth_url} \
     -v availability_zone=${availability_zone:-'~'} \
     -v bosh_vcap_password_hash=${bosh_vcap_password_hash} \
@@ -106,7 +108,6 @@ bosh-go int ../bosh-deployment/bosh.yml \
     -v v3_e2e_blobstore_secret_key=${v3_e2e_blobstore_secret_key} \
     -v v3_e2e_blobstore_bucket=${v3_e2e_blobstore_bucket} \
     -v v3_e2e_blobstore_host=${v3_e2e_blobstore_host} \
-    --var-file=private_key=${private_key} \
     -v region=null \
     -v internal_ntp=[${internal_ntp}] | tee ${manifest_filename}.yml
 

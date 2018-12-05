@@ -18,8 +18,8 @@ params:
   director_ca_private_key:                ""
   bosh_openstack_ca_cert:                 replace-me
   v3_e2e_private_key_data:                ""
-  old_bosh_release_version:               ""
-  old_bosh_release_sha1:                  ""
+  old_bosh_with_registry_version:         ""
+  old_bosh_with_registry_sha1:            ""
   bosh_vcap_password:                     ""
   v3_e2e_flavor:                          ""
   v3_e2e_connection_timeout:              ""
