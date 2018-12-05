@@ -66,7 +66,7 @@ prepare_bosh_release() {
         cp ./bosh-release/*.tgz ${deployment_dir}/bosh-release.tgz
        else
          wget https://bosh.io/d/github.com/cloudfoundry/bosh?v=${bosh_release_version} -O ${deployment_dir}/bosh-release.tgz
-         echo "$old_bosh_release_sha1 $deployment_dir/bosh-release.tgz" | sha1sum -c -
+         echo "$old_bosh_with_registry_sha1 $deployment_dir/bosh-release.tgz" | sha1sum -c -
        fi
     fi
 }
