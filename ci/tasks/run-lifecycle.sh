@@ -42,9 +42,9 @@ if [ "${pool_name}" != "" ]; then
   export BOSH_OPENSTACK_LBAAS_POOL_NAME=${pool_name}
 fi
 
-mkdir "${PWD}/openstack-lifecycle-stemcell/stemcell"
-tar -C "${PWD}/openstack-lifecycle-stemcell/stemcell" -xzf "${PWD}/openstack-lifecycle-stemcell/stemcell.tgz"
-export BOSH_OPENSTACK_STEMCELL_PATH="${PWD}/openstack-lifecycle-stemcell/stemcell"
+mkdir "${PWD}/openstack-lifecycle-ubuntu-stemcell/stemcell"
+tar -C "${PWD}/openstack-lifecycle-ubuntu-stemcell/stemcell" -xzf "${PWD}/openstack-lifecycle-ubuntu-stemcell/stemcell.tgz"
+export BOSH_OPENSTACK_STEMCELL_PATH="${PWD}/openstack-lifecycle-ubuntu-stemcell/stemcell"
 
 cd bosh-cpi-src-in/src/bosh_openstack_cpi
 
