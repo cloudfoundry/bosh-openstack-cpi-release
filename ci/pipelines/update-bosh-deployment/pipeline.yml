@@ -34,7 +34,7 @@ jobs:
           head_owner: openstack-cpi
           head_branch: bump-openstack-cpi
           base_repo: bosh-deployment-src
-          base_branch: master
+          base_branch: develop
 
 resources:
   - name: bosh-cpi-src
@@ -52,7 +52,7 @@ resources:
     type: git
     source:
       uri: https://github.com/cloudfoundry/bosh-deployment.git
-      branch: master
+      branch: develop
 
   - name: bosh-deployment-fork
     type: git
