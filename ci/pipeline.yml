@@ -125,7 +125,7 @@ jobs:
       - aggregate:
         - {trigger: true,  passed: [cleanup], get: bosh-cpi-dev-artifacts, tags: ((worker_tags)), timeout: *timeouts-long} # used for job chaining only not for tasks
         - {trigger: false, passed: [cleanup], get: bosh-cpi-src-in, tags: ((worker_tags)), timeout: *timeouts-long}
-        - {trigger: false,                    get: openstack-lifecycle-ubuntu-stemcell, tags: ((worker_tags)), timeout: *timeouts-long}
+        - {trigger: false,                    get: openstack-lifecycle-stemcell, resource: openstack-ubuntu-xenial-stemcell, tags: ((worker_tags)), timeout: *timeouts-long}
 
       - task: write_ca_file
         tags: ((worker_tags))
@@ -752,12 +752,6 @@ resources:
     tags: ((worker_tags))
     source:
       name: bosh-openstack-kvm-centos-7-go_agent
-
-  - name: openstack-lifecycle-ubuntu-stemcell
-    type: bosh-io-stemcell
-    tags: ((worker_tags))
-    source:
-      name: bosh-openstack-kvm-ubuntu-xenial-go_agent
 
   - name: pipeline-time-trigger
     type: time

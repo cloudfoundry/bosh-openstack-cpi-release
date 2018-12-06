@@ -6,7 +6,7 @@ image_resource:
     repository: boshcpi/openstack-cpi-release
 inputs:
   - name: bosh-cpi-src-in
-  - name: openstack-lifecycle-ubuntu-stemcell
+  - name: openstack-lifecycle-stemcell
   - name: terraform-cpi
 outputs:
   - name: output
