@@ -11,4 +11,4 @@ Also,  a `metalink_get` script with custom logic must be provided which runs in 
 This script defines how a [metalink](https://tools.ietf.org/html/rfc5854) file gets created based on the latest version determinded in the `check` script.
 The metalink file gets used in the `in` script in order to download the package.
 
-The `update-gems` job is triggered periodically. It calls `bundle update` which updates all gems of the [Gemfile](https://github.com/cloudfoundry-incubator/bosh-openstack-cpi-release/blob/master/src/bosh_openstack_cpi/Gemfile) ignoring the previously installed gems specified in the [Gemfile.lock](https://github.com/cloudfoundry-incubator/bosh-openstack-cpi-release/blob/master/src/bosh_openstack_cpi/Gemfile.lock).
+The `update-gems` job is triggered periodically. It calls `bundle update` which updates all gems of the [Gemfile](https://github.com/cloudfoundry/bosh-openstack-cpi-release/blob/master/src/bosh_openstack_cpi/Gemfile) ignoring the previously installed gems specified in the [Gemfile.lock](https://github.com/cloudfoundry/bosh-openstack-cpi-release/blob/master/src/bosh_openstack_cpi/Gemfile.lock).

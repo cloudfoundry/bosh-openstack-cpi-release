@@ -38,8 +38,8 @@ validator:
   mtu_size: 1500
   releases:
   - name: bosh-openstack-cpi
-    url: https://bosh.io/d/github.com/cloudfoundry-incubator/bosh-openstack-cpi-release?v=33
-    sha1: 86b8eedcb0a6be3e821a5d0042916180706262be
+    url: https://bosh.io/d/github.com/cloudfoundry/bosh-openstack-cpi-release?v=33
+    sha1: a165b5fa426624e42aeea53a4d08949e7c316864
 
 cloud_config:
   vm_types: []

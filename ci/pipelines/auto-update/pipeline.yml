@@ -83,21 +83,21 @@ resources:
     type: git
     tags: ((worker_tags))
     source:
-      uri: https://github.com/cloudfoundry-incubator/bosh-openstack-cpi-release.git
+      uri: https://github.com/cloudfoundry/bosh-openstack-cpi-release.git
       branch: master
 
   - name: packages-src-in
     type: git
     tags: ((worker_tags))
     source:
-      uri: https://github.com/cloudfoundry-incubator/bosh-openstack-cpi-release.git
+      uri: https://github.com/cloudfoundry/bosh-openstack-cpi-release.git
       branch: packages-auto-update
 
   - name: packages-src-out
     type: git
     tags: ((worker_tags))
     source:
-      uri: git@github.com:cloudfoundry-incubator/bosh-openstack-cpi-release.git
+      uri: git@github.com:cloudfoundry/bosh-openstack-cpi-release.git
       branch:      packages-auto-update
       private_key: ((bosh-openstack-cpi-release-github-key))
 
@@ -105,7 +105,7 @@ resources:
     type: git
     tags: ((worker_tags))
     source:
-      uri: git@github.com:cloudfoundry-incubator/bosh-openstack-cpi-release.git
+      uri: git@github.com:cloudfoundry/bosh-openstack-cpi-release.git
       branch:      gems-auto-update
       private_key: ((bosh-openstack-cpi-release-github-key))
 
@@ -113,7 +113,7 @@ resources:
     type: git
     tags: ((worker_tags))
     source:
-      uri: https://github.com/cloudfoundry-incubator/bosh-openstack-cpi-release.git
+      uri: https://github.com/cloudfoundry/bosh-openstack-cpi-release.git
       branch: gems-auto-update
 
   - name: validator-src-in

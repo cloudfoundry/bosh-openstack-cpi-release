@@ -413,7 +413,7 @@ jobs:
           v3_e2e_username:                      ((v3_e2e_username))
           internal_ntp:                         ((internal_ntp))
           old_openstack_cpi_release_version:    35
-          old_openstack_cpi_release_sha1:       314b040cb0df72651174d262892aa8c4d75f9031
+          old_openstack_cpi_release_sha1:       647e14657a19c94167e86d6e9e85dd2592c5202b
           old_bosh_stemcell_name:     bosh-openstack-kvm-ubuntu-trusty-go_agent
           old_bosh_stemcell_version:  3586.57
           old_bosh_stemcell_sha1:     fdba5eccc952a71038ad5e463791124b22390f38
@@ -606,7 +606,7 @@ resources:
     type: git
     tags: ((worker_tags))
     source:
-      uri: https://github.com/cloudfoundry-incubator/bosh-openstack-cpi-release.git
+      uri: https://github.com/cloudfoundry/bosh-openstack-cpi-release.git
       branch: master
       ignore_paths:
         - releases/bosh-openstack-cpi/**

@@ -10,7 +10,7 @@ resources:
   tags: ((worker_tags))
   type: pull-request
   source:
-    repo: cloudfoundry-incubator/bosh-openstack-cpi-release
+    repo: cloudfoundry/bosh-openstack-cpi-release
     access_token: ((github-access-token))
 
 jobs:

@@ -10,7 +10,7 @@
   path: /releases/name=bosh-openstack-cpi?
   value:
     name: bosh-openstack-cpi
-    url: http://bosh.io/d/github.com/cloudfoundry-incubator/bosh-openstack-cpi-release?v=((old_openstack_cpi_release_version))
+    url: http://bosh.io/d/github.com/cloudfoundry/bosh-openstack-cpi-release?v=((old_openstack_cpi_release_version))
     sha1: ((old_openstack_cpi_release_sha1))
 
 - type: replace
