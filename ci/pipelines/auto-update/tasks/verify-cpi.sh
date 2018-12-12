@@ -1,15 +1,17 @@
 #!/usr/bin/env bash
 
+set -euo pipefail
+
 BASE_DIR="$PWD"
 
-mkdir $BASE_DIR/verify-cpi
+mkdir "$BASE_DIR/verify-cpi"
 
 pushd packages-src-out
 echo 'Creating CPI release...'
-bosh-go create-release --tarball=$BASE_DIR/verify-cpi/cpi-release.tgz
+bosh-go create-release --tarball="$BASE_DIR/verify-cpi/cpi-release.tgz"
 popd
 
-cd $BASE_DIR/validator-src-in
+cd "$BASE_DIR/validator-src-in"
 
 mkdir stemcell
 tar -cvzf stemcell.tgz stemcell
@@ -49,9 +51,10 @@ echo 'Installing validator dependencies...'
 bundle install
 
 useradd -m vali
+sudo chmod 644 "$BASE_DIR/verify-cpi/cpi-release.tgz"
 
 echo 'Running validator...'
 sudo -H -u vali ./validate --tag cpi_only --stemcell stemcell.tgz \
     --config validator.yml \
-    --cpi $BASE_DIR/verify-cpi/cpi-release.tgz \
+    --cpi "$BASE_DIR/verify-cpi/cpi-release.tgz" \
     --verbose
