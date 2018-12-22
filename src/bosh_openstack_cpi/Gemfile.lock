@@ -91,7 +91,7 @@ GEM
     safe_yaml (1.0.4)
     semi_semantic (1.2.0)
     timecop (0.7.4)
-    unicode-display_width (1.4.0)
+    unicode-display_width (1.4.1)
     webmock (2.3.2)
       addressable (>= 2.3.6)
       crack (>= 0.3.2)
