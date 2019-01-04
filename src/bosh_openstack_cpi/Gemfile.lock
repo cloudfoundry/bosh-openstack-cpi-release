@@ -35,7 +35,7 @@ GEM
     hashdiff (0.3.8)
     httpclient (2.8.3)
     ipaddress (0.8.3)
-    jaro_winkler (1.5.1)
+    jaro_winkler (1.5.2)
     little-plugger (1.1.4)
     logging (1.8.2)
       little-plugger (>= 1.1.3)
