@@ -33,8 +33,8 @@ pushd ruby-2.4.5 > /dev/null
 popd > /dev/null
 
 echo "Installing rubygems"
-tar zxvf ruby_openstack_cpi/rubygems-2.7.7.tar.gz
-pushd rubygems-2.7.7
+tar zxvf ruby_openstack_cpi/rubygems-2.7.8.tar.gz
+pushd rubygems-2.7.8
   ${BOSH_INSTALL_TARGET}/bin/ruby setup.rb
 popd > /dev/null
 ${BOSH_INSTALL_TARGET}/bin/ruby overwrite_shebang.rb "${BOSH_INSTALL_TARGET}/bin/gem" "${BOSH_INSTALL_TARGET}/bin/ruby"
