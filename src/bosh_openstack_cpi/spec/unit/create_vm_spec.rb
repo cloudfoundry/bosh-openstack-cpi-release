@@ -910,6 +910,12 @@ describe Bosh::OpenStackCloud::Cloud, 'create_vm' do
         expect(cloud.compute.servers).to have_received(:create).with(hash_including(user_data: expected_user_data))
       end
 
+      it 'logs that settings get updated' do
+        cloud.create_vm('agent-id', 'sc-id', resource_pool_spec, network_configuration, nil, environment)
+
+        expect(cloud.logger).to have_received(:info).with(/Updating settings/)
+      end
+
       context 'when stemcell API v1' do
         it 'does not set agent_id in user data' do
           cloud.create_vm('agent-id', 'sc-id', resource_pool_spec, network_configuration, nil, environment)
@@ -1036,6 +1042,12 @@ describe Bosh::OpenStackCloud::Cloud, 'create_vm' do
           cloud.create_vm('agent-id', 'sc-id', resource_pool_spec, network_configuration, nil, environment)
 
           expect(cloud.compute.servers).not_to have_received(:create).with(hash_including(user_data: /\"registry\":/))
+        end
+
+        it 'does not log that settings get updated' do
+          cloud.create_vm('agent-id', 'sc-id', resource_pool_spec, network_configuration, nil, environment)
+
+          expect(cloud.logger).not_to have_received(:info).with(/Updating settings/)
         end
       end
     end

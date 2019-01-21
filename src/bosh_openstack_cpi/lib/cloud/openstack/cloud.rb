@@ -487,7 +487,9 @@ module Bosh::OpenStackCloud
     def update_agent_settings(server)
       raise ArgumentError, 'Block is not provided' unless block_given?
       registry_key = registry_key_for(server)
-      @logger.info("Updating settings for server `#{server.id}' with registry key `#{registry_key}'...")
+      unless cpi_without_registry?
+        @logger.info("Updating settings for server '#{server.id}' with registry key '#{registry_key}'...")
+      end
       settings = registry.read_settings(registry_key)
       yield settings
       registry.update_settings(registry_key, settings)
@@ -544,9 +546,9 @@ module Bosh::OpenStackCloud
           registry_user       = registry_properties.fetch('user')
           registry_password   = registry_properties.fetch('password')
         rescue KeyError => e
-          raise ArgumentError, "Invalid CPI properties. Used CPI API version is #{@cpi_api_version} and stemcell "\
-            "version is #{stemcell_api_version}. Since at least one API version is 1, this requires the registry to "\
-            "be configured. Error: #{e.message}"
+          raise ArgumentError, "Invalid CPI properties. Used CPI API version is #{@cpi_api_version} and stemcell API "\
+            "version is #{stemcell_api_version}. Since at least one API version is 1, the registry has to be configured. "\
+            "Error: #{e.message}"
         end
         @registry_instance = Bosh::Cpi::RegistryClient.new(registry_endpoint, registry_user, registry_password)
       end

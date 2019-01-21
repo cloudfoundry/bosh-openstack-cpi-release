@@ -20,7 +20,6 @@ describe Bosh::OpenStackCloud::Cloud do
 
   let(:loadbalancer_configurator) { instance_double(Bosh::OpenStackCloud::LoadbalancerConfigurator) }
 
-
   before(:each) do
     @registry = mock_registry
     Bosh::Clouds::Config.configure(double('config', uuid: 'director-uuid'))
@@ -78,7 +77,33 @@ describe Bosh::OpenStackCloud::Cloud do
     expect(server).to have_received(:destroy).ordered
     expect(cloud.openstack).to have_received(:wait_resource).with(server, %i[terminated deleted], :state, true).ordered
     expect(Bosh::OpenStackCloud::NetworkConfigurator).to have_received(:cleanup_ports).with(any_args, ['port_id']).ordered
+    expect(cloud.logger).to have_received(:info).with(/Deleting settings/)
     expect(@registry).to have_received(:delete_settings).with(registry_key)
+  end
+
+  context 'when registry-less' do
+    let(:cpi_api_version) { 2 }
+    let(:cloud_options) { mock_cloud_options }
+    let(:cloud_options_stemcell_v2) do
+      cloud_options['properties']['openstack']['vm'] = {
+        'stemcell' => {
+          'api_version' => 2,
+        },
+      }
+      cloud_options
+    end
+    let(:cloud) do
+      mock_cloud(cloud_options_stemcell_v2['properties'], cpi_api_version) do |fog|
+        allow(fog.compute.servers).to receive(:get).with('i-foobar').and_return(server)
+      end
+    end
+
+    it 'does not log deleting settings' do
+      expect(cloud.logger).to_not receive(:info).with(/Deleting settings/)
+      expect(cloud.registry).to receive(:delete_settings).with(registry_key)
+
+      cloud.delete_vm('i-foobar')
+    end
   end
 
   context 'when server destroy fails' do

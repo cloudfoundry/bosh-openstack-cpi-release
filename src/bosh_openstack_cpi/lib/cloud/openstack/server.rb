@@ -58,7 +58,9 @@ module Bosh::OpenStackCloud
         lbaas_error,
         catch_error('Deleting registry settings') {
           registry_key = server_tags.fetch(REGISTRY_KEY_TAG.to_s, server.name)
-          @logger.info("Deleting settings for server `#{server.id}' with registry_key `#{registry_key}' ...")
+          unless @registry.instance_of? NoopRegistry
+           @logger.info("Deleting settings for server `#{server.id}' with registry_key `#{registry_key}' ...")
+          end
           @registry.delete_settings(registry_key)
         },
       )
@@ -131,7 +133,7 @@ module Bosh::OpenStackCloud
 
     def update_server_settings(server, agent_settings)
       settings = initial_agent_settings(agent_settings)
-      @logger.info("Updating settings for server `#{server.id}'...")
+      @logger.info("Updating settings for server `#{server.id}'...") unless @registry.instance_of? NoopRegistry
       @registry.update_settings(agent_settings.registry_key, settings)
     rescue StandardError => e
       @logger.warn("Failed to register server: #{e.message}")

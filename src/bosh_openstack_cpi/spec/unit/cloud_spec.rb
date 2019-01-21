@@ -211,8 +211,8 @@ describe Bosh::OpenStackCloud::Cloud do
       end
     end
 
-    context 'when server has no registry_key tag' do
-      it 'uses the server name as key' do
+    context 'when server has a registry_key tag' do
+      it 'uses the registry_key tag value as key' do
         cpi = Bosh::OpenStackCloud::Cloud.new(cloud_options['properties'], cpi_api_version)
         server = double('server', id: 'id', name: 'name', metadata: double('metadata'))
 
@@ -220,6 +220,40 @@ describe Bosh::OpenStackCloud::Cloud do
 
         expect(cpi.registry).to receive(:read_settings).with('registry-tag-value')
         expect(cpi.registry).to receive(:update_settings).with('registry-tag-value', anything)
+
+        cpi.update_agent_settings(server) {}
+      end
+    end
+
+    context 'when registry is used' do
+      it 'logs that settings get updated' do
+        cpi = Bosh::OpenStackCloud::Cloud.new(cloud_options['properties'], cpi_api_version)
+        server = double('server', id: 'id', name: 'name', metadata: double('metadata'))
+        allow(server.metadata).to receive(:get).with(:registry_key).and_return(nil)
+        allow(cpi.registry).to receive(:read_settings)
+        allow(cpi.registry).to receive(:update_settings)
+
+        expect(cpi.logger).to receive(:info).with("Updating settings for server 'id' with registry key 'name'...")
+
+        cpi.update_agent_settings(server) {}
+      end
+    end
+
+    context 'when registry is not used' do
+      let(:cpi_api_version) { 2 }
+      let(:cloud_options_stemcell_v2) do
+        cloud_options['properties']['openstack']['vm'] = {
+          'stemcell' => {
+            'api_version' => 2,
+          },
+        }
+        cloud_options
+      end
+      it 'does not log anything' do
+        cpi = Bosh::OpenStackCloud::Cloud.new(cloud_options_stemcell_v2['properties'], cpi_api_version)
+        server = double('server', id: 'id', name: 'name', metadata: double('metadata'))
+        allow(server.metadata).to receive(:get).with(:registry_key).and_return(nil)
+        expect(cpi.logger).to_not receive(:info)
 
         cpi.update_agent_settings(server) {}
       end

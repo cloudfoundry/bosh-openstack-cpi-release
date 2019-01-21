@@ -61,6 +61,7 @@ GEM
     public_suffix (3.0.3)
     rainbow (3.0.0)
     rake (10.3.2)
+    rb-readline (0.5.5)
     rspec (3.3.0)
       rspec-core (~> 3.3.0)
       rspec-expectations (~> 3.3.0)
@@ -112,6 +113,7 @@ DEPENDENCIES
   netaddr (~> 1.5.0)
   pry-byebug
   rake (~> 10.3.2)
+  rb-readline
   rspec (~> 3.3.0)
   rspec-its (~> 1.0.1)
   rubocop
@@ -120,4 +122,4 @@ DEPENDENCIES
   webmock (~> 2.3.2)
 
 BUNDLED WITH
-   1.16.5
+   1.17.3
