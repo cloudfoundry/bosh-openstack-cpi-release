@@ -24,9 +24,6 @@ source bosh-cpi-src-in/ci/tasks/utils.sh
 : ${internal_ntp:?}
 : ${old_openstack_cpi_release_version:?}
 : ${old_openstack_cpi_release_sha1:?}
-: ${old_bosh_stemcell_sha1:?}
-: ${old_bosh_stemcell_name:?}
-: ${old_bosh_stemcell_version:?}
 : ${distro:?}
 optional_value bosh_openstack_ca_cert
 
@@ -46,6 +43,8 @@ manifest_template_filename="director-manifest-template.yml"
 manifest_filename="director-manifest.yml"
 export private_key=bosh.pem
 export bosh_vcap_password_hash=$(ruby -e 'require "securerandom";puts ENV["bosh_vcap_password"].crypt("$6$#{SecureRandom.base64(14)}")')
+export old_bosh_stemcell_sha1="$(cat ./old-stemcell/sha1)"
+export old_bosh_stemcell_url="$(cat ./old-stemcell/url)"
 
 echo "setting up artifacts used in $manifest_filename"
 prepare_bosh_release $distro $old_bosh_with_registry_version $old_bosh_with_registry_sha1
@@ -105,8 +104,7 @@ bosh-go int ../bosh-deployment/bosh.yml \
     -v old_openstack_cpi_release_version=${old_openstack_cpi_release_version} \
     -v old_openstack_cpi_release_sha1=${old_openstack_cpi_release_sha1} \
     -v old_bosh_stemcell_sha1=${old_bosh_stemcell_sha1} \
-    -v old_bosh_stemcell_name=${old_bosh_stemcell_name} \
-    -v old_bosh_stemcell_version="'${old_bosh_stemcell_version}'" \
+    -v old_bosh_stemcell_url=${old_bosh_stemcell_url} \
     --var-file=private_key=${private_key} \
     -v region=null \
     -v internal_ntp=[${internal_ntp}] | tee old-director-manifest.yml

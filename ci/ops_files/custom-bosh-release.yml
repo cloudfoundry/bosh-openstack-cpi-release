@@ -16,7 +16,7 @@
 - type: replace
   path: /resource_pools/name=vms/stemcell?
   value:
-    url: https://bosh.io/d/stemcells/((old_bosh_stemcell_name))?v=((old_bosh_stemcell_version))
+    url: ((old_bosh_stemcell_url))
     sha1: ((old_bosh_stemcell_sha1))
 
 - type: replace

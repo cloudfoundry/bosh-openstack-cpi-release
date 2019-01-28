@@ -8,6 +8,7 @@ inputs:
   - name: bosh-cpi-src-in
   - name: terraform
   - name: bosh-deployment
+  - name: old-stemcell
 outputs:
   - name: director-deployment
 run:
@@ -35,6 +36,3 @@ params:
   internal_ntp:                           ""
   old_openstack_cpi_release_version:      ""
   old_openstack_cpi_release_sha1:         ""
-  old_bosh_stemcell_name:                 ""
-  old_bosh_stemcell_version:              ""
-  old_bosh_stemcell_sha1:                 ""
