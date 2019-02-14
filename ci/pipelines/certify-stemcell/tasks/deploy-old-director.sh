@@ -79,6 +79,7 @@ bosh-go int ../bosh-deployment/bosh.yml \
     -o ../bosh-cpi-src-in/ci/ops_files/timeouts.yml \
     -o ../bosh-cpi-src-in/ci/ops_files/custom-bosh-release.yml \
     -o ../bosh-cpi-src-in/ci/ops_files/custom-redis-release.yml \
+    -o ../bosh-cpi-src-in/ci/ops_files/postgres-9.4.yml \
     -v auth_url=${v3_e2e_auth_url} \
     -v availability_zone=${availability_zone:-'~'} \
     -v bosh_vcap_password_hash=${bosh_vcap_password_hash} \
