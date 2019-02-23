@@ -91,7 +91,7 @@ GEM
     rubocop-git (0.1.3)
       rubocop (>= 0.24.1)
     ruby-progressbar (1.10.0)
-    safe_yaml (1.0.4)
+    safe_yaml (1.0.5)
     semi_semantic (1.2.0)
     timecop (0.7.4)
     unicode-display_width (1.4.1)
