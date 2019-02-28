@@ -1,2 +1,17 @@
+#!/bin/bash
+
+set -euo pipefail
+
+RED='\033[0;35m'
+NC='\033[0m' # No Color
+
+if hash cred-alert-cli 2>/dev/null; then
+  CMD="git diff --cached | cred-alert-cli scan --diff"
+  echo "Running '${CMD}'"
+  eval "$CMD"
+else
+  >&2 echo -e "${RED}Not checking whether credentials get committed. cred-alert-cli is not installed.${NC}"
+fi
+
 unset GIT_DIR
 scripts/rubocop-staged
