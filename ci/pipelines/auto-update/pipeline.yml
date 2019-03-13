@@ -192,12 +192,12 @@ resources:
     tags: ((worker_tags))
     source:
       version_check: |
-       git ls-remote --tags https://github.com/yaml/libyaml.git \
-         | cut  -f2 \
-         | grep -v '\^{}' \
-         | grep -E '^refs/tags/.+$' \
-         | sed  -E 's/^refs\/tags\/(.+)$/\1/'  \
-         | grep -E '^[0-9]+\.[0-9]+\.[0-9]+$'
+       curl -s -l https://pyyaml.org/download/libyaml/ \
+       | grep 'yaml-.*tar.gz' \
+       | sed 's/<[^>]*>//g' \
+       | sed -E 's/^yaml-(.+)$/\1/' \
+       | sed "s/\.tar.*//" \
+       | sort -V
       metalink_get: |
         export name="yaml-${version}.tar.gz"
         export url="http://pyyaml.org/download/libyaml/yaml-${version}.tar.gz"
