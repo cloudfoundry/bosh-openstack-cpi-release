@@ -7,18 +7,6 @@
         - bosh-openstack-cpi-release-acceptance-test-queens
         - bosh-openstack-cpi-release-acceptance-test-pike
         - bosh-openstack-cpi-release-acceptance-test-ocata
-    periodic:
-      jobs:
-        - bosh-openstack-cpi-release-acceptance-test:
-            branches: master
-        - bosh-openstack-cpi-release-acceptance-test-rocky:
-            branches: master
-        - bosh-openstack-cpi-release-acceptance-test-queens:
-            branches: master
-        - bosh-openstack-cpi-release-acceptance-test-pike:
-            branches: master
-        - bosh-openstack-cpi-release-acceptance-test-ocata:
-            branches: master
 
 - job:
     name: bosh-openstack-cpi-release-acceptance-test
