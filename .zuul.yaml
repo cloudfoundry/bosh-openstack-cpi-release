@@ -3,6 +3,7 @@
     check:
       jobs:
         - bosh-openstack-cpi-release-acceptance-test
+        - bosh-openstack-cpi-release-acceptance-test-stein
         - bosh-openstack-cpi-release-acceptance-test-rocky
         - bosh-openstack-cpi-release-acceptance-test-queens
         - bosh-openstack-cpi-release-acceptance-test-pike
@@ -14,6 +15,15 @@
     description: |
       This job validation tests of bosh-openstack-cpi-release against OpenStack master branch
     run: .zuul/playbooks/bosh-openstack-cpi-release-acceptance-test/run.yaml
+
+- job:
+    name: bosh-openstack-cpi-release-acceptance-test-stein
+    parent: bosh-openstack-cpi-release-acceptance-test
+    description: |
+      This job validation tests of bosh-openstack-cpi-release against OpenStack Stein release
+    vars:
+      global_env:
+        OS_BRANCH: stable/stein
 
 - job:
     name: bosh-openstack-cpi-release-acceptance-test-rocky
