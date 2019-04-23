@@ -13,8 +13,8 @@ if [ $openssl_major_version == 0 ]; then
 fi
 
 echo "Installing yaml"
-tar xzf ruby_openstack_cpi/yaml-0.2.1.tar.gz
-pushd yaml-0.2.1 > /dev/null
+tar xzf ruby_openstack_cpi/yaml-0.2.2.tar.gz
+pushd yaml-0.2.2 > /dev/null
   if [ `uname -m` == "ppc64le" ]; then
     CFLAGS='-fPIC' ./configure --build=ppc64le --prefix=${BOSH_INSTALL_TARGET} --disable-shared
   else
@@ -25,8 +25,8 @@ pushd yaml-0.2.1 > /dev/null
 popd > /dev/null
 
 echo "Installing ruby"
-tar xzf ruby_openstack_cpi/ruby-2.4.5.tar.gz
-pushd ruby-2.4.5 > /dev/null
+tar xzf ruby_openstack_cpi/ruby-2.4.6.tar.gz
+pushd ruby-2.4.6 > /dev/null
   LDFLAGS="-Wl,-rpath -Wl,${BOSH_INSTALL_TARGET}" CFLAGS='-fPIC' ./configure --prefix=${BOSH_INSTALL_TARGET} --disable-install-doc --with-opt-dir=/usr/local/opt/openssl:${BOSH_INSTALL_TARGET}
   make
   make install
