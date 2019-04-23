@@ -222,7 +222,8 @@ resources:
         curl --silent --location https://raw.githubusercontent.com/postmodern/ruby-versions/master/ruby/stable.txt
       metalink_get: |
         export name="ruby-${version}.tar.gz"
-        export url="http://cache.ruby-lang.org/pub/ruby/${name}"
+        export major_minor=${version%.*}
+        export url="http://cache.ruby-lang.org/pub/ruby/${major_minor}/${name}"
         export sha256="$(curl --silent --location https://raw.githubusercontent.com/postmodern/ruby-versions/master/ruby/checksums.sha256 | grep ruby-${version}.tar.gz | awk {'print $1'})"
         export size="$(curl --silent --head "$url" | grep -i Content-Length | awk '{ print $2 }' | tr -cd '[:digit:]')"
         jq -n '
