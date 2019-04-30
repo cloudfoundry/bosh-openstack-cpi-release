@@ -74,6 +74,8 @@ bosh-go int ../bosh-deployment/bosh.yml \
     -o ../bosh-cpi-src-in/ci/ops_files/deployment-configuration.yml \
     -o ../bosh-cpi-src-in/ci/ops_files/custom-manual-networking.yml \
     -o ../bosh-cpi-src-in/ci/ops_files/timeouts.yml \
+    -o ../bosh-cpi-src-in/ci/ops_files/remove-registry.yml \
+    -o ../bosh-cpi-src-in/ci/ops_files/move-agent-properties-to-env-for-create-env.yml \
     -v auth_url=${v3_e2e_auth_url} \
     -v availability_zone=${availability_zone:-'~'} \
     -v bosh_vcap_password_hash=${bosh_vcap_password_hash} \
@@ -95,7 +97,6 @@ bosh-go int ../bosh-deployment/bosh.yml \
     -v openstack_state_timeout=${v3_e2e_state_timeout} \
     -v openstack_username=${v3_e2e_username} \
     -v openstack_write_timeout=${v3_e2e_write_timeout} \
-    --var-file=private_key=${private_key} \
     -v region=null \
     -v internal_ntp=[${internal_ntp}] | tee ${manifest_filename}
 
