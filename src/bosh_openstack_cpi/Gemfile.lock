@@ -4,7 +4,7 @@ GEM
     addressable (2.6.0)
       public_suffix (>= 2.0.2, < 4.0)
     ast (2.4.0)
-    bosh-template (2.2.0)
+    bosh-template (2.2.1)
       semi_semantic (~> 1.2.0)
     bosh_common (1.3262.24.0)
       logging (~> 1.8.2)
