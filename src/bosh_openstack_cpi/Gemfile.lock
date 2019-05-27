@@ -57,7 +57,7 @@ GEM
     pry-byebug (3.7.0)
       byebug (~> 11.0)
       pry (~> 0.10)
-    public_suffix (3.0.3)
+    public_suffix (3.1.0)
     rainbow (3.0.0)
     rake (10.3.2)
     rb-readline (0.5.5)
