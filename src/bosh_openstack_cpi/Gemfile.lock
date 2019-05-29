@@ -32,7 +32,7 @@ GEM
       fog-json (>= 1.0)
       ipaddress (>= 0.8)
     formatador (0.2.5)
-    hashdiff (0.3.9)
+    hashdiff (0.4.0)
     httpclient (2.8.3)
     ipaddress (0.8.3)
     jaro_winkler (1.5.2)
