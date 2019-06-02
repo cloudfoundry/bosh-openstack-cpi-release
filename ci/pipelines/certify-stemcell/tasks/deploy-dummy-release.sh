@@ -18,6 +18,7 @@ export_terraform_variable "v3_e2e_net_id"
 director_deployment_input="${PWD}/director-deployment"
 dummy_deployment_output="${PWD}/dummy-deployment"
 manifest_filename="dummy-manifest.yml"
+director_cloud_config="cloud-config.yml"
 dummy_release_name="dummy"
 bosh_vcap_password_hash=$(ruby -e 'require "securerandom";puts ENV["bosh_vcap_password"].crypt("$6$#{SecureRandom.base64(14)}")')
 
@@ -34,6 +35,32 @@ bosh-go --version
 echo "uploading stemcell to director..."
 bosh-go -n upload-stemcell ../stemcell/stemcell.tgz
 
+cat > "${dummy_deployment_output}/${director_cloud_config}"<<EOF
+---
+compilation:
+  reuse_compilation_vms: true
+  workers: 1
+  network: private
+  cloud_properties:
+    instance_type: ${instance_flavor}
+
+networks:
+  - name: private
+    type: dynamic
+    dns: ${dns}
+    cloud_properties:
+      net_id: ${v3_e2e_net_id}
+      security_groups: [${v3_e2e_security_group}]
+
+vm_types:
+  - name: default
+    cloud_properties:
+      instance_type: ${instance_flavor}
+      disk: 1024
+EOF
+echo "uploading cloud-config..."
+bosh-go -n update-cloud-config ${dummy_deployment_output}/${director_cloud_config}
+
 echo "creating release..."
 bosh-go -n create-release --dir ../dummy-release --name ${dummy_release_name}
 
@@ -49,43 +76,25 @@ releases:
   - name: ${dummy_release_name}
     version: latest
 
-resource_pools:
-  - name: default
-    stemcell:
-      name: ${stemcell_name}
-      version: latest
-    network: private
-    size: 1
-    cloud_properties:
-      instance_type: ${instance_flavor}
-      disk: 1024
+instance_groups:
+  - name: dummy
+    instances: 1
+    jobs:
+      - name: dummy
+        release: ${dummy_release_name}
+    vm_type: default
+    stemcell: ubuntu
+    networks:
+      - name: private
+        default: [dns, gateway]
     env:
       bosh:
         password: ${bosh_vcap_password_hash}
 
-networks:
-  - name: private
-    type: dynamic
-    dns: ${dns}
-    cloud_properties:
-      net_id: ${v3_e2e_net_id}
-      security_groups: [${v3_e2e_security_group}]
-
-jobs:
-  - name: dummy
-    template: dummy
-    instances: 1
-    resource_pool: default
-    networks:
-      - name : private
-        default: [dns, gateway]
-
-compilation:
-  reuse_compilation_vms: true
-  workers: 1
-  network: private
-  cloud_properties:
-    instance_type: ${instance_flavor}
+stemcells:
+- alias: ubuntu
+  version: latest
+  name: ${stemcell_name}
 
 update:
   canaries: 1

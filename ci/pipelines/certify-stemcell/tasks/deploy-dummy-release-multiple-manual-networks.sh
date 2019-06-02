@@ -26,6 +26,7 @@ export_terraform_variable "network_no_dhcp_2_ip"
 
 deployment_dir="${PWD}/director-deployment"
 manifest_filename="dummy-multiple-manual-networks-manifest.yml"
+cloud_config_filename="dummy-multiple-manual-networks-cloud-config.yml"
 dummy_release_name="dummy"
 deployment_name="dummy-multiple-manual-networks"
 bosh_vcap_password_hash=$(ruby -e 'require "securerandom";puts ENV["bosh_vcap_password"].crypt("$6$#{SecureRandom.base64(14)}")')
@@ -43,34 +44,14 @@ bosh-go --version
 echo "uploading stemcell to director..."
 bosh-go -n upload-stemcell ../stemcell/stemcell.tgz
 
-echo "creating release..."
-bosh-go -n create-release --dir ../dummy-release --name ${dummy_release_name}
-
-echo "uploading release to director..."
-bosh-go -n upload-release --dir ../dummy-release
-
-#create dummy release manifest as heredoc
-cat > "${manifest_filename}"<<EOF
+cat > "${cloud_config_filename}"<<EOF
 ---
-name: ${deployment_name}
-
-releases:
-  - name: ${dummy_release_name}
-    version: latest
-
-resource_pools:
-  - name: default
-    stemcell:
-      name: ${stemcell_name}
-      version: latest
-    network: private
-    size: 1
-    cloud_properties:
-      instance_type: ${instance_flavor}
-      disk: 1024
-    env:
-      bosh:
-        password: ${bosh_vcap_password_hash}
+compilation:
+  reuse_compilation_vms: true
+  workers: 1
+  network: private
+  cloud_properties:
+    instance_type: ${instance_flavor}
 
 networks:
   - name: private
@@ -79,7 +60,7 @@ networks:
     cloud_properties:
       net_id: ${v3_e2e_net_id}
       security_groups: [${v3_e2e_security_group}]
-      
+
   - name: manual-1
     type: manual
     subnets:
@@ -102,24 +83,52 @@ networks:
           net_id: ${network_no_dhcp_2_id}
           security_groups: [${v3_e2e_security_group}]
 
-jobs:
+vm_types:
+  - name: default
+    cloud_properties:
+      instance_type: ${instance_flavor}
+      disk: 1024
+EOF
+echo "uploading cloud-config..."
+bosh-go -n update-cloud-config "${cloud_config_filename}"
+
+echo "creating release..."
+bosh-go -n create-release --dir ../dummy-release --name ${dummy_release_name}
+
+echo "uploading release to director..."
+bosh-go -n upload-release --dir ../dummy-release
+
+#create dummy release manifest as heredoc
+cat > "${manifest_filename}"<<EOF
+---
+name: ${deployment_name}
+
+releases:
+  - name: ${dummy_release_name}
+    version: latest
+
+instance_groups:
   - name: dummy
-    template: dummy
     instances: 1
-    resource_pool: default
+    jobs:
+      - name: dummy
+        release: ${dummy_release_name}
+    vm_type: default
+    stemcell: ubuntu
     networks:
       - name : manual-1
         default: [dns, gateway]
         static_ips: [${network_no_dhcp_1_ip}]
       - name : manual-2
         static_ips: [${network_no_dhcp_2_ip}]
+    env:
+      bosh:
+        password: ${bosh_vcap_password_hash}
 
-compilation:
-  reuse_compilation_vms: true
-  workers: 1
-  network: private
-  cloud_properties:
-    instance_type: ${instance_flavor}
+stemcells:
+- alias: ubuntu
+  version: latest
+  name: ${stemcell_name}
 
 update:
   canaries: 1

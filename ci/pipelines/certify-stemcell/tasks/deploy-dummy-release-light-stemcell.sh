@@ -30,6 +30,7 @@ stemcell_version=$(cat stemcell/version)
 deployment_dir="${PWD}/director-deployment"
 stemcell_dir="${PWD}/stemcell"
 manifest_filename="dummy-light-stemcell-manifest.yml"
+cloud_config_filename="dummy-cloud-config.yml"
 dummy_release_name="dummy"
 deployment_name="dummy-light-stemcell"
 bosh_vcap_password_hash=$(ruby -e 'require "securerandom";puts ENV["bosh_vcap_password"].crypt("$6$#{SecureRandom.base64(14)}")')
@@ -60,6 +61,32 @@ bosh-go repack-stemcell --version "$stemcell_version" \
 echo "uploading stemcell to director..."
 bosh-go -n upload-stemcell "$light_stemcell_path"
 
+cat > "${cloud_config_filename}"<<EOF
+---
+compilation:
+  reuse_compilation_vms: true
+  workers: 1
+  network: private
+  cloud_properties:
+    instance_type: ${instance_flavor}
+
+networks:
+  - name: private
+    type: dynamic
+    dns: ${dns}
+    cloud_properties:
+      net_id: ${v3_e2e_net_id}
+      security_groups: [${v3_e2e_security_group}]
+
+vm_types:
+  - name: default
+    cloud_properties:
+      instance_type: ${instance_flavor}
+      disk: 1024
+EOF
+echo "uploading cloud-config..."
+bosh-go -n update-cloud-config ${cloud_config_filename}
+
 echo "creating dummy release..."
 bosh-go -n create-release --dir ../dummy-release --name ${dummy_release_name}
 
@@ -75,43 +102,25 @@ releases:
   - name: ${dummy_release_name}
     version: latest
 
-resource_pools:
-  - name: default
-    stemcell:
-      name: "bosh-openstack-kvm-${os_name}-go_agent"
-      version: latest
-    network: private
-    size: 1
-    cloud_properties:
-      instance_type: ${instance_flavor}
-      disk: 1024
+instance_groups:
+  - name: dummy
+    instances: 1
+    jobs:
+      - name: dummy
+        release: ${dummy_release_name}
+    vm_type: default
+    stemcell: ubuntu
+    networks:
+      - name: private
+        default: [dns, gateway]
     env:
       bosh:
         password: ${bosh_vcap_password_hash}
 
-networks:
-  - name: private
-    type: dynamic
-    dns: ${dns}
-    cloud_properties:
-      net_id: ${v3_e2e_net_id}
-      security_groups: [${v3_e2e_security_group}]
-
-jobs:
-  - name: dummy
-    template: dummy
-    instances: 1
-    resource_pool: default
-    networks:
-      - name : private
-        default: [dns, gateway]
-
-compilation:
-  reuse_compilation_vms: true
-  workers: 1
-  network: private
-  cloud_properties:
-    instance_type: ${instance_flavor}
+stemcells:
+- alias: ubuntu
+  version: latest
+  name: "bosh-openstack-kvm-${os_name}-go_agent"
 
 update:
   canaries: 1
