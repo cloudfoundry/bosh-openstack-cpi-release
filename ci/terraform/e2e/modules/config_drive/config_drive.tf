@@ -25,12 +25,12 @@ variable "password" {
 }
 
 variable "insecure" {
-  default = "false"
+  default     = "false"
   description = "SSL certificate validation"
 }
 
 variable "cacert_file" {
-  default = ""
+  default     = ""
   description = "Path to trusted CA certificate for OpenStack in PEM format"
 }
 
@@ -39,8 +39,8 @@ variable "project_name" {
 }
 
 variable "dns_nameservers" {
-   type = "list"
-   description = "List of DNS server IPs"
+  type        = "list"
+  description = "List of DNS server IPs"
 }
 
 variable "region_name" {
@@ -69,17 +69,17 @@ resource "openstack_networking_network_v2" "v3_e2e_no_dhcp_1_net" {
 }
 
 resource "openstack_networking_subnet_v2" "v3_e2e_no_dhcp_1_subnet" {
-  region           = "${var.region_name}"
-  network_id       = "${openstack_networking_network_v2.v3_e2e_no_dhcp_1_net.id}"
-  cidr             = "${var.no_dhcp_net_1_cidr}"
-  ip_version       = 4
-  name             = "${var.prefix}-no-dhcp-1-subnet"
+  region     = "${var.region_name}"
+  network_id = "${openstack_networking_network_v2.v3_e2e_no_dhcp_1_net.id}"
+  cidr       = "${var.no_dhcp_net_1_cidr}"
+  ip_version = 4
+  name       = "${var.prefix}-no-dhcp-1-subnet"
   allocation_pools = {
     start = "${cidrhost(var.no_dhcp_net_1_cidr, 200)}"
     end   = "${cidrhost(var.no_dhcp_net_1_cidr, 254)}"
   }
-  gateway_ip       = "${cidrhost(var.no_dhcp_net_1_cidr, 1)}"
-  enable_dhcp      = "false"
+  gateway_ip      = "${cidrhost(var.no_dhcp_net_1_cidr, 1)}"
+  enable_dhcp     = "false"
   dns_nameservers = "${var.dns_nameservers}"
 }
 
@@ -96,17 +96,17 @@ resource "openstack_networking_network_v2" "v3_e2e_no_dhcp_2_net" {
 }
 
 resource "openstack_networking_subnet_v2" "v3_e2e_no_dhcp_2_subnet" {
-  region           = "${var.region_name}"
-  network_id       = "${openstack_networking_network_v2.v3_e2e_no_dhcp_2_net.id}"
-  cidr             = "${var.no_dhcp_net_2_cidr}"
-  ip_version       = 4
-  name             = "${var.prefix}-no-dhcp-2-subnet"
+  region     = "${var.region_name}"
+  network_id = "${openstack_networking_network_v2.v3_e2e_no_dhcp_2_net.id}"
+  cidr       = "${var.no_dhcp_net_2_cidr}"
+  ip_version = 4
+  name       = "${var.prefix}-no-dhcp-2-subnet"
   allocation_pools = {
     start = "${cidrhost(var.no_dhcp_net_2_cidr, 200)}"
     end   = "${cidrhost(var.no_dhcp_net_2_cidr, 254)}"
   }
-  gateway_ip       = "${cidrhost(var.no_dhcp_net_2_cidr, 1)}"
-  enable_dhcp      = "false"
+  gateway_ip      = "${cidrhost(var.no_dhcp_net_2_cidr, 1)}"
+  enable_dhcp     = "false"
   dns_nameservers = "${var.dns_nameservers}"
 }
 

@@ -9,24 +9,24 @@ provider "openstack" {
 }
 
 module "base" {
-  source = "../modules/base"
-  region_name = "${var.region_name}"
-  project_name = "${var.project_name}"
-  ext_net_id = "${var.ext_net_id}"
-  ext_net_cidr = ""
-  concourse_external_network_cidr = ""
+  source                           = "../modules/base"
+  region_name                      = "${var.region_name}"
+  project_name                     = "${var.project_name}"
+  ext_net_id                       = "${var.ext_net_id}"
+  ext_net_cidr                     = ""
+  concourse_external_network_cidr  = ""
   openstack_default_key_public_key = "${var.openstack_default_key_public_key}"
-  prefix = "lifecycle"
-  add_security_group = "1"
+  prefix                           = "lifecycle"
+  add_security_group               = "1"
 }
 
 module "lifecycle" {
-  source = "../modules/lifecycle"
-  region_name = "${var.region_name}"
-  dns_nameservers = "${var.dns_nameservers}"
+  source            = "../modules/lifecycle"
+  region_name       = "${var.region_name}"
+  dns_nameservers   = "${var.dns_nameservers}"
   default_router_id = "${module.base.default_router_id}"
-  ext_net_name = "${var.ext_net_name}"
-  use_lbaas = "${var.use_lbaas}"
+  ext_net_name      = "${var.ext_net_name}"
+  use_lbaas         = "${var.use_lbaas}"
 }
 
 variable "auth_url" {
@@ -50,12 +50,12 @@ variable "project_name" {
 }
 
 variable "insecure" {
-  default = "false"
+  default     = "false"
   description = "SSL certificate validation"
 }
 
 variable "cacert_file" {
-  default = ""
+  default     = ""
   description = "Path to trusted CA certificate for OpenStack in PEM format"
 }
 
@@ -73,7 +73,7 @@ variable "ext_net_name" {
 
 variable "dns_nameservers" {
   description = "DNS server IPs"
-  type = "list"
+  type        = "list"
 }
 
 variable "openstack_default_key_public_key" {
@@ -81,7 +81,7 @@ variable "openstack_default_key_public_key" {
 }
 
 variable "use_lbaas" {
-  default = "false"
+  default     = "false"
   description = "When set to 'true', all necessary LBaaS V2 resources are created."
 }
 

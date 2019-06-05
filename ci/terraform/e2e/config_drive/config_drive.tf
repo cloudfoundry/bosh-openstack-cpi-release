@@ -19,20 +19,20 @@ module "base" {
 }
 
 module "config_drive" {
-  source                          = "../modules/config_drive"
-  region_name                     = "${var.region_name}"
-  auth_url                        = "${var.auth_url}"
-  user_name                       = "${var.user_name}"
-  password                        = "${var.password}"
-  project_name                    = "${var.project_name}"
-  domain_name                     = "${var.domain_name}"
-  insecure                        = "${var.insecure}"
-  cacert_file                     = "${var.cacert_file}"
-  dns_nameservers                 = "${var.dns_nameservers}"
-  e2e_router_id                   = "${module.base.e2e_router_id}"
-  no_dhcp_net_1_cidr              = "${var.no_dhcp_net_1_cidr}"
-  no_dhcp_net_2_cidr              = "${var.no_dhcp_net_2_cidr}"
-  prefix                          = "${var.prefix}"
+  source             = "../modules/config_drive"
+  region_name        = "${var.region_name}"
+  auth_url           = "${var.auth_url}"
+  user_name          = "${var.user_name}"
+  password           = "${var.password}"
+  project_name       = "${var.project_name}"
+  domain_name        = "${var.domain_name}"
+  insecure           = "${var.insecure}"
+  cacert_file        = "${var.cacert_file}"
+  dns_nameservers    = "${var.dns_nameservers}"
+  e2e_router_id      = "${module.base.e2e_router_id}"
+  no_dhcp_net_1_cidr = "${var.no_dhcp_net_1_cidr}"
+  no_dhcp_net_2_cidr = "${var.no_dhcp_net_2_cidr}"
+  prefix             = "${var.prefix}"
 }
 
 variable "auth_url" {
@@ -52,12 +52,12 @@ variable "password" {
 }
 
 variable "insecure" {
-   default = "false"
-   description = "SSL certificate validation"
+  default     = "false"
+  description = "SSL certificate validation"
 }
 
 variable "cacert_file" {
-  default = ""
+  default     = ""
   description = "Path to trusted CA certificate for OpenStack in PEM format"
 }
 
@@ -66,8 +66,8 @@ variable "project_name" {
 }
 
 variable "dns_nameservers" {
-   type = "list"
-   description = "List of DNS server IPs"
+  type        = "list"
+  description = "List of DNS server IPs"
 }
 
 variable "ext_net_name" {

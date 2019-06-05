@@ -6,7 +6,7 @@ variable "region_name" {
 
 variable "dns_nameservers" {
   description = "DNS server IPs"
-  type = "list"
+  type        = "list"
 }
 
 variable "primary_net_name" {
@@ -36,17 +36,17 @@ resource "openstack_networking_network_v2" "primary_net" {
 }
 
 resource "openstack_networking_subnet_v2" "primary_subnet" {
-  region           = "${var.region_name}"
-  network_id       = "${openstack_networking_network_v2.primary_net.id}"
-  cidr             = "${var.primary_net_cidr}"
-  ip_version       = 4
-  name             = "${var.primary_net_name}-sub"
+  region     = "${var.region_name}"
+  network_id = "${openstack_networking_network_v2.primary_net.id}"
+  cidr       = "${var.primary_net_cidr}"
+  ip_version = 4
+  name       = "${var.primary_net_name}-sub"
   allocation_pools = {
     start = "${var.primary_net_allocation_pool_start}"
     end   = "${var.primary_net_allocation_pool_end}"
   }
-  gateway_ip       = "${cidrhost(var.primary_net_cidr, 1)}"
-  enable_dhcp      = "true"
+  gateway_ip      = "${cidrhost(var.primary_net_cidr, 1)}"
+  enable_dhcp     = "true"
   dns_nameservers = "${var.dns_nameservers}"
 }
 

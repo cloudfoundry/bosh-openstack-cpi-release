@@ -1,6 +1,6 @@
 variable "dns_nameservers" {
   description = "DNS server IPs"
-  type = "list"
+  type        = "list"
 }
 
 variable "region_name" {}
@@ -12,7 +12,7 @@ variable "ext_net_name" {
 }
 
 variable "use_lbaas" {
-  default = "false"
+  default     = "false"
   description = "When set to 'true', all necessary LBaaS V2 resources are created."
 }
 
@@ -63,23 +63,23 @@ resource "openstack_networking_network_v2" "lifecycle_net" {
 }
 
 resource "openstack_networking_subnet_v2" "lifecycle_subnet" {
-  region           = "${var.region_name}"
-  network_id       = "${openstack_networking_network_v2.lifecycle_net.id}"
-  cidr             = "10.0.1.0/24"
-  ip_version       = 4
-  name             = "lifecycle_sub"
+  region     = "${var.region_name}"
+  network_id = "${openstack_networking_network_v2.lifecycle_net.id}"
+  cidr       = "10.0.1.0/24"
+  ip_version = 4
+  name       = "lifecycle_sub"
   allocation_pools = {
     start = "10.0.1.200"
     end   = "10.0.1.254"
   }
-  gateway_ip       = "10.0.1.1"
-  enable_dhcp      = "true"
+  gateway_ip      = "10.0.1.1"
+  enable_dhcp     = "true"
   dns_nameservers = "${var.dns_nameservers}"
 }
 
 resource "openstack_networking_port_v2" "allowed_address_pairs" {
-  name           = "allowed_address_pairs"
-  network_id     = "${openstack_networking_network_v2.lifecycle_net.id}"
+  name       = "allowed_address_pairs"
+  network_id = "${openstack_networking_network_v2.lifecycle_net.id}"
   fixed_ip = {
     subnet_id = "${openstack_networking_subnet_v2.lifecycle_subnet.id}"
   }
@@ -93,13 +93,13 @@ resource "openstack_networking_network_v2" "lifecycle_net_no_dhcp_1" {
 }
 
 resource "openstack_networking_subnet_v2" "lifecycle_subnet_no_dhcp_1" {
-  region           = "${var.region_name}"
-  network_id       = "${openstack_networking_network_v2.lifecycle_net_no_dhcp_1.id}"
-  cidr             = "10.1.1.0/24"
-  ip_version       = 4
-  name             = "lifecycle-subnet-no-dhcp-1"
-  gateway_ip       = "10.1.1.1"
-  enable_dhcp      = "false"
+  region          = "${var.region_name}"
+  network_id      = "${openstack_networking_network_v2.lifecycle_net_no_dhcp_1.id}"
+  cidr            = "10.1.1.0/24"
+  ip_version      = 4
+  name            = "lifecycle-subnet-no-dhcp-1"
+  gateway_ip      = "10.1.1.1"
+  enable_dhcp     = "false"
   dns_nameservers = "${var.dns_nameservers}"
 }
 
@@ -110,13 +110,13 @@ resource "openstack_networking_network_v2" "lifecycle_net_no_dhcp_2" {
 }
 
 resource "openstack_networking_subnet_v2" "lifecycle_subnet_no_dhcp_2" {
-  region           = "${var.region_name}"
-  network_id       = "${openstack_networking_network_v2.lifecycle_net_no_dhcp_2.id}"
-  cidr             = "10.2.1.0/24"
-  ip_version       = 4
-  name             = "lifecycle-subnet-no-dhcp-2"
-  gateway_ip       = "10.2.1.1"
-  enable_dhcp      = "false"
+  region          = "${var.region_name}"
+  network_id      = "${openstack_networking_network_v2.lifecycle_net_no_dhcp_2.id}"
+  cidr            = "10.2.1.0/24"
+  ip_version      = 4
+  name            = "lifecycle-subnet-no-dhcp-2"
+  gateway_ip      = "10.2.1.1"
+  enable_dhcp     = "false"
   dns_nameservers = "${var.dns_nameservers}"
 }
 
@@ -136,24 +136,24 @@ resource "openstack_networking_floatingip_v2" "lifecycle_floating_ip" {
 # lbaas
 
 resource "openstack_lb_loadbalancer_v2" "lifecycle_loadbalancer" {
-  vip_subnet_id = "${openstack_networking_subnet_v2.lifecycle_subnet.id}"
-  name = "Lifecycle Load Balancer"
+  vip_subnet_id         = "${openstack_networking_subnet_v2.lifecycle_subnet.id}"
+  name                  = "Lifecycle Load Balancer"
   loadbalancer_provider = "haproxy"
-  count = "${var.use_lbaas == "true" ? 1 : 0}"
+  count                 = "${var.use_lbaas == "true" ? 1 : 0}"
 }
 
 resource "openstack_lb_listener_v2" "lifecycle_listener" {
   protocol        = "TCP"
   protocol_port   = 4444
-  name = "Lifecycle Listener"
-  loadbalancer_id =  "${element(openstack_lb_loadbalancer_v2.lifecycle_loadbalancer.*.id, count.index)}"
-  count = "${var.use_lbaas == "true" ? 1 : 0}"
+  name            = "Lifecycle Listener"
+  loadbalancer_id = "${element(openstack_lb_loadbalancer_v2.lifecycle_loadbalancer.*.id, count.index)}"
+  count           = "${var.use_lbaas == "true" ? 1 : 0}"
 }
 
 resource "openstack_lb_pool_v2" "lifecycle_pool" {
   protocol    = "TCP"
   lb_method   = "ROUND_ROBIN"
-  name = "Lifecycle Pool"
+  name        = "Lifecycle Pool"
   listener_id = "${element(openstack_lb_listener_v2.lifecycle_listener.*.id, count.index)}"
-  count = "${var.use_lbaas == "true" ? 1 : 0}"
+  count       = "${var.use_lbaas == "true" ? 1 : 0}"
 }

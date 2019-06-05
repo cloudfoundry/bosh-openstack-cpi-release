@@ -25,12 +25,12 @@ variable "password" {
 }
 
 variable "insecure" {
-  default = "false"
+  default     = "false"
   description = "SSL certificate validation"
 }
 
 variable "cacert_file" {
-  default = ""
+  default     = ""
   description = "Path to trusted CA certificate for OpenStack in PEM format"
 }
 
@@ -39,8 +39,8 @@ variable "project_name" {
 }
 
 variable "dns_nameservers" {
-   description = "List of DNS server IPs"
-   type = "list"
+  description = "List of DNS server IPs"
+  type        = "list"
 }
 
 variable "ext_net_name" {
@@ -88,24 +88,24 @@ resource "openstack_networking_network_v2" "v3_e2e_net" {
 }
 
 resource "openstack_networking_subnet_v2" "v3_e2e_subnet" {
-  region           = "${var.region_name}"
-  network_id       = "${openstack_networking_network_v2.v3_e2e_net.id}"
-  cidr             = "${var.e2e_net_cidr}"
-  ip_version       = 4
-  name             = "${var.prefix}-subnet"
+  region     = "${var.region_name}"
+  network_id = "${openstack_networking_network_v2.v3_e2e_net.id}"
+  cidr       = "${var.e2e_net_cidr}"
+  ip_version = 4
+  name       = "${var.prefix}-subnet"
   allocation_pools = {
     start = "${cidrhost(var.e2e_net_cidr, 200)}"
     end   = "${cidrhost(var.e2e_net_cidr, 254)}"
   }
-  gateway_ip       = "${cidrhost(var.e2e_net_cidr, 1)}"
-  enable_dhcp      = "true"
+  gateway_ip      = "${cidrhost(var.e2e_net_cidr, 1)}"
+  enable_dhcp     = "true"
   dns_nameservers = "${var.dns_nameservers}"
 }
 
 resource "openstack_networking_router_v2" "e2e_router" {
-  region           = "${var.region_name}"
-  name             = "${var.prefix}-router"
-  admin_state_up   = "true"
+  region              = "${var.region_name}"
+  name                = "${var.prefix}-router"
+  admin_state_up      = "true"
   external_network_id = "${var.ext_net_id}"
 }
 
@@ -127,72 +127,72 @@ resource "openstack_networking_secgroup_v2" "secgroup" {
 }
 
 resource "openstack_networking_secgroup_rule_v2" "secgroup_rule_1" {
-  direction = "ingress"
-  ethertype = "IPv4"
-  protocol = "tcp"
-  remote_group_id = "${openstack_networking_secgroup_v2.secgroup.id}"
+  direction         = "ingress"
+  ethertype         = "IPv4"
+  protocol          = "tcp"
+  remote_group_id   = "${openstack_networking_secgroup_v2.secgroup.id}"
   security_group_id = "${openstack_networking_secgroup_v2.secgroup.id}"
 }
 
 resource "openstack_networking_secgroup_rule_v2" "secgroup_rule_2" {
-  direction = "ingress"
-  ethertype = "IPv4"
-  protocol = "udp"
-  remote_group_id = "${openstack_networking_secgroup_v2.secgroup.id}"
+  direction         = "ingress"
+  ethertype         = "IPv4"
+  protocol          = "udp"
+  remote_group_id   = "${openstack_networking_secgroup_v2.secgroup.id}"
   security_group_id = "${openstack_networking_secgroup_v2.secgroup.id}"
 }
 
 resource "openstack_networking_secgroup_rule_v2" "secgroup_rule_3" {
-  direction = "ingress"
-  ethertype = "IPv4"
-  protocol = "icmp"
-  remote_group_id = "${openstack_networking_secgroup_v2.secgroup.id}"
+  direction         = "ingress"
+  ethertype         = "IPv4"
+  protocol          = "icmp"
+  remote_group_id   = "${openstack_networking_secgroup_v2.secgroup.id}"
   security_group_id = "${openstack_networking_secgroup_v2.secgroup.id}"
 }
 
 resource "openstack_networking_secgroup_rule_v2" "secgroup_rule_4" {
-  direction = "ingress"
-  ethertype = "IPv4"
-  protocol = "tcp"
-  port_range_min = 22
-  port_range_max = 22
-  remote_ip_prefix = "0.0.0.0/0"
+  direction         = "ingress"
+  ethertype         = "IPv4"
+  protocol          = "tcp"
+  port_range_min    = 22
+  port_range_max    = 22
+  remote_ip_prefix  = "0.0.0.0/0"
   security_group_id = "${openstack_networking_secgroup_v2.secgroup.id}"
 }
 
 resource "openstack_networking_secgroup_rule_v2" "secgroup_rule_5" {
-  direction = "ingress"
-  ethertype = "IPv4"
-  protocol = "tcp"
-  port_range_min = 25555
-  port_range_max = 25555
-  remote_ip_prefix = "0.0.0.0/0"
+  direction         = "ingress"
+  ethertype         = "IPv4"
+  protocol          = "tcp"
+  port_range_min    = 25555
+  port_range_max    = 25555
+  remote_ip_prefix  = "0.0.0.0/0"
   security_group_id = "${openstack_networking_secgroup_v2.secgroup.id}"
 }
 
 resource "openstack_networking_secgroup_rule_v2" "secgroup_rule_6" {
-  direction = "ingress"
-  ethertype = "IPv4"
-  protocol = "tcp"
-  port_range_min = 6868
-  port_range_max = 6868
-  remote_ip_prefix = "${var.concourse_external_network_cidr}"
+  direction         = "ingress"
+  ethertype         = "IPv4"
+  protocol          = "tcp"
+  port_range_min    = 6868
+  port_range_max    = 6868
+  remote_ip_prefix  = "${var.concourse_external_network_cidr}"
   security_group_id = "${openstack_networking_secgroup_v2.secgroup.id}"
 }
 
 resource "openstack_networking_secgroup_rule_v2" "secgroup_rule_7" {
-  direction = "ingress"
-  ethertype = "IPv4"
-  protocol = "tcp"
-  remote_ip_prefix = "${var.ext_net_cidr}"
+  direction         = "ingress"
+  ethertype         = "IPv4"
+  protocol          = "tcp"
+  remote_ip_prefix  = "${var.ext_net_cidr}"
   security_group_id = "${openstack_networking_secgroup_v2.secgroup.id}"
 }
 
 resource "openstack_networking_secgroup_rule_v2" "secgroup_rule_8" {
-  direction = "ingress"
-  ethertype = "IPv4"
-  protocol = "udp"
-  remote_ip_prefix = "${var.ext_net_cidr}"
+  direction         = "ingress"
+  ethertype         = "IPv4"
+  protocol          = "udp"
+  remote_ip_prefix  = "${var.ext_net_cidr}"
   security_group_id = "${openstack_networking_secgroup_v2.secgroup.id}"
 }
 

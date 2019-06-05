@@ -9,27 +9,27 @@ provider "openstack" {
 }
 
 module "base" {
-  source = "../modules/base"
-  region_name = "${var.region_name}"
-  project_name = "${var.project_name}"
-  ext_net_id = "${var.ext_net_id}"
-  ext_net_cidr = "${var.ext_net_cidr}"
-  concourse_external_network_cidr = "${var.concourse_external_network_cidr}"
+  source                           = "../modules/base"
+  region_name                      = "${var.region_name}"
+  project_name                     = "${var.project_name}"
+  ext_net_id                       = "${var.ext_net_id}"
+  ext_net_cidr                     = "${var.ext_net_cidr}"
+  concourse_external_network_cidr  = "${var.concourse_external_network_cidr}"
   openstack_default_key_public_key = "${var.openstack_default_key_public_key}"
-  prefix = "${var.prefix}"
-  add_security_group = "1"
+  prefix                           = "${var.prefix}"
+  add_security_group               = "1"
 }
 
 module "bats" {
-  source = "../modules/bats"
-  region_name = "${var.region_name}"
-  primary_net_name = "${var.primary_net_name}"
-  primary_net_cidr = "${var.primary_net_cidr}"
+  source                            = "../modules/bats"
+  region_name                       = "${var.region_name}"
+  primary_net_name                  = "${var.primary_net_name}"
+  primary_net_cidr                  = "${var.primary_net_cidr}"
   primary_net_allocation_pool_start = "${var.primary_net_allocation_pool_start}"
-  primary_net_allocation_pool_end = "${var.primary_net_allocation_pool_end}"
-  ext_net_name = "${var.ext_net_name}"
-  dns_nameservers = "${var.dns_nameservers}"
-  default_router_id = "${module.base.default_router_id}"
+  primary_net_allocation_pool_end   = "${var.primary_net_allocation_pool_end}"
+  ext_net_name                      = "${var.ext_net_name}"
+  dns_nameservers                   = "${var.dns_nameservers}"
+  default_router_id                 = "${module.base.default_router_id}"
 }
 
 variable "auth_url" {
@@ -53,12 +53,12 @@ variable "project_name" {
 }
 
 variable "insecure" {
-  default = "false"
+  default     = "false"
   description = "SSL certificate validation"
 }
 
 variable "cacert_file" {
-  default = ""
+  default     = ""
   description = "Path to trusted CA certificate for OpenStack in PEM format"
 }
 
@@ -112,7 +112,7 @@ variable "ext_net_cidr" {
 
 variable "dns_nameservers" {
   description = "DNS server IPs"
-  type = "list"
+  type        = "list"
 }
 
 variable "concourse_external_network_cidr" {
@@ -134,17 +134,17 @@ resource "openstack_networking_network_v2" "secondary_net" {
 }
 
 resource "openstack_networking_subnet_v2" "secondary_subnet" {
-  region           = "${var.region_name}"
-  network_id       = "${openstack_networking_network_v2.secondary_net.id}"
-  cidr             = "${var.secondary_net_cidr}"
-  ip_version       = 4
-  name             = "${var.secondary_net_name}-sub"
+  region     = "${var.region_name}"
+  network_id = "${openstack_networking_network_v2.secondary_net.id}"
+  cidr       = "${var.secondary_net_cidr}"
+  ip_version = 4
+  name       = "${var.secondary_net_name}-sub"
   allocation_pools = {
     start = "${var.secondary_net_allocation_pool_start}"
     end   = "${var.secondary_net_allocation_pool_end}"
   }
-  gateway_ip       = "${cidrhost(var.secondary_net_cidr, 1)}"
-  enable_dhcp      = "true"
+  gateway_ip      = "${cidrhost(var.secondary_net_cidr, 1)}"
+  enable_dhcp     = "true"
   dns_nameservers = "${var.dns_nameservers}"
 }
 
