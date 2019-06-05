@@ -30,6 +30,10 @@ variable "ext_net_name" {
   description = "OpenStack external network name to register floating IP"
 }
 
+variable "director_public_ip" {
+  description = "OpenStack IP adress of the bosh director"
+}
+
 resource "openstack_networking_network_v2" "primary_net" {
   region         = var.region_name
   name           = var.primary_net_name
