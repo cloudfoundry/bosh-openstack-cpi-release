@@ -1,32 +1,32 @@
 provider "openstack" {
-  auth_url    = "${var.auth_url}"
-  user_name   = "${var.user_name}"
-  password    = "${var.password}"
-  tenant_name = "${var.project_name}"
-  domain_name = "${var.domain_name}"
-  insecure    = "${var.insecure}"
-  cacert_file = "${var.cacert_file}"
+  auth_url    = var.auth_url
+  user_name   = var.user_name
+  password    = var.password
+  tenant_name = var.project_name
+  domain_name = var.domain_name
+  insecure    = var.insecure
+  cacert_file = var.cacert_file
 }
 
 module "base" {
   source                           = "../modules/base"
-  region_name                      = "${var.region_name}"
-  project_name                     = "${var.project_name}"
-  ext_net_id                       = "${var.ext_net_id}"
+  region_name                      = var.region_name
+  project_name                     = var.project_name
+  ext_net_id                       = var.ext_net_id
   ext_net_cidr                     = ""
   concourse_external_network_cidr  = ""
-  openstack_default_key_public_key = "${var.openstack_default_key_public_key}"
+  openstack_default_key_public_key = var.openstack_default_key_public_key
   prefix                           = "lifecycle"
   add_security_group               = "1"
 }
 
 module "lifecycle" {
   source            = "../modules/lifecycle"
-  region_name       = "${var.region_name}"
-  dns_nameservers   = "${var.dns_nameservers}"
-  default_router_id = "${module.base.default_router_id}"
-  ext_net_name      = "${var.ext_net_name}"
-  use_lbaas         = "${var.use_lbaas}"
+  region_name       = var.region_name
+  dns_nameservers   = var.dns_nameservers
+  default_router_id = module.base.default_router_id
+  ext_net_name      = var.ext_net_name
+  use_lbaas         = var.use_lbaas
 }
 
 variable "auth_url" {
@@ -73,7 +73,7 @@ variable "ext_net_name" {
 
 variable "dns_nameservers" {
   description = "DNS server IPs"
-  type        = "list"
+  type        = list(string)
 }
 
 variable "openstack_default_key_public_key" {
@@ -90,61 +90,61 @@ variable "prefix" {
 }
 
 output "net_id" {
-  value = "${module.lifecycle.lifecycle_openstack_net_id}"
+  value = module.lifecycle.lifecycle_openstack_net_id
 }
 
 output "manual_ip" {
-  value = "${module.lifecycle.lifecycle_manual_ip}"
+  value = module.lifecycle.lifecycle_manual_ip
 }
 
 output "allowed_address_pairs" {
-  value = "${module.lifecycle.lifecycle_allowed_address_pairs}"
+  value = module.lifecycle.lifecycle_allowed_address_pairs
 }
 
 output "net_id_no_dhcp_1" {
-  value = "${module.lifecycle.lifecycle_net_id_no_dhcp_1}"
+  value = module.lifecycle.lifecycle_net_id_no_dhcp_1
 }
 
 output "no_dhcp_manual_ip_1" {
-  value = "${module.lifecycle.lifecycle_no_dhcp_manual_ip_1}"
+  value = module.lifecycle.lifecycle_no_dhcp_manual_ip_1
 }
 
 output "net_id_no_dhcp_2" {
-  value = "${module.lifecycle.lifecycle_net_id_no_dhcp_2}"
+  value = module.lifecycle.lifecycle_net_id_no_dhcp_2
 }
 
 output "no_dhcp_manual_ip_2" {
-  value = "${module.lifecycle.lifecycle_no_dhcp_manual_ip_2}"
+  value = module.lifecycle.lifecycle_no_dhcp_manual_ip_2
 }
 
 output "auth_url_v3" {
-  value = "${var.auth_url}"
+  value = var.auth_url
 }
 
 output "domain" {
-  value = "${var.domain_name}"
+  value = var.domain_name
 }
 
 output "project" {
-  value = "${var.project_name}"
+  value = var.project_name
 }
 
 output "default_key_name" {
-  value = "${module.base.key_name}"
+  value = module.base.key_name
 }
 
 output "floating_ip" {
-  value = "${module.lifecycle.lifecycle_floating_ip}"
+  value = module.lifecycle.lifecycle_floating_ip
 }
 
 output "loadbalancer_pool_name" {
-  value = "${module.lifecycle.lifecycle_lb_pool_name}"
+  value = module.lifecycle.lifecycle_lb_pool_name
 }
 
 output "security_group_id" {
-  value = "${module.base.security_group_id}"
+  value = module.base.security_group_id
 }
 
 output "security_group_name" {
-  value = "${module.base.security_group}"
+  value = module.base.security_group
 }

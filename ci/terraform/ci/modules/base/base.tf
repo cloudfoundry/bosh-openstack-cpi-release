@@ -31,68 +31,68 @@ variable "openstack_default_key_public_key" {
 }
 
 output "key_name" {
-  value = "${openstack_compute_keypair_v2.openstack_compute_keypair_v2.name}"
+  value = openstack_compute_keypair_v2.openstack_compute_keypair_v2.name
 }
 
 output "default_router_id" {
-  value = "${openstack_networking_router_v2.default_router.id}"
+  value = openstack_networking_router_v2.default_router.id
 }
 
 output "security_group" {
-  value = "${var.add_security_group == 1 ? var.prefix : ""}"
+  value = var.add_security_group == 1 ? var.prefix : ""
 }
 
 output "security_group_id" {
-  value = "${var.add_security_group == 1 ? openstack_networking_secgroup_v2.secgroup.0.id : ""}"
+  value = var.add_security_group == 1 ? openstack_networking_secgroup_v2.secgroup[0].id : ""
 }
 
 # key pairs
 
 resource "openstack_compute_keypair_v2" "openstack_compute_keypair_v2" {
-  region     = "${var.region_name}"
+  region     = var.region_name
   name       = "${var.prefix}-${var.project_name}"
-  public_key = "${var.openstack_default_key_public_key}"
+  public_key = var.openstack_default_key_public_key
 }
 
 resource "openstack_networking_router_v2" "default_router" {
-  region              = "${var.region_name}"
+  region              = var.region_name
   name                = "${var.prefix}-router"
   admin_state_up      = "true"
-  external_network_id = "${var.ext_net_id}"
+  external_network_id = var.ext_net_id
 }
 
 resource "openstack_networking_secgroup_v2" "secgroup" {
-  region      = "${var.region_name}"
-  name        = "${var.prefix}"
+  region      = var.region_name
+  name        = var.prefix
   description = "security group"
-  count       = "${var.add_security_group}"
+  count       = var.add_security_group
 }
 
 resource "openstack_networking_secgroup_rule_v2" "secgroup_rule_1" {
   direction         = "ingress"
   ethertype         = "IPv4"
   protocol          = "tcp"
-  remote_group_id   = "${element(openstack_networking_secgroup_v2.secgroup.*.id, count.index)}"
-  security_group_id = "${element(openstack_networking_secgroup_v2.secgroup.*.id, count.index)}"
-  count             = "${var.add_security_group}"
+  remote_group_id   = element(openstack_networking_secgroup_v2.secgroup.*.id, count.index)
+  security_group_id = element(openstack_networking_secgroup_v2.secgroup.*.id, count.index)
+  count             = var.add_security_group
 }
 
 resource "openstack_networking_secgroup_rule_v2" "secgroup_rule_2" {
   direction         = "ingress"
   ethertype         = "IPv4"
   protocol          = "udp"
-  remote_group_id   = "${element(openstack_networking_secgroup_v2.secgroup.*.id, count.index)}"
-  security_group_id = "${element(openstack_networking_secgroup_v2.secgroup.*.id, count.index)}"
-  count             = "${var.add_security_group}"
+  remote_group_id   = element(openstack_networking_secgroup_v2.secgroup.*.id, count.index)
+  security_group_id = element(openstack_networking_secgroup_v2.secgroup.*.id, count.index)
+  count             = var.add_security_group
 }
 
 resource "openstack_networking_secgroup_rule_v2" "secgroup_rule_3" {
   direction         = "ingress"
   ethertype         = "IPv4"
   protocol          = "icmp"
-  remote_group_id   = "${element(openstack_networking_secgroup_v2.secgroup.*.id, count.index)}"
-  security_group_id = "${element(openstack_networking_secgroup_v2.secgroup.*.id, count.index)}"
-  count             = "${var.add_security_group}"
+  remote_group_id   = element(openstack_networking_secgroup_v2.secgroup.*.id, count.index)
+  security_group_id = element(openstack_networking_secgroup_v2.secgroup.*.id, count.index)
+  count             = var.add_security_group
 }
 
 resource "openstack_networking_secgroup_rule_v2" "secgroup_rule_4" {
@@ -102,8 +102,8 @@ resource "openstack_networking_secgroup_rule_v2" "secgroup_rule_4" {
   port_range_min    = 22
   port_range_max    = 22
   remote_ip_prefix  = "0.0.0.0/0"
-  security_group_id = "${element(openstack_networking_secgroup_v2.secgroup.*.id, count.index)}"
-  count             = "${var.add_security_group}"
+  security_group_id = element(openstack_networking_secgroup_v2.secgroup.*.id, count.index)
+  count             = var.add_security_group
 }
 
 resource "openstack_networking_secgroup_rule_v2" "secgroup_rule_5" {
@@ -113,8 +113,8 @@ resource "openstack_networking_secgroup_rule_v2" "secgroup_rule_5" {
   port_range_min    = 25555
   port_range_max    = 25555
   remote_ip_prefix  = "0.0.0.0/0"
-  security_group_id = "${element(openstack_networking_secgroup_v2.secgroup.*.id, count.index)}"
-  count             = "${var.add_security_group}"
+  security_group_id = element(openstack_networking_secgroup_v2.secgroup.*.id, count.index)
+  count             = var.add_security_group
 }
 
 resource "openstack_networking_secgroup_rule_v2" "secgroup_rule_6" {
@@ -123,9 +123,9 @@ resource "openstack_networking_secgroup_rule_v2" "secgroup_rule_6" {
   protocol          = "tcp"
   port_range_min    = 6868
   port_range_max    = 6868
-  remote_ip_prefix  = "${var.concourse_external_network_cidr}"
-  security_group_id = "${element(openstack_networking_secgroup_v2.secgroup.*.id, count.index)}"
-  count             = "${var.add_security_group}"
+  remote_ip_prefix  = var.concourse_external_network_cidr
+  security_group_id = element(openstack_networking_secgroup_v2.secgroup.*.id, count.index)
+  count             = var.add_security_group
 }
 
 resource "openstack_networking_secgroup_rule_v2" "secgroup_rule_7" {
@@ -134,9 +134,9 @@ resource "openstack_networking_secgroup_rule_v2" "secgroup_rule_7" {
   protocol          = "udp"
   port_range_min    = 53
   port_range_max    = 53
-  remote_ip_prefix  = "${var.concourse_external_network_cidr}"
-  security_group_id = "${element(openstack_networking_secgroup_v2.secgroup.*.id, count.index)}"
-  count             = "${var.add_security_group}"
+  remote_ip_prefix  = var.concourse_external_network_cidr
+  security_group_id = element(openstack_networking_secgroup_v2.secgroup.*.id, count.index)
+  count             = var.add_security_group
 }
 
 resource "openstack_networking_secgroup_rule_v2" "secgroup_rule_8" {
@@ -145,26 +145,25 @@ resource "openstack_networking_secgroup_rule_v2" "secgroup_rule_8" {
   protocol          = "tcp"
   port_range_min    = 53
   port_range_max    = 53
-  remote_ip_prefix  = "${var.concourse_external_network_cidr}"
-  security_group_id = "${element(openstack_networking_secgroup_v2.secgroup.*.id, count.index)}"
-  count             = "${var.add_security_group}"
+  remote_ip_prefix  = var.concourse_external_network_cidr
+  security_group_id = element(openstack_networking_secgroup_v2.secgroup.*.id, count.index)
+  count             = var.add_security_group
 }
 
 resource "openstack_networking_secgroup_rule_v2" "secgroup_rule_9" {
   direction         = "ingress"
   ethertype         = "IPv4"
   protocol          = "tcp"
-  remote_ip_prefix  = "${var.ext_net_cidr}"
-  security_group_id = "${element(openstack_networking_secgroup_v2.secgroup.*.id, count.index)}"
-  count             = "${var.add_security_group}"
+  remote_ip_prefix  = var.ext_net_cidr
+  security_group_id = element(openstack_networking_secgroup_v2.secgroup.*.id, count.index)
+  count             = var.add_security_group
 }
 
 resource "openstack_networking_secgroup_rule_v2" "secgroup_rule_10" {
   direction         = "ingress"
   ethertype         = "IPv4"
   protocol          = "udp"
-  remote_ip_prefix  = "${var.ext_net_cidr}"
-  security_group_id = "${element(openstack_networking_secgroup_v2.secgroup.*.id, count.index)}"
-  count             = "${var.add_security_group}"
+  remote_ip_prefix  = var.ext_net_cidr
+  security_group_id = element(openstack_networking_secgroup_v2.secgroup.*.id, count.index)
+  count             = var.add_security_group
 }
-

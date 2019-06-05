@@ -1,35 +1,35 @@
 provider "openstack" {
-  auth_url    = "${var.auth_url}"
-  user_name   = "${var.user_name}"
-  password    = "${var.password}"
-  tenant_name = "${var.project_name}"
-  domain_name = "${var.domain_name}"
-  insecure    = "${var.insecure}"
-  cacert_file = "${var.cacert_file}"
+  auth_url    = var.auth_url
+  user_name   = var.user_name
+  password    = var.password
+  tenant_name = var.project_name
+  domain_name = var.domain_name
+  insecure    = var.insecure
+  cacert_file = var.cacert_file
 }
 
 module "base" {
   source                           = "../modules/base"
-  region_name                      = "${var.region_name}"
-  project_name                     = "${var.project_name}"
-  ext_net_id                       = "${var.ext_net_id}"
-  ext_net_cidr                     = "${var.ext_net_cidr}"
-  concourse_external_network_cidr  = "${var.concourse_external_network_cidr}"
-  openstack_default_key_public_key = "${var.openstack_default_key_public_key}"
-  prefix                           = "${var.prefix}"
+  region_name                      = var.region_name
+  project_name                     = var.project_name
+  ext_net_id                       = var.ext_net_id
+  ext_net_cidr                     = var.ext_net_cidr
+  concourse_external_network_cidr  = var.concourse_external_network_cidr
+  openstack_default_key_public_key = var.openstack_default_key_public_key
+  prefix                           = var.prefix
   add_security_group               = "1"
 }
 
 module "bats" {
   source                            = "../modules/bats"
-  region_name                       = "${var.region_name}"
-  primary_net_name                  = "${var.primary_net_name}"
-  primary_net_cidr                  = "${var.primary_net_cidr}"
-  primary_net_allocation_pool_start = "${var.primary_net_allocation_pool_start}"
-  primary_net_allocation_pool_end   = "${var.primary_net_allocation_pool_end}"
-  ext_net_name                      = "${var.ext_net_name}"
-  dns_nameservers                   = "${var.dns_nameservers}"
-  default_router_id                 = "${module.base.default_router_id}"
+  region_name                       = var.region_name
+  primary_net_name                  = var.primary_net_name
+  primary_net_cidr                  = var.primary_net_cidr
+  primary_net_allocation_pool_start = var.primary_net_allocation_pool_start
+  primary_net_allocation_pool_end   = var.primary_net_allocation_pool_end
+  ext_net_name                      = var.ext_net_name
+  dns_nameservers                   = var.dns_nameservers
+  default_router_id                 = module.base.default_router_id
 }
 
 variable "auth_url" {
@@ -112,7 +112,7 @@ variable "ext_net_cidr" {
 
 variable "dns_nameservers" {
   description = "DNS server IPs"
-  type        = "list"
+  type        = list(string)
 }
 
 variable "concourse_external_network_cidr" {
@@ -128,90 +128,90 @@ variable "prefix" {
 }
 
 resource "openstack_networking_network_v2" "secondary_net" {
-  region         = "${var.region_name}"
-  name           = "${var.secondary_net_name}"
+  region         = var.region_name
+  name           = var.secondary_net_name
   admin_state_up = "true"
 }
 
 resource "openstack_networking_subnet_v2" "secondary_subnet" {
-  region     = "${var.region_name}"
-  network_id = "${openstack_networking_network_v2.secondary_net.id}"
-  cidr       = "${var.secondary_net_cidr}"
+  region     = var.region_name
+  network_id = openstack_networking_network_v2.secondary_net.id
+  cidr       = var.secondary_net_cidr
   ip_version = 4
   name       = "${var.secondary_net_name}-sub"
-  allocation_pools = {
-    start = "${var.secondary_net_allocation_pool_start}"
-    end   = "${var.secondary_net_allocation_pool_end}"
+  allocation_pool {
+    start = var.secondary_net_allocation_pool_start
+    end   = var.secondary_net_allocation_pool_end
   }
-  gateway_ip      = "${cidrhost(var.secondary_net_cidr, 1)}"
+  gateway_ip      = cidrhost(var.secondary_net_cidr, 1)
   enable_dhcp     = "true"
-  dns_nameservers = "${var.dns_nameservers}"
+  dns_nameservers = var.dns_nameservers
 }
 
 resource "openstack_networking_router_interface_v2" "secondary_port" {
-  region    = "${var.region_name}"
-  router_id = "${module.base.default_router_id}"
-  subnet_id = "${openstack_networking_subnet_v2.secondary_subnet.id}"
+  region    = var.region_name
+  router_id = module.base.default_router_id
+  subnet_id = openstack_networking_subnet_v2.secondary_subnet.id
 }
 
 output "director_public_ip" {
-  value = "${module.bats.director_public_ip}"
+  value = module.bats.director_public_ip
 }
 
 output "director_private_ip" {
-  value = "${module.bats.director_private_ip}"
+  value = module.bats.director_private_ip
 }
 
 output "floating_ip" {
-  value = "${module.bats.floating_ip}"
+  value = module.bats.floating_ip
 }
 
 output "primary_net_id" {
-  value = "${module.bats.primary_net_id}"
+  value = module.bats.primary_net_id
 }
 
 output "primary_net_cidr" {
-  value = "${module.bats.primary_net_cidr}"
+  value = module.bats.primary_net_cidr
 }
 
 output "primary_net_dhcp_pool" {
-  value = "${module.bats.primary_net_dhcp_pool}"
+  value = module.bats.primary_net_dhcp_pool
 }
 
 output "primary_net_gateway" {
-  value = "${module.bats.primary_net_gateway}"
+  value = module.bats.primary_net_gateway
 }
 
 output "primary_net_manual_ip" {
-  value = "${module.bats.primary_net_manual_ip}"
+  value = module.bats.primary_net_manual_ip
 }
 
 output "primary_net_second_manual_ip" {
-  value = "${module.bats.primary_net_second_manual_ip}"
+  value = module.bats.primary_net_second_manual_ip
 }
 
 output "primary_net_static_range" {
-  value = "${module.bats.primary_net_static_range}"
+  value = module.bats.primary_net_static_range
 }
 
 output "secondary_net_id" {
-  value = "${openstack_networking_network_v2.secondary_net.id}"
+  value = openstack_networking_network_v2.secondary_net.id
 }
 
 output "secondary_net_cidr" {
-  value = "${openstack_networking_subnet_v2.secondary_subnet.cidr}"
+  value = openstack_networking_subnet_v2.secondary_subnet.cidr
 }
 
 output "secondary_net_dhcp_pool" {
-  value = "${openstack_networking_subnet_v2.secondary_subnet.allocation_pools.0.start}-${openstack_networking_subnet_v2.secondary_subnet.allocation_pools.0.end}"
+  value = "${openstack_networking_subnet_v2.secondary_subnet.allocation_pool[*].start}-${openstack_networking_subnet_v2.secondary_subnet.allocation_pool[*].end}"
 }
 
 output "secondary_net_gateway" {
-  value = "${openstack_networking_subnet_v2.secondary_subnet.gateway_ip}"
+  value = openstack_networking_subnet_v2.secondary_subnet.gateway_ip
 }
 
 output "secondary_net_manual_ip" {
-  value = "${cidrhost(openstack_networking_subnet_v2.secondary_subnet.cidr, 4)}"
+  value = cidrhost(openstack_networking_subnet_v2.secondary_subnet.cidr, 4)
 }
 
 output "secondary_net_static_range" {
@@ -219,17 +219,17 @@ output "secondary_net_static_range" {
 }
 
 output "dns" {
-  value = "${var.dns_nameservers}"
+  value = var.dns_nameservers
 }
 
 output "openstack_project" {
-  value = "${var.project_name}"
+  value = var.project_name
 }
 
 output "default_key_name" {
-  value = "${module.base.key_name}"
+  value = module.base.key_name
 }
 
 output "security_group" {
-  value = "${module.base.security_group}"
+  value = module.base.security_group
 }

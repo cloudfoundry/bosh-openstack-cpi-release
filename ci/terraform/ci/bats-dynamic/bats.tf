@@ -1,35 +1,35 @@
 provider "openstack" {
-  auth_url    = "${var.auth_url}"
-  user_name   = "${var.user_name}"
-  password    = "${var.password}"
-  tenant_name = "${var.project_name}"
-  domain_name = "${var.domain_name}"
-  insecure    = "${var.insecure}"
-  cacert_file = "${var.cacert_file}"
+  auth_url    = var.auth_url
+  user_name   = var.user_name
+  password    = var.password
+  tenant_name = var.project_name
+  domain_name = var.domain_name
+  insecure    = var.insecure
+  cacert_file = var.cacert_file
 }
 
 module "base" {
   source                           = "../modules/base"
-  region_name                      = "${var.region_name}"
-  project_name                     = "${var.project_name}"
-  ext_net_id                       = "${var.ext_net_id}"
-  ext_net_cidr                     = "${var.ext_net_cidr}"
-  concourse_external_network_cidr  = "${var.concourse_external_network_cidr}"
-  openstack_default_key_public_key = "${var.openstack_default_key_public_key}"
-  prefix                           = "${var.prefix}"
+  region_name                      = var.region_name
+  project_name                     = var.project_name
+  ext_net_id                       = var.ext_net_id
+  ext_net_cidr                     = var.ext_net_cidr
+  concourse_external_network_cidr  = var.concourse_external_network_cidr
+  openstack_default_key_public_key = var.openstack_default_key_public_key
+  prefix                           = var.prefix
   add_security_group               = "1"
 }
 
 module "bats" {
   source                            = "../modules/bats"
-  region_name                       = "${var.region_name}"
-  primary_net_name                  = "${var.primary_net_name}"
-  primary_net_cidr                  = "${var.primary_net_cidr}"
-  primary_net_allocation_pool_start = "${var.primary_net_allocation_pool_start}"
-  primary_net_allocation_pool_end   = "${var.primary_net_allocation_pool_end}"
-  ext_net_name                      = "${var.ext_net_name}"
-  dns_nameservers                   = "${var.dns_nameservers}"
-  default_router_id                 = "${module.base.default_router_id}"
+  region_name                       = var.region_name
+  primary_net_name                  = var.primary_net_name
+  primary_net_cidr                  = var.primary_net_cidr
+  primary_net_allocation_pool_start = var.primary_net_allocation_pool_start
+  primary_net_allocation_pool_end   = var.primary_net_allocation_pool_end
+  ext_net_name                      = var.ext_net_name
+  dns_nameservers                   = var.dns_nameservers
+  default_router_id                 = module.base.default_router_id
 }
 
 variable "auth_url" {
@@ -95,7 +95,7 @@ variable "ext_net_cidr" {
 }
 
 variable "dns_nameservers" {
-  type        = "list"
+  type        = list(string)
   description = "DNS server IPs"
 }
 
@@ -112,29 +112,29 @@ variable "prefix" {
 }
 
 output "primary_net_id" {
-  value = "${module.bats.primary_net_id}"
+  value = module.bats.primary_net_id
 }
 
 output "floating_ip" {
-  value = "${module.bats.floating_ip}"
+  value = module.bats.floating_ip
 }
 
 output "director_public_ip" {
-  value = "${module.bats.director_public_ip}"
+  value = module.bats.director_public_ip
 }
 
 output "openstack_project" {
-  value = "${var.project_name}"
+  value = var.project_name
 }
 
 output "default_key_name" {
-  value = "${module.base.key_name}"
+  value = module.base.key_name
 }
 
 output "dns" {
-  value = "${var.dns_nameservers}"
+  value = var.dns_nameservers
 }
 
 output "security_group" {
-  value = "${module.base.security_group}"
+  value = module.base.security_group
 }
