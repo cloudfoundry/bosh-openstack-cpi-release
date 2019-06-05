@@ -660,7 +660,14 @@ resources:
     type: terraform
     tags: ((worker_tags))
     source:
-      storage:
+      backend_type: s3
+      backend_config:
+        bucket: ((s3_openstack_cpi_pipeline_bucket_name))
+        key: terraform/terraform.tfstate
+        region: ((s3_openstack_cpi_pipeline_bucket_region))
+        access_key: ((s3_openstack_cpi_pipeline_access_key))
+        secret_key: ((s3_openstack_cpi_pipeline_secret_key))
+      migrated_from_storage:
         bucket: ((s3_openstack_cpi_pipeline_bucket_name))
         bucket_path: terraform/
         access_key_id: ((s3_openstack_cpi_pipeline_access_key))
