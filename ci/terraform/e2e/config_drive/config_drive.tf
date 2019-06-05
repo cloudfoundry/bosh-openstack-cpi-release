@@ -1,38 +1,38 @@
 module "base" {
   source                          = "../modules/base"
-  auth_url                        = "${var.auth_url}"
-  user_name                       = "${var.user_name}"
-  password                        = "${var.password}"
-  project_name                    = "${var.project_name}"
-  domain_name                     = "${var.domain_name}"
-  insecure                        = "${var.insecure}"
-  cacert_file                     = "${var.cacert_file}"
-  dns_nameservers                 = "${var.dns_nameservers}"
-  ext_net_name                    = "${var.ext_net_name}"
-  ext_net_id                      = "${var.ext_net_id}"
-  ext_net_cidr                    = "${var.ext_net_cidr}"
-  region_name                     = "${var.region_name}"
-  prefix                          = "${var.prefix}"
-  concourse_external_network_cidr = "${var.concourse_external_network_cidr}"
-  default_public_key              = "${var.default_public_key}"
-  e2e_net_cidr                    = "${var.e2e_net_cidr}"
+  auth_url                        = var.auth_url
+  user_name                       = var.user_name
+  password                        = var.password
+  project_name                    = var.project_name
+  domain_name                     = var.domain_name
+  insecure                        = var.insecure
+  cacert_file                     = var.cacert_file
+  dns_nameservers                 = var.dns_nameservers
+  ext_net_name                    = var.ext_net_name
+  ext_net_id                      = var.ext_net_id
+  ext_net_cidr                    = var.ext_net_cidr
+  region_name                     = var.region_name
+  prefix                          = var.prefix
+  concourse_external_network_cidr = var.concourse_external_network_cidr
+  default_public_key              = var.default_public_key
+  e2e_net_cidr                    = var.e2e_net_cidr
 }
 
 module "config_drive" {
   source             = "../modules/config_drive"
-  region_name        = "${var.region_name}"
-  auth_url           = "${var.auth_url}"
-  user_name          = "${var.user_name}"
-  password           = "${var.password}"
-  project_name       = "${var.project_name}"
-  domain_name        = "${var.domain_name}"
-  insecure           = "${var.insecure}"
-  cacert_file        = "${var.cacert_file}"
-  dns_nameservers    = "${var.dns_nameservers}"
-  e2e_router_id      = "${module.base.e2e_router_id}"
-  no_dhcp_net_1_cidr = "${var.no_dhcp_net_1_cidr}"
-  no_dhcp_net_2_cidr = "${var.no_dhcp_net_2_cidr}"
-  prefix             = "${var.prefix}"
+  region_name        = var.region_name
+  auth_url           = var.auth_url
+  user_name          = var.user_name
+  password           = var.password
+  project_name       = var.project_name
+  domain_name        = var.domain_name
+  insecure           = var.insecure
+  cacert_file        = var.cacert_file
+  dns_nameservers    = var.dns_nameservers
+  e2e_router_id      = module.base.e2e_router_id
+  no_dhcp_net_1_cidr = var.no_dhcp_net_1_cidr
+  no_dhcp_net_2_cidr = var.no_dhcp_net_2_cidr
+  prefix             = var.prefix
 }
 
 variable "auth_url" {
@@ -66,7 +66,7 @@ variable "project_name" {
 }
 
 variable "dns_nameservers" {
-  type        = "list"
+  type        = list(string)
   description = "List of DNS server IPs"
 }
 
@@ -111,69 +111,70 @@ variable "no_dhcp_net_2_cidr" {
 }
 
 output "network_no_dhcp_1_id" {
-  value = "${module.config_drive.network_no_dhcp_1_id}"
+  value = module.config_drive.network_no_dhcp_1_id
 }
 
 output "network_no_dhcp_1_range" {
-  value = "${module.config_drive.network_no_dhcp_1_range}"
+  value = module.config_drive.network_no_dhcp_1_range
 }
 
 output "network_no_dhcp_1_gateway" {
-  value = "${module.config_drive.network_no_dhcp_1_gateway}"
+  value = module.config_drive.network_no_dhcp_1_gateway
 }
 
 output "network_no_dhcp_1_ip" {
-  value = "${module.config_drive.network_no_dhcp_1_ip}"
+  value = module.config_drive.network_no_dhcp_1_ip
 }
 
 output "network_no_dhcp_2_id" {
-  value = "${module.config_drive.network_no_dhcp_2_id}"
+  value = module.config_drive.network_no_dhcp_2_id
 }
 
 output "network_no_dhcp_2_range" {
-  value = "${module.config_drive.network_no_dhcp_2_range}"
+  value = module.config_drive.network_no_dhcp_2_range
 }
 
 output "network_no_dhcp_2_gateway" {
-  value = "${module.config_drive.network_no_dhcp_2_gateway}"
+  value = module.config_drive.network_no_dhcp_2_gateway
 }
 
 output "network_no_dhcp_2_ip" {
-  value = "${module.config_drive.network_no_dhcp_2_ip}"
+  value = module.config_drive.network_no_dhcp_2_ip
 }
 
 output "v3_e2e_security_group" {
-  value = "${module.base.v3_e2e_security_group}"
+  value = module.base.v3_e2e_security_group
 }
 
 output "v3_e2e_net_id" {
-  value = "${module.base.v3_e2e_net_id}"
+  value = module.base.v3_e2e_net_id
 }
 
 output "v3_e2e_net_cidr" {
-  value = "${module.base.v3_e2e_net_cidr}"
+  value = module.base.v3_e2e_net_cidr
 }
 
 output "v3_e2e_net_gateway" {
-  value = "${module.base.v3_e2e_net_gateway}"
+  value = module.base.v3_e2e_net_gateway
 }
 
 output "e2e_router_id" {
-  value = "${module.base.e2e_router_id}"
+  value = module.base.e2e_router_id
 }
 
 output "director_public_ip" {
-  value = "${module.base.director_public_ip}"
+  value = module.base.director_public_ip
 }
 
 output "director_private_ip" {
-  value = "${module.base.director_private_ip}"
+  value = module.base.director_private_ip
 }
 
 output "v3_e2e_default_key_name" {
-  value = "${module.base.v3_e2e_default_key_name}"
+  value = module.base.v3_e2e_default_key_name
 }
 
 output "dns" {
-  value = "${module.base.dns}"
+  value = module.base.dns
 }
+

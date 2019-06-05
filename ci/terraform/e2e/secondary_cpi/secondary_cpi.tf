@@ -1,10 +1,10 @@
 provider "openstack" {
-  auth_url    = "${var.auth_url}"
-  user_name   = "${var.user_name}"
-  password    = "${var.password}"
-  tenant_name = "${var.project_name}"
-  domain_name = "${var.domain_name}"
-  insecure    = "${var.insecure}"
+  auth_url    = var.auth_url
+  user_name   = var.user_name
+  password    = var.password
+  tenant_name = var.project_name
+  domain_name = var.domain_name
+  insecure    = var.insecure
 }
 
 variable "auth_url" {
@@ -45,14 +45,14 @@ variable "default_public_key" {
 }
 
 resource "openstack_compute_keypair_v2" "default_key" {
-  region     = "${var.region_name}"
+  region     = var.region_name
   name       = "${var.prefix}-${var.project_name}"
-  public_key = "${var.default_public_key}"
+  public_key = var.default_public_key
 }
 
 resource "openstack_networking_secgroup_v2" "secgroup" {
-  region      = "${var.region_name}"
-  name        = "${var.prefix}"
+  region      = var.region_name
+  name        = var.prefix
   description = "e2e security group"
 }
 
@@ -61,13 +61,13 @@ resource "openstack_networking_secgroup_rule_v2" "secgroup_rule_1" {
   ethertype         = "IPv4"
   protocol          = "tcp"
   remote_ip_prefix  = "0.0.0.0/0"
-  security_group_id = "${openstack_networking_secgroup_v2.secgroup.id}"
+  security_group_id = openstack_networking_secgroup_v2.secgroup.id
 }
 
 output "secondary_openstack_security_group_name" {
-  value = "${openstack_networking_secgroup_v2.secgroup.name}"
+  value = openstack_networking_secgroup_v2.secgroup.name
 }
 
 output "secondary_openstack_default_key_name" {
-  value = "${openstack_compute_keypair_v2.default_key.name}"
+  value = openstack_compute_keypair_v2.default_key.name
 }
