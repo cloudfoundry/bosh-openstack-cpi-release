@@ -76,7 +76,7 @@ output "primary_net_cidr" {
 }
 
 output "primary_net_dhcp_pool" {
-  value = "${openstack_networking_subnet_v2.primary_subnet.allocation_pool[*].start}-${openstack_networking_subnet_v2.primary_subnet.allocation_pool[*].end}"
+  value = "${openstack_networking_subnet_v2.primary_subnet.allocation_pool.start}-${openstack_networking_subnet_v2.primary_subnet.allocation_pool.end}"
 }
 
 output "primary_net_gateway" {
