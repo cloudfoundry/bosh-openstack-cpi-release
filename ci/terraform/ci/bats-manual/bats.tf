@@ -203,7 +203,7 @@ output "secondary_net_cidr" {
 }
 
 output "secondary_net_dhcp_pool" {
-  value = "${openstack_networking_subnet_v2.secondary_subnet.allocation_pool[0].start}-${openstack_networking_subnet_v2.secondary_subnet.allocation_pool[0].end}"
+  value = "${openstack_networking_subnet_v2.secondary_subnet.allocation_pool[*].start[0]}-${openstack_networking_subnet_v2.secondary_subnet.allocation_pool[*].end[0]}"
 }
 
 output "secondary_net_gateway" {
