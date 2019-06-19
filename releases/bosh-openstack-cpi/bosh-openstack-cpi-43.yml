@@ -1,0 +1,25 @@
+name: bosh-openstack-cpi
+version: "43"
+commit_hash: 1f3127e
+uncommitted_changes: false
+jobs:
+- name: openstack_cpi
+  version: 7f8485a6d01e396ff87bcbca23b373497a6757b7
+  fingerprint: 7f8485a6d01e396ff87bcbca23b373497a6757b7
+  sha1: f82fdac93cabb53ab78338148772e5563ea30cba
+packages:
+- name: bosh_openstack_cpi
+  version: 8da679f5ae14ce01298781a49749b4c07872c529
+  fingerprint: 8da679f5ae14ce01298781a49749b4c07872c529
+  sha1: 41f9bc547d8d3e4fcdcf52b8f28ad757c7d7b162
+  dependencies:
+  - ruby-2.4.6-r0.11.0
+- name: ruby-2.4.6-r0.11.0
+  version: a1e381b5031f05a5b7287d4ee8a14f5a2c0bd806c73597274b6dc3edcfc8ce2a
+  fingerprint: a1e381b5031f05a5b7287d4ee8a14f5a2c0bd806c73597274b6dc3edcfc8ce2a
+  sha1: sha256:fdf3bde0a3a604c7c70863b6c2f697489c4c689d355571a37bb55a750cf5cc24
+  dependencies: []
+license:
+  version: 4fff4f71a19101d8644cb7fc34bcb0f78aa38dbc
+  fingerprint: 4fff4f71a19101d8644cb7fc34bcb0f78aa38dbc
+  sha1: 0ae081fc07edd5be909996d82c7492f1df73eff4
