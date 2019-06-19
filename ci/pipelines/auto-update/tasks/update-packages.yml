@@ -7,10 +7,7 @@ image_resource:
 inputs:
   - name: bosh-cpi-src-in
   - name: packages-src-in
-  - name: libyaml
-  - name: ruby
-  - name: bundler
-  - name: rubygems
+  - name: ruby-2.4.6
 outputs:
   - name: packages-src-out
 run:

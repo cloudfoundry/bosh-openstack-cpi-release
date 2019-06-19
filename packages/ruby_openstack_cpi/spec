@@ -1,8 +1,0 @@
----
-name: ruby_openstack_cpi
-files:
-- ruby_openstack_cpi/yaml-0.2.2.tar.gz
-- ruby_openstack_cpi/ruby-2.4.6.tar.gz
-- ruby_openstack_cpi/rubygems-2.7.9.tar.gz
-- ruby_openstack_cpi/bundler-1.17.3.gem
-- overwrite_shebang.rb

@@ -2,51 +2,29 @@
 
 set -e -x
 
-# put all blobs together
-mkdir blobs
-cp libyaml/yaml-*.tar.gz blobs
-cp bundler/bundler-*.gem blobs
-cp rubygems/rubygems-*.tar.gz blobs
-cp ruby/ruby-*.tar.gz blobs
+basedir="$( cd "$( dirname "${BASH_SOURCE[0]}" )/../../../../.." && pwd )"
 
+
+target=$(readlink -f ruby-*)
+rubydir="${target##*/}"
+
+mkdir unpacked-ruby-release
+pushd "${rubydir}"
+  tar xfz "v$(cat .resource/version)" -C "${basedir}"/unpacked-ruby-release --strip-components=1
+popd
 
 cp -r packages-src-in/. packages-src-out
 cd packages-src-out
+
 git config --global user.email cf-bosh-eng@pivotal.io
 git config --global user.name CI
 git fetch origin master:refs/remotes/origin/master
 git rebase origin/master
 
-#
-# update blobs
-#
-for blob in $( bosh-go blobs --column=path | grep "^ruby_openstack_cpi/" | sed "s#ruby_openstack_cpi/##g" ); do
-  if [[ ! -e "../blobs/$blob" ]]; then
-    blob_name=$(echo $blob | cut -f1 -d"-")
-    new_blob=$(find ../blobs -name "${blob_name}-*" -type f | cut -f3 -d"/")
 
-    #update blob
-    bosh-go remove-blob "ruby_openstack_cpi/$blob"
-    bosh-go add-blob "../blobs/$new_blob" "ruby_openstack_cpi/$new_blob"
+echo "-----> [$(date)]: Run bosh vendor package"
 
-    #update package
-    blob_name_with_version=$( echo ${blob} | sed -E "s/(${blob_name}-[0-9]+\.[0-9]+\.[0-9]+).+$/\1/" )
-    new_blob_name_with_version=$( echo ${new_blob} | sed -E "s/(${blob_name}-[0-9]+\.[0-9]+\.[0-9]+).+$/\1/" )
-
-    sed -i "s/${blob_name_with_version}/${new_blob_name_with_version}/g" packages/ruby_openstack_cpi/packaging
-    sed -i "s/${blob_name_with_version}/${new_blob_name_with_version}/g" packages/ruby_openstack_cpi/spec
-
-    #migrate rubygems from .tgz to .tar.gz
-    sed -i "s/\(rubygems.*\)\.tgz/\1\.tar\.gz/g" packages/ruby_openstack_cpi/packaging
-    sed -i "s/\(rubygems.*\)\.tgz/\1\.tar\.gz/g" packages/ruby_openstack_cpi/spec
-  fi
-done
-
-git add .
-git diff --cached --exit-code || exit_code=$?
-if [ -v exit_code ]; then
-  echo "creating config/private.yml with blobstore secrets"
-  cat > config/private.yml << EOF
+cat > config/private.yml << EOF
 ---
 blobstore:
   provider: s3
@@ -55,11 +33,31 @@ blobstore:
     secret_access_key: $aws_secret_access_key
 EOF
 
-  bosh-go upload-blobs
-  echo "Creating new commit request"
-  git add .
-  git commit -m "Bump package blob versions"
+rm -r packages/ruby-*
 
-else
-echo "No new packages found"
+ruby_package_version="$(grep name "${basedir}"/unpacked-ruby-release/packages/"${rubydir}"-r*/spec | awk '{print $2}')"
+bosh-go vendor-package "$ruby_package_version" "${basedir}"/unpacked-ruby-release
+
+
+echo "-----> [$(date)]: Rendering package and job templates"
+
+git rm packages/bosh_openstack_cpi/packaging && :
+git rm packages/bosh_openstack_cpi/spec && :
+git rm jobs/openstack_cpi/templates/cpi.erb && :
+git rm jobs/openstack_cpi/spec && :
+
+
+erb "ruby_package_version=${ruby_package_version}" "ci/templates/packages/bosh_openstack_cpi/spec.erb" > "packages/bosh_openstack_cpi/spec"
+erb "ruby_package_version=${ruby_package_version}" "ci/templates/packages/bosh_openstack_cpi/packaging.erb" > "packages/bosh_openstack_cpi/packaging"
+erb "ruby_package_version=${ruby_package_version}" "ci/templates/jobs/openstack_cpi/cpi.erb.erb" > "jobs/openstack_cpi/templates/cpi.erb"
+erb "ruby_package_version=${ruby_package_version}" "ci/templates/jobs/openstack_cpi/spec.erb" > "jobs/openstack_cpi/spec"
+
+
+echo "-----> [$(date)]: Creating git commit"
+
+git add .
+git --no-pager diff --cached
+
+if [[ "$( git status --porcelain )" != "" ]]; then
+  git commit -am "Bump ruby release to ${ruby_package_version}"
 fi
