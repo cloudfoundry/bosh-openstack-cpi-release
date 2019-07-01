@@ -372,7 +372,7 @@ jobs:
         - {trigger: false, get: dummy-release,                       tags: ((worker_tags)), timeout: *timeouts-long}
         - {trigger: true,  get: bosh-cpi-release, passed: [cleanup], tags: ((worker_tags)), timeout: *timeouts-long, resource: bosh-cpi-dev-artifacts}
         - {trigger: true,  get: bosh-release,     passed: [cleanup], tags: ((worker_tags)), timeout: *timeouts-long}
-        - {trigger: true,  get: old-stemcell,                        tags: ((worker_tags)), timeout: *timeouts-long, resource: ubuntu-xenial-stemcell}
+        - {trigger: true,  get: old-stemcell,                        tags: ((worker_tags)), timeout: *timeouts-long, resource: ubuntu-trusty-stemcell}
         - {trigger: true,  get: stemcell-director, passed: [cleanup], tags: ((worker_tags)), timeout: *timeouts-long, resource: ubuntu-xenial-stemcell}
         - {trigger: true,  get: stemcell, passed: [cleanup], tags: ((worker_tags)), timeout: *timeouts-long, resource: ubuntu-xenial-stemcell}
         - {trigger: false, get: bosh-deployment,                     tags: ((worker_tags)), timeout: *timeouts-long}
@@ -611,6 +611,12 @@ resources:
     tags: ((worker_tags))
     source:
       name: bosh-openstack-kvm-ubuntu-xenial-go_agent
+
+  - name: ubuntu-trusty-stemcell
+    type: bosh-io-stemcell
+    tags: ((worker_tags))
+    source:
+      name: bosh-openstack-kvm-ubuntu-trusty-go_agent
 
   - name: bosh-cpi-src-in
     type: git
