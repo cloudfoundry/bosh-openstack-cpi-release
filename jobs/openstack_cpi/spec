@@ -6,7 +6,7 @@ templates:
   cacert.pem.erb: config/cacert.pem
 
 packages:
-- ruby-2.4.6-r0.11.0
+- ruby-2.4.6-r0.16.0
 - bosh_openstack_cpi
 
 properties:

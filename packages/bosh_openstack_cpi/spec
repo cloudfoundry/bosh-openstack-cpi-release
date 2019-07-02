@@ -1,7 +1,7 @@
 ---
 name: bosh_openstack_cpi
 dependencies:
-- ruby-2.4.6-r0.11.0
+- ruby-2.4.6-r0.16.0
 files:
 - bosh_openstack_cpi/Gemfile
 - bosh_openstack_cpi/Gemfile.lock
