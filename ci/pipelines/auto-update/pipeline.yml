@@ -3,7 +3,7 @@ jobs:
   - name: update-gems
     serial: true
     plan:
-      - aggregate:
+      - in_parallel:
         - {trigger: false,  get: bosh-cpi-src-in,       tags: ((worker_tags)), timeout: 2h}
         - {trigger: false,  get: gems-src-in,           tags: ((worker_tags)), timeout: 2h}
         - {trigger: true,   get: pipeline-time-trigger, tags: ((worker_tags)), timeout: 2h}
@@ -21,7 +21,7 @@ jobs:
   - name: update-packages
     serial: true
     plan:
-      - aggregate:
+      - in_parallel:
         - {trigger: false, get: bosh-cpi-src-in, tags: ((worker_tags)), timeout: 2h}
         - {trigger: false, get: packages-src-in, tags: ((worker_tags)), timeout: 2h}
         - {trigger: false, get: validator-src-in, tags: ((worker_tags)), timeout: 2h}
@@ -48,7 +48,7 @@ jobs:
   - name: gems-pull-request
     serial: true
     plan:
-      - aggregate:
+      - in_parallel:
         - {trigger: true, get: bosh-cpi-src-in, passed: [update-gems], tags: ((worker_tags)), timeout: 2h}
         - {trigger: true, get: gems-src-out,    passed: [update-gems], tags: ((worker_tags)), timeout: 2h}
 
@@ -63,7 +63,7 @@ jobs:
   - name: packages-pull-request
     serial: true
     plan:
-      - aggregate:
+      - in_parallel:
         - {trigger: true, get: bosh-cpi-src-in,  passed: [update-packages], tags: ((worker_tags)), timeout: 2h}
         - {trigger: true, get: packages-src-out, passed: [update-packages], tags: ((worker_tags)), timeout: 2h}
 

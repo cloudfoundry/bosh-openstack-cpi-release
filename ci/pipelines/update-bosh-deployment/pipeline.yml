@@ -3,7 +3,7 @@ jobs:
   - name: update-cpi-version
     serial: true
     plan:
-      - aggregate:
+      - in_parallel:
         - {trigger: true,  get: bosh-openstack-cpi-release, timeout: 2h}
         - {trigger: false, get: bosh-cpi-src, timeout: 2h}
         - {trigger: false, get: bosh-deployment-src, timeout: 2h}
@@ -19,7 +19,7 @@ jobs:
   - name: create-pull-request
     serial: true
     plan:
-      - aggregate:
+      - in_parallel:
         - {trigger: true, get: bosh-deployment-fork, passed: [update-cpi-version], timeout: 2h}
         - {trigger: false, get: bosh-deployment-src, passed: [update-cpi-version], timeout: 2h}
         - {trigger: false, get: bosh-cpi-src, passed: [update-cpi-version], timeout: 2h}
