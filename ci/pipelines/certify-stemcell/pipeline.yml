@@ -14,7 +14,8 @@ groups:
 custom:
   timeouts:
     long: &timeouts-long 2h
-  build_logs_to_retain: &build_logs_to_retain 500
+  build_log_retention:
+    builds: &build_logs_to_retain 500
   mail:
     without_mail: &send-failure-email
       on_failure: ~
@@ -43,7 +44,8 @@ jobs:
   - name: e2e-centos
     serial: true
     serial_groups: [e2e-centos]
-    build_logs_to_retain: *build_logs_to_retain
+    build_log_retention:
+      builds: *build_logs_to_retain
     plan:
       - in_parallel:
         - {trigger: false, get: bosh-cpi-src-in,  passed: [cleanup], tags: ((worker_tags)), timeout: *timeouts-long}
@@ -139,7 +141,8 @@ jobs:
   - name: e2e-ubuntu
     serial: true
     serial_groups: [e2e-ubuntu]
-    build_logs_to_retain: *build_logs_to_retain
+    build_log_retention:
+      builds: *build_logs_to_retain
     plan:
       - in_parallel:
         - {trigger: false, get: bosh-cpi-src-in,  passed: [cleanup], tags: ((worker_tags)), timeout: *timeouts-long}
@@ -215,7 +218,8 @@ jobs:
   - name: e2e-centos-config-drive
     serial: true
     serial_groups: [e2e-centos-config-drive]
-    build_logs_to_retain: *build_logs_to_retain
+    build_log_retention:
+      builds: *build_logs_to_retain
     plan:
       - in_parallel:
         - {trigger: false, get: bosh-cpi-src-in,  passed: [cleanup], tags: ((worker_tags)), timeout: *timeouts-long}
@@ -298,7 +302,8 @@ jobs:
   - name: e2e-ubuntu-config-drive
     serial: true
     serial_groups: [e2e-ubuntu-config-drive]
-    build_logs_to_retain: *build_logs_to_retain
+    build_log_retention:
+      builds: *build_logs_to_retain
     plan:
       - in_parallel:
         - {trigger: false, get: bosh-cpi-src-in,  passed: [cleanup], tags: ((worker_tags)), timeout: *timeouts-long}
@@ -359,7 +364,8 @@ jobs:
   - name: test-upgrade-ubuntu
     serial: true
     serial_groups: [test-upgrade-ubuntu]
-    build_logs_to_retain: *build_logs_to_retain
+    build_log_retention:
+      builds: *build_logs_to_retain
     plan:
       - in_parallel:
         - {trigger: false, get: bosh-cpi-src-in,  passed: [cleanup], tags: ((worker_tags)), timeout: *timeouts-long}
@@ -464,7 +470,8 @@ jobs:
   - name: cleanup
     serial: true
     serial_groups: [e2e-centos, e2e-ubuntu, e2e-ubuntu-config-drive, e2e-centos-config-drive, test-upgrade-ubuntu] #can't run while anything else is running
-    build_logs_to_retain: *build_logs_to_retain
+    build_log_retention:
+      builds: *build_logs_to_retain
     plan:
       - in_parallel:
         - {trigger: false, get: bosh-cpi-src-in,   tags: ((worker_tags)), timeout: *timeouts-long}
