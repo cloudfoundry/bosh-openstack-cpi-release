@@ -8,8 +8,6 @@ groups:
       - e2e-centos-config-drive
       - e2e-ubuntu-config-drive
       - test-upgrade-ubuntu
-      - certify-centos
-      - certify-ubuntu
 
 custom:
   timeouts:
@@ -495,52 +493,6 @@ jobs:
           BOSH_OPENSTACK_INTERFACE:            ((interface))
         <<: *send-failure-email
 
-  - name: certify-ubuntu
-    plan:
-      - in_parallel:
-        - {trigger: false, get: bosh-cpi-src-in, tags: ((worker_tags)), timeout: *timeouts-long}
-        - {trigger: true,  get: bosh-cpi-release, passed: [e2e-ubuntu, e2e-ubuntu-config-drive, test-upgrade-ubuntu], resource: bosh-cpi-dev-artifacts, tags: ((worker_tags)), timeout: *timeouts-long}
-        - {trigger: true,  get: bosh-release,     passed: [e2e-ubuntu, e2e-ubuntu-config-drive, test-upgrade-ubuntu], tags: ((worker_tags)), timeout: *timeouts-long}
-        - {trigger: true,  get: stemcell,         passed: [e2e-ubuntu, e2e-ubuntu-config-drive, test-upgrade-ubuntu], resource: ubuntu-xenial-stemcell, tags: ((worker_tags)), timeout: *timeouts-long}
-
-      - task: generate-certification
-        tags: ((worker_tags))
-        timeout: *timeouts-long
-        file: bosh-cpi-src-in/ci/pipelines/certify-stemcell/tasks/generate-certification.yml
-        params:
-          bosh_release_name: bosh
-          cpi_release_name: bosh-openstack-cpi
-          stemcell_name: bosh-openstack-kvm-ubuntu-xenial-go_agent
-
-      - put: certification
-        tags: ((worker_tags))
-        timeout: *timeouts-long
-        params:
-          file: certification-receipt/*-receipt.json
-
-  - name: certify-centos
-    plan:
-      - in_parallel:
-        - {trigger: false, get: bosh-cpi-src-in, tags: ((worker_tags)), timeout: *timeouts-long}
-        - {trigger: true,  get: bosh-cpi-release, passed: [e2e-centos, e2e-centos-config-drive], resource: bosh-cpi-dev-artifacts, tags: ((worker_tags)), timeout: *timeouts-long}
-        - {trigger: true,  get: bosh-release,     passed: [e2e-centos, e2e-centos-config-drive], tags: ((worker_tags)), timeout: *timeouts-long}
-        - {trigger: true,  get: stemcell,         passed: [e2e-centos, e2e-centos-config-drive], resource: centos-stemcell, tags: ((worker_tags)), timeout: *timeouts-long}
-
-      - task: generate-certification
-        tags: ((worker_tags))
-        timeout: *timeouts-long
-        file: bosh-cpi-src-in/ci/pipelines/certify-stemcell/tasks/generate-certification.yml
-        params:
-          bosh_release_name: bosh
-          cpi_release_name: bosh-openstack-cpi
-          stemcell_name: bosh-openstack-kvm-centos-7-go_agent
-
-      - put: certification
-        tags: ((worker_tags))
-        timeout: *timeouts-long
-        params:
-          file: certification-receipt/*-receipt.json
-
 resource_types:
   - name: email
     type: docker-image
@@ -629,16 +581,6 @@ resources:
         - .final_builds/**
         - docs/**
         - README.md
-
-  - name: certification
-    type: s3
-    tags: ((worker_tags))
-    source:
-      access_key_id: ((s3_openstack_cpi_receipts_access_key))
-      secret_access_key: ((s3_openstack_cpi_receipts_secret_key))
-      bucket: ((s3_openstack_cpi_receipts_bucket_name))
-      regexp: .*-(\d+)-receipt\.json
-      region_name: us-east-1
 
   - name: bosh-deployment
     type: git

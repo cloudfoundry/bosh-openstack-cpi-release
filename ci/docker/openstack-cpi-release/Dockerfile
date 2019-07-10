@@ -54,12 +54,6 @@ RUN ["/bin/bash", "-l", "-c", "gem install bundler -v 1.16.6 --no-ri --no-rdoc"]
 RUN wget https://s3.amazonaws.com/bosh-cli-artifacts/bosh-cli-5.5.1-linux-amd64 -O /usr/local/bin/bosh-go
 RUN chmod +x /usr/local/bin/bosh-go
 
-# receipt generator
-RUN cd /tmp && \
-    curl -o certify-artifacts -L https://s3.amazonaws.com/bosh-certification-generator-releases/certify-artifacts-linux-amd64 && \
-    chmod +x certify-artifacts && \
-    mv certify-artifacts /bin/certify-artifacts
-
 #GitHub CLI
 RUN cd /tmp && \
     curl -L https://github.com/github/hub/releases/download/v2.12.1/hub-linux-amd64-2.12.1.tgz | tar -xz && \
