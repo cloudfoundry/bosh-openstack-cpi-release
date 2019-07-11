@@ -6,6 +6,7 @@ RUN update-locale LC_ALL=en_US.UTF-8 LANG=en_US.UTF-8
 RUN apt-get update; \
     apt-get -y upgrade; \
     apt-get install -y \
+    sudo \
     apt-utils \
     curl wget tar make uuid-runtime \
     sqlite3 libsqlite3-dev \
