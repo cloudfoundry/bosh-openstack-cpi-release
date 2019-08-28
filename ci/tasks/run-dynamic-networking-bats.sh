@@ -80,4 +80,4 @@ EOF
 
 cd bats
 bundle install -j4
-bundle exec rspec --tag ~manual_networking --tag ~raw_ephemeral_storage spec
+bundle exec rspec --tag ~manual_networking --tag ~raw_ephemeral_storage --tag ~skip_centos spec
