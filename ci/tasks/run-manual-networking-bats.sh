@@ -9,9 +9,9 @@ source bosh-cpi-src-in/ci/tasks/utils.sh
 : ${openstack_flavor_with_ephemeral_disk:?}
 : ${openstack_flavor_with_no_ephemeral_disk:?}
 : ${private_key_data:?}
-: ${bats_rspec_tags:?}
 
 optional_value availability_zone
+optional_value bats_rspec_tags
 
 ####
 #
