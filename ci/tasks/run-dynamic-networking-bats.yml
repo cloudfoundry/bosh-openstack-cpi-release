@@ -21,3 +21,4 @@ params:
   private_key_data:                          replace-me
   stemcell_name:                             replace-me
   availability_zone:                         replace-me
+  bats_rspec_tags:                           ""

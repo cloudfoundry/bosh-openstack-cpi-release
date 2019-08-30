@@ -21,3 +21,4 @@ params:
   bosh_vcap_password:                       replace-me
   private_key_data:                         replace-me
   availability_zone:                        replace-me
+  bats_rspec_tags:                          ""

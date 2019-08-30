@@ -298,6 +298,7 @@ jobs:
           bosh_vcap_password:                       ((bosh_vcap_password))
           availability_zone:                        ((availability_zone))
           DEBUG_BATS:                               *debug_bats
+          bats_rspec_tags:                          ""
         <<: *send-failure-email
         ensure:
           task: print-task-errors
@@ -400,6 +401,7 @@ jobs:
           private_key_data:                         ((bosh_private_key))
           availability_zone:                        ((availability_zone))
           DEBUG_BATS:                               *debug_bats
+          bats_rspec_tags:                          ""
         <<: *send-failure-email
         ensure:
           task: print-task-errors
@@ -505,6 +507,7 @@ jobs:
           bosh_vcap_password:                       ((bosh_vcap_password))
           availability_zone:                        ((availability_zone))
           DEBUG_BATS:                               *debug_bats
+          bats_rspec_tags:                          "--tag ~skip_centos"
         <<: *send-failure-email
         ensure:
           task: print-task-errors
@@ -606,6 +609,7 @@ jobs:
           private_key_data:                         ((bosh_private_key))
           availability_zone:                        ((availability_zone))
           DEBUG_BATS:                               *debug_bats
+          bats_rspec_tags:                          "--tag ~skip_centos"
         <<: *send-failure-email
         ensure:
           task: print-task-errors

@@ -9,6 +9,7 @@ source bosh-cpi-src-in/ci/tasks/utils.sh
 : ${openstack_flavor_with_ephemeral_disk:?}
 : ${openstack_flavor_with_no_ephemeral_disk:?}
 : ${private_key_data:?}
+: ${bats_rspec_tags:?}
 
 optional_value availability_zone
 
@@ -80,4 +81,4 @@ EOF
 
 cd bats
 bundle install -j4
-bundle exec rspec --tag ~manual_networking --tag ~raw_ephemeral_storage spec
+bundle exec rspec --tag ~manual_networking --tag ~raw_ephemeral_storage ${bats_rspec_tags} spec
