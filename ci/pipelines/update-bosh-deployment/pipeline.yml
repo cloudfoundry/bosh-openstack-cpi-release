@@ -9,10 +9,12 @@ jobs:
         - {trigger: false, get: bosh-deployment-src, timeout: 2h}
 
       - task: update-cpi-version
+        tags: ((worker_tags))
         timeout: 2h
         file: bosh-cpi-src/ci/pipelines/update-bosh-deployment/tasks/update-cpi-version.yml
 
       - put: bosh-deployment-fork
+        tags: ((worker_tags))
         timeout: 2h
         params: {repository: bosh-deployment-fork, force: true}
 
@@ -25,6 +27,7 @@ jobs:
         - {trigger: false, get: bosh-cpi-src, passed: [update-cpi-version], timeout: 2h}
 
       - task: pull-request
+        tags: ((worker_tags))
         timeout: 2h
         file: bosh-cpi-src/ci/pipelines/update-bosh-deployment/tasks/pull-request.yml
         params:
@@ -38,23 +41,27 @@ jobs:
 
 resources:
   - name: bosh-cpi-src
+    tags: ((worker_tags))
     type: git
     source:
       uri: https://github.com/cloudfoundry/bosh-openstack-cpi-release.git
       branch: master
 
   - name: bosh-openstack-cpi-release
+    tags: ((worker_tags))
     type: bosh-io-release
     source:
       repository: cloudfoundry/bosh-openstack-cpi-release
 
   - name: bosh-deployment-src
+    tags: ((worker_tags))
     type: git
     source:
       uri: https://github.com/cloudfoundry/bosh-deployment.git
       branch: develop
 
   - name: bosh-deployment-fork
+    tags: ((worker_tags))
     type: git
     source:
       uri: https://github.com/openstack-cpi/bosh-deployment.git
