@@ -20,12 +20,12 @@ export no_proxy="<%= no_proxy %>"
 BOSH_PACKAGES_DIR=${BOSH_PACKAGES_DIR:-/var/vcap/packages}
 BOSH_JOBS_DIR=${BOSH_JOBS_DIR:-/var/vcap/jobs}
 
-source "${BOSH_PACKAGES_DIR}/ruby-2.4.6-r0.16.0/bosh/runtime.env"
+source "${BOSH_PACKAGES_DIR}/ruby-2.4.7-r0.20.0/bosh/runtime.env"
 export HOME=~
 
 export BUNDLE_GEMFILE=$BOSH_PACKAGES_DIR/bosh_openstack_cpi/Gemfile
 
-bundle_cmd="$BOSH_PACKAGES_DIR/ruby-2.4.6-r0.16.0/bin/bundle"
+bundle_cmd="$BOSH_PACKAGES_DIR/ruby-2.4.7-r0.20.0/bin/bundle"
 
 exec $bundle_cmd exec $BOSH_PACKAGES_DIR/bosh_openstack_cpi/bin/openstack_cpi \
   $BOSH_JOBS_DIR/openstack_cpi/config/cpi.json \
