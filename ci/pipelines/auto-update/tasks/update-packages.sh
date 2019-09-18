@@ -5,7 +5,7 @@ set -e -x
 basedir="$( cd "$( dirname "${BASH_SOURCE[0]}" )/../../../../.." && pwd )"
 
 
-target=$(readlink -f ruby-*)
+target=$(readlink -f ruby-release)
 rubydir="${target##*/}"
 
 mkdir unpacked-ruby-release
@@ -35,7 +35,7 @@ EOF
 
 rm -r packages/ruby-*
 
-ruby_package_version="$(grep name "${basedir}"/unpacked-ruby-release/packages/"${rubydir}"-r*/spec | awk '{print $2}')"
+ruby_package_version="$(grep name ${basedir}/unpacked-ruby-release/packages/ruby-${ruby_version}-r*/spec | awk '{print $2}')"
 bosh-go vendor-package "$ruby_package_version" "${basedir}"/unpacked-ruby-release
 
 

@@ -25,7 +25,7 @@ jobs:
         - {trigger: false, get: bosh-cpi-src-in, tags: ((worker_tags)), timeout: 2h}
         - {trigger: false, get: packages-src-in, tags: ((worker_tags)), timeout: 2h}
         - {trigger: false, get: validator-src-in, tags: ((worker_tags)), timeout: 2h}
-        - {trigger: true,  get: ruby-2.4.6, tags: ((worker_tags)), timeout: 2h}
+        - {trigger: true,  get: ruby-release, tags: ((worker_tags)), timeout: 2h}
 
       - task: update-packages
         tags: ((worker_tags))
@@ -34,6 +34,7 @@ jobs:
         params:
           aws_access_key_id: ((s3_openstack_cpi_blobs_access_key))
           aws_secret_access_key: ((s3_openstack_cpi_blobs_secret_key))
+          ruby_version: "2.4.*"
 
       - task: verify-cpi
         tags: ((worker_tags))
@@ -126,7 +127,7 @@ resources:
     source:
       interval: 24h
 
-  - name: ruby-2.4.6
+  - name: ruby-release
     type: dynamic-metalink
     tags: ((worker_tags))
     source:

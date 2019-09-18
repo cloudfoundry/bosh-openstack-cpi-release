@@ -7,7 +7,7 @@ image_resource:
 inputs:
   - name: bosh-cpi-src-in
   - name: packages-src-in
-  - name: ruby-2.4.6
+  - name: ruby-release
 outputs:
   - name: packages-src-out
 run:
@@ -15,3 +15,4 @@ run:
 params:
   aws_secret_access_key: ""
   aws_access_key_id: ""
+  ruby_version: ""
