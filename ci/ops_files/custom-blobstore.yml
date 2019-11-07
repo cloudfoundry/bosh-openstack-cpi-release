@@ -9,5 +9,17 @@
     bucket_name: ((v3_e2e_blobstore_bucket))
     host: ((v3_e2e_blobstore_host))
 
+- type: replace
+  path: /instance_groups/name=bosh/properties/agent/env/bosh/blobstores/0/options?
+  value:
+    access_key_id: ((v3_e2e_blobstore_access_key))
+    secret_access_key: ((v3_e2e_blobstore_secret_key))
+    bucket_name: ((v3_e2e_blobstore_bucket))
+    host: ((v3_e2e_blobstore_host))
+
+- type: replace
+  path: /instance_groups/name=bosh/properties/agent/env/bosh/blobstores/0/provider?
+  value: s3
+
 - type: remove
   path: /instance_groups/0/jobs/name=blobstore?
