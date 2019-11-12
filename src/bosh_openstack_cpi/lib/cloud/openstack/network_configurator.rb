@@ -132,7 +132,7 @@ module Bosh::OpenStackCloud
       network_id = get_gateway_network_id(network_spec)
       network_subnets = openstack.with_openstack(retryable: true) { openstack.network.list_subnets('network_id' => network_id).body['subnets'] }
       network_subnets.select do |subnet|
-        NetAddr::CIDR.create(subnet['cidr']).matches?(ip)
+        NetAddr.parse_net(subnet['cidr']).contains(NetAddr.parse_ip(ip))
       end.map { |subnet| subnet['id'] }
     end
 
