@@ -4,9 +4,9 @@ jobs:
     serial: true
     plan:
       - in_parallel:
-        - {trigger: true,  get: bosh-openstack-cpi-release, timeout: 2h}
-        - {trigger: false, get: bosh-cpi-src, timeout: 2h}
-        - {trigger: false, get: bosh-deployment-src, timeout: 2h}
+        - {trigger: true,  get: bosh-openstack-cpi-release, timeout: 2h, tags: ((worker_tags))}
+        - {trigger: false, get: bosh-cpi-src, timeout: 2h, tags: ((worker_tags))}
+        - {trigger: false, get: bosh-deployment-src, timeout: 2h, tags: ((worker_tags))}
 
       - task: update-cpi-version
         tags: ((worker_tags))
@@ -22,9 +22,9 @@ jobs:
     serial: true
     plan:
       - in_parallel:
-        - {trigger: true, get: bosh-deployment-fork, passed: [update-cpi-version], timeout: 2h}
-        - {trigger: false, get: bosh-deployment-src, passed: [update-cpi-version], timeout: 2h}
-        - {trigger: false, get: bosh-cpi-src, passed: [update-cpi-version], timeout: 2h}
+        - {trigger: true, get: bosh-deployment-fork, passed: [update-cpi-version], timeout: 2h, tags: ((worker_tags))}
+        - {trigger: false, get: bosh-deployment-src, passed: [update-cpi-version], timeout: 2h, tags: ((worker_tags))}
+        - {trigger: false, get: bosh-cpi-src, passed: [update-cpi-version], timeout: 2h, tags: ((worker_tags))}
 
       - task: pull-request
         tags: ((worker_tags))
