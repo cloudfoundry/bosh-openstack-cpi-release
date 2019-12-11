@@ -12,7 +12,7 @@ GEM
     bosh_cpi (2.5.0)
       httpclient (~> 2.8.3)
       membrane (~> 1.1.0)
-    builder (3.2.3)
+    builder (3.2.4)
     byebug (11.0.1)
     coderay (1.1.2)
     crack (0.4.3)
