@@ -49,7 +49,7 @@ GEM
     multi_json (1.14.1)
     netaddr (2.0.4)
     parallel (1.19.1)
-    parser (2.7.0.1)
+    parser (2.7.0.2)
       ast (~> 2.4.0)
     pry (0.12.2)
       coderay (~> 1.1.0)
