@@ -8,18 +8,6 @@ groups:
       - bats-ubuntu-manual
       - promote-candidate
 
-  - name: lifecycle
-    jobs:
-      - build-candidate
-      - lifecycle
-      - promote-candidate
-
-  - name: ubuntu
-    jobs:
-      - build-candidate
-      - bats-ubuntu-manual
-      - promote-candidate
-
 custom:
   timeouts:
     long: &timeouts-long 2h
