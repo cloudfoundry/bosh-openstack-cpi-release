@@ -8,5 +8,5 @@ if [[ $(lpass status -q; echo $?) != 0 ]]; then
 fi
 
 fly -t cpi set-pipeline -p "bosh-openstack-cpi" \
-    -c ci/pipeline-nocentos.yml \
-    --load-vars-from <(lpass show -G "bosh openstack cpi main pipeline secrets" --notes)
+    -c ci/pipeline.yml \
+    --load-vars-from <(lpass show -G --sync=now "bosh openstack cpi main pipeline secrets" --notes)

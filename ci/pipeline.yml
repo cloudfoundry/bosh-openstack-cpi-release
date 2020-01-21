@@ -1,16 +1,12 @@
 ---
 groups:
-  - name: ((pipeline_name))
+  - name: bosh-openstack-cpi
     jobs:
       - build-candidate
       - lifecycle
       - publish-api-calls
       - bats-ubuntu-manual
-      - bats-centos-manual
-      - bats-ubuntu-dynamic
-      - bats-centos-dynamic
       - promote-candidate
-      - cleanup
 
   - name: lifecycle
     jobs:
@@ -22,14 +18,6 @@ groups:
     jobs:
       - build-candidate
       - bats-ubuntu-manual
-      - bats-ubuntu-dynamic
-      - promote-candidate
-
-  - name: centos
-    jobs:
-      - build-candidate
-      - bats-centos-manual
-      - bats-centos-dynamic
       - promote-candidate
 
 custom:
@@ -38,87 +26,29 @@ custom:
   build_log_retention:
     builds: &build_logs_to_retain 500
   debug_bats: &debug_bats true
-  mail:
-    without_mail: &send-failure-email
-      on_failure: ~
-    with_mail:
-      on_failure:
-        put: send-an-email
-        params:
-          subject: ((email_subject))
-          body: ((email_body))
+
 jobs:
   - name: build-candidate
     serial: true
     build_log_retention:
       builds: *build_logs_to_retain
     plan:
-      - in_parallel:
-        - {trigger: true,  get: bosh-cpi-src-in, tags: ((worker_tags)), timeout: *timeouts-long}
-        - {trigger: false, get: version-semver, params: {bump: patch}, tags: ((worker_tags)), timeout: *timeouts-long}
-        - {trigger: true,  get: pipeline-time-trigger, tags: ((worker_tags)), timeout: *timeouts-long}
+    - in_parallel:
+      - {trigger: true,  get: bosh-cpi-src-in, timeout: *timeouts-long}
+      - {trigger: false, get: version-semver, params: {bump: patch}, timeout: *timeouts-long}
 
-      - put: version-semver
-        tags: ((worker_tags))
-        timeout: *timeouts-long
-        params: {file: version-semver/number}
+    - put: version-semver
+      timeout: *timeouts-long
+      params: {file: version-semver/number}
 
-      - task: build
-        tags: ((worker_tags))
-        timeout: *timeouts-long
-        file: bosh-cpi-src-in/ci/tasks/build-candidate.yml
+    - task: build
+      tags: ((worker_tags))
+      timeout: *timeouts-long
+      file: bosh-cpi-src-in/ci/tasks/build-candidate.yml
 
-      - put: bosh-cpi-dev-artifacts
-        tags: ((worker_tags))
-        timeout: *timeouts-long
-        params: {file: candidate/*.tgz}
-
-  - name: cleanup
-    serial: true
-    serial_groups:
-      - cleanup-lock-lifecycle
-      - cleanup-lock-bats-ubuntu-manual
-      - cleanup-lock-bats-centos-manual
-      - cleanup-lock-bats-ubuntu-dynamic
-      - cleanup-lock-bats-centos-dynamic
-
-    build_log_retention:
-      builds: *build_logs_to_retain
-
-    plan:
-      - in_parallel:
-        - {trigger: true,  passed: [build-candidate], get: bosh-cpi-src-in, tags: ((worker_tags)), timeout: *timeouts-long}
-        - {trigger: true,  passed: [build-candidate], get: bosh-cpi-dev-artifacts, tags: ((worker_tags)), timeout: *timeouts-long}
-        - {trigger: false, passed: [build-candidate], get: version-semver, tags: ((worker_tags)), timeout: *timeouts-long}
-        - {trigger: false, get: validator-src-in, tags: ((worker_tags)), timeout: *timeouts-long}
-
-      - task: cleanup-lifecycle
-        tags: ((worker_tags))
-        timeout: *timeouts-long
-        file: validator-src-in/ci/tasks/cleanup.yml
-        params:
-           BOSH_OPENSTACK_AUTH_URL:    ((openstack_auth_url_v3))
-           BOSH_OPENSTACK_USERNAME:    ((lifecycle_openstack_username_v3))
-           BOSH_OPENSTACK_API_KEY:     ((lifecycle_openstack_api_key_v3))
-           BOSH_OPENSTACK_PROJECT:     ((lifecycle_openstack_project))
-           BOSH_OPENSTACK_DOMAIN_NAME: ((lifecycle_openstack_domain))
-           BOSH_OPENSTACK_CA_CERT:     ((bosh_openstack_ca_cert))
-           BOSH_OPENSTACK_INTERFACE:   ((interface))
-        <<: *send-failure-email
-
-      - task: cleanup-bats
-        tags: ((worker_tags))
-        timeout: *timeouts-long
-        file: validator-src-in/ci/tasks/cleanup.yml
-        params:
-          BOSH_OPENSTACK_AUTH_URL:    ((openstack_auth_url_v3))
-          BOSH_OPENSTACK_USERNAME:    ((openstack_username))
-          BOSH_OPENSTACK_API_KEY:     ((openstack_api_key))
-          BOSH_OPENSTACK_PROJECT:     ((openstack_project))
-          BOSH_OPENSTACK_DOMAIN_NAME: ((openstack_domain))
-          BOSH_OPENSTACK_CA_CERT:     ((bosh_openstack_ca_cert))
-          BOSH_OPENSTACK_INTERFACE:   ((interface))
-        <<: *send-failure-email
+    - put: bosh-cpi-dev-artifacts
+      timeout: *timeouts-long
+      params: {file: candidate/*.tgz}
 
   - name: lifecycle
     serial: true
@@ -126,38 +56,38 @@ jobs:
     build_log_retention:
       builds: *build_logs_to_retain
     plan:
-      - in_parallel:
-        - {trigger: true,  passed: [cleanup], get: bosh-cpi-dev-artifacts, tags: ((worker_tags)), timeout: *timeouts-long} # used for job chaining only not for tasks
-        - {trigger: false, passed: [cleanup], get: bosh-cpi-src-in, tags: ((worker_tags)), timeout: *timeouts-long}
-        - {trigger: false,                    get: openstack-lifecycle-stemcell, resource: openstack-ubuntu-xenial-stemcell, tags: ((worker_tags)), timeout: *timeouts-long}
+    - in_parallel:
+      - {trigger: true, passed: [build-candidate], get: bosh-cpi-dev-artifacts, timeout: *timeouts-long}
+      - {trigger: false, passed: [build-candidate], get: bosh-cpi-src-in, timeout: *timeouts-long}
+      - {trigger: false, get: openstack-lifecycle-stemcell, resource: openstack-ubuntu-xenial-stemcell, timeout: *timeouts-long}
 
-      - task: write_ca_file
-        tags: ((worker_tags))
-        file: bosh-cpi-src-in/ci/tasks/write-ca-file.yml
-        params:
-          file_content: ((bosh_openstack_ca_cert))
+    - task: write_ca_file
+      tags: ((worker_tags))
+      file: bosh-cpi-src-in/ci/tasks/write-ca-file.yml
+      params:
+        file_content: ((bosh_openstack_ca_cert))
 
-      - put: terraform-cpi
-        tags: ((worker_tags))
-        timeout: *timeouts-long
-        params:
-          env_name: lifecycle
-          terraform_source: bosh-cpi-src-in/ci/terraform/ci/lifecycle
-          vars:
-            prefix: "lifecycle"
-            auth_url: ((openstack_auth_url_v3))
-            cacert_file: ((tf_ca_file_path))
-            user_name: ((lifecycle_openstack_username_v3))
-            password: ((lifecycle_openstack_api_key_v3))
-            domain_name: ((lifecycle_openstack_domain))
-            project_name: ((lifecycle_openstack_project))
-            ext_net_id: ((tf_external_network_id))
-            ext_net_name: ((tf_external_network_name))
-            region_name: ((tf_region_name))
-            openstack_default_key_public_key: ((tf_default_public_key))
-            dns_nameservers: ((tf_dns_nameservers))
-            use_lbaas: ((lifecycle_use_lbaas))
-
+    - put: terraform-cpi
+      tags: ((worker_tags))
+      timeout: *timeouts-long
+      params:
+        env_name: lifecycle
+        terraform_source: bosh-cpi-src-in/ci/terraform/ci/lifecycle
+        vars: &lifecycle-terraform-vars
+          prefix: lifecycle
+          auth_url: ((openstack_auth_url_v3))
+          cacert_file: ((tf_ca_file_path))
+          user_name: ((lifecycle_openstack_username_v3))
+          password: ((lifecycle_openstack_api_key_v3))
+          domain_name: ((lifecycle_openstack_domain))
+          project_name: ((lifecycle_openstack_project))
+          ext_net_id: ((tf_external_network_id))
+          ext_net_name: ((tf_external_network_name))
+          region_name: ((tf_region_name))
+          openstack_default_key_public_key: ((tf_default_public_key))
+          dns_nameservers: ((tf_dns_nameservers))
+          use_lbaas: ((lifecycle_use_lbaas))
+    - do:
       - task: test
         tags: ((worker_tags))
         timeout: *timeouts-long
@@ -166,9 +96,7 @@ jobs:
           BOSH_OPENSTACK_DOMAIN:                   ((lifecycle_openstack_domain))
           BOSH_OPENSTACK_PROJECT:                  ((lifecycle_openstack_project))
           BOSH_OPENSTACK_TENANT:                   ((lifecycle_openstack_tenant))
-          BOSH_OPENSTACK_AUTH_URL_V2:              ((openstack_auth_url_v2))
           BOSH_OPENSTACK_USERNAME_V2:              ((lifecycle_openstack_username_v2))
-          BOSH_OPENSTACK_API_KEY_V2:               ((lifecycle_openstack_api_key_v2))
           BOSH_OPENSTACK_AUTH_URL_V3:              ((openstack_auth_url_v3))
           BOSH_OPENSTACK_USERNAME_V3:              ((lifecycle_openstack_username_v3))
           BOSH_OPENSTACK_API_KEY_V3:               ((lifecycle_openstack_api_key_v3))
@@ -181,12 +109,20 @@ jobs:
           BOSH_OPENSTACK_FLAVOR_WITH_NO_ROOT_DISK: ((openstack_flavor_with_no_root_disk))
           BOSH_OPENSTACK_AVAILABILITY_ZONE:        ((availability_zone))
           BOSH_OPENSTACK_EXCLUDE_CINDER_V1:        ((lifecycle_exclude_cinder_v1))
-        <<: *send-failure-email
-
       - put: lifecycle-log
         tags: ((worker_tags))
         timeout: *timeouts-long
         params: {file: output/lifecycle.log}
+      ensure:
+        put: terraform-cpi
+        tags: ((worker_tags))
+        params:
+          action: destroy
+          env_name: lifecycle
+          terraform_source: bosh-cpi-src-in/ci/terraform/ci/lifecycle
+          vars: *lifecycle-terraform-vars
+        get_params:
+          action: destroy
 
   - name: publish-api-calls
     serial: true
@@ -194,8 +130,8 @@ jobs:
       builds: *build_logs_to_retain
     plan:
       - in_parallel:
-        - {trigger: true, passed: [lifecycle], get: lifecycle-log, tags: ((worker_tags)), timeout: *timeouts-long}
-        - {trigger: false, passed: [lifecycle], get: bosh-cpi-src-in, tags: ((worker_tags)), timeout: *timeouts-long}
+        - {trigger: true, passed: [lifecycle], get: lifecycle-log, timeout: *timeouts-long}
+        - {trigger: false, passed: [lifecycle], get: bosh-cpi-src-in, timeout: *timeouts-long}
 
       - task: publish
         tags: ((worker_tags))
@@ -205,7 +141,6 @@ jobs:
           publish_api_calls_enabled:  ((publish_api_calls_enabled))
 
       - put: bosh-cpi-src-out
-        tags: ((worker_tags))
         timeout: *timeouts-long
         params: {repository: publish/repo, rebase: true}
 
@@ -215,416 +150,218 @@ jobs:
     build_log_retention:
       builds: *build_logs_to_retain
     plan:
-      - in_parallel:
-        - {trigger: true,  passed: [cleanup], get: bosh-cpi-dev-artifacts, tags: ((worker_tags)), timeout: *timeouts-long}
-        - {trigger: false, passed: [cleanup], get: version-semver, tags: ((worker_tags)), timeout: *timeouts-long}
-        - {trigger: false, passed: [cleanup], get: bosh-cpi-src-in, tags: ((worker_tags)), timeout: *timeouts-long}
-        - {trigger: false,                    get: bosh-release, tags: ((worker_tags)), timeout: *timeouts-long}
-        - {trigger: false,                    get: stemcell-director, resource: openstack-ubuntu-xenial-stemcell, tags: ((worker_tags)), timeout: *timeouts-long}
-        - {trigger: false,                    get: stemcell, resource: openstack-ubuntu-xenial-stemcell, tags: ((worker_tags)), timeout: *timeouts-long}
-        - {trigger: false,                    get: bats, tags: ((worker_tags)), timeout: *timeouts-long}
-        - {trigger: false,                    get: bosh-deployment, tags: ((worker_tags)), timeout: *timeouts-long}
+    - in_parallel:
+      - {trigger: true,  passed: [build-candidate], get: bosh-cpi-dev-artifacts, timeout: *timeouts-long}
+      - {trigger: false, passed: [build-candidate], get: version-semver, timeout: *timeouts-long}
+      - {trigger: false, passed: [build-candidate], get: bosh-cpi-src-in, timeout: *timeouts-long}
+      - {trigger: false,                    get: bosh-release, timeout: *timeouts-long}
+      - {trigger: false,                    get: stemcell-director, resource: openstack-ubuntu-xenial-stemcell, timeout: *timeouts-long}
+      - {trigger: false,                    get: stemcell, resource: openstack-ubuntu-xenial-stemcell, timeout: *timeouts-long}
+      - {trigger: false,                    get: bats, timeout: *timeouts-long}
+      - {trigger: false,                    get: bosh-deployment, timeout: *timeouts-long}
 
-      - task: write_ca_file
-        tags: ((worker_tags))
-        file: bosh-cpi-src-in/ci/tasks/write-ca-file.yml
-        params:
-          file_content: ((bosh_openstack_ca_cert))
+    - task: write_ca_file
+      tags: ((worker_tags))
+      file: bosh-cpi-src-in/ci/tasks/write-ca-file.yml
+      params:
+        file_content: ((bosh_openstack_ca_cert))
 
-      - put: terraform-cpi
+    - put: terraform-cpi
+      tags: ((worker_tags))
+      timeout: *timeouts-long
+      params:
+        env_name: bats-ubuntu-manual
+        terraform_source: bosh-cpi-src-in/ci/terraform/ci/bats-manual
+        vars: &bats-terraform-vars
+          prefix: "bats-ubuntu-manual"
+          auth_url: ((openstack_auth_url_v3))
+          domain_name: ((openstack_domain))
+          user_name: ((openstack_username))
+          password: ((openstack_api_key))
+          project_name: ((openstack_project))
+          cacert_file: ((tf_ca_file_path))
+          region_name: ((tf_region_name))
+          primary_net_name: "bats-ubuntu-manual-primary"
+          primary_net_cidr: "10.0.4.0/24"
+          primary_net_allocation_pool_start: "10.0.4.200"
+          primary_net_allocation_pool_end: "10.0.4.254"
+          secondary_net_name: "bats-ubuntu-manual-secondary"
+          secondary_net_cidr: "10.0.5.0/24"
+          secondary_net_allocation_pool_start: "10.0.5.200"
+          secondary_net_allocation_pool_end: "10.0.5.254"
+          ext_net_name: ((tf_external_network_name))
+          ext_net_id: ((tf_external_network_id))
+          ext_net_cidr: ((tf_ext_net_cidr))
+          dns_nameservers: ((tf_dns_nameservers))
+          concourse_external_network_cidr: ((tf_concourse_external_network_cidr))
+          openstack_default_key_public_key: ((tf_default_public_key))
+
+    - task: deploy
+      tags: ((worker_tags))
+      timeout: *timeouts-long
+      file: bosh-cpi-src-in/ci/tasks/deploy-manual-networking.yml
+      params:
+        bosh_vcap_password:                   ((bosh_vcap_password))
+        director_ca:                          ((director_ca))
+        director_ca_private_key:              ((director_ca_private_key))
+        openstack_flavor:                     "m1.small"
+        openstack_connection_timeout:         "600"
+        openstack_read_timeout:               "180"
+        openstack_write_timeout:              "180"
+        openstack_state_timeout:              "900"
+        bosh_registry_port:                   ((bosh_director_registry_port))
+        bosh_openstack_ca_cert:               ((bosh_openstack_ca_cert))
+        openstack_auth_url:                   ((openstack_auth_url_v3))
+        openstack_username:                   ((openstack_username))
+        openstack_api_key:                    ((openstack_api_key))
+        openstack_domain:                     ((openstack_domain))
+        internal_ntp:                         ((internal_ntp))
+        distro:                               "ubuntu"
+        availability_zone:                    ((availability_zone))
+        DEBUG_BATS:                           *debug_bats
+
+    - task: test
+      tags: ((worker_tags))
+      timeout: *timeouts-long
+      file: bosh-cpi-src-in/ci/tasks/run-manual-networking-bats.yml
+      params:
+        stemcell_name:                            "bosh-openstack-kvm-ubuntu-xenial-go_agent"
+        private_key_data:                         ((bosh_private_key))
+        openstack_flavor_with_ephemeral_disk:     ((openstack_flavor_with_ephemeral_disk))
+        openstack_flavor_with_no_ephemeral_disk:  ((openstack_flavor_with_no_ephemeral_disk))
+        bosh_vcap_password:                       ((bosh_vcap_password))
+        availability_zone:                        ((availability_zone))
+        DEBUG_BATS:                               *debug_bats
+        bats_rspec_tags:                          ""
+      ensure:
+        task: print-task-errors
         tags: ((worker_tags))
         timeout: *timeouts-long
+        file: bosh-cpi-src-in/ci/tasks/print_task_errors.yml
         params:
+          director_ca:         ((director_ca))
+
+    - task: teardown-director
+      tags: ((worker_tags))
+      timeout: *timeouts-long
+      file: bosh-cpi-src-in/ci/tasks/teardown-director.yml
+      params:
+        bosh_vcap_password: ((bosh_vcap_password))
+      ensure:
+        put: terraform-cpi
+        params:
+          action: destroy
           env_name: bats-ubuntu-manual
           terraform_source: bosh-cpi-src-in/ci/terraform/ci/bats-manual
-          vars:
-            prefix: "bats-ubuntu-manual"
-            auth_url: ((openstack_auth_url_v3))
-            domain_name: ((openstack_domain))
-            user_name: ((openstack_username))
-            password: ((openstack_api_key))
-            project_name: ((openstack_project))
-            cacert_file: ((tf_ca_file_path))
-            region_name: ((tf_region_name))
-            primary_net_name: "bats-ubuntu-manual-primary"
-            primary_net_cidr: "10.0.4.0/24"
-            primary_net_allocation_pool_start: "10.0.4.200"
-            primary_net_allocation_pool_end: "10.0.4.254"
-            secondary_net_name: "bats-ubuntu-manual-secondary"
-            secondary_net_cidr: "10.0.5.0/24"
-            secondary_net_allocation_pool_start: "10.0.5.200"
-            secondary_net_allocation_pool_end: "10.0.5.254"
-            ext_net_name: ((tf_external_network_name))
-            ext_net_id: ((tf_external_network_id))
-            ext_net_cidr: ((tf_ext_net_cidr))
-            dns_nameservers: ((tf_dns_nameservers))
-            concourse_external_network_cidr: ((tf_concourse_external_network_cidr))
-            openstack_default_key_public_key: ((tf_default_public_key))
+          vars: *bats-terraform-vars
+        get_params:
+          action: destroy
 
-      - task: deploy
-        tags: ((worker_tags))
-        timeout: *timeouts-long
-        file: bosh-cpi-src-in/ci/tasks/deploy-manual-networking.yml
-        params:
-          bosh_vcap_password:                   ((bosh_vcap_password))
-          director_ca:                          ((director_ca))
-          director_ca_private_key:              ((director_ca_private_key))
-          openstack_flavor:                     "m1.small"
-          openstack_connection_timeout:         "600"
-          openstack_read_timeout:               "180"
-          openstack_write_timeout:              "180"
-          openstack_state_timeout:              "900"
-          bosh_registry_port:                   ((bosh_director_registry_port))
-          bosh_openstack_ca_cert:               ((bosh_openstack_ca_cert))
-          openstack_auth_url:                   ((openstack_auth_url_v3))
-          openstack_username:                   ((openstack_username))
-          openstack_api_key:                    ((openstack_api_key))
-          openstack_domain:                     ((openstack_domain))
-          internal_ntp:                         ((internal_ntp))
-          distro:                               "ubuntu"
-          availability_zone:                    ((availability_zone))
-          DEBUG_BATS:                           *debug_bats
-        <<: *send-failure-email
+  # - name: bats-ubuntu-dynamic
+  #   serial: true
+  #   serial_groups: [cleanup-lock-bats-ubuntu-dynamic]
+  #   build_log_retention:
+  #     builds: *build_logs_to_retain
+  #   plan:
+  #     - in_parallel:
+  #       - {trigger: true,  passed: [cleanup], get: bosh-cpi-dev-artifacts, timeout: *timeouts-long}
+  #       - {trigger: false, passed: [cleanup], get: version-semver, timeout: *timeouts-long}
+  #       - {trigger: false, passed: [cleanup], get: bosh-cpi-src-in, timeout: *timeouts-long}
+  #       - {trigger: false,                    get: bosh-release, timeout: *timeouts-long}
+  #       - {trigger: false,                    get: stemcell-director, resource: openstack-ubuntu-xenial-stemcell, timeout: *timeouts-long}
+  #       - {trigger: false,                    get: stemcell, resource: openstack-ubuntu-xenial-stemcell, timeout: *timeouts-long}
+  #       - {trigger: false,                    get: bats, timeout: *timeouts-long}
+  #       - {trigger: false,                    get: bosh-deployment, timeout: *timeouts-long}
 
-      - task: test
-        tags: ((worker_tags))
-        timeout: *timeouts-long
-        file: bosh-cpi-src-in/ci/tasks/run-manual-networking-bats.yml
-        params:
-          stemcell_name:                            "bosh-openstack-kvm-ubuntu-xenial-go_agent"
-          private_key_data:                         ((bosh_private_key))
-          openstack_flavor_with_ephemeral_disk:     ((openstack_flavor_with_ephemeral_disk))
-          openstack_flavor_with_no_ephemeral_disk:  ((openstack_flavor_with_no_ephemeral_disk))
-          bosh_vcap_password:                       ((bosh_vcap_password))
-          availability_zone:                        ((availability_zone))
-          DEBUG_BATS:                               *debug_bats
-          bats_rspec_tags:                          ""
-        <<: *send-failure-email
-        ensure:
-          task: print-task-errors
-          tags: ((worker_tags))
-          timeout: *timeouts-long
-          file: bosh-cpi-src-in/ci/tasks/print_task_errors.yml
-          params:
-            director_ca:         ((director_ca))
+  #     - task: write_ca_file
+  #       tags: ((worker_tags))
+  #       file: bosh-cpi-src-in/ci/tasks/write-ca-file.yml
+  #       params:
+  #         file_content: ((bosh_openstack_ca_cert))
 
-      - task: teardown-director
-        tags: ((worker_tags))
-        timeout: *timeouts-long
-        file: bosh-cpi-src-in/ci/tasks/teardown-director.yml
-        params:
-          bosh_vcap_password: ((bosh_vcap_password))
-        <<: *send-failure-email
+  #     - put: terraform-cpi
+  #       tags: ((worker_tags))
+  #       timeout: *timeouts-long
+  #       params:
+  #         env_name: bats-ubuntu-dynamic
+  #         terraform_source: bosh-cpi-src-in/ci/terraform/ci/bats-dynamic
+  #         vars:
+  #           prefix: "bats-ubuntu-dynamic"
+  #           auth_url: ((openstack_auth_url_v3))
+  #           domain_name: ((openstack_domain))
+  #           user_name: ((openstack_username))
+  #           password: ((openstack_api_key))
+  #           project_name: ((openstack_project))
+  #           cacert_file: ((tf_ca_file_path))
+  #           region_name: ((tf_region_name))
+  #           primary_net_name: "bats-ubuntu-dynamic-primary"
+  #           primary_net_cidr: "10.0.2.0/24"
+  #           primary_net_allocation_pool_start: "10.0.2.200"
+  #           primary_net_allocation_pool_end: "10.0.2.254"
+  #           ext_net_name: ((tf_external_network_name))
+  #           ext_net_id: ((tf_external_network_id))
+  #           ext_net_cidr: ((tf_ext_net_cidr))
+  #           dns_nameservers: ((tf_dns_nameservers))
+  #           concourse_external_network_cidr: ((tf_concourse_external_network_cidr))
+  #           openstack_default_key_public_key: ((tf_default_public_key))
 
-  - name: bats-ubuntu-dynamic
-    serial: true
-    serial_groups: [cleanup-lock-bats-ubuntu-dynamic]
-    build_log_retention:
-      builds: *build_logs_to_retain
-    plan:
-      - in_parallel:
-        - {trigger: true,  passed: [cleanup], get: bosh-cpi-dev-artifacts, tags: ((worker_tags)), timeout: *timeouts-long}
-        - {trigger: false, passed: [cleanup], get: version-semver, tags: ((worker_tags)), timeout: *timeouts-long}
-        - {trigger: false, passed: [cleanup], get: bosh-cpi-src-in, tags: ((worker_tags)), timeout: *timeouts-long}
-        - {trigger: false,                    get: bosh-release, tags: ((worker_tags)), timeout: *timeouts-long}
-        - {trigger: false,                    get: stemcell-director, resource: openstack-ubuntu-xenial-stemcell, tags: ((worker_tags)), timeout: *timeouts-long}
-        - {trigger: false,                    get: stemcell, resource: openstack-ubuntu-xenial-stemcell, tags: ((worker_tags)), timeout: *timeouts-long}
-        - {trigger: false,                    get: bats, tags: ((worker_tags)), timeout: *timeouts-long}
-        - {trigger: false,                    get: bosh-deployment, tags: ((worker_tags)), timeout: *timeouts-long}
+  #     - task: deploy
+  #       tags: ((worker_tags))
+  #       timeout: *timeouts-long
+  #       file: bosh-cpi-src-in/ci/tasks/deploy-dynamic-networking.yml
+  #       params:
+  #         bosh_vcap_password:                   ((bosh_vcap_password))
+  #         director_ca:                          ((director_ca))
+  #         director_ca_private_key:              ((director_ca_private_key))
+  #         openstack_flavor:                     "m1.small"
+  #         openstack_connection_timeout:         "600"
+  #         openstack_read_timeout:               "180"
+  #         openstack_write_timeout:              "180"
+  #         openstack_state_timeout:              "900"
+  #         bosh_registry_port:                   ((bosh_director_registry_port))
+  #         bosh_openstack_ca_cert:               ((bosh_openstack_ca_cert))
+  #         openstack_auth_url:                   ((openstack_auth_url_v3))
+  #         openstack_username:                   ((openstack_username))
+  #         openstack_api_key:                    ((openstack_api_key))
+  #         openstack_domain:                     ((openstack_domain))
+  #         internal_ntp:                         ((internal_ntp))
+  #         distro:                               "ubuntu"
+  #         availability_zone:                    ((availability_zone))
+  #         DEBUG_BATS:                           *debug_bats
 
-      - task: write_ca_file
-        tags: ((worker_tags))
-        file: bosh-cpi-src-in/ci/tasks/write-ca-file.yml
-        params:
-          file_content: ((bosh_openstack_ca_cert))
+  #     - task: test
+  #       tags: ((worker_tags))
+  #       timeout: *timeouts-long
+  #       file: bosh-cpi-src-in/ci/tasks/run-dynamic-networking-bats.yml
+  #       params:
+  #         stemcell_name:                            "bosh-openstack-kvm-ubuntu-xenial-go_agent"
+  #         bosh_vcap_password:                       ((bosh_vcap_password))
+  #         openstack_flavor_with_ephemeral_disk:     ((openstack_flavor_with_ephemeral_disk))
+  #         openstack_flavor_with_no_ephemeral_disk:  ((openstack_flavor_with_no_ephemeral_disk))
+  #         private_key_data:                         ((bosh_private_key))
+  #         availability_zone:                        ((availability_zone))
+  #         DEBUG_BATS:                               *debug_bats
+  #         bats_rspec_tags:                          ""
+  #       ensure:
+  #         task: print-task-errors
+  #         tags: ((worker_tags))
+  #         timeout: *timeouts-long
+  #         file: bosh-cpi-src-in/ci/tasks/print_task_errors.yml
+  #         params:
+  #           director_ca:         ((director_ca))
 
-      - put: terraform-cpi
-        tags: ((worker_tags))
-        timeout: *timeouts-long
-        params:
-          env_name: bats-ubuntu-dynamic
-          terraform_source: bosh-cpi-src-in/ci/terraform/ci/bats-dynamic
-          vars:
-            prefix: "bats-ubuntu-dynamic"
-            auth_url: ((openstack_auth_url_v3))
-            domain_name: ((openstack_domain))
-            user_name: ((openstack_username))
-            password: ((openstack_api_key))
-            project_name: ((openstack_project))
-            cacert_file: ((tf_ca_file_path))
-            region_name: ((tf_region_name))
-            primary_net_name: "bats-ubuntu-dynamic-primary"
-            primary_net_cidr: "10.0.2.0/24"
-            primary_net_allocation_pool_start: "10.0.2.200"
-            primary_net_allocation_pool_end: "10.0.2.254"
-            ext_net_name: ((tf_external_network_name))
-            ext_net_id: ((tf_external_network_id))
-            ext_net_cidr: ((tf_ext_net_cidr))
-            dns_nameservers: ((tf_dns_nameservers))
-            concourse_external_network_cidr: ((tf_concourse_external_network_cidr))
-            openstack_default_key_public_key: ((tf_default_public_key))
-
-      - task: deploy
-        tags: ((worker_tags))
-        timeout: *timeouts-long
-        file: bosh-cpi-src-in/ci/tasks/deploy-dynamic-networking.yml
-        params:
-          bosh_vcap_password:                   ((bosh_vcap_password))
-          director_ca:                          ((director_ca))
-          director_ca_private_key:              ((director_ca_private_key))
-          openstack_flavor:                     "m1.small"
-          openstack_connection_timeout:         "600"
-          openstack_read_timeout:               "180"
-          openstack_write_timeout:              "180"
-          openstack_state_timeout:              "900"
-          bosh_registry_port:                   ((bosh_director_registry_port))
-          bosh_openstack_ca_cert:               ((bosh_openstack_ca_cert))
-          openstack_auth_url:                   ((openstack_auth_url_v3))
-          openstack_username:                   ((openstack_username))
-          openstack_api_key:                    ((openstack_api_key))
-          openstack_domain:                     ((openstack_domain))
-          internal_ntp:                         ((internal_ntp))
-          distro:                               "ubuntu"
-          availability_zone:                    ((availability_zone))
-          DEBUG_BATS:                           *debug_bats
-        <<: *send-failure-email
-
-      - task: test
-        tags: ((worker_tags))
-        timeout: *timeouts-long
-        file: bosh-cpi-src-in/ci/tasks/run-dynamic-networking-bats.yml
-        params:
-          stemcell_name:                            "bosh-openstack-kvm-ubuntu-xenial-go_agent"
-          bosh_vcap_password:                       ((bosh_vcap_password))
-          openstack_flavor_with_ephemeral_disk:     ((openstack_flavor_with_ephemeral_disk))
-          openstack_flavor_with_no_ephemeral_disk:  ((openstack_flavor_with_no_ephemeral_disk))
-          private_key_data:                         ((bosh_private_key))
-          availability_zone:                        ((availability_zone))
-          DEBUG_BATS:                               *debug_bats
-          bats_rspec_tags:                          ""
-        <<: *send-failure-email
-        ensure:
-          task: print-task-errors
-          tags: ((worker_tags))
-          timeout: *timeouts-long
-          file: bosh-cpi-src-in/ci/tasks/print_task_errors.yml
-          params:
-            director_ca:         ((director_ca))
-
-      - task: teardown-director
-        tags: ((worker_tags))
-        timeout: *timeouts-long
-        file: bosh-cpi-src-in/ci/tasks/teardown-director.yml
-        params:
-        <<: *send-failure-email
-
-  - name: bats-centos-manual
-    serial: true
-    serial_groups: [cleanup-lock-bats-centos-manual]
-    build_log_retention:
-      builds: *build_logs_to_retain
-    plan:
-      - in_parallel:
-        - {trigger: true,  passed: [cleanup], get: bosh-cpi-dev-artifacts, tags: ((worker_tags)), timeout: *timeouts-long}
-        - {trigger: false, passed: [cleanup], get: version-semver, tags: ((worker_tags)), timeout: *timeouts-long}
-        - {trigger: false, passed: [cleanup], get: bosh-cpi-src-in, tags: ((worker_tags)), timeout: *timeouts-long}
-        - {trigger: false,                    get: bosh-release, tags: ((worker_tags)), timeout: *timeouts-long}
-        - {trigger: false,                    get: stemcell-director, resource: openstack-ubuntu-xenial-stemcell, tags: ((worker_tags)), timeout: *timeouts-long}
-        - {trigger: false,                    get: stemcell, resource: openstack-centos-stemcell, tags: ((worker_tags)), timeout: *timeouts-long}
-        - {trigger: false,                    get: bats, tags: ((worker_tags)), timeout: *timeouts-long}
-        - {trigger: false,                    get: bosh-deployment, tags: ((worker_tags)), timeout: *timeouts-long}
-
-      - task: write_ca_file
-        tags: ((worker_tags))
-        file: bosh-cpi-src-in/ci/tasks/write-ca-file.yml
-        params:
-          file_content: ((bosh_openstack_ca_cert))
-
-      - put: terraform-cpi
-        tags: ((worker_tags))
-        timeout: *timeouts-long
-        params:
-          env_name: bats-centos-manual
-          terraform_source: bosh-cpi-src-in/ci/terraform/ci/bats-manual
-          vars:
-            prefix: "bats-centos-manual"
-            auth_url: ((openstack_auth_url_v3))
-            domain_name: ((openstack_domain))
-            user_name: ((openstack_username))
-            password: ((openstack_api_key))
-            project_name: ((openstack_project))
-            cacert_file: ((tf_ca_file_path))
-            region_name: ((tf_region_name))
-            primary_net_name: "bats-centos-manual-primary"
-            primary_net_cidr: "10.0.6.0/24"
-            primary_net_allocation_pool_start: "10.0.6.200"
-            primary_net_allocation_pool_end: "10.0.6.254"
-            secondary_net_name: "bats-centos-manual-secondary"
-            secondary_net_cidr: "10.0.7.0/24"
-            secondary_net_allocation_pool_start: "10.0.7.200"
-            secondary_net_allocation_pool_end: "10.0.7.254"
-            ext_net_name: ((tf_external_network_name))
-            ext_net_id: ((tf_external_network_id))
-            ext_net_cidr: ((tf_ext_net_cidr))
-            dns_nameservers: ((tf_dns_nameservers))
-            concourse_external_network_cidr: ((tf_concourse_external_network_cidr))
-            openstack_default_key_public_key: ((tf_default_public_key))
-
-      - task: deploy
-        tags: ((worker_tags))
-        timeout: *timeouts-long
-        file: bosh-cpi-src-in/ci/tasks/deploy-manual-networking.yml
-        params:
-          bosh_vcap_password:                   ((bosh_vcap_password))
-          director_ca:                          ((director_ca))
-          director_ca_private_key:              ((director_ca_private_key))
-          openstack_flavor:                     "m1.small"
-          openstack_connection_timeout:         "600"
-          openstack_read_timeout:               "180"
-          openstack_write_timeout:              "180"
-          openstack_state_timeout:              "900"
-          bosh_registry_port:                   ((bosh_director_registry_port))
-          bosh_openstack_ca_cert:               ((bosh_openstack_ca_cert))
-          openstack_auth_url:                   ((openstack_auth_url_v3))
-          openstack_username:                   ((openstack_username))
-          openstack_api_key:                    ((openstack_api_key))
-          openstack_domain:                     ((openstack_domain))
-          internal_ntp:                         ((internal_ntp))
-          distro:                               "ubuntu"
-          availability_zone:                    ((availability_zone))
-          DEBUG_BATS:                           *debug_bats
-        <<: *send-failure-email
-
-      - task: test
-        tags: ((worker_tags))
-        timeout: *timeouts-long
-        file: bosh-cpi-src-in/ci/tasks/run-manual-networking-bats.yml
-        params:
-          stemcell_name:                            "bosh-openstack-kvm-centos-7-go_agent"
-          private_key_data:                         ((bosh_private_key))
-          openstack_flavor_with_ephemeral_disk:     ((openstack_flavor_with_ephemeral_disk))
-          openstack_flavor_with_no_ephemeral_disk:  ((openstack_flavor_with_no_ephemeral_disk))
-          bosh_vcap_password:                       ((bosh_vcap_password))
-          availability_zone:                        ((availability_zone))
-          DEBUG_BATS:                               *debug_bats
-          bats_rspec_tags:                          "--tag ~skip_centos"
-        <<: *send-failure-email
-        ensure:
-          task: print-task-errors
-          tags: ((worker_tags))
-          timeout: *timeouts-long
-          file: bosh-cpi-src-in/ci/tasks/print_task_errors.yml
-          params:
-            director_ca:         ((director_ca))
-
-      - task: teardown-director
-        tags: ((worker_tags))
-        timeout: *timeouts-long
-        file: bosh-cpi-src-in/ci/tasks/teardown-director.yml
-        params:
-        <<: *send-failure-email
-
-  - name: bats-centos-dynamic
-    serial: true
-    serial_groups: [cleanup-lock-bats-centos-dynamic]
-    build_log_retention:
-      builds: *build_logs_to_retain
-    plan:
-      - in_parallel:
-        - {trigger: true,  passed: [cleanup], get: bosh-cpi-dev-artifacts, tags: ((worker_tags)), timeout: *timeouts-long}
-        - {trigger: false, passed: [cleanup], get: version-semver, tags: ((worker_tags)), timeout: *timeouts-long}
-        - {trigger: false, passed: [cleanup], get: bosh-cpi-src-in, tags: ((worker_tags)), timeout: *timeouts-long}
-        - {trigger: false,                    get: bosh-release, tags: ((worker_tags)), timeout: *timeouts-long}
-        - {trigger: false,                    get: stemcell-director, resource: openstack-ubuntu-xenial-stemcell, tags: ((worker_tags)), timeout: *timeouts-long}
-        - {trigger: false,                    get: stemcell, resource: openstack-centos-stemcell, tags: ((worker_tags)), timeout: *timeouts-long}
-        - {trigger: false,                    get: bats, tags: ((worker_tags)), timeout: *timeouts-long}
-        - {trigger: false,                    get: bosh-deployment, tags: ((worker_tags)), timeout: *timeouts-long}
-
-      - task: write_ca_file
-        tags: ((worker_tags))
-        file: bosh-cpi-src-in/ci/tasks/write-ca-file.yml
-        params:
-          file_content: ((bosh_openstack_ca_cert))
-
-      - put: terraform-cpi
-        tags: ((worker_tags))
-        timeout: *timeouts-long
-        params:
-          env_name: bats-centos-dynamic
-          terraform_source: bosh-cpi-src-in/ci/terraform/ci/bats-dynamic
-          vars:
-            prefix: "bats-centos-dynamic"
-            auth_url: ((openstack_auth_url_v3))
-            domain_name: ((openstack_domain))
-            user_name: ((openstack_username))
-            password: ((openstack_api_key))
-            project_name: ((openstack_project))
-            cacert_file: ((tf_ca_file_path))
-            region_name: ((tf_region_name))
-            primary_net_name: "bats-centos-dynamic-primary"
-            primary_net_cidr: "10.0.3.0/24"
-            primary_net_allocation_pool_start: "10.0.3.200"
-            primary_net_allocation_pool_end: "10.0.3.254"
-            ext_net_name: ((tf_external_network_name))
-            ext_net_id: ((tf_external_network_id))
-            ext_net_cidr: ((tf_ext_net_cidr))
-            dns_nameservers: ((tf_dns_nameservers))
-            concourse_external_network_cidr: ((tf_concourse_external_network_cidr))
-            openstack_default_key_public_key: ((tf_default_public_key))
-
-      - task: deploy
-        tags: ((worker_tags))
-        timeout: *timeouts-long
-        file: bosh-cpi-src-in/ci/tasks/deploy-dynamic-networking.yml
-        params:
-          bosh_vcap_password:                   ((bosh_vcap_password))
-          director_ca:                          ((director_ca))
-          director_ca_private_key:              ((director_ca_private_key))
-          openstack_flavor:                     "m1.small"
-          openstack_connection_timeout:         "600"
-          openstack_read_timeout:               "180"
-          openstack_write_timeout:              "180"
-          openstack_state_timeout:              "900"
-          bosh_registry_port:                   ((bosh_director_registry_port))
-          bosh_openstack_ca_cert:               ((bosh_openstack_ca_cert))
-          openstack_auth_url:                   ((openstack_auth_url_v3))
-          openstack_username:                   ((openstack_username))
-          openstack_api_key:                    ((openstack_api_key))
-          openstack_domain:                     ((openstack_domain))
-          internal_ntp:                         ((internal_ntp))
-          distro:                               "ubuntu"
-          availability_zone:                    ((availability_zone))
-          DEBUG_BATS:                           *debug_bats
-        <<: *send-failure-email
-
-      - task: test
-        tags: ((worker_tags))
-        timeout: *timeouts-long
-        file: bosh-cpi-src-in/ci/tasks/run-dynamic-networking-bats.yml
-        params:
-          stemcell_name:                            "bosh-openstack-kvm-centos-7-go_agent"
-          bosh_vcap_password:                       ((bosh_vcap_password))
-          openstack_flavor_with_ephemeral_disk:     ((openstack_flavor_with_ephemeral_disk))
-          openstack_flavor_with_no_ephemeral_disk:  ((openstack_flavor_with_no_ephemeral_disk))
-          private_key_data:                         ((bosh_private_key))
-          availability_zone:                        ((availability_zone))
-          DEBUG_BATS:                               *debug_bats
-          bats_rspec_tags:                          "--tag ~skip_centos"
-        <<: *send-failure-email
-        ensure:
-          task: print-task-errors
-          tags: ((worker_tags))
-          timeout: *timeouts-long
-          file: bosh-cpi-src-in/ci/tasks/print_task_errors.yml
-          params:
-            director_ca:         ((director_ca))
-
-      - task: teardown-director
-        tags: ((worker_tags))
-        timeout: *timeouts-long
-        file: bosh-cpi-src-in/ci/tasks/teardown-director.yml
-        params:
-        <<: *send-failure-email
+  #     - task: teardown-director
+  #       tags: ((worker_tags))
+  #       timeout: *timeouts-long
+  #       file: bosh-cpi-src-in/ci/tasks/teardown-director.yml
+  #       ensure:
+  #         put: terraform-cpi
+  #         params:
+  #           action: destroy
+  #           env_name: bats-ubuntu-manual
+  #           terraform_source: bosh-cpi-src-in/ci/terraform/ci/bats-manual
+  #         get_params:
+  #           action: destroy
 
   - name: promote-candidate
     serial: true
@@ -632,9 +369,9 @@ jobs:
       builds: *build_logs_to_retain
     plan:
       - in_parallel:
-        - {trigger: false, passed: [lifecycle, bats-ubuntu-manual, bats-centos-manual, bats-ubuntu-dynamic, bats-centos-dynamic], get: bosh-cpi-dev-artifacts, tags: ((worker_tags)), timeout: *timeouts-long}
-        - {trigger: false, passed: [lifecycle, bats-ubuntu-manual, bats-centos-manual, bats-ubuntu-dynamic, bats-centos-dynamic], get: bosh-cpi-src-in, tags: ((worker_tags)), timeout: *timeouts-long}
-        - {trigger: false, get: release-version-semver, params: {bump: major}, tags: ((worker_tags)), timeout: *timeouts-long}
+        - {trigger: false, passed: [lifecycle, bats-ubuntu-manual], get: bosh-cpi-dev-artifacts, timeout: *timeouts-long}
+        - {trigger: false, passed: [lifecycle, bats-ubuntu-manual], get: bosh-cpi-src-in, timeout: *timeouts-long}
+        - {trigger: false, get: release-version-semver, params: {bump: major}, timeout: *timeouts-long}
 
       - task: promote
         tags: ((worker_tags))
@@ -645,21 +382,19 @@ jobs:
           aws_secret_access_key: ((s3_openstack_cpi_blobs_secret_key))
 
       - put: release-version-semver
-        tags: ((worker_tags))
         timeout: *timeouts-long
         params: {file: release-version-semver/number}
 
       - put: bosh-cpi-src-out
-        tags: ((worker_tags))
         timeout: *timeouts-long
         params: {repository: promote/repo, rebase: true, tag: promote/integer_version, tag_prefix: "v"}
 
 resource_types:
-  - name: email
-    type: docker-image
-    source:
-      repository: friegger/email-resource
-      tag: noauth
+  # - name: email
+  #   type: docker-image
+  #   source:
+  #     repository: friegger/email-resource
+  #     tag: noauth
   - name: terraform
     type: docker-image
     source:
@@ -762,18 +497,6 @@ resources:
     source:
       name: bosh-openstack-kvm-ubuntu-xenial-go_agent
 
-  - name: openstack-centos-stemcell
-    type: bosh-io-stemcell
-    tags: ((worker_tags))
-    source:
-      name: bosh-openstack-kvm-centos-7-go_agent
-
-  - name: pipeline-time-trigger
-    type: time
-    tags: ((worker_tags))
-    source:
-      interval: ((pipeline-time-trigger-interval))
-
   - name: bosh-deployment
     type: git
     tags: ((worker_tags))
@@ -781,19 +504,9 @@ resources:
       uri: https://github.com/cloudfoundry/bosh-deployment.git
       branch: master
 
-  - name: validator-src-in
-    type: git
-    tags: ((worker_tags))
-    source:
-      uri: https://github.com/cloudfoundry-incubator/cf-openstack-validator
-      branch: master
-
-#  - name: send-an-email
-#    type: email
-#    tags: ((worker_tags))
-#    source:
-#      smtp:
-#        host: ((email_host))
-#        port: ((email_port))
-#      from: ((email_from))
-#      to: [ ((email_to)) ]
+  # - name: validator-src-in
+  #   type: git
+  #   tags: ((worker_tags))
+  #   source:
+  #     uri: https://github.com/cloudfoundry-incubator/cf-openstack-validator
+  #     branch: master
