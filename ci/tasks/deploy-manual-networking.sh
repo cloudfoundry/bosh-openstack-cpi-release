@@ -58,10 +58,10 @@ echo $(md5sum ${deployment_dir}/stemcell.tgz)
 cd ${deployment_dir}
 
 # Variables from pre-seeded vars store
-echo -e "${bosh_openstack_ca_cert}" > bosh_openstack_ca_cert
-echo -e "${director_ca}" > director_ca
-echo -e "${director_ca_private_key}" > director_ca_private_key
-../bosh-cpi-src-in/ci/ruby_scripts/render_credentials > ./custom-ca.yml
+# echo -e "${bosh_openstack_ca_cert}" > bosh_openstack_ca_cert
+# echo -e "${director_ca}" > director_ca
+# echo -e "${director_ca_private_key}" > director_ca_private_key
+# ../bosh-cpi-src-in/ci/ruby_scripts/render_credentials > ./custom-ca.yml
 
 echo "using bosh CLI version..."
 bosh-go --version
@@ -69,7 +69,6 @@ bosh-go --version
 echo "check bosh deployment interpolation"
 bosh-go int ../bosh-deployment/bosh.yml \
     --var-errs --var-errs-unused \
-    --vars-file ./custom-ca.yml \
     --vars-store ./credentials.yml \
     -o ../bosh-deployment/misc/powerdns.yml \
     -o ../bosh-deployment/openstack/cpi.yml \
