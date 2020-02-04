@@ -25,7 +25,7 @@ describe Bosh::OpenStackCloud::ExconLoggingInstrumentor do
       'ephemeral_disk_size' => 2 * 1024,
     )
 
-    expect(log.string).to match(%r{excon\.request GET https://.*:\d+/v\d\.\d/})
+    expect(log.string).to match(%r{excon\.request GET https?://.*:\d+/v\d\.\d/})
     expect(log.string).to match(%r{excon\.response HTTP/.*:\d+/v\d\.\d/})
   end
 
