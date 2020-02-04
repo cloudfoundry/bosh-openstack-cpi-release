@@ -184,57 +184,58 @@ jobs:
           concourse_external_network_cidr: ((tf_concourse_external_network_cidr))
           openstack_default_key_public_key: ((tf_default_public_key))
 
-    - task: deploy
-      tags: ((worker_tags))
-      timeout: *timeouts-long
-      file: bosh-cpi-src-in/ci/tasks/deploy-manual-networking.yml
-      params:
-        bosh_vcap_password:                   ((bosh_vcap_password))
-        director_ca:                          ((director_ca))
-        director_ca_private_key:              ((director_ca_private_key))
-        openstack_flavor:                     "m1.small"
-        openstack_connection_timeout:         "600"
-        openstack_read_timeout:               "180"
-        openstack_write_timeout:              "180"
-        openstack_state_timeout:              "900"
-        bosh_registry_port:                   ((bosh_director_registry_port))
-        bosh_openstack_ca_cert:               ((bosh_openstack_ca_cert))
-        openstack_auth_url:                   ((openstack_auth_url_v3))
-        openstack_username:                   ((openstack_username))
-        openstack_api_key:                    ((openstack_api_key))
-        openstack_domain:                     ((openstack_domain))
-        internal_ntp:                         ((internal_ntp))
-        distro:                               "ubuntu"
-        availability_zone:                    ((availability_zone))
-        DEBUG_BATS:                           *debug_bats
-
-    - task: test
-      tags: ((worker_tags))
-      timeout: *timeouts-long
-      file: bosh-cpi-src-in/ci/tasks/run-manual-networking-bats.yml
-      params:
-        stemcell_name:                            "bosh-openstack-kvm-ubuntu-xenial-go_agent"
-        private_key_data:                         ((bosh_private_key))
-        openstack_flavor_with_ephemeral_disk:     ((openstack_flavor_with_ephemeral_disk))
-        openstack_flavor_with_no_ephemeral_disk:  ((openstack_flavor_with_no_ephemeral_disk))
-        bosh_vcap_password:                       ((bosh_vcap_password))
-        availability_zone:                        ((availability_zone))
-        DEBUG_BATS:                               *debug_bats
-        bats_rspec_tags:                          ""
-      ensure:
-        task: print-task-errors
+    - do:
+      - task: deploy
         tags: ((worker_tags))
         timeout: *timeouts-long
-        file: bosh-cpi-src-in/ci/tasks/print_task_errors.yml
+        file: bosh-cpi-src-in/ci/tasks/deploy-manual-networking.yml
         params:
-          director_ca:         ((director_ca))
+          bosh_vcap_password:                   ((bosh_vcap_password))
+          director_ca:                          ((director_ca))
+          director_ca_private_key:              ((director_ca_private_key))
+          openstack_flavor:                     "m1.small"
+          openstack_connection_timeout:         "600"
+          openstack_read_timeout:               "180"
+          openstack_write_timeout:              "180"
+          openstack_state_timeout:              "900"
+          bosh_registry_port:                   ((bosh_director_registry_port))
+          bosh_openstack_ca_cert:               ((bosh_openstack_ca_cert))
+          openstack_auth_url:                   ((openstack_auth_url_v3))
+          openstack_username:                   ((openstack_username))
+          openstack_api_key:                    ((openstack_api_key))
+          openstack_domain:                     ((openstack_domain))
+          internal_ntp:                         ((internal_ntp))
+          distro:                               "ubuntu"
+          availability_zone:                    ((availability_zone))
+          DEBUG_BATS:                           *debug_bats
 
-    - task: teardown-director
-      tags: ((worker_tags))
-      timeout: *timeouts-long
-      file: bosh-cpi-src-in/ci/tasks/teardown-director.yml
-      params:
-        bosh_vcap_password: ((bosh_vcap_password))
+      - task: test
+        tags: ((worker_tags))
+        timeout: *timeouts-long
+        file: bosh-cpi-src-in/ci/tasks/run-manual-networking-bats.yml
+        params:
+          stemcell_name:                            "bosh-openstack-kvm-ubuntu-xenial-go_agent"
+          private_key_data:                         ((bosh_private_key))
+          openstack_flavor_with_ephemeral_disk:     ((openstack_flavor_with_ephemeral_disk))
+          openstack_flavor_with_no_ephemeral_disk:  ((openstack_flavor_with_no_ephemeral_disk))
+          bosh_vcap_password:                       ((bosh_vcap_password))
+          availability_zone:                        ((availability_zone))
+          DEBUG_BATS:                               *debug_bats
+          bats_rspec_tags:                          ""
+        ensure:
+          task: print-task-errors
+          tags: ((worker_tags))
+          timeout: *timeouts-long
+          file: bosh-cpi-src-in/ci/tasks/print_task_errors.yml
+          params:
+            director_ca:         ((director_ca))
+
+      - task: teardown-director
+        tags: ((worker_tags))
+        timeout: *timeouts-long
+        file: bosh-cpi-src-in/ci/tasks/teardown-director.yml
+        params:
+          bosh_vcap_password: ((bosh_vcap_password))
       ensure:
         put: terraform-cpi
         params:
@@ -378,11 +379,6 @@ jobs:
         params: {repository: promote/repo, rebase: true, tag: promote/integer_version, tag_prefix: "v"}
 
 resource_types:
-  # - name: email
-  #   type: docker-image
-  #   source:
-  #     repository: friegger/email-resource
-  #     tag: noauth
   - name: terraform
     type: docker-image
     source:
