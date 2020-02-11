@@ -238,6 +238,7 @@ jobs:
           bosh_vcap_password: ((bosh_vcap_password))
       ensure:
         put: terraform-cpi
+        tags: ((worker_tags))
         params:
           action: destroy
           env_name: bats-ubuntu-manual
