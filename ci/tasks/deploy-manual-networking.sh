@@ -101,6 +101,7 @@ bosh-go int ../bosh-deployment/bosh.yml \
     -v openstack_state_timeout=${openstack_state_timeout} \
     -v openstack_username=${openstack_username} \
     -v openstack_write_timeout=${openstack_write_timeout} \
+    -v openstack_ca_cert=null \
     -v region=null \
     -v internal_ntp=[${internal_ntp}] | tee bosh.yml
 
