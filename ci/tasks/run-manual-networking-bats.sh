@@ -52,7 +52,7 @@ export BAT_DNS_HOST=${director_public_ip}
 export BAT_INFRASTRUCTURE='openstack'
 export BAT_NETWORKING='manual'
 export BAT_BOSH_CLI='bosh-go'
-export BAT_PRIVATE_KEY="not-needed-key"
+export BAT_PRIVATE_KEY="$(creds_path /jumobox_ssh/private_key)"
 export BAT_DIRECTOR_USER='admin'
 
 export BOSH_ENVIRONMENT="$( manifest_path /instance_groups/name=bosh/networks/name=public/static_ips/0 2>/dev/null )"
@@ -61,14 +61,6 @@ export BOSH_CLIENT_SECRET="$( creds_path /admin_password )"
 export BOSH_CA_CERT="$( creds_path /director_ssl/ca )"
 
 bosh_vcap_password_hash=$(ruby -rsecurerandom -e 'puts ENV["bosh_vcap_password"].crypt("$6$#{SecureRandom.base64(14)}")')
-
-mkdir -p $working_dir/keys
-export BAT_VCAP_PRIVATE_KEY="$working_dir/keys/bats.pem"
-creds_path /jumpbox_ssh/private_key > $BAT_VCAP_PRIVATE_KEY
-
-eval $(ssh-agent)
-chmod go-r $working_dir/keys/bats.pem
-ssh-add $working_dir/keys/bats.pem
 
 echo "using bosh CLI version..."
 bosh-go --version

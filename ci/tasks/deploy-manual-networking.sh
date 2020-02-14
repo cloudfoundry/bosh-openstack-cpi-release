@@ -57,12 +57,6 @@ echo $(md5sum ${deployment_dir}/stemcell.tgz)
 
 cd ${deployment_dir}
 
-# Variables from pre-seeded vars store
-# echo -e "${bosh_openstack_ca_cert}" > bosh_openstack_ca_cert
-# echo -e "${director_ca}" > director_ca
-# echo -e "${director_ca_private_key}" > director_ca_private_key
-# ../bosh-cpi-src-in/ci/ruby_scripts/render_credentials > ./custom-ca.yml
-
 echo "using bosh CLI version..."
 bosh-go --version
 
@@ -75,6 +69,7 @@ bosh-go int ../bosh-deployment/bosh.yml \
     -o ../bosh-deployment/external-ip-not-recommended.yml \
     -o ../bosh-deployment/misc/source-releases/bosh.yml \
     -o ../bosh-deployment/misc/ntp.yml \
+    -o ../bosh-deployment/jumpbox-user.yml \
     -o ../bosh-cpi-src-in/ci/ops_files/deployment-configuration.yml \
     -o ../bosh-cpi-src-in/ci/ops_files/custom-manual-networking.yml \
     -o ../bosh-cpi-src-in/ci/ops_files/timeouts.yml \
