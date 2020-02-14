@@ -64,7 +64,7 @@ bosh_vcap_password_hash=$(ruby -rsecurerandom -e 'puts ENV["bosh_vcap_password"]
 
 mkdir -p $working_dir/keys
 export BAT_VCAP_PRIVATE_KEY="$working_dir/keys/bats.pem"
-echo "$private_key_data" > $BAT_VCAP_PRIVATE_KEY
+creds_path /jumpbox_ssh/private_key > $BAT_VCAP_PRIVATE_KEY
 
 eval $(ssh-agent)
 chmod go-r $working_dir/keys/bats.pem
