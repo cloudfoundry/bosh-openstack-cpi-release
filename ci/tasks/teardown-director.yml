@@ -14,4 +14,3 @@ inputs:
   - name: terraform-bats
 run:
   path: bosh-cpi-src-in/ci/tasks/teardown-director.sh
-params:

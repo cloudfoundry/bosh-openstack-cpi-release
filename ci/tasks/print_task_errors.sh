@@ -7,11 +7,10 @@ source bosh-cpi-src-in/ci/tasks/utils.sh
 metadata=terraform-bats/metadata
 
 export_terraform_variable "director_public_ip"
-echo -e "${director_ca}" > director_ca
 export BOSH_ENVIRONMENT=${director_public_ip}
 export BOSH_CLIENT=admin
 export BOSH_CLIENT_SECRET=$(bosh-go int bosh-director-deployment/credentials.yml  --path /admin_password)
-export BOSH_CA_CERT=director_ca
+export BOSH_CA_CERT="$(bosh-go int bosh-director-deployment/credentials.yml --path /director_ssl/ca)"
 
 bosh-go -n tasks --all --recent=100
 

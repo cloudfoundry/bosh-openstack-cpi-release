@@ -227,16 +227,12 @@ jobs:
           tags: ((worker_tags))
           timeout: *timeouts-long
           file: bosh-cpi-src-in/ci/tasks/print_task_errors.yml
-          params:
-            director_ca:         ((director_ca))
       ensure:
         do:
         - task: teardown-director
           tags: ((worker_tags))
           timeout: *timeouts-long
           file: bosh-cpi-src-in/ci/tasks/teardown-director.yml
-          params:
-            bosh_vcap_password: ((bosh_vcap_password))
           ensure:
             put: terraform-cpi
             tags: ((worker_tags))
