@@ -15,7 +15,7 @@ cd ${deployment_dir}
 export BOSH_ENVIRONMENT=${director_public_ip}
 export BOSH_CLIENT=admin
 export BOSH_CLIENT_SECRET=$(bosh-go int credentials.yml  --path /admin_password)
-export BOSH_CA_CERT=director_ca
+export BOSH_CA_CERT="$(bosh-go int credentials.yml --path /director_ssl/ca)"
 
 echo "using bosh CLI version..."
 bosh-go --version
