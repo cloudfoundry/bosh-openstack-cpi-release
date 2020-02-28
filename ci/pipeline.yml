@@ -215,7 +215,7 @@ jobs:
           bosh_vcap_password:                       ((bosh_vcap_password))
           availability_zone:                        ((availability_zone))
           DEBUG_BATS:                               *debug_bats
-          bats_rspec_tags:                          ""
+          bats_rspec_tags:                          "--tag ~ssh"
         ensure:
           task: print-task-errors
           tags: ((worker_tags))
