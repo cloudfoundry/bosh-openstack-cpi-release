@@ -1,3 +1,13 @@
+terraform {
+  required_version = ">= 0.12.0"
+  required_providers {
+    openstack = {
+      source  = "terraform-provider-openstack/openstack"
+      version = "> 1.35.0"
+    }
+  }
+}
+
 provider "openstack" {
   auth_url    = var.auth_url
   user_name   = var.user_name
