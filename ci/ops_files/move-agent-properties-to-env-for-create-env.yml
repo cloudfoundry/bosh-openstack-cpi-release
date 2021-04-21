@@ -6,9 +6,6 @@
 - type: remove
   path: /cloud_provider/properties/blobstore?
 
-- type: remove
-  path: /cloud_provider/properties/ntp?
-
 - type: replace
   path: /resource_pools/name=vms/env/bosh?/mbus/urls/-
   value: "https://mbus:((mbus_bootstrap_password))@0.0.0.0:6868"
@@ -16,7 +13,3 @@
 - type: replace
   path: /resource_pools/name=vms/env/bosh/blobstores?/provider=local?/options/blobstore_path
   value: /var/vcap/micro_bosh/data/cache
-
-- type: replace
-  path: /resource_pools/name=vms/env/bosh/ntp?
-  value: ((internal_ntp))
