@@ -6,14 +6,11 @@ source bosh-cpi-src-in/ci/tasks/utils.sh
 
 # Variables from pipeline.yml
 : ${bosh_vcap_password:?}
-: ${director_ca:?}
-: ${director_ca_private_key:?}
 : ${openstack_flavor:?}
 : ${openstack_connection_timeout:?}
 : ${openstack_read_timeout:?}
 : ${openstack_write_timeout:?}
 : ${openstack_state_timeout:?}
-: ${bosh_registry_port:?}
 : ${openstack_auth_url:?}
 : ${openstack_username:?}
 : ${openstack_api_key:?}
@@ -21,7 +18,6 @@ source bosh-cpi-src-in/ci/tasks/utils.sh
 : ${internal_ntp:?}
 : ${DEBUG_BATS:?}
 : ${distro:?}
-optional_value bosh_openstack_ca_cert
 optional_value availability_zone
 
 cp terraform-cpi/metadata terraform-cpi-deploy

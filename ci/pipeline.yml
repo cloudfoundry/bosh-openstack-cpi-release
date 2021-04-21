@@ -1,13 +1,4 @@
 ---
-groups:
-  - name: bosh-openstack-cpi
-    jobs:
-      - build-candidate
-      - lifecycle
-      - publish-api-calls
-      - bats-ubuntu-manual
-      - promote-candidate
-
 custom:
   timeouts:
     long: &timeouts-long 2h
@@ -112,26 +103,6 @@ jobs:
         get_params:
           action: destroy
 
-  - name: publish-api-calls
-    serial: true
-    build_log_retention:
-      builds: *build_logs_to_retain
-    plan:
-      - in_parallel:
-        - {trigger: true, passed: [lifecycle], get: lifecycle-log, timeout: *timeouts-long}
-        - {trigger: false, passed: [lifecycle], get: bosh-cpi-src-in, timeout: *timeouts-long}
-
-      - task: publish
-        tags: ((worker_tags))
-        timeout: *timeouts-long
-        file: bosh-cpi-src-in/ci/tasks/publish-api-calls.yml
-        params:
-          publish_api_calls_enabled:  ((publish_api_calls_enabled))
-
-      - put: bosh-cpi-src-out
-        timeout: *timeouts-long
-        params: {repository: publish/repo, rebase: true}
-
   - name: bats-ubuntu-manual
     serial: true
     serial_groups: [cleanup-lock-bats-ubuntu-manual]
@@ -185,15 +156,11 @@ jobs:
         file: bosh-cpi-src-in/ci/tasks/deploy-manual-networking.yml
         params:
           bosh_vcap_password:                   ((bosh_vcap_password))
-          director_ca:                          ((director_ca))
-          director_ca_private_key:              ((director_ca_private_key))
           openstack_flavor:                     "m1.small"
           openstack_connection_timeout:         "600"
           openstack_read_timeout:               "180"
           openstack_write_timeout:              "180"
           openstack_state_timeout:              "900"
-          bosh_registry_port:                   ((bosh_director_registry_port))
-          bosh_openstack_ca_cert:               ((bosh_openstack_ca_cert))
           openstack_auth_url:                   ((openstack_auth_url_v3))
           openstack_username:                   ((openstack_username))
           openstack_api_key:                    ((openstack_api_key))
