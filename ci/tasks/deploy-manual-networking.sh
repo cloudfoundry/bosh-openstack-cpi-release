@@ -15,7 +15,6 @@ source bosh-cpi-src-in/ci/tasks/utils.sh
 : ${openstack_username:?}
 : ${openstack_api_key:?}
 : ${openstack_domain:?}
-: ${internal_ntp:?}
 : ${DEBUG_BATS:?}
 : ${distro:?}
 optional_value availability_zone
@@ -64,7 +63,6 @@ bosh-go int ../bosh-deployment/bosh.yml \
     -o ../bosh-deployment/openstack/cpi.yml \
     -o ../bosh-deployment/external-ip-not-recommended.yml \
     -o ../bosh-deployment/misc/source-releases/bosh.yml \
-    -o ../bosh-deployment/misc/ntp.yml \
     -o ../bosh-deployment/jumpbox-user.yml \
     -o ../bosh-cpi-src-in/ci/ops_files/deployment-configuration.yml \
     -o ../bosh-cpi-src-in/ci/ops_files/custom-manual-networking.yml \
@@ -93,8 +91,7 @@ bosh-go int ../bosh-deployment/bosh.yml \
     -v openstack_username=${openstack_username} \
     -v openstack_write_timeout=${openstack_write_timeout} \
     -v openstack_ca_cert=null \
-    -v region=null \
-    -v internal_ntp=[${internal_ntp}] | tee bosh.yml
+    -v region=null | tee bosh.yml
 
 echo "deploying BOSH..."
 bosh-go create-env bosh.yml \

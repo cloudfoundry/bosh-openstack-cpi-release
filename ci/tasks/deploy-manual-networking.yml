@@ -28,7 +28,6 @@ params:
   openstack_username:                  ""
   openstack_api_key:                   ""
   openstack_domain:                    ""
-  internal_ntp:                        ""
   DEBUG_BATS:                          ""
   distro:                              ""
   availability_zone:                   replace-me

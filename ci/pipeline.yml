@@ -165,7 +165,6 @@ jobs:
           openstack_username:                   ((openstack_username))
           openstack_api_key:                    ((openstack_api_key))
           openstack_domain:                     ((openstack_domain))
-          internal_ntp:                         ((internal_ntp))
           distro:                               "ubuntu"
           availability_zone:                    ((availability_zone))
           DEBUG_BATS:                           *debug_bats
