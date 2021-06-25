@@ -84,6 +84,10 @@ properties:
     default: false
   openstack.enable_auto_anti_affinity:
     description: No longer supported (see https://www.pivotaltracker.com/story/show/159522260)
+  openstack.user_domain_name:
+    description: Defines the specific user domain to be used by the connection to the authentication service.
+  openstack.project_domain_name:
+    description: Defines the specific project domain to be used by the connection to the authentication service.
 
   registry.host:
     description: Address of the Registry to connect to (required)

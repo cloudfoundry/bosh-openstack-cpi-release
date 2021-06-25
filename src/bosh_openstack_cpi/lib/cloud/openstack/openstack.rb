@@ -258,6 +258,8 @@ module Bosh::OpenStackCloud
         openstack_tenant: options['tenant'],
         openstack_project_name: options['project'],
         openstack_domain_name: options['domain'],
+        openstack_user_domain_name: options['user_domain_name'],
+        openstack_project_domain_name: options['project_domain_name'],
         openstack_region: options['region'],
         openstack_endpoint_type: options['endpoint_type'],
         connection_options: options['connection_options'].merge(@extra_connection_options),
