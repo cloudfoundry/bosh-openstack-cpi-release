@@ -28,6 +28,8 @@
   if_p('openstack.config_drive')               { |value| openstack_params['config_drive'] = value }
   if_p('openstack.use_dhcp')                   { |value| openstack_params['use_dhcp'] = value }
   if_p('openstack.domain')                     { |value| openstack_params['domain'] = value }
+  if_p('openstack.user_domain_name')           { |value| openstack_params['user_domain_name'] = value }
+  if_p('openstack.project_domain_name')        { |value| openstack_params['project_domain_name'] = value }
   if_p('openstack.project')                    { |value| openstack_params['project'] = value }
   if_p('openstack.tenant')                     { |value| openstack_params['tenant'] = value }
   if_p('openstack.human_readable_vm_names')    { |value| openstack_params['human_readable_vm_names'] = value }
