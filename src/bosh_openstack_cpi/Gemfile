@@ -12,7 +12,7 @@ group :development, :test do
   gem 'minitar', '~> 0.5.4'
   gem 'pry-byebug'
   gem 'rb-readline'
-  gem 'rake', '~>10.3.2'
+  gem 'rake', '~>12.3.3'
   gem 'rspec', '~> 3.3.0'
   gem 'rspec-its', '~> 1.0.1'
   gem 'rubocop'

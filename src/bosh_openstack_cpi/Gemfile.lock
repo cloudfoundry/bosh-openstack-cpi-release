@@ -59,7 +59,7 @@ GEM
       pry (~> 0.10)
     public_suffix (4.0.1)
     rainbow (3.0.0)
-    rake (10.3.2)
+    rake (12.3.3)
     rb-readline (0.5.5)
     rspec (3.3.0)
       rspec-core (~> 3.3.0)
@@ -110,7 +110,7 @@ DEPENDENCIES
   minitar (~> 0.5.4)
   netaddr (~> 2.0.4)
   pry-byebug
-  rake (~> 10.3.2)
+  rake (~> 12.3.3)
   rb-readline
   rspec (~> 3.3.0)
   rspec-its (~> 1.0.1)
