@@ -152,7 +152,9 @@ describe Bosh::OpenStackCloud::Cloud do
             expect { subject }
               .to raise_error(ArgumentError,
                               Regexp.new('Invalid OpenStack cloud properties: ' \
-                                         '#<Membrane::SchemaValidationError: { openstack => { domain => Missing key } }'))
+                                         '#<Membrane::SchemaValidationError: { openstack => { domain => Missing key }, 
+                                                                               openstack => { user_domain_name => Missing key, 
+                                                                                              project_domain_name => Missing key } }'))
           end
 
           context 'when project and domain are specified' do
@@ -165,6 +167,19 @@ describe Bosh::OpenStackCloud::Cloud do
               expect { subject }.to_not raise_error
             end
           end
+
+          context 'when project and user_domain_name and project_domain_name are specified' do
+            before do
+              options['openstack']['project'] = 'fake_project'
+              options['openstack']['user_domain_name'] = 'fake_user_domain'
+              options['openstack']['project_domain_name'] = 'fake_project_domain'
+            end
+
+            it 'does not raise an error' do
+              expect { subject }.to_not raise_error
+            end
+          end
+
         end
 
         context 'when options are empty' do

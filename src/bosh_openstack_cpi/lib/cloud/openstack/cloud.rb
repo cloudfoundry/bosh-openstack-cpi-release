@@ -777,9 +777,12 @@ module Bosh::OpenStackCloud
         }
         if Bosh::OpenStackCloud::Openstack.is_v3(auth_url)
           openstack_options_schema['openstack']['project'] = String
-          openstack_options_schema['openstack'][optional('domain')] = String
-          openstack_options_schema['openstack'][optional('user_domain_name')] = String
-          openstack_options_schema['openstack'][optional('project_domain_name')] = String
+	  if @options['openstack']['user_domain_name'] || @options['openstack']['project_domain_name']
+            openstack_options_schema['openstack']['user_domain_name'] = String
+            openstack_options_schema['openstack']['project_domain_name'] = String
+          else
+            openstack_options_schema['openstack']['domain'] = String
+          end
         else
           openstack_options_schema['openstack']['tenant'] = String
           openstack_options_schema['openstack'][optional('domain')] = String
