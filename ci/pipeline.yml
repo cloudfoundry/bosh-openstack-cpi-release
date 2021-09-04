@@ -235,10 +235,14 @@ resource_types:
     type: docker-image
     source:
       repository: ljfranklin/terraform-resource
+      username: ((docker.username))
+      password: ((docker.password))
   - name: bosh-release
     type: docker-image
     source:
       repository: dpb587/bosh-release-resource
+      username: ((docker.username))
+      password: ((docker.password))
 
 resources:
   - name: terraform-cpi
