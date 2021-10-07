@@ -7,7 +7,7 @@ export BUNDLE_CACHE_PATH="vendor/package"
 export BUNDLE_WITHOUT="development:test"
 
 pushd ${BUILD_DIR}/bosh_openstack_cpi
-  bundle package --all --no-install
+  bundle package --all-platforms --no-install
 popd
 
 rm -rf $BUNDLE_APP_CONFIG
