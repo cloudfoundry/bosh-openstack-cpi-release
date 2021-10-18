@@ -117,9 +117,9 @@ module Bosh::OpenStackCloud
                private_network_specs.first
              else
                private_network_specs.select do |spec|
-                 spec['defaults']&.include?('gateway')
+                 spec['default']&.include?('gateway')
                end.first
-      end
+             end
       spec
     end
 

@@ -104,7 +104,7 @@ describe Bosh::OpenStackCloud::NetworkConfigurator do
           vrrp_port = '10.0.0.10'
           network_configurator = Bosh::OpenStackCloud::NetworkConfigurator.new({
             'network_a' => manual_network_spec(ip: '10.0.0.1'),
-            'network_b' => manual_network_spec(net_id: 'bar', ip: '10.0.0.2', defaults: ['gateway']),
+            'network_b' => manual_network_spec(net_id: 'bar', ip: '10.0.0.2', default: ['gateway']),
             'network_c' => dynamic_network_spec,
           }, vrrp_port)
 
@@ -122,7 +122,7 @@ describe Bosh::OpenStackCloud::NetworkConfigurator do
         it 'should set allowed_address_pair to the default network' do
           network_configurator = Bosh::OpenStackCloud::NetworkConfigurator.new(
             'network_a' => manual_network_spec(ip: '10.0.0.1'),
-            'network_b' => manual_network_spec(net_id: 'bar', ip: '10.0.0.2', defaults: ['gateway']),
+            'network_b' => manual_network_spec(net_id: 'bar', ip: '10.0.0.2', default: ['gateway']),
             'network_c' => dynamic_network_spec,
           )
 
@@ -329,7 +329,7 @@ describe Bosh::OpenStackCloud::NetworkConfigurator do
       let(:network_spec) do
         {
           'network_a' => dynamic_network_spec,
-          'network_b' => manual_network_spec(net_id: 'net_b', defaults: ['gateway']),
+          'network_b' => manual_network_spec(net_id: 'net_b', default: ['gateway']),
           'network_c' => vip_network_spec,
         }
       end
@@ -458,7 +458,7 @@ describe Bosh::OpenStackCloud::NetworkConfigurator do
       let(:network_spec) do
         {
           'network_a' =>  manual_network_spec(net_id: 'net_id_a'),
-          'network_b' =>  manual_network_spec(net_id: 'net_id_b', defaults: ['gateway']),
+          'network_b' =>  manual_network_spec(net_id: 'net_id_b', default: ['gateway']),
           'vip_network' => vip_network_spec,
         }
       end
@@ -475,7 +475,7 @@ describe Bosh::OpenStackCloud::NetworkConfigurator do
     context 'when gateway network is a manual network' do
       let(:network_spec) {
         {
-          'network_a' => manual_network_spec(net_id: 'net_id_a', ip: '10.10.10.10', defaults: ['gateway']),
+          'network_a' => manual_network_spec(net_id: 'net_id_a', ip: '10.10.10.10', default: ['gateway']),
           'vip_network' => vip_network_spec,
         }
       }
@@ -487,7 +487,7 @@ describe Bosh::OpenStackCloud::NetworkConfigurator do
       context 'when other private networks exist' do
         let(:network_spec) {
           {
-            'network_a' => manual_network_spec(net_id: 'net_id_a', ip: '10.10.10.10', defaults: ['gateway']),
+            'network_a' => manual_network_spec(net_id: 'net_id_a', ip: '10.10.10.10', default: ['gateway']),
             'network_b' => manual_network_spec(net_id: 'net_id_b', ip: '20.20.20.20'),
             'network_c' => dynamic_network_with_netid_spec,
             'vip_network' => vip_network_spec,
@@ -503,7 +503,7 @@ describe Bosh::OpenStackCloud::NetworkConfigurator do
     context 'when gateway network is a dynamic network' do
       let(:network_spec) {
         {
-          'network_a' => dynamic_network_with_netid_spec.merge('defaults' => ['gateway']),
+          'network_a' => dynamic_network_with_netid_spec.merge('default' => ['gateway']),
           'vip_network' => vip_network_spec,
         }
       }
@@ -520,7 +520,7 @@ describe Bosh::OpenStackCloud::NetworkConfigurator do
       context 'when other private networks exist' do
         let(:network_spec) {
           {
-            'network_a' => dynamic_network_with_netid_spec.merge('defaults' => ['gateway']),
+            'network_a' => dynamic_network_with_netid_spec.merge('default' => ['gateway']),
             'network_b' => manual_network_spec(net_id: 'net_id_b', ip: '10.10.10.10'),
             'vip_network' => vip_network_spec,
           }
@@ -545,7 +545,7 @@ describe Bosh::OpenStackCloud::NetworkConfigurator do
     end
 
     context 'when no sub-networks exist' do
-      let(:network_spec) { { 'network_a' => manual_network_spec(net_id: 'net_id_a', ip: '10.10.10.10', defaults: ['gateway']) } }
+      let(:network_spec) { { 'network_a' => manual_network_spec(net_id: 'net_id_a', ip: '10.10.10.10', default: ['gateway']) } }
       let(:subnets) { [] }
 
       it 'returns an empty list' do
@@ -556,7 +556,7 @@ describe Bosh::OpenStackCloud::NetworkConfigurator do
     end
 
     context 'when only one sub-network exists' do
-      let(:network_spec) { { 'network_a' => manual_network_spec(net_id: 'net_id_a', ip: '10.10.10.10', defaults: ['gateway']) } }
+      let(:network_spec) { { 'network_a' => manual_network_spec(net_id: 'net_id_a', ip: '10.10.10.10', default: ['gateway']) } }
       let(:subnets) { [{ 'id' => 'subnet_id', 'cidr' => '10.0.0.0/24' }] }
 
       it 'returns the gateway sub-network id' do
@@ -569,7 +569,7 @@ describe Bosh::OpenStackCloud::NetworkConfigurator do
     context 'when more than one sub-network exist' do
       let(:network_spec) {
         {
-          'network_a' => manual_network_spec(net_id: 'net_id_a', ip: '10.10.10.10', defaults: ['gateway']),
+          'network_a' => manual_network_spec(net_id: 'net_id_a', ip: '10.10.10.10', default: ['gateway']),
         }
       }
       let(:subnets) { [{ 'id' => 'subnet_id', 'cidr' => '10.0.0.0/24' }, { 'id' => 'second_subnet_id', 'cidr' => '20.20.20.0/24' }] }
