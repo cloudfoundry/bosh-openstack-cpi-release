@@ -1,0 +1,25 @@
+---
+platform: linux
+
+image_resource:
+  type: docker-image
+  source:
+    repository: bosh/bosh-ecosystem-concourse
+
+inputs:
+  - name: pipeline-repo
+
+params:
+  PIPELINE_FILENAME: ""
+
+run:
+  path: sh
+  args:
+  - -ec
+  - |
+    echo -n "My pipeline is located in the repo: "
+    cd pipeline-repo
+    git remote -v | awk 'NR==1{gsub(/.git/, "", $2); gsub(/github.com:/, "https://github.com/", $2); print $2}'
+    echo "and it is called: ${PIPELINE_FILENAME}"
+    echo
+    echo "Happy continuous thing-doing!"

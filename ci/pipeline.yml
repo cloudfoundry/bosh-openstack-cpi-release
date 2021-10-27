@@ -7,6 +7,14 @@ custom:
   debug_bats: &debug_bats true
 
 jobs:
+  - name: pipeline-locator
+    plan:
+    - get: bosh-cpi-src-out
+    - task: pipeline-location
+      file: bosh-cpi-src-out/tasks/pipeline-locator.yml
+      params: { PIPELINE_FILENAME: "pipeline.yml" }
+      input_mapping: {pipeline-repo: bosh-cpi-src-out}
+
   - name: build-candidate
     serial: true
     build_log_retention:
