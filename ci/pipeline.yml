@@ -11,7 +11,7 @@ jobs:
     plan:
     - get: bosh-cpi-src-out
     - task: pipeline-location
-      file: bosh-cpi-src-out/tasks/pipeline-locator.yml
+      file: bosh-cpi-src-out/ci/tasks/pipeline-locator.yml
       params: { PIPELINE_FILENAME: "pipeline.yml" }
       input_mapping: {pipeline-repo: bosh-cpi-src-out}
 
