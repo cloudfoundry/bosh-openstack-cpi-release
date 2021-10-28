@@ -15,7 +15,7 @@ source bosh-cpi-src-in/ci/tasks/utils.sh
 : ${openstack_username:?}
 : ${openstack_api_key:?}
 : ${openstack_domain:?}
-: ${openstack_ca_cert:="null"}
+: ${openstack_ca_file_path:?}
 : ${DEBUG_BATS:?}
 : ${distro:?}
 optional_value availability_zone
@@ -42,13 +42,15 @@ deployment_dir="${PWD}/bosh-director-deployment"
 bosh_vcap_password_hash=$(ruby -rsecurerandom -e 'puts ENV["bosh_vcap_password"].crypt("$6$#{SecureRandom.base64(14)}")')
 
 maybe_use_custom_ca_ops_file=""
+maybe_load_custom_ca_file=""
 
-case $openstack_ca_cert in
-    "null")
+case "$openstack_ca_file_path" in
+    "")
         break
         ;;
     *)
         maybe_use_custom_ca_ops_file="-o ../bosh-deployment/openstack/custom-ca.yml"
+        maybe_load_custom_ca_file="--var-file=openstack_ca_cert=${openstack_cap_file_path}"
         ;;
 esac
 
@@ -103,7 +105,7 @@ bosh-go int ../bosh-deployment/bosh.yml \
     -v openstack_state_timeout=${openstack_state_timeout} \
     -v openstack_username=${openstack_username} \
     -v openstack_write_timeout=${openstack_write_timeout} \
-    -v openstack_ca_cert="${openstack_ca_cert}" \
+    ${maybe_load_custom_ca_file} \
     -v region=null | tee bosh.yml
 
 echo "deploying BOSH..."

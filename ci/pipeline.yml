@@ -175,7 +175,8 @@ jobs:
           openstack_domain:                     ((openstack_domain))
           distro:                               "ubuntu"
           availability_zone:                    ((availability_zone))
-          openstack_ca_cert:                    ((concourse_openstack_wallaby_auth.openstack_ca_cert))
+          #NOTE: The CA cert path here is currently relative to the 'bosh-director-deployment' directory.
+          openstack_ca_file_path:               ((concourse_openstack_wallaby_auth.openstack_ca_cert_path))
           DEBUG_BATS:                           *debug_bats
 
       - task: test
