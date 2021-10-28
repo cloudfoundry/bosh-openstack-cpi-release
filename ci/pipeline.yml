@@ -175,6 +175,7 @@ jobs:
           openstack_domain:                     ((openstack_domain))
           distro:                               "ubuntu"
           availability_zone:                    ((availability_zone))
+          openstack_ca_cert:                    ((concourse_openstack_wallaby_auth.openstack_ca_cert))
           DEBUG_BATS:                           *debug_bats
 
       - task: test

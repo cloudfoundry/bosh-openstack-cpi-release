@@ -30,4 +30,5 @@ params:
   openstack_domain:                    ""
   DEBUG_BATS:                          ""
   distro:                              ""
+  openstack_ca_cert:                   ""
   availability_zone:                   replace-me

@@ -15,6 +15,7 @@ source bosh-cpi-src-in/ci/tasks/utils.sh
 : ${openstack_username:?}
 : ${openstack_api_key:?}
 : ${openstack_domain:?}
+: ${openstack_ca_cert:="null"}
 : ${DEBUG_BATS:?}
 : ${distro:?}
 optional_value availability_zone
@@ -39,6 +40,17 @@ semver=`cat version-semver/number`
 cpi_release_name="bosh-openstack-cpi"
 deployment_dir="${PWD}/bosh-director-deployment"
 bosh_vcap_password_hash=$(ruby -rsecurerandom -e 'puts ENV["bosh_vcap_password"].crypt("$6$#{SecureRandom.base64(14)}")')
+
+maybe_use_custom_ca_ops_file=""
+
+case $openstack_ca_cert in
+    "null")
+        break
+        ;;
+    *)
+        maybe_use_custom_ca_ops_file="-o ../bosh-deployment/openstack/custom-ca.yml \ "
+        ;;
+esac
 
 echo "setting up artifacts used in bosh.yml"
 cp ./bosh-cpi-dev-artifacts/${cpi_release_name}-${semver}.tgz ${deployment_dir}/${cpi_release_name}.tgz
@@ -69,6 +81,7 @@ bosh-go int ../bosh-deployment/bosh.yml \
     -o ../bosh-cpi-src-in/ci/ops_files/timeouts.yml \
     -o ../bosh-cpi-src-in/ci/ops_files/remove-registry.yml \
     -o ../bosh-cpi-src-in/ci/ops_files/move-agent-properties-to-env-for-create-env.yml \
+    ${maybe_use_custom_ca_ops_file} \
     -v auth_url=${openstack_auth_url} \
     -v availability_zone=${availability_zone:-'~'} \
     -v bosh_vcap_password_hash=${bosh_vcap_password_hash} \
@@ -90,7 +103,7 @@ bosh-go int ../bosh-deployment/bosh.yml \
     -v openstack_state_timeout=${openstack_state_timeout} \
     -v openstack_username=${openstack_username} \
     -v openstack_write_timeout=${openstack_write_timeout} \
-    -v openstack_ca_cert=null \
+    -v openstack_ca_cert=${openstack_ca_cert} \
     -v region=null | tee bosh.yml
 
 echo "deploying BOSH..."
