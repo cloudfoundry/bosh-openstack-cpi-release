@@ -103,7 +103,7 @@ bosh-go int ../bosh-deployment/bosh.yml \
     -v openstack_state_timeout=${openstack_state_timeout} \
     -v openstack_username=${openstack_username} \
     -v openstack_write_timeout=${openstack_write_timeout} \
-    -v openstack_ca_cert=${openstack_ca_cert} \
+    -v openstack_ca_cert="${openstack_ca_cert}" \
     -v region=null | tee bosh.yml
 
 echo "deploying BOSH..."
