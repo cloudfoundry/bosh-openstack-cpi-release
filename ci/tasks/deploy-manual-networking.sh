@@ -48,7 +48,7 @@ case $openstack_ca_cert in
         break
         ;;
     *)
-        maybe_use_custom_ca_ops_file="-o ../bosh-deployment/openstack/custom-ca.yml \ "
+        maybe_use_custom_ca_ops_file="-o ../bosh-deployment/openstack/custom-ca.yml"
         ;;
 esac
 
