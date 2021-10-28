@@ -73,6 +73,7 @@ bosh-go int ../bosh-deployment/bosh.yml \
     --vars-store ./credentials.yml \
     -o ../bosh-deployment/misc/powerdns.yml \
     -o ../bosh-deployment/openstack/cpi.yml \
+    ${maybe_use_custom_ca_ops_file} \
     -o ../bosh-deployment/external-ip-not-recommended.yml \
     -o ../bosh-deployment/misc/source-releases/bosh.yml \
     -o ../bosh-deployment/jumpbox-user.yml \
@@ -81,7 +82,6 @@ bosh-go int ../bosh-deployment/bosh.yml \
     -o ../bosh-cpi-src-in/ci/ops_files/timeouts.yml \
     -o ../bosh-cpi-src-in/ci/ops_files/remove-registry.yml \
     -o ../bosh-cpi-src-in/ci/ops_files/move-agent-properties-to-env-for-create-env.yml \
-    ${maybe_use_custom_ca_ops_file} \
     -v auth_url=${openstack_auth_url} \
     -v availability_zone=${availability_zone:-'~'} \
     -v bosh_vcap_password_hash=${bosh_vcap_password_hash} \
