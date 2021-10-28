@@ -50,7 +50,7 @@ case "$openstack_ca_file_path" in
         ;;
     *)
         maybe_use_custom_ca_ops_file="-o ../bosh-deployment/openstack/custom-ca.yml"
-        maybe_load_custom_ca_file="--var-file=openstack_ca_cert=${openstack_cap_file_path}"
+        maybe_load_custom_ca_file="--var-file=openstack_ca_cert=${openstack_ca_file_path}"
         ;;
 esac
 
