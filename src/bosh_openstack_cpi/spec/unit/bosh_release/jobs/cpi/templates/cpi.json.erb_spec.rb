@@ -149,6 +149,8 @@ describe 'cpi.json.erb' do
   end
 
   context 'when cpi api v1' do
+    let(:rendered_blobstore) { cpi_v1_json['cloud']['properties']['agent']['blobstore'] }
+
     it 'is able to render the erb given most basic manifest properties' do
       expect(cpi_v1_json).to eq(
         'cloud' => {
@@ -194,8 +196,6 @@ describe 'cpi.json.erb' do
     end
 
     context 'when using an s3 blobstore' do
-      let(:rendered_blobstore) { cpi_v1_json['cloud']['properties']['agent']['blobstore'] }
-
       context 'when provided a minimal configuration' do
         before do
           manifest_cpi_v1['blobstore'].merge!(
@@ -287,6 +287,43 @@ describe 'cpi.json.erb' do
           expect(rendered_blobstore['options']['host']).to eq('agent-host')
           expect(rendered_blobstore['options']['ssl_verify_peer']).to be true
           expect(rendered_blobstore['options']['signature_version']).to eq('99')
+        end
+      end
+    end
+
+    context 'when using a dav blobstore' do
+      before do
+        manifest_cpi_v1['blobstore'] = {
+          'provider' => 'dav',
+          'address' => 'blobstore-address.example.com',
+          'port' => '25250',
+          'agent' => {
+            'user' => 'agent',
+            'password' => 'agent-password'
+          }
+        }
+      end
+
+      it 'renders the agent blobstore section with the correct values' do
+        expect(rendered_blobstore).to eq(
+          'provider' => 'dav',
+          'options' => {
+            'endpoint' => 'http://blobstore-address.example.com:25250',
+            'user' => 'agent',
+            'password' => 'agent-password'
+          }
+        )
+      end
+
+      context 'when enabling signed URLs' do
+        before do
+          manifest_cpi_v1['blobstore']['agent'].delete('user')
+          manifest_cpi_v1['blobstore']['agent'].delete('password')
+        end
+
+        it 'does not render agent user/password for accessing blobstore' do
+          expect(rendered_blobstore['options']['user']).to be_nil
+          expect(rendered_blobstore['options']['password']).to be_nil
         end
       end
     end

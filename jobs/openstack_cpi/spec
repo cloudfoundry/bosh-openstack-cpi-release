@@ -133,9 +133,9 @@ properties:
   blobstore.port:
     description: Port for agent to connect to blobstore server used by 'dav' blobstore plugin
   blobstore.agent.user:
-    description: Username agent uses to connect to blobstore used by 'dav' blobstore plugin
+    description: Username agent uses to connect to blobstore used by 'dav' blobstore plugin (Optional)
   blobstore.agent.password:
-    description: Password agent uses to connect to blobstore used by 'dav' blobstore plugin
+    description: Password agent uses to connect to blobstore used by 'dav' blobstore plugin (Required only when user is provided)
   blobstore.provider:
     description: Provider of the blobstore used by director and agent (dav|local|s3)
   blobstore.path:
