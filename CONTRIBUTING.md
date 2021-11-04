@@ -8,12 +8,12 @@ Follow these steps to make a contribution to any of CF open source repositories:
    [individuals](http://cloudfoundry.org/pdfs/CFF_Individual_CLA.pdf) or
    [corporations](http://cloudfoundry.org/pdfs/CFF_Corporate_CLA.pdf).
 
-1. Set your name and email (these should match the information on your submitted CLA)
+2. Set your name and email (these should match the information on your submitted CLA)
 
         git config --global user.name "Firstname Lastname"
         git config --global user.email "your_email@example.com"
 
-1. If your company has signed a Corporate CLA, but sure to make the membership in your company's github organization public
+3. If your company has signed a Corporate CLA, but sure to make the membership in your company's github organization public
 
 
 ## Development
@@ -23,10 +23,21 @@ Follow these steps to make a contribution to any of CF open source repositories:
 - bundler
 
 ### Running unit tests
+
+The CPI Ruby code has unit tests that can be run as follows.
+
 ```bash
-$ cd src/bosh_openstack_cpi
-$ bundle install
-$ bundle exec rspec spec/unit
+./scripts/test-unit
+```
+
+### Running ERB job templates unit tests
+
+The ERB templates rendered by the jobs of this Bosh Release have specific unit
+tests that are run along with the other unit tests as instructed above. When
+required, you can run them separately though, with this command:
+
+```bash
+./scripts/test-unit-erb
 ```
 
 ### Running manual tests

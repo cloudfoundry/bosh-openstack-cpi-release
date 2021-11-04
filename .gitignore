@@ -15,4 +15,3 @@ releases/**/*.tgz
 *#
 #*
 .vagrant
-.ruby-version
