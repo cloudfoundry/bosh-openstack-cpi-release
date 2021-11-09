@@ -9,6 +9,9 @@ module Bosh::OpenStackCloud
     # @param [Hash] spec Raw network spec
     def initialize(name, spec)
       super
+      @vrrp_port_check = @spec
+        .fetch('cloud_properties', {})
+        .fetch('vrrp_port_check', true)
     end
 
     ##
@@ -17,6 +20,14 @@ module Bosh::OpenStackCloud
     # @return [String] ip address
     def private_ip
       @ip
+    end
+
+    ##
+    # Returns the vrrp port check
+    #   true:   port check enabled
+    #   false:  port check disabled
+    def vrrp_port_check_enabled?
+      @vrrp_port_check
     end
 
     def prepare(openstack, security_group_ids)
@@ -48,6 +59,7 @@ module Bosh::OpenStackCloud
         security_groups: security_group_ids,
       }
       if @allowed_address_pairs
+        @logger.debug("VRRP port check for #{@allowed_address_pairs} is #{vrrp_port_check_enabled?}")
         cloud_error("Configured VRRP port with ip '#{@allowed_address_pairs}' does not exist.") unless vrrp_port?(openstack)
         port_properties[:allowed_address_pairs] = [{ ip_address: @allowed_address_pairs }]
       end
@@ -75,6 +87,8 @@ module Bosh::OpenStackCloud
     end
 
     def vrrp_port?(openstack)
+      return true unless vrrp_port_check_enabled?
+
       vrrp_port = openstack.with_openstack(retryable: true) do
         openstack.network.ports.all(fixed_ips: "ip_address=#{@allowed_address_pairs}")
       end
