@@ -67,8 +67,24 @@ describe Bosh::OpenStackCloud::ManualNetwork do
       end
 
       context 'allowed_address_pair' do
+        context 'is configured to disable IP source check' do
+          let(:network_spec) { manual_network_spec(ip: '10.0.0.1', overwrites: { 'cloud_properties' => { "security_groups"=>["default"], "net_id"=>"net",'vrrp_port_check'=> false} }) }
+          let(:allowed_address_pairs) { '1.1.1.1/0' }
+
+          before(:each) do
+            subject.allowed_address_pairs = allowed_address_pairs
+          end
+
+          it 'configures to disable port check allowed_address_pair' do
+            allow(ports).to receive(:all)
+            subject.prepare(openstack, security_groups_to_be_used)
+
+            expect(ports).to_not have_received(:all).with(fixed_ips: "ip_address=#{allowed_address_pairs}")
+          end
+        end
+
         context 'is configured' do
-          let(:manual_network) { manual_network_spec(ip: '10.0.0.1') }
+          let(:network_spec) { manual_network_spec(ip: '10.0.0.1') }
           let(:allowed_address_pairs) { '10.0.0.10' }
 
           before(:each) do
@@ -169,7 +185,7 @@ describe Bosh::OpenStackCloud::ManualNetwork do
     end
 
     context "with 'use_nova_networking=true'" do
-      let(:manual_network) { manual_network_spec(ip: '10.0.0.1') }
+      let(:network_spec) { manual_network_spec(ip: '10.0.0.1') }
       let(:openstack) { instance_double(Bosh::OpenStackCloud::Openstack, use_nova_networking?: true, network: double('Fog::Network')) }
 
       it 'does not use Fog::Network' do
