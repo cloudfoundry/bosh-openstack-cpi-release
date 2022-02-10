@@ -17,9 +17,9 @@ describe Bosh::OpenStackCloud::FloatingIp do
     let(:floating_ip_port_id) { 'old-server-port-id' }
 
     let(:floating_ips_response) {
-      Struct.new(:body).new(
+      Struct.new(:body).new({
         'floatingips' => floating_ips,
-      )
+      })
     }
     let(:floating_ips) {
       [
@@ -37,9 +37,9 @@ describe Bosh::OpenStackCloud::FloatingIp do
     }
 
     let(:get_port_response) {
-      Struct.new(:body).new(
+      Struct.new(:body).new({
         'port' => port,
-      )
+      })
     }
 
     let(:port_device_id) { nil }
@@ -54,9 +54,9 @@ describe Bosh::OpenStackCloud::FloatingIp do
 
     let(:old_server) { {} }
     let(:get_server_response) {
-      Struct.new(:body).new(
+      Struct.new(:body).new({
         'server' => old_server,
-      )
+      })
     }
     before(:each) {
       allow(compute).to receive(:get_server_details).and_return(get_server_response)
