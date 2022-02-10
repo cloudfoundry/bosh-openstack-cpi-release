@@ -23,8 +23,8 @@ module Bosh::OpenStackCloud
 
       agent_settings = OpenStruct.new(
         registry_key: @create_vm_params[:name],
-        agent_id: agent_id,
-        environment: environment,
+        agent_id:,
+        environment:,
         has_ephemeral: flavor_has_ephemeral_disk?(flavor),
         network_spec: network_configurator.network_spec,
       )

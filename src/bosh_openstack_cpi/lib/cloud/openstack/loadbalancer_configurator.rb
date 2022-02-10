@@ -33,7 +33,7 @@ module Bosh::OpenStackCloud
         begin
           @logger.debug("Creating load balancer pool membership with pool id '#{pool_id}', ip '#{ip}', and port '#{port}'.")
           membership_id = retry_on_conflict_pending_update(pool_id) {
-            @openstack.network.create_lbaas_pool_member(pool_id, ip, port, subnet_id: subnet_id).body['member']['id']
+            @openstack.network.create_lbaas_pool_member(pool_id, ip, port, subnet_id:).body['member']['id']
           }
         rescue Excon::Error::Conflict => e
           lbaas_pool_members = @openstack.with_openstack(retryable: true) { @openstack.network.list_lbaas_pool_members(pool_id) }

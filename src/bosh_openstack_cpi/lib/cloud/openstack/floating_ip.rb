@@ -34,7 +34,7 @@ module Bosh::OpenStackCloud
     end
 
     def self.get_port_id(openstack, server_id, network_id)
-      port = openstack.with_openstack(retryable: true) { openstack.network.ports.all(device_id: server_id, network_id: network_id).first }
+      port = openstack.with_openstack(retryable: true) { openstack.network.ports.all(device_id: server_id, network_id:).first }
       cloud_error("Server has no port in network '#{network_id}'") unless port
       port.id
     end

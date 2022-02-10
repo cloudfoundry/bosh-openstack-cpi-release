@@ -21,7 +21,7 @@ describe Bosh::OpenStackCloud::Cloud do
   let(:openstack) { @config.create_openstack }
 
   subject(:cpi) do
-    @config.create_cpi(boot_from_volume: boot_from_volume, config_drive: config_drive, human_readable_vm_names: human_readable_vm_names, use_nova_networking: use_nova_networking, use_dhcp: use_dhcp)
+    @config.create_cpi(boot_from_volume:, config_drive:, human_readable_vm_names:, use_nova_networking:, use_dhcp:)
   end
 
   describe 'dynamic network' do

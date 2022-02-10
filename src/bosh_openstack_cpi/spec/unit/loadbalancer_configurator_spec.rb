@@ -79,7 +79,7 @@ describe Bosh::OpenStackCloud::LoadbalancerConfigurator do
   let(:network) { double('network', list_lbaas_pools: loadbalancer_pools_response, get_lbaas_listener: lb_listener, get_lbaas_pool: lb_pool) }
   let(:lb_listener) { double('lb_listener', body: { 'listener' => { 'loadbalancers' => [{ 'id' => 'loadbalancer-id' }] } }) }
   let(:lb_pool) { double('lb_pool', body: { 'pool' => { 'loadbalancers' => [{ 'id' => 'loadbalancer-id' }] } }) }
-  let(:loadbalancer_pools_response) { double('response', body: body) }
+  let(:loadbalancer_pools_response) { double('response', body:) }
   let(:body) {
     {
       'pools' => [

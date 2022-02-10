@@ -30,7 +30,7 @@ describe Bosh::OpenStackCloud::Cloud, 'create_vm' do
       key_name: 'test_key',
       security_groups: configured_security_groups,
       os_scheduler_hints: scheduler_hints,
-      nics: nics,
+      nics:,
       config_drive: false,
       user_data: JSON.dump(user_data(unique_name, network_spec, nameserver, false)),
       availability_zone: 'foobar-1a',

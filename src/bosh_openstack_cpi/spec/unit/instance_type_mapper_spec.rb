@@ -19,7 +19,7 @@ describe Bosh::OpenStackCloud::InstanceTypeMapper do
           'cpu' => 2,
           'ephemeral_disk_size' => 10 * 1024,
         }
-        expect(mapper.map(requirements: requirements, flavors: flavors)['instance_type']).to eq('just_right')
+        expect(mapper.map(requirements:, flavors:)['instance_type']).to eq('just_right')
       end
     end
 
@@ -40,7 +40,7 @@ describe Bosh::OpenStackCloud::InstanceTypeMapper do
           'cpu' => 1,
           'ephemeral_disk_size' => 10 * 1024,
         }
-        expect(mapper.map(requirements: requirements, flavors: flavors)['instance_type']).to eq('best')
+        expect(mapper.map(requirements:, flavors:)['instance_type']).to eq('best')
       end
     end
 
@@ -59,7 +59,7 @@ describe Bosh::OpenStackCloud::InstanceTypeMapper do
           'cpu' => 1,
           'ephemeral_disk_size' => 10 * 1024,
         }
-        expect(mapper.map(requirements: requirements, flavors: flavors)['instance_type']).to eq('zero_ephem')
+        expect(mapper.map(requirements:, flavors:)['instance_type']).to eq('zero_ephem')
       end
     end
 
@@ -77,7 +77,7 @@ describe Bosh::OpenStackCloud::InstanceTypeMapper do
           'cpu' => 1,
           'ephemeral_disk_size' => 50 * 1024,
         }
-        expect { mapper.map(requirements: requirements, flavors: flavors)['instance_type'] }.to raise_error(/Unable to meet requested VM requirements/)
+        expect { mapper.map(requirements:, flavors:)['instance_type'] }.to raise_error(/Unable to meet requested VM requirements/)
       end
     end
   end
@@ -95,7 +95,7 @@ describe Bosh::OpenStackCloud::InstanceTypeMapper do
           'cpu' => 1,
           'ephemeral_disk_size' => 1 * 1024,
         }
-        expect { mapper.map(requirements: requirements, flavors: flavors, boot_from_volume: true)['instance_type'] }.to raise_error(/Unable to meet requested VM requirements/)
+        expect { mapper.map(requirements:, flavors:, boot_from_volume: true)['instance_type'] }.to raise_error(/Unable to meet requested VM requirements/)
       end
     end
 
@@ -116,7 +116,7 @@ describe Bosh::OpenStackCloud::InstanceTypeMapper do
           'cpu' => 2,
           'ephemeral_disk_size' => ephemeral_disk_size * 1024,
         }
-        cloud_props = mapper.map(requirements: requirements, flavors: flavors, boot_from_volume: true)
+        cloud_props = mapper.map(requirements:, flavors:, boot_from_volume: true)
         expect(cloud_props['instance_type']).to eq('root_disk_small')
         expect(cloud_props).to have_key('root_disk')
         expect(cloud_props['root_disk']['size']).to eq(root_disk_size + ephemeral_disk_size) #=> 13
@@ -141,7 +141,7 @@ describe Bosh::OpenStackCloud::InstanceTypeMapper do
           'ephemeral_disk_size' => ephemeral_disk_size * 1024,
         }
 
-        cloud_props = mapper.map(requirements: requirements, flavors: flavors, boot_from_volume: true)
+        cloud_props = mapper.map(requirements:, flavors:, boot_from_volume: true)
         expect(cloud_props['instance_type']).to eq('just_right')
         expect(cloud_props).to have_key('root_disk')
         expect(cloud_props['root_disk']['size']).to eq(root_disk_size + ephemeral_disk_size) #=> 13
@@ -162,7 +162,7 @@ describe Bosh::OpenStackCloud::InstanceTypeMapper do
           'cpu' => 1,
           'ephemeral_disk_size' => 10 * 1024,
         }
-        expect { mapper.map(requirements: requirements, flavors: flavors)['instance_type'] }.to raise_error(/Unable to meet requested VM requirements/)
+        expect { mapper.map(requirements:, flavors:)['instance_type'] }.to raise_error(/Unable to meet requested VM requirements/)
       end
     end
   end
