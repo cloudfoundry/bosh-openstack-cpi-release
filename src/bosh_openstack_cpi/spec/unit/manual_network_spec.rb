@@ -209,7 +209,7 @@ describe Bosh::OpenStackCloud::ManualNetwork do
     context "with 'use_nova_networking=false'" do
       before(:each) do
         allow(openstack).to receive(:network).and_return(neutron)
-        allow(ports).to receive(:create).with(network_id: 'net', fixed_ips: [{ ip_address: '10.0.0.1' }], security_groups: []).and_return(port)
+        allow(ports).to receive(:create).with({network_id: 'net', fixed_ips: [{ ip_address: '10.0.0.1' }], security_groups: []}).and_return(port)
         allow(ports).to receive(:get).with('117717c1-81cb-4ac4-96ab-99aaf1be9ca8').and_return(port)
         allow(neutron).to receive(:ports).and_return(ports)
       end
