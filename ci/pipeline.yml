@@ -7,6 +7,14 @@ custom:
   debug_bats: &debug_bats true
 
 jobs:
+  - name: create-openstack-cpi-release-docker-image
+    serial: true
+    plan:
+      - get: bosh-cpi-src-in
+      - put: openstack-cpi-release-docker-image
+        params:
+          build: "bosh-cpi-src-in/ci/docker/openstack-cpi-release"
+
   - name: pipeline-locator
     plan:
     - get: bosh-cpi-src-out
@@ -353,6 +361,13 @@ resources:
     source:
       uri: https://github.com/cloudfoundry/bosh-deployment.git
       branch: master
+
+  - name: openstack-cpi-release-docker-image
+    type: docker-image
+    source:
+      username: ((docker.username))
+      password: ((docker.password))
+      repository: boshcpi/openstack-cpi-release
 
   # - name: validator-src-in
   #   type: git
