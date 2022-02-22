@@ -16,7 +16,7 @@ describe Bosh::OpenStackCloud::Cloud do
     it 'should only tag with metadata' do
       metadata = { job: 'job', index: 'index' }
 
-      expect(Bosh::OpenStackCloud::TagManager).to receive(:tag_server).with(server, job: 'job', index: 'index')
+      expect(Bosh::OpenStackCloud::TagManager).to receive(:tag_server).with(server, { job: 'job', index: 'index'})
 
       @cloud.set_vm_metadata('i-foobar', metadata)
     end

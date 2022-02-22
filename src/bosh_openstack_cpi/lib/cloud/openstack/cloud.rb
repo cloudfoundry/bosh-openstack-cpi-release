@@ -374,7 +374,7 @@ module Bosh::OpenStackCloud
         snapshot_params = {
           display_name: name,
           display_description: description.join('/'),
-          name: name,
+          name:,
           description: description.join('/'),
           volume_id: volume.id,
           force: true,
@@ -474,7 +474,7 @@ module Bosh::OpenStackCloud
       end
 
       @instance_type_mapper.map(
-        requirements: requirements,
+        requirements:,
         flavors: compute.flavors,
         boot_from_volume: @boot_from_volume,
       )

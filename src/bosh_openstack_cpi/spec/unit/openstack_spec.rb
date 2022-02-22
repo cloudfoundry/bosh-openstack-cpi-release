@@ -452,7 +452,7 @@ describe Bosh::OpenStackCloud::Openstack do
           },
         }
       end
-      let(:response) { Excon::Response.new(body: JSON.dump(body), headers: headers) }
+      let(:response) { Excon::Response.new(body: JSON.dump(body), headers:) }
 
       before do
         allow(subject).to receive(:servers) do
@@ -488,7 +488,7 @@ describe Bosh::OpenStackCloud::Openstack do
           },
         }
       end
-      let(:response) { Excon::Response.new(body: JSON.dump(body), headers: headers) }
+      let(:response) { Excon::Response.new(body: JSON.dump(body), headers:) }
 
       before do
         allow(subject).to receive(:servers) do
@@ -591,7 +591,7 @@ describe Bosh::OpenStackCloud::Openstack do
 
     context 'when openstack raises BadRequest' do
       before do
-        response = Excon::Response.new(body: body)
+        response = Excon::Response.new(body:)
         expect(subject).to receive(:servers).and_raise(Excon::Error::BadRequest.new('', '', response))
       end
 
@@ -639,7 +639,7 @@ describe Bosh::OpenStackCloud::Openstack do
 
     context 'when openstack raises Conflict' do
       before do
-        response = Excon::Response.new(body: body)
+        response = Excon::Response.new(body:)
         expect(subject).to receive(:servers).and_raise(Excon::Error::Conflict.new('', '', response))
       end
 
@@ -721,7 +721,7 @@ describe Bosh::OpenStackCloud::Openstack do
 
     context 'when openstack raises Forbidden' do
       before do
-        response = Excon::Response.new(body: body)
+        response = Excon::Response.new(body:)
         expect(subject).to receive(:servers).and_raise(Excon::Error::Forbidden.new('', '', response))
       end
 

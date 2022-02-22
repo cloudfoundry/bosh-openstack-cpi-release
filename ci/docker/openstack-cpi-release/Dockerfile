@@ -1,5 +1,7 @@
 FROM ubuntu:16.04
 
+ENV bosh_cli_version 6.4.15
+
 RUN apt-get -y update && apt-get install -y locales && locale-gen en_US.UTF-8
 RUN update-locale LC_ALL=en_US.UTF-8 LANG=en_US.UTF-8
 
@@ -40,20 +42,20 @@ RUN apt-get install software-properties-common -y; \
 # ruby-install
 RUN mkdir /tmp/ruby-install && \
     cd /tmp/ruby-install && \
-    curl https://codeload.github.com/postmodern/ruby-install/tar.gz/v0.6.1 | tar -xz && \
+    curl https://codeload.github.com/postmodern/ruby-install/tar.gz/v0.8.3 | tar -xz && \
     cd /tmp/ruby-install/ruby-install-0.6.1 && \
     make install && \
     rm -rf /tmp/ruby-install
 
 #Ruby
-RUN ruby-install --system ruby 2.7.4
-
-#Bundler
-RUN ["/bin/bash", "-l", "-c", "gem install bundler -v 2.1.4 --no-document"]
+RUN ruby-install --system ruby 3.1.0
 
 #BOSH GO CLI
-RUN wget https://s3.amazonaws.com/bosh-cli-artifacts/bosh-cli-5.5.1-linux-amd64 -O /usr/local/bin/bosh-go
-RUN chmod +x /usr/local/bin/bosh-go
+RUN \
+  wget --quiet https://s3.amazonaws.com/bosh-cli-artifacts/bosh-cli-${bosh_cli_version}-linux-amd64 --output-document="/usr/bin/bosh" && \
+  chmod +x /usr/bin/bosh && \
+  cp /usr/bin/bosh /usr/local/bin/bosh-go && \
+  chmod +x /usr/local/bin/bosh-go
 
 #GitHub CLI
 RUN cd /tmp && \

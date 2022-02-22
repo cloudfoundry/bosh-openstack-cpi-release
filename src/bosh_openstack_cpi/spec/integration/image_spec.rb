@@ -11,7 +11,7 @@ describe Bosh::OpenStackCloud::Cloud do
   let(:openstack) { @config.create_openstack }
 
   before do
-    delegate = double('delegate', logger: logger, cpi_task_log: nil)
+    delegate = double('delegate', logger:, cpi_task_log: nil)
     Bosh::Clouds::Config.configure(delegate)
     allow(Bosh::Clouds::Config).to receive(:logger).and_return(logger)
   end

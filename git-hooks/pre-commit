@@ -5,8 +5,8 @@ set -euo pipefail
 RED='\033[0;35m'
 NC='\033[0m' # No Color
 
-if hash cred-alert-cli 2>/dev/null; then
-  CMD="git diff --cached | cred-alert-cli scan --diff"
+if hash cred-alert 2>/dev/null; then
+  CMD="git diff --cached | cred-alert scan --diff"
   echo "Running '${CMD}'"
   eval "$CMD"
 else

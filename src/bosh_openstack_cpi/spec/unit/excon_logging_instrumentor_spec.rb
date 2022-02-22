@@ -223,7 +223,7 @@ describe Bosh::OpenStackCloud::ExconLoggingInstrumentor do
           {
             'X-Auth-Token' => 'token',
           } }
-        let(:params) { { headers: headers } }
+        let(:params) { { headers: } }
 
         it 'redacts params' do
           redacted_params = subject.redact(params)

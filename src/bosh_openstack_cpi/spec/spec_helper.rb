@@ -49,7 +49,7 @@ def mock_cloud_options(api_version = 2, devstack = false)
 end
 
 def mock_registry(endpoint = 'http://registry:3333')
-  registry = double('registry', endpoint: endpoint)
+  registry = double('registry', endpoint:)
   allow(Bosh::Cpi::RegistryClient).to receive(:new).and_return(registry)
   registry
 end

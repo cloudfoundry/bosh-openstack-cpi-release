@@ -10,7 +10,7 @@ describe Bosh::OpenStackCloud::ExconLoggingInstrumentor do
   let(:logger) { Bosh::Cpi::Logger.new(log) }
   let(:log) { StringIO.new('') }
   let(:request_id) { '1234' }
-  let(:cpi) { @config.create_cpi(boot_from_volume: boot_from_volume) }
+  let(:cpi) { @config.create_cpi(boot_from_volume:) }
   let(:boot_from_volume) { false }
 
   before do

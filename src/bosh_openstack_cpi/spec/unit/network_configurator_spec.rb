@@ -236,7 +236,7 @@ describe Bosh::OpenStackCloud::NetworkConfigurator do
     before(:each) do
       [Bosh::OpenStackCloud::ManualNetwork, Bosh::OpenStackCloud::DynamicNetwork].each do |class_name|
         allow(class_name).to receive(:new) do |name, spec|
-          network = instance_double(class_name, prepare: nil, name: name, spec: spec)
+          network = instance_double(class_name, prepare: nil, name:, spec:)
           networks << network
           network
         end

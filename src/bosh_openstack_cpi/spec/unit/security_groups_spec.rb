@@ -5,7 +5,7 @@ describe Bosh::OpenStackCloud::SecurityGroups do
   let(:compute) { double('compute') }
   let(:network) { double('network') }
   let(:use_nova_networking?) { false }
-  let(:openstack) { double('openstack', compute: compute, network: network, use_nova_networking?: use_nova_networking?) }
+  let(:openstack) { double('openstack', compute:, network:, use_nova_networking?: use_nova_networking?) }
 
   subject(:openstack_security_groups) {
     Bosh::OpenStackCloud::SecurityGroups.new(openstack)

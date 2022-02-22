@@ -94,7 +94,7 @@ describe Bosh::OpenStackCloud::Cloud, 'resize_disk' do
   context 'when extending volume fails on IaaS' do
     before do
       body
-      response = Excon::Response.new(body: body)
+      response = Excon::Response.new(body:)
       allow(volume).to receive(:extend).and_raise(Excon::Error::BadRequest.new('', '', response))
     end
 
