@@ -19,4 +19,4 @@ bosh-go --version
 cpi_release_name="bosh-openstack-cpi"
 
 echo "building CPI release..."
-bosh-go -n create-release --name $cpi_release_name --version $semver --tarball ../candidate/$cpi_release_name-$semver.tgz
+bosh-go -n create-release --name $cpi_release_name --version $semver --tarball ../candidate/$cpi_release_name-$semver.tgz --force
