@@ -27,8 +27,7 @@ export BUNDLE_GEMFILE=$BOSH_PACKAGES_DIR/bosh_openstack_cpi/Gemfile
 
 bundle_cmd="$BOSH_PACKAGES_DIR/ruby-3.1.0-r0.81.0/bin/bundle"
 
-chmod g+rw ${BOSH_PACKAGES_DIR}/bosh_openstack_cpi/.bundle/config
-$bundle_cmd config set --local without test:development
+export BUNDLE_WITHOUT="test:development"
 exec $bundle_cmd exec $BOSH_PACKAGES_DIR/bosh_openstack_cpi/bin/openstack_cpi \
   $BOSH_JOBS_DIR/openstack_cpi/config/cpi.json \
   $BOSH_JOBS_DIR/openstack_cpi/config/cacert.pem
