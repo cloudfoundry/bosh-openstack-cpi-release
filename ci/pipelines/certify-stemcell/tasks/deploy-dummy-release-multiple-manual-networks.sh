@@ -29,7 +29,7 @@ manifest_filename="dummy-multiple-manual-networks-manifest.yml"
 cloud_config_filename="dummy-multiple-manual-networks-cloud-config.yml"
 dummy_release_name="dummy"
 deployment_name="dummy-multiple-manual-networks"
-bosh_vcap_password_hash=$(ruby -e 'require "securerandom";puts ENV["bosh_vcap_password"].crypt("$6$#{SecureRandom.base64(14)}")')
+bosh_vcap_password_hash=$(mkpasswd -m sha-512 -S $(dd if=/dev/random count=10 bs=1 | base32) "${bosh_vcap_password}")
 
 cd ${deployment_dir}
 

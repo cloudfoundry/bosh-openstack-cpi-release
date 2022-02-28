@@ -33,7 +33,7 @@ manifest_filename="dummy-light-stemcell-manifest.yml"
 cloud_config_filename="dummy-cloud-config.yml"
 dummy_release_name="dummy"
 deployment_name="dummy-light-stemcell"
-bosh_vcap_password_hash=$(ruby -e 'require "securerandom";puts ENV["bosh_vcap_password"].crypt("$6$#{SecureRandom.base64(14)}")')
+bosh_vcap_password_hash=$(mkpasswd -m sha-512 -S $(dd if=/dev/random count=10 bs=1 | base32) "${bosh_vcap_password}")
 image_id=$(cat ${deployment_dir}/e2e-director-manifest-state.json | jq --raw-output ".stemcells[0].cid")
 
 verify_image_in_openstack

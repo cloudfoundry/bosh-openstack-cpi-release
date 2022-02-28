@@ -33,7 +33,7 @@ export_terraform_variable "director_public_ip"
 export_terraform_variable "primary_net_id"
 export_terraform_variable "security_group"
 
-bosh_vcap_password_hash=$(ruby -rsecurerandom -e 'puts ENV["bosh_vcap_password"].crypt("$6$#{SecureRandom.base64(14)}")')
+bosh_vcap_password_hash=$(mkpasswd -m sha-512 -S $(dd if=/dev/random count=10 bs=1 | base32) "${bosh_vcap_password}")
 
 if [ ! -f "${working_dir}/stemcell/stemcell.tgz" ]; then
   #  only needed for registry removal

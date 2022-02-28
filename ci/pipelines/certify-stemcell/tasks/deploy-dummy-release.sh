@@ -20,7 +20,7 @@ dummy_deployment_output="${PWD}/dummy-deployment"
 manifest_filename="dummy-manifest.yml"
 director_cloud_config="cloud-config.yml"
 dummy_release_name="dummy"
-bosh_vcap_password_hash=$(ruby -e 'require "securerandom";puts ENV["bosh_vcap_password"].crypt("$6$#{SecureRandom.base64(14)}")')
+bosh_vcap_password_hash=$(mkpasswd -m sha-512 -S $(dd if=/dev/random count=10 bs=1 | base32) "${bosh_vcap_password}")
 
 cd ${director_deployment_input}
 
