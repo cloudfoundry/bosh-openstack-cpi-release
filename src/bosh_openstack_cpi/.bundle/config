@@ -1,4 +1,0 @@
----
-BUNDLE_DEPLOYMENT: "true"
-BUNDLE_NO_PRUNE: "true"
-BUNDLE_WITHOUT: "test:development"

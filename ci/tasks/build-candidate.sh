@@ -9,7 +9,7 @@ cd bosh-cpi-src-in
 
 echo "running unit tests"
 pushd src/bosh_openstack_cpi
-  bundle install --with=development:test
+  bundle install
   bundle exec rspec spec/unit/*
 popd
 
@@ -19,4 +19,4 @@ bosh-go --version
 cpi_release_name="bosh-openstack-cpi"
 
 echo "building CPI release..."
-bosh-go -n create-release --name $cpi_release_name --version $semver --tarball ../candidate/$cpi_release_name-$semver.tgz --force
+bosh-go -n create-release --name $cpi_release_name --version $semver --tarball ../candidate/$cpi_release_name-$semver.tgz
