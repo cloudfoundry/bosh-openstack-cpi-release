@@ -9,7 +9,7 @@ cd bosh-cpi-src-in
 
 echo "running unit tests"
 pushd src/bosh_openstack_cpi
-  bundle install
+  bundle install --with=development:test
   bundle exec rspec spec/unit/*
 popd
 
