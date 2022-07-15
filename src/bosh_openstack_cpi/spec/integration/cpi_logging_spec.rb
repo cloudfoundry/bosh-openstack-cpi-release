@@ -32,7 +32,7 @@ describe Bosh::OpenStackCloud::ExconLoggingInstrumentor do
   it 'logs excon exceptions' do
     cpi.delete_disk('123')
 
-    expect(log.string).to match(%r{excon\.error HTTP/1\.1 404 Not Found /v2/.*/volumes/123 params: .*})
+    expect(log.string).to match(%r{excon\.error HTTP/1\.1 404 Not Found /v3/.*/volumes/123 params: .*})
     expect(log.string).not_to include('excon.error.response')
   end
 
