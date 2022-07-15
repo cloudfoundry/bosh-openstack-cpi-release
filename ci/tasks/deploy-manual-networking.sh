@@ -109,6 +109,7 @@ bosh-go int ../bosh-deployment/bosh.yml \
     -v region=null | tee bosh.yml
 
 echo "deploying BOSH..."
+export BOSH_LOG_LEVEL=debug
 bosh-go create-env bosh.yml \
     --vars-store credentials.yml \
     --state bosh-state.json
