@@ -4,7 +4,7 @@ set -ex
 
 export BUNDLE_APP_CONFIG=$(mktemp -d $TMPDIR/bundler_config_XXXXXX)
 export BUNDLE_CACHE_PATH="vendor/package"
-export BUNDLE_WITHOUT="development:test"
+bundle config set --local without 'development test'
 
 pushd ${BUILD_DIR}/bosh_openstack_cpi
   bundle package --all-platforms --no-install
