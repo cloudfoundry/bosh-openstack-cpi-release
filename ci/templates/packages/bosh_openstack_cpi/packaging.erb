@@ -7,13 +7,12 @@ BOSH_PACKAGES_DIR=${BOSH_PACKAGES_DIR:-/var/vcap/packages}
 source "${BOSH_PACKAGES_DIR}/<%= ruby_package_version %>/bosh/compile.env"
 
 cp -a bosh_openstack_cpi/* "${BOSH_INSTALL_TARGET}"
+cd "${BOSH_INSTALL_TARGET}"
 
 bundle_cmd="$BOSH_PACKAGES_DIR/<%= ruby_package_version %>/bin/bundle"
 $bundle_cmd config set --local deployment 'true'
 $bundle_cmd config set --local no_prune 'true'
 $bundle_cmd config set --local without 'development test'
 $bundle_cmd config set --local cache_path 'vendor/package'
-
-cd "${BOSH_INSTALL_TARGET}"
 
 $bundle_cmd install
