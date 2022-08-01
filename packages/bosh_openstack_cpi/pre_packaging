@@ -3,7 +3,7 @@
 set -ex
 
 export BUNDLE_APP_CONFIG=$(mktemp -d $TMPDIR/bundler_config_XXXXXX)
-export BUNDLE_CACHE_PATH="vendor/package"
+bundle config set --local cache_path 'vendor/package'
 bundle config set --local without 'development test'
 
 pushd ${BUILD_DIR}/bosh_openstack_cpi
