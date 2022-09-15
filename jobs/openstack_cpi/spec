@@ -24,7 +24,9 @@ properties:
   openstack.tenant:
     description: OpenStack tenant name (required for Keystone API V2)
   openstack.project:
-    description: OpenStack project name (required for Keystone API V3)
+    description: OpenStack project name (required for Keystone API V3. Also can be used the project_id property )
+  openstack.project_id:
+    description: OpenStack project id (required for Keystone API V3. Also can be used the project property)
   openstack.domain:
     description: OpenStack domain (required for Keystone API V3)
   openstack.region:

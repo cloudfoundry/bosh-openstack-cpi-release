@@ -31,6 +31,7 @@
   if_p('openstack.user_domain_name')           { |value| openstack_params['user_domain_name'] = value }
   if_p('openstack.project_domain_name')        { |value| openstack_params['project_domain_name'] = value }
   if_p('openstack.project')                    { |value| openstack_params['project'] = value }
+  if_p('openstack.project_id')                 { |value| openstack_params['project_id'] = value }
   if_p('openstack.tenant')                     { |value| openstack_params['tenant'] = value }
   if_p('openstack.human_readable_vm_names')    { |value| openstack_params['human_readable_vm_names'] = value }
 
