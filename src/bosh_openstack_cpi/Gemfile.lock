@@ -19,10 +19,10 @@ GEM
       rexml
     diff-lcs (1.5.0)
     excon (0.71.1)
-    fog-core (2.2.4)
+    fog-core (2.3.0)
       builder
       excon (~> 0.71)
-      formatador (~> 0.2)
+      formatador (>= 0.2, < 2.0)
       mime-types
     fog-json (1.2.0)
       fog-core
@@ -30,11 +30,9 @@ GEM
     fog-openstack (1.1.0)
       fog-core (~> 2.1)
       fog-json (>= 1.0)
-      ipaddress (>= 0.8)
-    formatador (0.3.0)
+    formatador (1.1.0)
     hashdiff (1.0.1)
     httpclient (2.8.3)
-    ipaddress (0.8.3)
     little-plugger (1.1.4)
     logging (1.8.2)
       little-plugger (>= 1.1.3)
