@@ -10,6 +10,7 @@ cp -a bosh_openstack_cpi/* "${BOSH_INSTALL_TARGET}"
 cd "${BOSH_INSTALL_TARGET}"
 
 bundle_cmd="$BOSH_PACKAGES_DIR/ruby-3.1/bin/bundle"
+export BUNDLER_VERSION="$($bundle_cmd -v | grep -o -e '[0-9.]*')"
 $bundle_cmd config set --local deployment 'true'
 $bundle_cmd config set --local no_prune 'true'
 $bundle_cmd config set --local without 'development test'
