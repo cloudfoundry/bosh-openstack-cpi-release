@@ -95,4 +95,6 @@ builds:
     version: "17"
   fa2cad5d-59ff-4c77-acab-4361b6b14a00:
     version: "24"
+  fd78244d-b7fd-45df-5633-39adbd0aa50e:
+    version: "50"
 format-version: "2"
