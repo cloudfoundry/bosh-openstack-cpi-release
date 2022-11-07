@@ -76,7 +76,19 @@ module Bosh::OpenStackCloud
     end
 
     def project_name
-      is_v3 ? params[:openstack_project_name] : params[:openstack_tenant]
+      if is_v3 
+        # Check if our connection is done through the openstack_project_name
+        if params.key?(:openstack_project_name)
+          params[:openstack_project_name]
+        else
+          # Then it means that we are using the openstack_project_id
+          connection = compute
+          connection.current_tenant['name']
+        end
+      else
+        # Return the tenant name
+        params[:openstack_tenant]
+      end
     end
 
     def use_nova_networking?
@@ -257,6 +269,7 @@ module Bosh::OpenStackCloud
         openstack_api_key: options['api_key'],
         openstack_tenant: options['tenant'],
         openstack_project_name: options['project'],
+        openstack_project_id: options['project_id'],
         openstack_domain_name: options['domain'],
         openstack_user_domain_name: options['user_domain_name'],
         openstack_project_domain_name: options['project_domain_name'],

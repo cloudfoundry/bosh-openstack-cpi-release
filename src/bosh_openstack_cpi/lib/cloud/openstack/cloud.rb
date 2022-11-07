@@ -748,6 +748,7 @@ module Bosh::OpenStackCloud
       auth_url = @options['openstack']['auth_url']
       user_domain_name = @options['openstack']['user_domain_name']
       project_domain_name = @options['openstack']['project_domain_name']
+      project_id = @options['openstack']['project_id']
       schema = Membrane::SchemaParser.parse do
         openstack_options_schema = {
           'openstack' => {
@@ -778,7 +779,11 @@ module Bosh::OpenStackCloud
           optional('agent') => Hash,
         }
         if Bosh::OpenStackCloud::Openstack.is_v3(auth_url)
-          openstack_options_schema['openstack']['project'] = String
+          if project_id
+            openstack_options_schema['openstack']['project_id'] = String
+          else
+            openstack_options_schema['openstack']['project'] = String
+          end
           if user_domain_name || project_domain_name
             openstack_options_schema['openstack']['user_domain_name'] = String
             openstack_options_schema['openstack']['project_domain_name'] = String

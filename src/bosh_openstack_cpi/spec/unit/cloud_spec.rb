@@ -139,7 +139,7 @@ describe Bosh::OpenStackCloud::Cloud do
             options['openstack']['auth_url'] = 'http://127.0.0.1:5000/v3'
           end
 
-          it 'raises an error when no project is specified' do
+          it 'raises an error when no project or project_id is specified' do
             options['openstack']['domain'] = 'fake_domain'
             expect { subject }
               .to raise_error(ArgumentError,
@@ -158,6 +158,17 @@ describe Bosh::OpenStackCloud::Cloud do
           context 'when project and domain are specified' do
             before do
               options['openstack']['project'] = 'fake_project'
+              options['openstack']['domain'] = 'fake_domain'
+            end
+
+            it 'does not raise an error' do
+              expect { subject }.to_not raise_error
+            end
+          end
+
+          context 'when project_id and domain are specified' do
+            before do
+              options['openstack']['project_id'] = 'fake_project_id'
               options['openstack']['domain'] = 'fake_domain'
             end
 
