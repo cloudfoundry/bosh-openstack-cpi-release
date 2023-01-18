@@ -19,6 +19,5 @@ params:
   openstack_flavor_with_ephemeral_disk:     replace-me
   openstack_flavor_with_no_ephemeral_disk:  replace-me
   bosh_vcap_password:                       replace-me
-  private_key_data:                         replace-me
   availability_zone:                        replace-me
   bats_rspec_tags:                          ""

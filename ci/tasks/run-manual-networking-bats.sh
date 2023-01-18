@@ -8,7 +8,6 @@ source bosh-cpi-src-in/ci/tasks/utils.sh
 : ${bosh_vcap_password:?}
 : ${openstack_flavor_with_ephemeral_disk:?}
 : ${openstack_flavor_with_no_ephemeral_disk:?}
-: ${private_key_data:?}
 
 optional_value availability_zone
 optional_value bats_rspec_tags

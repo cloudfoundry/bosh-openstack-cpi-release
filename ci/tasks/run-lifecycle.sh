@@ -18,7 +18,6 @@ source bosh-cpi-src-in/ci/tasks/utils.sh
 : ${BOSH_OPENSTACK_AUTH_URL_V2:-""}
 : ${BOSH_OPENSTACK_USERNAME_V2:-""}
 : ${BOSH_OPENSTACK_API_KEY_V2:-""}
-: ${BOSH_OPENSTACK_TENANT:-""}
 : ${BOSH_OPENSTACK_CA_CERT:-""}
 : ${BOSH_OPENSTACK_VOLUME_TYPE:-""}
 
