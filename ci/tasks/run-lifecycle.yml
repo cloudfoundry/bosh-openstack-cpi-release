@@ -21,7 +21,6 @@ params:
   BOSH_OPENSTACK_USERNAME_V3:              ""
   BOSH_OPENSTACK_API_KEY_V3:               ""
   BOSH_OPENSTACK_PROJECT:                  ""
-  BOSH_OPENSTACK_TENANT:                   ""
   BOSH_CLI_SILENCE_SLOW_LOAD_WARNING:      ""
   BOSH_OPENSTACK_VOLUME_TYPE:              ""
   BOSH_OPENSTACK_CONNECT_TIMEOUT:          ""
