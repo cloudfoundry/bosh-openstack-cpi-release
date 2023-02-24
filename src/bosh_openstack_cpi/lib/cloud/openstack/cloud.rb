@@ -8,7 +8,6 @@ module Bosh::OpenStackCloud
 
     BOSH_APP_DIR = '/var/vcap/bosh'.freeze
     FIRST_DEVICE_NAME_LETTER = 'b'.freeze
-    REGISTRY_KEY_TAG = :registry_key
 
     attr_reader :state_timeout
     attr_reader :openstack
@@ -23,7 +22,10 @@ module Bosh::OpenStackCloud
     # @option options [Hash] registry agent options
     # @option cpi_api_version CPI API Version as requested by BOSH director
     def initialize(options, cpi_api_version)
-      @cpi_api_version = cpi_api_version || 1
+      if cpi_api_version == 1
+        raise ::ArgumentError.new 'CPI V1 is deprecrated and cannot be used anymore'
+      end
+      @cpi_api_version = cpi_api_version || 2
       @options = normalize_options(options)
 
       validate_options
@@ -135,13 +137,13 @@ module Bosh::OpenStackCloud
       with_thread_name("create_vm(#{agent_id}, ...)") do
         @logger.info('Creating new server...')
         @logger.debug("Using scheduler hints: `#{cloud_properties['scheduler_hints']}'") if cloud_properties['scheduler_hints']
-        registry_key = "vm-#{generate_unique_name}"
+        name = "vm-#{generate_unique_name}"
         create_vm_params = {
-          name: registry_key,
+          name:,
           os_scheduler_hints: cloud_properties['scheduler_hints'],
           config_drive: @use_config_drive,
         }
-        server = Server.new(@agent_properties, @human_readable_vm_names, @logger, @openstack, registry, @use_dhcp)
+        server = Server.new(@agent_properties, @human_readable_vm_names, @logger, @openstack, @use_dhcp)
 
         openstack_properties = OpenStruct.new(
           boot_from_volume: @boot_from_volume,
@@ -153,11 +155,7 @@ module Bosh::OpenStackCloud
         network_configurator = NetworkConfigurator.new(network_spec, cloud_properties['allowed_address_pairs'])
         instance_id = vm_factory.create_vm(network_configurator, agent_id, environment, stemcell_id, cloud_properties)
 
-        if @cpi_api_version >= 2
-          [instance_id, network_configurator.network_spec]
-        else
-          instance_id
-        end
+        [instance_id, network_configurator.network_spec]
       end
     end
 
@@ -173,7 +171,7 @@ module Bosh::OpenStackCloud
         if server
           server_tags = metadata_to_tags(server.metadata)
           @logger.debug("Server tags: `#{server_tags}' found for server #{server_id}")
-          Server.new(@agent_properties, @human_readable_vm_names, @logger, @openstack, registry, @use_dhcp)
+          Server.new(@agent_properties, @human_readable_vm_names, @logger, @openstack, @use_dhcp)
                 .destroy(server, server_tags)
         else
           @logger.info("Server `#{server_id}' not found. Skipping.")
@@ -316,13 +314,7 @@ module Bosh::OpenStackCloud
 
         device_name = attach_volume(server, volume)
 
-        update_agent_settings(server) do |settings|
-          settings['disks'] ||= {}
-          settings['disks']['persistent'] ||= {}
-          settings['disks']['persistent'][disk_id] = device_name
-        end
-
-        device_name if @cpi_api_version >= 2
+        device_name
       end
     end
 
@@ -342,12 +334,6 @@ module Bosh::OpenStackCloud
           @logger.info("Disk `#{disk_id}' not found while trying to detach it from vm `#{server_id}'...")
         else
           detach_volume(server, volume)
-        end
-
-        update_agent_settings(server) do |settings|
-          settings['disks'] ||= {}
-          settings['disks']['persistent'] ||= {}
-          settings['disks']['persistent'].delete(disk_id)
         end
       end
     end
@@ -441,9 +427,12 @@ module Bosh::OpenStackCloud
       with_thread_name("set_vm_metadata(#{server_id}, ...)") do
         server = openstack_server(server_id)
         cloud_error("Server `#{server_id}' not found") unless server
-        @openstack.with_openstack { TagManager.tag_server(server, metadata) }
+        @openstack.with_openstack {
+          @logger.debug("Tagging VM with id '#{server_id}' with '#{metadata}'")
+          TagManager.tag_server(server, metadata)
+        }
 
-        apply_human_readable_name(metadata, server_id) if human_readable_name?(server, server_id)
+       apply_name(metadata, server_id) 
       end
     end
 
@@ -478,21 +467,6 @@ module Bosh::OpenStackCloud
         flavors: compute.flavors,
         boot_from_volume: @boot_from_volume,
       )
-    end
-
-    ##
-    # Updates the agent settings
-    #
-    # @param [Fog::OpenStack::Compute::Server] server OpenStack server
-    def update_agent_settings(server)
-      raise ArgumentError, 'Block is not provided' unless block_given?
-      registry_key = registry_key_for(server)
-      unless cpi_without_registry?
-        @logger.info("Updating settings for server '#{server.id}' with registry key '#{registry_key}'...")
-      end
-      settings = registry.read_settings(registry_key)
-      yield settings
-      registry.update_settings(registry_key, settings)
     end
 
     # Information about Openstack CPI, currently supported stemcell formats
@@ -534,54 +508,33 @@ module Bosh::OpenStackCloud
       nil
     end
 
-    def registry
-      return @registry_instance if @registry_instance
-
-      if cpi_without_registry?
-        @registry_instance = Bosh::OpenStackCloud::NoopRegistry.new
-      else
-        begin
-          registry_properties = @options.fetch('registry')
-          registry_endpoint   = registry_properties.fetch('endpoint')
-          registry_user       = registry_properties.fetch('user')
-          registry_password   = registry_properties.fetch('password')
-        rescue KeyError => e
-          raise ArgumentError, "Invalid CPI properties. Used CPI API version is #{@cpi_api_version} and stemcell API "\
-            "version is #{stemcell_api_version}. Since at least one API version is 1, the registry has to be configured. "\
-            "Error: #{e.message}"
-        end
-        @registry_instance = Bosh::Cpi::RegistryClient.new(registry_endpoint, registry_user, registry_password)
-      end
-    end
-
     private
 
-    def apply_human_readable_name(metadata, server_id)
-      name = metadata['name']
+    def apply_name(metadata, server_id)
+      name = metadata['name'] || "#{metadata['job']}/#{metadata['index']}"
       job = metadata['job']
       index = metadata['index']
       compiling = metadata['compiling']
-      if name
-        @logger.debug("Rename VM with id '#{server_id}' to '#{name}'")
-        update_servername(server_id, name.to_s)
+
+      if compiling
+        @logger.debug("Rename VM with id '#{server_id}' to 'compiling/#{compiling}'")
+        update_servername(server_id, "compiling/#{compiling}")
       elsif job && index
         @logger.debug("Rename VM with id '#{server_id}' to '#{job}/#{index}'")
         update_servername(server_id, "#{job}/#{index}")
-      elsif compiling
-        @logger.debug("Rename VM with id '#{server_id}' to 'compiling/#{compiling}'")
-        update_servername(server_id, "compiling/#{compiling}")
+      elsif name
+        @logger.debug("Rename VM with id '#{server_id}' to '#{name}'")
+        update_servername(server_id, name.to_s)
+
       end
     end
-
     def update_servername(server_id, name)
       @openstack.with_openstack { @openstack.compute.update_server(server_id, 'name' => name) }
     end
 
-    def human_readable_name?(server, server_id)
-      return true if (@human_readable_vm_names && cpi_without_registry?) ||
-                     @openstack.with_openstack(retryable: true) { server.metadata.get(REGISTRY_KEY_TAG) }
+    def human_readable_name?
+      return true if @human_readable_vm_names
 
-      @logger.debug("VM with id '#{server_id}' has no 'registry_key' tag")
       false
     end
 
@@ -601,11 +554,6 @@ module Bosh::OpenStackCloud
 
     def mib_to_gib(size)
       (size / 1024.0).ceil
-    end
-
-    def registry_key_for(server)
-      registry_key_metadatum = @openstack.with_openstack(retryable: true) { server.metadata.get(REGISTRY_KEY_TAG) }
-      registry_key_metadatum ? registry_key_metadatum.value : server.name
     end
 
     ##
@@ -770,11 +718,6 @@ module Bosh::OpenStackCloud
             optional('use_nova_networking') => bool,
             optional('vm') => Hash,
           },
-          optional('registry') => {
-            'endpoint' => String,
-            'user' => String,
-            'password' => String,
-          },
           optional('agent') => Hash,
         }
         if Bosh::OpenStackCloud::Openstack.is_v3(auth_url)
@@ -797,7 +740,10 @@ module Bosh::OpenStackCloud
     end
 
     def stemcell_api_version
-      @options.dig('openstack', 'vm', 'stemcell', 'api_version') || 1
+      if options.dig('openstack', 'vm', 'stemcell', 'api_version') == 1
+        raise AgumentError 'V1 Stemcells are not supported anymore'
+      end
+      options.dig('openstack', 'vm', 'stemcell', 'api_version') || 2
     end
 
     def normalize_options(options)

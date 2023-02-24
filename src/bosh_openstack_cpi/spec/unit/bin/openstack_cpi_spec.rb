@@ -27,20 +27,6 @@ describe 'the openstack_cpi executable' do
       expect(result['log']).to include('backtrace')
     end
 
-    it 'will fail if registry.endpoint is not provided' do
-      config_file = create_config_file('http://0.0.0.0:5000/v2.0', nil)
-      command_file = create_cpi_command_file('set_vm_metadata', [1, {}])
-
-      stdoutput = execute_cpi_command(command_file, config_file)
-
-      result = JSON.parse(stdoutput)
-
-      expect(result['result']).to be_nil
-      expect(result['error']['type']).to eq('InvalidCall')
-      expect(result['error']['message']).to match(/#<Membrane::SchemaValidationError: { registry => { endpoint => Missing key } }/)
-      expect(result['error']['ok_to_retry']).to eq(false)
-    end
-
     it 'will return an appropriate error message when passed an invalid config file' do
       config_file = Tempfile.new('cloud_properties.yml')
       File.open(config_file, 'w') do |file|

@@ -54,7 +54,7 @@ def mock_registry(endpoint = 'http://registry:3333')
   registry
 end
 
-def mock_cloud(options = nil, cpi_api_version = 1)
+def mock_cloud(options = nil, cpi_api_version = 2)
   servers = double('servers')
   images = double('images')
   flavors = double('flavors')
