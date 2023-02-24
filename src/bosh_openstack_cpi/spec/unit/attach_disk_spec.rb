@@ -5,7 +5,7 @@ describe Bosh::OpenStackCloud::Cloud do
   let(:server) { double('server', id: 'i-test', name: 'i-test', flavor: { 'id' => 'f-test' }, metadata: server_metadata) }
   let(:volume) { double('volume', id: 'v-foobar') }
   let(:flavor) { double('flavor', id: 'f-test', ephemeral: 10, swap: '') }
-  let(:cpi_api_version) { 1 }
+  let(:cpi_api_version) { 2 }
   let(:cloud) do
     mock_cloud(cloud_options['properties'], cpi_api_version) do |fog|
       expect(fog.compute.servers).to receive(:get).with('i-test').and_return(server)
@@ -16,8 +16,7 @@ describe Bosh::OpenStackCloud::Cloud do
   let(:cloud_options) { mock_cloud_options }
 
   before(:each) do
-    allow(server.metadata).to receive(:get).with(:registry_key).and_return(double('metadatum', 'value' => 'i-test'))
-    @registry = mock_registry
+    allow(server.metadata).to receive(:get).and_return(double('metadatum', 'value' => 'i-test'))
   end
 
   it 'attaches an OpenStack volume to a server' do
@@ -37,9 +36,6 @@ describe Bosh::OpenStackCloud::Cloud do
         },
       },
     }
-
-    expect(@registry).to receive(:read_settings).with('i-test').and_return(old_settings)
-    expect(@registry).to receive(:update_settings).with('i-test', new_settings)
 
     cloud.attach_disk('i-test', 'v-foobar')
   end
@@ -62,9 +58,6 @@ describe Bosh::OpenStackCloud::Cloud do
         },
       },
     }
-
-    expect(@registry).to receive(:read_settings).with('i-test').and_return(old_settings)
-    expect(@registry).to receive(:update_settings).with('i-test', new_settings)
 
     cloud.attach_disk('i-test', 'v-foobar')
   end
@@ -101,9 +94,6 @@ describe Bosh::OpenStackCloud::Cloud do
         },
       },
     }
-
-    expect(@registry).to receive(:read_settings).with('i-test').and_return(old_settings)
-    expect(@registry).to receive(:update_settings).with('i-test', new_settings)
 
     cloud.attach_disk('i-test', 'v-foobar')
   end
@@ -186,22 +176,6 @@ describe Bosh::OpenStackCloud::Cloud do
         expect(server).to receive(:attach_volume).with(volume.id, '/dev/sdb')
         attach_disk
       end
-    end
-  end
-
-  context 'when cpi api verion is 1' do
-    let(:cpi_api_version) { 1 }
-
-    before do
-      allow(server).to receive(:volume_attachments).and_return([])
-      allow(cloud.openstack).to receive(:wait_resource)
-      allow(cloud).to receive(:update_agent_settings)
-      allow(server).to receive(:attach_volume)
-    end
-
-    it 'does not return a disk hint' do
-      disk_hint = cloud.attach_disk('i-test', 'v-foobar')
-      expect(disk_hint).to eq(nil)
     end
   end
 

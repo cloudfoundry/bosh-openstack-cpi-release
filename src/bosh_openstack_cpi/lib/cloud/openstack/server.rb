@@ -2,14 +2,12 @@ module Bosh::OpenStackCloud
   class Server
     include Helpers
 
-    REGISTRY_KEY_TAG = :registry_key
 
-    def initialize(agent_properties, human_readable_vm_names, logger, openstack, registry, use_dhcp)
+    def initialize(agent_properties, human_readable_vm_names, logger, openstack, use_dhcp)
       @agent_properties = agent_properties
       @human_readable_vm_names = human_readable_vm_names
       @logger = logger
       @openstack = openstack
-      @registry = registry
       @use_dhcp = use_dhcp
     end
 
@@ -30,8 +28,8 @@ module Bosh::OpenStackCloud
         configure_server(network_configurator, server)
 
         server_tags = {}
-        tag_server(server_tags, server, agent_settings.registry_key, network_configurator.network_spec, resource_pool.fetch('loadbalancer_pools', []))
-        update_server_settings(server, agent_settings)
+        tag_server(server_tags, server, network_configurator.network_spec, resource_pool.fetch('loadbalancer_pools', []))
+        update_server_settings(agent_settings)
 
         server.id.to_s
       rescue StandardError => e
@@ -56,13 +54,6 @@ module Bosh::OpenStackCloud
         catch_error('Wait for server deletion') { @openstack.wait_resource(server, %i[terminated deleted], :state, true) },
         catch_error('Removing ports') { NetworkConfigurator.cleanup_ports(@openstack, server_port_ids) },
         lbaas_error,
-        catch_error('Deleting registry settings') {
-          registry_key = server_tags.fetch(REGISTRY_KEY_TAG.to_s, server.name)
-          unless @registry.instance_of? NoopRegistry
-           @logger.info("Deleting settings for server `#{server.id}' with registry_key `#{registry_key}' ...")
-          end
-          @registry.delete_settings(registry_key)
-        },
       )
     end
 
@@ -105,11 +96,9 @@ module Bosh::OpenStackCloud
       end
     end
 
-    def tag_server(server_tags, server, registry_key, network_spec, loadbalancer_pools)
+    def tag_server(server_tags, server, network_spec, loadbalancer_pools)
       if @human_readable_vm_names
         @logger.debug("'human_readable_vm_names' enabled")
-
-        server_tags[REGISTRY_KEY_TAG] = registry_key
       else
         @logger.debug("'human_readable_vm_names' disabled")
       end
@@ -131,10 +120,8 @@ module Bosh::OpenStackCloud
       end
     end
 
-    def update_server_settings(server, agent_settings)
-      settings = initial_agent_settings(agent_settings)
-      @logger.info("Updating settings for server `#{server.id}'...") unless @registry.instance_of? NoopRegistry
-      @registry.update_settings(agent_settings.registry_key, settings)
+    def update_server_settings(agent_settings)
+      initial_agent_settings(agent_settings)
     rescue StandardError => e
       @logger.warn("Failed to register server: #{e.message}")
       raise Bosh::Clouds::VMCreationFailed.new(false), e.message
@@ -143,25 +130,17 @@ module Bosh::OpenStackCloud
     ##
     # Prepare server user data
     #
-    # @param [String] registry_key used by agent to look up settings from registry
+    # @param [String] name
     # @param [Hash] network_spec network specification
     # @return [Hash] server user data
-    def user_data(registry_key, network_spec, agent_settings, public_key = nil)
+    def user_data(name, network_spec, agent_settings, public_key = nil)
       data = {}
 
-      data['server'] = { 'name' => registry_key }
+      data['server'] = { 'name' => name }
       data['openssh'] = { 'public_key' => public_key } if public_key
       data['networks'] = agent_network_spec(network_spec)
 
-      with_dns(network_spec) do |servers|
-        data['dns'] = { 'nameserver' => servers }
-      end
-
-      if @registry.endpoint
-        data['registry'] = { 'endpoint' => @registry.endpoint }
-      else
-        data.merge!(initial_agent_settings(agent_settings))
-      end
+      data.merge!(initial_agent_settings(agent_settings))
 
       data
     end
@@ -191,7 +170,7 @@ module Bosh::OpenStackCloud
     def initial_agent_settings(agent_settings)
       settings = {
         'vm' => {
-          'name' => agent_settings.registry_key,
+          'name' => agent_settings.name,
         },
         'agent_id' => agent_settings.agent_id,
         'networks' => agent_network_spec(agent_settings.network_spec),

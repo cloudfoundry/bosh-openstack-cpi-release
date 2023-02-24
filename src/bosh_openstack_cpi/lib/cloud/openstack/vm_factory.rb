@@ -22,7 +22,7 @@ module Bosh::OpenStackCloud
       configure_volumes(@create_vm_params, flavor, cloud_properties)
 
       agent_settings = OpenStruct.new(
-        registry_key: @create_vm_params[:name],
+        name: @create_vm_params[:name],
         agent_id:,
         environment:,
         has_ephemeral: flavor_has_ephemeral_disk?(flavor),

@@ -8,15 +8,13 @@ describe Bosh::OpenStackCloud::Cloud, 'create_vm' do
         'name' => "vm-#{unique_name}",
       },
       'agent_id' => 'agent-id',
-      'networks' => { 'network_a' => network_spec },
+      'networks' => network_spec,
       'disks' => {
         'system' => '/dev/sda',
-        'ephemeral' => ephemeral,
         'persistent' => {},
+        'ephemeral' => ephemeral,
       },
-      'env' => {
-        'test_env' => 'value',
-      },
+      'env' => environment,
       'foo' => 'bar', # Agent env
       'baz' => 'zaz',
     }
@@ -57,11 +55,9 @@ describe Bosh::OpenStackCloud::Cloud, 'create_vm' do
       'server' => {
         'name' => "vm-#{unique_name}",
       },
-    }
+      'networks' => network_spec,
+    }.merge(agent_settings(unique_name, network_spec))
     user_data['openssh'] = { 'public_key' => 'public openssh key' } if openssh
-    user_data['networks'] = network_spec
-    user_data['dns'] = { 'nameserver' => [nameserver] } if nameserver
-    user_data['registry'] = { 'endpoint' => 'http://registry:3333' }
     user_data
   end
 
@@ -79,7 +75,7 @@ describe Bosh::OpenStackCloud::Cloud, 'create_vm' do
   let(:scheduler_hints) { nil }
   let(:options) { mock_cloud_options['properties'] }
   let(:environment) { { 'test_env' => 'value' } }
-  let(:cpi_api_version) { 1 }
+  let(:cpi_api_version) { 2 }
   let(:cloud) do
     mock_cloud(options, cpi_api_version) do |fog|
       allow(fog.image.images).to receive(:find_by_id).and_return(image)
@@ -92,10 +88,7 @@ describe Bosh::OpenStackCloud::Cloud, 'create_vm' do
 
 
   before(:each) do
-    @registry = mock_registry
     Bosh::Clouds::Config.configure(double('config', uuid: 'director-uuid'))
-    allow(@registry).to receive(:delete_settings)
-    allow(@registry).to receive(:update_settings)
     allow(cloud).to receive(:generate_unique_name).and_return(unique_name)
     allow(cloud.openstack).to receive(:wait_resource)
     allow(Bosh::OpenStackCloud::TagManager).to receive(:tag_server)
@@ -113,7 +106,18 @@ describe Bosh::OpenStackCloud::Cloud, 'create_vm' do
   it "creates an OpenStack server and polls until it's ready" do
     vm_id = cloud.create_vm('agent-id', 'sc-id', resource_pool_spec, { 'network_a' => dynamic_network_spec }, nil, environment)
     expect(cloud.openstack).to have_received(:wait_resource).with(server, :active, :state)
-    expect(vm_id).to eq('i-test')
+    expect(vm_id).to eq(
+      [
+        'i-test',
+        {
+          'network_a' => {
+            'cloud_properties' => { 'security_groups' => ['default'] },
+            'type' => 'dynamic',
+            'use_dhcp' => true,
+          },
+        },
+      ],
+    )
   end
 
   describe 'multi-homed VMs' do
@@ -142,7 +146,6 @@ describe Bosh::OpenStackCloud::Cloud, 'create_vm' do
 
     it 'creates an OpenStack server with config drive and mac addresses' do
       cloud.create_vm('agent-id', 'sc-id', resource_pool_spec, network_spec, nil, environment)
-
       expect(cloud.compute.servers).to have_received(:create).with(openstack_params(expected_network_spec).merge(config_drive: true))
     end
   end
@@ -159,7 +162,6 @@ describe Bosh::OpenStackCloud::Cloud, 'create_vm' do
       cloud.create_vm('agent-id', 'sc-id', resource_pool_spec, { 'network_a' => network_spec }, nil, environment)
 
       expect(cloud.openstack.compute.servers).to have_received(:create).with(openstack_params('network_a' => network_spec))
-      expect(@registry).to have_received(:update_settings).with("vm-#{unique_name}", agent_settings(unique_name, network_spec))
     end
   end
 
@@ -212,7 +214,6 @@ describe Bosh::OpenStackCloud::Cloud, 'create_vm' do
         cloud.create_vm('agent-id', 'sc-id', resource_pool_spec, network_with_security_group, nil, environment)
 
         expect(cloud.compute.servers).to have_received(:create).with(openstack_params(network_with_security_group))
-        expect(@registry).to have_received(:update_settings).with("vm-#{unique_name}", agent_settings(unique_name, network_with_security_group['network_a']))
       end
     end
 
@@ -236,7 +237,6 @@ describe Bosh::OpenStackCloud::Cloud, 'create_vm' do
         cloud.create_vm('agent-id', 'sc-id', resource_pool_with_security_group_spec, dynamic_network_without_security_group, nil, environment)
 
         expect(cloud.compute.servers).to have_received(:create).with(openstack_params(dynamic_network_without_security_group))
-        expect(@registry).to have_received(:update_settings).with("vm-#{unique_name}", agent_settings(unique_name, dynamic_network_without_security_group['network_a']))
       end
     end
   end
@@ -257,7 +257,6 @@ describe Bosh::OpenStackCloud::Cloud, 'create_vm' do
         cloud.create_vm('agent-id', 'sc-id', resource_pool_spec, { 'network_a' => network_spec }, nil, environment)
 
         expect(cloud.compute.servers).to have_received(:create).with(openstack_params('network_a' => network_spec))
-        expect(@registry).to have_received(:update_settings).with("vm-#{unique_name}", agent_settings(unique_name, network_spec))
       end
     end
 
@@ -343,7 +342,7 @@ describe Bosh::OpenStackCloud::Cloud, 'create_vm' do
     it 'creates an OpenStack server with scheduler hints' do
       allow_any_instance_of(Bosh::OpenStackCloud::NetworkConfigurator).to receive(:configure)
 
-      cloud.create_vm('agent-id', 'sc-id', resource_pool_spec.merge('scheduler_hints' => scheduler_hints), combined_network_spec)
+      cloud.create_vm('agent-id', 'sc-id', resource_pool_spec.merge('scheduler_hints' => scheduler_hints), combined_network_spec, nil, environment)
 
       expect(cloud.compute.servers).to have_received(:create).with(openstack_params(combined_network_spec))
     end
@@ -549,45 +548,6 @@ describe Bosh::OpenStackCloud::Cloud, 'create_vm' do
     end
   end
 
-  context 'when fail to register an OpenStack server after the server is created' do
-    before(:each) { allow(server).to receive(:destroy) }
-
-    it 'destroys the server successfully and raises a non-retryable Error when CloudError happens' do
-      allow(@registry).to receive(:update_settings).and_raise(Bosh::Clouds::CloudError)
-
-      expect {
-        cloud.create_vm('agent-id', 'sc-id', resource_pool_spec, { 'network_a' => dynamic_network_spec }, nil, environment)
-      }.to raise_error { |error|
-             expect(error).to be_a(Bosh::Clouds::VMCreationFailed)
-             expect(error.ok_to_retry).to eq(false)
-           }
-      expect(cloud.openstack).to have_received(:wait_resource).with(server, %i[terminated deleted], :state, true)
-    end
-
-    it 'destroys the server successfully and raises a non-retryable Error when StandardError happens' do
-      allow(@registry).to receive(:update_settings).and_raise(StandardError)
-
-      expect {
-        cloud.create_vm('agent-id', 'sc-id', resource_pool_spec, { 'network_a' => dynamic_network_spec }, nil, environment)
-      }.to raise_error { |error|
-             expect(error).to be_a(Bosh::Clouds::VMCreationFailed)
-             expect(error.ok_to_retry).to eq(false)
-           }
-      expect(cloud.openstack).to have_received(:wait_resource).with(server, %i[terminated deleted], :state, true)
-    end
-
-    it 'logs correct failure message when failed to destroy the server' do
-      allow(@registry).to receive(:update_settings).and_raise(Bosh::Clouds::CloudError)
-      allow(cloud.openstack).to receive(:wait_resource).with(server, %i[terminated deleted], :state, true).and_raise(Bosh::Clouds::CloudError)
-
-      expect {
-        cloud.create_vm('agent-id', 'sc-id', resource_pool_spec, { 'network_a' => dynamic_network_spec }, nil, environment)
-      }.to raise_error(Bosh::Clouds::VMCreationFailed)
-      expect(Bosh::Clouds::Config.logger).to have_received(:warn).with('Failed to register server: Bosh::Clouds::CloudError')
-      expect(Bosh::Clouds::Config.logger).to have_received(:warn).with(/Failed to destroy server:.*/)
-    end
-  end
-
   context "when security group doesn't exist" do
     let(:openstack_security_groups) { [double('foo-sec-group', id: 'foo-sec-group-id', name: 'foo')] }
 
@@ -708,19 +668,12 @@ describe Bosh::OpenStackCloud::Cloud, 'create_vm' do
         cloud.create_vm('agent-id', 'sc-id', resource_pool_spec, { 'network_a' => dynamic_network_spec }, nil, environment)
 
         expect(Bosh::Clouds::Config.logger).to have_received(:debug).with("'human_readable_vm_names' enabled")
-        expect(Bosh::Clouds::Config.logger).to have_received(:debug).with("Tagged VM 'i-test' with tags '{:registry_key=>\"vm-#{unique_name}\"}")
       end
     end
 
     context 'when "human_readable_vm_names" is disabled' do
       let(:options) do
         options = mock_cloud_options['properties']
-      end
-
-      it 'does not tag server with registry tag' do
-        cloud.create_vm('agent-id', 'sc-id', resource_pool_spec, { 'network_a' => dynamic_network_spec }, nil, environment)
-
-        expect(Bosh::OpenStackCloud::TagManager).to_not have_received(:tag_server).with(server, registry_key: "vm-#{unique_name}")
       end
 
       it 'logs human_readable_vm_names disabled' do
@@ -739,7 +692,6 @@ describe Bosh::OpenStackCloud::Cloud, 'create_vm' do
       cloud.create_vm('agent-id', 'sc-id light', resource_pool_spec, { 'network_a' => dynamic_network_spec }, nil, environment)
 
       expect(cloud.compute.servers).to have_received(:create).with(openstack_params)
-      expect(@registry).to have_received(:update_settings).with("vm-#{unique_name}", agent_settings(unique_name))
     end
   end
 
@@ -778,22 +730,6 @@ describe Bosh::OpenStackCloud::Cloud, 'create_vm' do
         options
       end
 
-      it 'tags registry_key with "vm-<uuid>"' do
-        allow(Bosh::OpenStackCloud::TagManager).to receive(:tag_server)
-
-        cloud.create_vm('agent-id', 'sc-id', resource_pool_spec, { 'network_a' => dynamic_network_spec }, nil, environment)
-
-        expect(Bosh::OpenStackCloud::TagManager).to have_received(:tag_server).with(server, registry_key: "vm-#{unique_name}")
-      end
-
-      it 'raises an exception, if tagging fails' do
-        allow(Bosh::OpenStackCloud::TagManager).to receive(:tag_server).and_raise(StandardError)
-
-        expect(server).to receive(:destroy)
-        expect {
-          cloud.create_vm('agent-id', 'sc-id', resource_pool_spec, { 'network_a' => dynamic_network_spec }, nil, environment)
-        }.to raise_error(Bosh::Clouds::CloudError)
-      end
     end
 
     context 'when loadbalancer_pools are present' do
@@ -903,66 +839,6 @@ describe Bosh::OpenStackCloud::Cloud, 'create_vm' do
                  '{\"security_groups\":\[\"default\"\]},\"use_dhcp\":true}}')
     end
 
-    context 'with cpi api version 1' do
-      it 'sets networks in user data' do
-        cloud.create_vm('agent-id', 'sc-id', resource_pool_spec, network_configuration, nil, environment)
-
-        expect(cloud.compute.servers).to have_received(:create).with(hash_including(user_data: expected_user_data))
-      end
-
-      it 'logs that settings get updated' do
-        cloud.create_vm('agent-id', 'sc-id', resource_pool_spec, network_configuration, nil, environment)
-
-        expect(cloud.logger).to have_received(:info).with(/Updating settings/)
-      end
-
-      context 'when stemcell API v1' do
-        it 'does not set agent_id in user data' do
-          cloud.create_vm('agent-id', 'sc-id', resource_pool_spec, network_configuration, nil, environment)
-
-          expect(cloud.compute.servers).to have_received(:create)
-          expect(cloud.compute.servers).not_to have_received(:create).with(hash_including(user_data: /\"agent_id\":/))
-        end
-
-        it 'does not set env in user data' do
-          cloud.create_vm('agent-id', 'sc-id', resource_pool_spec, network_configuration, nil, environment)
-
-          expect(cloud.compute.servers).to have_received(:create)
-          expect(cloud.compute.servers).not_to have_received(:create).with(hash_including(user_data: /\"env\":/))
-        end
-      end
-
-      context 'when stemcell API v2' do
-        let(:options) do
-          options = mock_cloud_options['properties']
-          options['openstack']['vm'] = {
-            'stemcell' => {
-              'api_version' => 2,
-            },
-          }
-          options
-        end
-
-        it 'does not set agent_id in user data' do
-          cloud.create_vm('agent-id', 'sc-id', resource_pool_spec, network_configuration, nil, environment)
-
-          expect(cloud.compute.servers).not_to have_received(:create).with(hash_including(user_data: /\"agent_id\":/))
-        end
-
-        it 'does not set env in user data' do
-          cloud.create_vm('agent-id', 'sc-id', resource_pool_spec, network_configuration, nil, environment)
-
-          expect(cloud.compute.servers).not_to have_received(:create).with(hash_including(user_data: /\"env\":/))
-        end
-
-        it 'sets networks in user data' do
-          cloud.create_vm('agent-id', 'sc-id', resource_pool_spec, network_configuration, nil, environment)
-
-          expect(cloud.compute.servers).to have_received(:create).with(hash_including(user_data: expected_user_data))
-        end
-      end
-    end
-
     context 'with cpi api version 2' do
       let(:cpi_api_version) { 2 }
 
@@ -977,34 +853,6 @@ describe Bosh::OpenStackCloud::Cloud, 'create_vm' do
         expect(res).to be_a(Array)
         expect(res[0]).to eq('i-test')
         expect(res[1]).to eq(network_configuration)
-      end
-
-      context 'when stemcell API v1' do
-        it 'does not set agent settings in user data' do
-          cloud.create_vm('agent-id', 'sc-id', resource_pool_spec, network_configuration, nil, environment)
-
-          expect(cloud.compute.servers).not_to have_received(:create).with(hash_including(user_data: /\"foo\":/))
-        end
-
-        it 'does not set agent_id in user data' do
-          cloud.create_vm('agent-id', 'sc-id', resource_pool_spec, network_configuration, nil, environment)
-
-          expect(cloud.compute.servers).to have_received(:create)
-          expect(cloud.compute.servers).not_to have_received(:create).with(hash_including(user_data: /\"agent_id\":/))
-        end
-
-        it 'does not set env in user data' do
-          cloud.create_vm('agent-id', 'sc-id', resource_pool_spec, network_configuration, nil, environment)
-
-          expect(cloud.compute.servers).to have_received(:create)
-          expect(cloud.compute.servers).not_to have_received(:create).with(hash_including(user_data: /\"env\":/))
-        end
-
-        it 'does set registry' do
-          cloud.create_vm('agent-id', 'sc-id', resource_pool_spec, network_configuration, nil, environment)
-
-          expect(cloud.compute.servers).to have_received(:create).with(hash_including(user_data: /\"registry\":/))
-        end
       end
 
       context 'when stemcell API v2' do

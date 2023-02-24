@@ -1,13 +1,10 @@
 require 'spec_helper'
 
 describe Bosh::OpenStackCloud::Cloud do
-  let(:registry_key) { 'vm-registry-key' }
-
   let(:server_metadata) do
     [
       double('metadatum', key: 'lbaas_pool_0', value: 'pool-id-0/membership-id-0'),
       double('metadatum', key: 'job', value: 'bosh'),
-      double('metadatum', key: 'registry_key', value: registry_key),
     ]
   end
 
@@ -21,7 +18,6 @@ describe Bosh::OpenStackCloud::Cloud do
   let(:loadbalancer_configurator) { instance_double(Bosh::OpenStackCloud::LoadbalancerConfigurator) }
 
   before(:each) do
-    @registry = mock_registry
     Bosh::Clouds::Config.configure(double('config', uuid: 'director-uuid'))
 
     allow(Bosh::Clouds::Config).to receive(:uuid).and_return('fake-uuid')
@@ -29,7 +25,6 @@ describe Bosh::OpenStackCloud::Cloud do
     allow(Bosh::OpenStackCloud::NetworkConfigurator).to receive(:cleanup_ports)
     allow(server).to receive(:destroy)
     allow(cloud.openstack).to receive(:wait_resource)
-    allow(@registry).to receive(:delete_settings)
     allow(Bosh::OpenStackCloud::LoadbalancerConfigurator).to receive(:new).and_return(loadbalancer_configurator)
     allow(loadbalancer_configurator).to receive(:cleanup_memberships)
   end
@@ -72,13 +67,10 @@ describe Bosh::OpenStackCloud::Cloud do
     expect(loadbalancer_configurator).to have_received(:cleanup_memberships).with(
       'lbaas_pool_0' => 'pool-id-0/membership-id-0',
       'job' => 'bosh',
-      'registry_key' => 'vm-registry-key',
     ).ordered
     expect(server).to have_received(:destroy).ordered
     expect(cloud.openstack).to have_received(:wait_resource).with(server, %i[terminated deleted], :state, true).ordered
     expect(Bosh::OpenStackCloud::NetworkConfigurator).to have_received(:cleanup_ports).with(any_args, ['port_id']).ordered
-    expect(cloud.logger).to have_received(:info).with(/Deleting settings/)
-    expect(@registry).to have_received(:delete_settings).with(registry_key)
   end
 
   context 'when registry-less' do
@@ -100,7 +92,6 @@ describe Bosh::OpenStackCloud::Cloud do
 
     it 'does not log deleting settings' do
       expect(cloud.logger).to_not receive(:info).with(/Deleting settings/)
-      expect(cloud.registry).to receive(:delete_settings).with(registry_key)
 
       cloud.delete_vm('i-foobar')
     end
@@ -134,11 +125,9 @@ describe Bosh::OpenStackCloud::Cloud do
         cloud.delete_vm('i-foobar')
       }.to raise_error(/BOOM!/)
 
-      expect(@registry).to have_received(:delete_settings).with(registry_key)
       expect(loadbalancer_configurator).to have_received(:cleanup_memberships).with(
         'lbaas_pool_0' => 'pool-id-0/membership-id-0',
         'job' => 'bosh',
-        'registry_key' => 'vm-registry-key',
       )
     end
   end
@@ -152,12 +141,11 @@ describe Bosh::OpenStackCloud::Cloud do
       }.to raise_error(/BOOM!/)
 
       expect(Bosh::OpenStackCloud::NetworkConfigurator).to have_received(:cleanup_ports).with(any_args, ['port_id'])
-      expect(@registry).to have_received(:delete_settings).with(registry_key)
     end
   end
 
   context 'when port cleanup and LBaaS membership cleanup fails' do
-    it 'fails with both errors, but deletes the registry settings' do
+    it 'fails with both errors' do
       allow(Bosh::OpenStackCloud::NetworkConfigurator).to receive(:cleanup_ports).and_raise('BOOM!')
       allow(loadbalancer_configurator).to receive(:cleanup_memberships).and_raise('BOOM!')
 
@@ -169,23 +157,19 @@ describe Bosh::OpenStackCloud::Cloud do
       expect(loadbalancer_configurator).to have_received(:cleanup_memberships).with(
         'lbaas_pool_0' => 'pool-id-0/membership-id-0',
         'job' => 'bosh',
-        'registry_key' => 'vm-registry-key',
       )
-      expect(@registry).to have_received(:delete_settings).with(registry_key)
     end
   end
 
-  context 'when port cleanup, LBaaS membership cleanup and deleting settings from registry fails' do
+  context 'when port cleanup, LBaaS membership cleanup fails' do
     it 'fails with all errors and an aggregated error message containing the right prefixes' do
       allow(Bosh::OpenStackCloud::NetworkConfigurator).to receive(:cleanup_ports).and_raise('BOOM1!')
       allow(loadbalancer_configurator).to receive(:cleanup_memberships).and_raise('BOOM2!')
-      allow(@registry).to receive(:delete_settings).and_raise('BOOM3!')
 
       expected_error_msg = <<~EOF
         Multiple cloud errors occurred:
         Removing ports: BOOM1!
         Removing lbaas pool memberships: BOOM2!
-        Deleting registry settings: BOOM3!
       EOF
 
       expect {
@@ -204,8 +188,6 @@ describe Bosh::OpenStackCloud::Cloud do
 
     it 'uses the server name to delete registry settings' do
       cloud.delete_vm('i-foobar')
-
-      expect(@registry).to have_received(:delete_settings).with(server.name)
     end
   end
 end

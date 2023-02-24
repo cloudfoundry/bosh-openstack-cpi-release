@@ -40,8 +40,6 @@ describe Bosh::OpenStackCloud::Cloud do
       },
     }
 
-    expect(@registry).to receive(:read_settings).with('i-test').and_return(old_settings)
-    expect(@registry).to receive(:update_settings).with('i-test', new_settings)
 
     cloud.detach_disk('i-test', 'v-foobar')
   end
@@ -77,9 +75,6 @@ describe Bosh::OpenStackCloud::Cloud do
       },
     }
 
-    expect(@registry).to receive(:read_settings).with('i-test').and_return(old_settings)
-    expect(@registry).to receive(:update_settings).with('i-test', new_settings)
-
     cloud.detach_disk('i-test', 'v-barfoo')
   end
 
@@ -107,9 +102,6 @@ describe Bosh::OpenStackCloud::Cloud do
         },
       },
     }
-
-    expect(@registry).to receive(:read_settings).with('i-test').and_return(old_settings)
-    expect(@registry).to receive(:update_settings).with('i-test', new_settings)
 
     expect {
       cloud.detach_disk('i-test', 'non-exist-volume-id')

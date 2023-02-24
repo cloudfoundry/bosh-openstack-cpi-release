@@ -28,7 +28,6 @@ describe Bosh::OpenStackCloud::VmCreator do
   let(:agent_settings) { double }
   let(:create_vm_params) { {} }
   let(:manual_network) { { 'network_a' => manual_network_spec(ip: '10.0.0.1') } }
-  let(:environment) { { 'test_env' => 'value' } }
 
   describe 'perform' do
     before do
