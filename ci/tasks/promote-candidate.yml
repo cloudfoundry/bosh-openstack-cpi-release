@@ -15,3 +15,4 @@ run:
 params:
   aws_access_key_id:     replace-me
   aws_secret_access_key: replace-me
+  aws_assume_role_arn:   replace-me

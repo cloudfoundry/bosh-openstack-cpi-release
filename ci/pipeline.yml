@@ -235,8 +235,9 @@ jobs:
         timeout: *timeouts-long
         file: bosh-cpi-src-in/ci/tasks/promote-candidate.yml
         params:
-          aws_access_key_id: ((bosh-openstack-cpi-blobs_aws_access_key.username))
-          aws_secret_access_key: ((bosh-openstack-cpi-blobs_aws_access_key.password))
+          aws_access_key_id: ((bosh-openstack-cpi-blobs_assume_aws_access_key.username))
+          aws_secret_access_key: ((bosh-openstack-cpi-blobs_assume_aws_access_key.password))
+          aws_assume_role_arn: ((bosh-openstack-cpi-blobs_assume_aws_access_key.role_arn))
 
       - put: release-version-semver
         timeout: *timeouts-long
@@ -259,6 +260,11 @@ resource_types:
       repository: dpb587/bosh-release-resource
       username: ((docker.username))
       password: ((docker.password))
+  - name: semver
+    type: docker-image
+    source:
+      repository: concourse/semver-resource
+      tag: 1.6
 
 resources:
   - name: terraform-cpi
@@ -270,8 +276,10 @@ resources:
         bucket: bosh-openstack-cpi-ci
         key: terraform/terraform.tfstate
         region: us-east-1
-        access_key: ((bosh-openstack-cpi-ci_aws_access_key.username))
-        secret_key: ((bosh-openstack-cpi-ci_aws_access_key.password))
+        access_key_id:      ((bosh-openstack-cpi-ci_assume_aws_access_key.username))
+        secret_access_key:  ((bosh-openstack-cpi-ci_assume_aws_access_key.password))
+        role_arn:           ((bosh-openstack-cpi-ci_assume_aws_access_key.role_arn))
+
 
   - name: bosh-cpi-dev-artifacts
     type: s3
@@ -280,8 +288,10 @@ resources:
       regexp: bosh-openstack-cpi-([0-9.]+)\.tgz
       bucket: bosh-openstack-cpi-ci # OpenStack CPI account
       region_name:        us-east-1
-      access_key_id:      ((bosh-openstack-cpi-ci_aws_access_key.username))
-      secret_access_key:  ((bosh-openstack-cpi-ci_aws_access_key.password))
+      access_key_id:      ((bosh-openstack-cpi-ci_assume_aws_access_key.username))
+      secret_access_key:  ((bosh-openstack-cpi-ci_assume_aws_access_key.password))
+      aws_role_arn:       ((bosh-openstack-cpi-ci_assume_aws_access_key.role_arn))
+
 
   - name: lifecycle-log
     type: s3
@@ -290,8 +300,9 @@ resources:
       bucket: bosh-openstack-cpi-ci # OpenStack CPI account
       versioned_file: lifecycle.log
       region_name:        us-east-1
-      access_key_id:      ((bosh-openstack-cpi-ci_aws_access_key.username))
-      secret_access_key:  ((bosh-openstack-cpi-ci_aws_access_key.password))
+      access_key_id:      ((bosh-openstack-cpi-ci_assume_aws_access_key.username))
+      secret_access_key:  ((bosh-openstack-cpi-ci_assume_aws_access_key.password))
+      aws_role_arn:       ((bosh-openstack-cpi-ci_assume_aws_access_key.role_arn))
 
   - name: bosh-cpi-src-in
     type: git
@@ -319,8 +330,9 @@ resources:
     source:
       key:                current-version
       bucket:             bosh-openstack-cpi-ci
-      access_key_id:      ((bosh-openstack-cpi-ci_aws_access_key.username))
-      secret_access_key:  ((bosh-openstack-cpi-ci_aws_access_key.password))
+      access_key_id:      ((bosh-openstack-cpi-ci_assume_aws_access_key.username))
+      secret_access_key:  ((bosh-openstack-cpi-ci_assume_aws_access_key.password))
+      assume_role_arn:    ((bosh-openstack-cpi-ci_assume_aws_access_key.role_arn))
       region_name:        us-east-1
 
   - name: release-version-semver
