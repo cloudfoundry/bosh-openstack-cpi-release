@@ -265,6 +265,8 @@ resource_types:
     source:
       repository: concourse/semver-resource
       tag: 1.6
+      username: ((docker.username))
+      password: ((docker.password))
 
 resources:
   - name: terraform-cpi
