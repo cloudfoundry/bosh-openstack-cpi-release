@@ -99,7 +99,7 @@ GEM
       rubocop (>= 0.24.1)
     ruby-progressbar (1.13.0)
     semi_semantic (1.2.0)
-    timecop (0.9.6)
+    timecop (0.9.8)
     unicode-display_width (2.4.2)
     webmock (3.14.0)
       addressable (>= 2.8.0)
