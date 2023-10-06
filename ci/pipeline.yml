@@ -338,9 +338,9 @@ resources:
         bucket: bosh-openstack-cpi-ci
         key: terraform/terraform.tfstate
         region: us-east-1
-        access_key_id:      ((bosh-openstack-cpi-ci_assume_aws_access_key.username))
-        secret_access_key:  ((bosh-openstack-cpi-ci_assume_aws_access_key.password))
-        role_arn:           ((bosh-openstack-cpi-ci_assume_aws_access_key.role_arn))
+        access_key: ((bosh-openstack-cpi-ci_assume_aws_access_key.username))
+        secret_key: ((bosh-openstack-cpi-ci_assume_aws_access_key.password))
+        role_arn:   ((bosh-openstack-cpi-ci_assume_aws_access_key.role_arn))
 
 
   - name: bosh-cpi-dev-artifacts
