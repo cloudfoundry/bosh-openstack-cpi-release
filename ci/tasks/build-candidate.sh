@@ -5,7 +5,7 @@ set -x
 
 semver=`cat version-semver/number`
 
-cd bosh-cpi-src-in
+cd bosh-openstack-cpi-release
 
 echo "running unit tests"
 pushd src/bosh_openstack_cpi

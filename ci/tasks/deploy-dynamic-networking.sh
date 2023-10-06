@@ -2,7 +2,7 @@
 
 set -e
 
-source bosh-cpi-src-in/ci/tasks/utils.sh
+source bosh-openstack-cpi-release/ci/tasks/utils.sh
 
 # Variables from pipeline.yml
 : ${bosh_vcap_password:?}
@@ -57,7 +57,7 @@ cd ${deployment_dir}
 echo -e "${bosh_openstack_ca_cert}" > bosh_openstack_ca_cert
 echo -e "${director_ca}" > director_ca
 echo -e "${director_ca_private_key}" > director_ca_private_key
-../bosh-cpi-src-in/ci/ruby_scripts/render_credentials > ./custom-ca.yml
+../bosh-openstack-cpi-release/ci/ruby_scripts/render_credentials > ./custom-ca.yml
 
 echo "using bosh CLI version..."
 bosh-go --version
@@ -70,11 +70,11 @@ OPS_FILES+=( "--ops-file=../bosh-deployment/openstack/cpi.yml" )
 OPS_FILES+=( "--ops-file=../bosh-deployment/external-ip-not-recommended.yml" )
 OPS_FILES+=( "--ops-file=../bosh-deployment/misc/source-releases/bosh.yml" )
 OPS_FILES+=( "--ops-file=../bosh-deployment/misc/ntp.yml" )
-OPS_FILES+=( "--ops-file=../bosh-cpi-src-in/ci/ops_files/deployment-configuration.yml" )
-OPS_FILES+=( "--ops-file=../bosh-cpi-src-in/ci/ops_files/custom-dynamic-networking.yml" )
-OPS_FILES+=( "--ops-file=../bosh-cpi-src-in/ci/ops_files/timeouts.yml" )
-OPS_FILES+=( "--ops-file=../bosh-cpi-src-in/ci/ops_files/remove-registry.yml" )
-OPS_FILES+=( "--ops-file=../bosh-cpi-src-in/ci/ops_files/move-agent-properties-to-env-for-create-env.yml" )
+OPS_FILES+=( "--ops-file=../bosh-openstack-cpi-release/ci/ops_files/deployment-configuration.yml" )
+OPS_FILES+=( "--ops-file=../bosh-openstack-cpi-release/ci/ops_files/custom-dynamic-networking.yml" )
+OPS_FILES+=( "--ops-file=../bosh-openstack-cpi-release/ci/ops_files/timeouts.yml" )
+OPS_FILES+=( "--ops-file=../bosh-openstack-cpi-release/ci/ops_files/remove-registry.yml" )
+OPS_FILES+=( "--ops-file=../bosh-openstack-cpi-release/ci/ops_files/move-agent-properties-to-env-for-create-env.yml" )
 
 echo "check bosh deployment interpolation"
 bosh-go int ../bosh-deployment/bosh.yml \

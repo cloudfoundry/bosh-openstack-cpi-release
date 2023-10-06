@@ -5,11 +5,11 @@ image_resource:
   source:
     repository: boshcpi/openstack-cpi-release
 inputs:
-  - name: bosh-cpi-src-in
+  - name: bosh-openstack-cpi-release
   - name: lifecycle-log
 outputs:
   - name: publish
 run:
-  path: bosh-cpi-src-in/ci/tasks/publish-api-calls.sh
+  path: bosh-openstack-cpi-release/ci/tasks/publish-api-calls.sh
 params:
   publish_api_calls_enabled:  replace-me

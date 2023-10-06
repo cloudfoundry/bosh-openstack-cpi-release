@@ -2,7 +2,7 @@
 
 set -e -x
 
-source bosh-cpi-src-in/ci/tasks/utils.sh
+source bosh-openstack-cpi-release/ci/tasks/utils.sh
 
 : ${stemcell_name:?}
 : ${bosh_vcap_password:?}

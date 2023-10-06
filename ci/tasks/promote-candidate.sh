@@ -2,7 +2,7 @@
 
 set -e -x
 
-source bosh-cpi-src-in/ci/tasks/utils.sh
+source bosh-openstack-cpi-release/ci/tasks/utils.sh
 
 : ${aws_access_key_id:?}
 : ${aws_secret_access_key:?}
@@ -12,7 +12,7 @@ source bosh-cpi-src-in/ci/tasks/utils.sh
 integer_version=`cut -d "." -f1 release-version-semver/number`
 echo $integer_version > promote/integer_version
 
-cp -r bosh-cpi-src-in promote/repo
+cp -r bosh-openstack-cpi-release promote/repo
 
 cd promote/repo
 

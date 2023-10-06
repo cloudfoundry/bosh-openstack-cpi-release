@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 
 set -e
-source bosh-cpi-src-in/ci/tasks/utils.sh
+source bosh-openstack-cpi-release/ci/tasks/utils.sh
 
 : ${publish_api_calls_enabled:?}
 
-cp -r bosh-cpi-src-in publish/repo
+cp -r bosh-openstack-cpi-release publish/repo
 
 cd publish/repo/ci/ruby_scripts
 

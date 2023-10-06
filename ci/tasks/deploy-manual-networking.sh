@@ -2,7 +2,7 @@
 
 set -ex
 
-source bosh-cpi-src-in/ci/tasks/utils.sh
+source bosh-openstack-cpi-release/ci/tasks/utils.sh
 
 # Variables from pipeline.yml
 : ${bosh_vcap_password:?}
@@ -79,11 +79,11 @@ bosh-go int ../bosh-deployment/bosh.yml \
     -o ../bosh-deployment/external-ip-not-recommended.yml \
     -o ../bosh-deployment/misc/source-releases/bosh.yml \
     -o ../bosh-deployment/jumpbox-user.yml \
-    -o ../bosh-cpi-src-in/ci/ops_files/deployment-configuration.yml \
-    -o ../bosh-cpi-src-in/ci/ops_files/custom-manual-networking.yml \
-    -o ../bosh-cpi-src-in/ci/ops_files/timeouts.yml \
-    -o ../bosh-cpi-src-in/ci/ops_files/remove-registry.yml \
-    -o ../bosh-cpi-src-in/ci/ops_files/move-agent-properties-to-env-for-create-env.yml \
+    -o ../bosh-openstack-cpi-release/ci/ops_files/deployment-configuration.yml \
+    -o ../bosh-openstack-cpi-release/ci/ops_files/custom-manual-networking.yml \
+    -o ../bosh-openstack-cpi-release/ci/ops_files/timeouts.yml \
+    -o ../bosh-openstack-cpi-release/ci/ops_files/remove-registry.yml \
+    -o ../bosh-openstack-cpi-release/ci/ops_files/move-agent-properties-to-env-for-create-env.yml \
     -v auth_url=${openstack_auth_url} \
     -v availability_zone=${availability_zone:-'~'} \
     -v bosh_vcap_password_hash=${bosh_vcap_password_hash} \

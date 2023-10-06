@@ -5,7 +5,7 @@ image_resource:
   source:
     repository: boshcpi/openstack-cpi-release
 inputs:
-  - name: bosh-cpi-src-in
+  - name: bosh-openstack-cpi-release
   - name: bosh-release
   - name: bosh-cpi-dev-artifacts
   - name: version-semver
@@ -16,7 +16,7 @@ outputs:
   - name: bosh-director-deployment
   - name: terraform-cpi-deploy
 run:
-  path: bosh-cpi-src-in/ci/tasks/deploy-dynamic-networking.sh
+  path: bosh-openstack-cpi-release/ci/tasks/deploy-dynamic-networking.sh
 params:
   bosh_vcap_password:                  ""
   director_ca:                         ""

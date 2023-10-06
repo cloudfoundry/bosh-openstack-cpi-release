@@ -10,18 +10,18 @@ jobs:
   - name: create-openstack-cpi-release-docker-image
     serial: true
     plan:
-      - get: bosh-cpi-src-in
+      - get: bosh-openstack-cpi-release
       - put: openstack-cpi-release-docker-image
         params:
-          build: "bosh-cpi-src-in/ci/docker/openstack-cpi-release"
+          build: "bosh-openstack-cpi-release/ci/docker/openstack-cpi-release"
 
   - name: pipeline-locator
     plan:
-    - get: bosh-cpi-src-out
+    - get: bosh-openstack-cpi-release
     - task: pipeline-location
-      file: bosh-cpi-src-out/ci/tasks/pipeline-locator.yml
+      file: bosh-openstack-cpi-release/ci/tasks/pipeline-locator.yml
       params: { PIPELINE_FILENAME: "pipeline.yml" }
-      input_mapping: {pipeline-repo: bosh-cpi-src-out}
+      input_mapping: {pipeline-repo: bosh-openstack-cpi-release}
 
   - name: build-candidate
     serial: true
@@ -29,7 +29,7 @@ jobs:
       builds: *build_logs_to_retain
     plan:
     - in_parallel:
-      - {trigger: true,  get: bosh-cpi-src-in, timeout: *timeouts-long}
+      - {trigger: true,  get: bosh-openstack-cpi-release, timeout: *timeouts-long}
       - {trigger: false, get: version-semver, params: {bump: patch}, timeout: *timeouts-long}
 
     - put: version-semver
@@ -39,7 +39,7 @@ jobs:
     - task: build
       tags: ["nimbus"]
       timeout: *timeouts-long
-      file: bosh-cpi-src-in/ci/tasks/build-candidate.yml
+      file: bosh-openstack-cpi-release/ci/tasks/build-candidate.yml
 
     - put: bosh-cpi-dev-artifacts
       timeout: *timeouts-long
@@ -53,12 +53,12 @@ jobs:
     plan:
     - in_parallel:
       - {trigger: true, passed: [build-candidate], get: bosh-cpi-dev-artifacts, timeout: *timeouts-long}
-      - {trigger: false, passed: [build-candidate], get: bosh-cpi-src-in, timeout: *timeouts-long}
+      - {trigger: false, passed: [build-candidate], get: bosh-openstack-cpi-release, timeout: *timeouts-long}
       - {trigger: false, get: openstack-lifecycle-stemcell, resource: openstack-ubuntu-jammy-stemcell, timeout: *timeouts-long}
 
     - task: write_ca_file
       tags: ["nimbus"]
-      file: bosh-cpi-src-in/ci/tasks/write-ca-file.yml
+      file: bosh-openstack-cpi-release/ci/tasks/write-ca-file.yml
       params:
         file_content: ((concourse_openstack_auth.openstack_ca_cert))
 
@@ -67,7 +67,7 @@ jobs:
       timeout: *timeouts-long
       params:
         env_name: lifecycle
-        terraform_source: bosh-cpi-src-in/ci/terraform/ci/lifecycle
+        terraform_source: bosh-openstack-cpi-release/ci/terraform/ci/lifecycle
         vars: &lifecycle-terraform-vars
           prefix: lifecycle
           auth_url: ((concourse_openstack_auth.auth_url))
@@ -86,7 +86,7 @@ jobs:
       - task: test
         tags: ["nimbus"]
         timeout: *timeouts-long
-        file: bosh-cpi-src-in/ci/tasks/run-lifecycle.yml
+        file: bosh-openstack-cpi-release/ci/tasks/run-lifecycle.yml
         params:
           BOSH_OPENSTACK_DOMAIN:                   ((config-json.lifecycle_openstack_domain))
           BOSH_OPENSTACK_PROJECT:                  ((config-json.openstack_project))
@@ -113,7 +113,7 @@ jobs:
         params:
           action: destroy
           env_name: lifecycle
-          terraform_source: bosh-cpi-src-in/ci/terraform/ci/lifecycle
+          terraform_source: bosh-openstack-cpi-release/ci/terraform/ci/lifecycle
           vars: *lifecycle-terraform-vars
         get_params:
           action: destroy
@@ -127,7 +127,7 @@ jobs:
     - in_parallel:
       - {trigger: true,  passed: [build-candidate], get: bosh-cpi-dev-artifacts, timeout: *timeouts-long}
       - {trigger: false, passed: [build-candidate], get: version-semver, timeout: *timeouts-long}
-      - {trigger: false, passed: [build-candidate], get: bosh-cpi-src-in, timeout: *timeouts-long}
+      - {trigger: false, passed: [build-candidate], get: bosh-openstack-cpi-release, timeout: *timeouts-long}
       - {trigger: false,                    get: bosh-release, timeout: *timeouts-long}
       - {trigger: true,                    get: stemcell-director, resource: openstack-ubuntu-jammy-stemcell, timeout: *timeouts-long}
       - {trigger: false,                    get: stemcell, resource: openstack-ubuntu-jammy-stemcell, timeout: *timeouts-long}
@@ -139,7 +139,7 @@ jobs:
       timeout: *timeouts-long
       params:
         env_name: bats-ubuntu-manual
-        terraform_source: bosh-cpi-src-in/ci/terraform/ci/bats-manual
+        terraform_source: bosh-openstack-cpi-release/ci/terraform/ci/bats-manual
         vars: &bats-terraform-vars
           prefix: "bats-ubuntu-manual"
           auth_url: ((concourse_openstack_auth.auth_url))
@@ -168,7 +168,7 @@ jobs:
       - task: deploy
         tags: ["nimbus"]
         timeout: *timeouts-long
-        file: bosh-cpi-src-in/ci/tasks/deploy-manual-networking.yml
+        file: bosh-openstack-cpi-release/ci/tasks/deploy-manual-networking.yml
         params:
           bosh_vcap_password:                   ((bosh_vcap_password))
           openstack_flavor:                     "m1.small"
@@ -189,7 +189,7 @@ jobs:
       - task: test
         tags: ["nimbus"]
         timeout: *timeouts-long
-        file: bosh-cpi-src-in/ci/tasks/run-manual-networking-bats.yml
+        file: bosh-openstack-cpi-release/ci/tasks/run-manual-networking-bats.yml
         params:
           stemcell_name:                            "bosh-openstack-kvm-ubuntu-jammy-go_agent"
           openstack_flavor_with_ephemeral_disk:     ((config-json.openstack_flavor_with_ephemeral_disk))
@@ -202,20 +202,20 @@ jobs:
           task: print-task-errors
           tags: ["nimbus"]
           timeout: *timeouts-long
-          file: bosh-cpi-src-in/ci/tasks/print_task_errors.yml
+          file: bosh-openstack-cpi-release/ci/tasks/print_task_errors.yml
       ensure:
         do:
         - task: teardown-director
           tags: ["nimbus"]
           timeout: *timeouts-long
-          file: bosh-cpi-src-in/ci/tasks/teardown-director.yml
+          file: bosh-openstack-cpi-release/ci/tasks/teardown-director.yml
           ensure:
             put: terraform-cpi
             tags: ["nimbus"]
             params:
               action: destroy
               env_name: bats-ubuntu-manual
-              terraform_source: bosh-cpi-src-in/ci/terraform/ci/bats-manual
+              terraform_source: bosh-openstack-cpi-release/ci/terraform/ci/bats-manual
               vars: *bats-terraform-vars
             get_params:
               action: destroy
@@ -227,13 +227,13 @@ jobs:
     plan:
       - in_parallel:
         - {trigger: false, passed: [lifecycle, bats-ubuntu-manual], get: bosh-cpi-dev-artifacts, timeout: *timeouts-long}
-        - {trigger: false, passed: [lifecycle, bats-ubuntu-manual], get: bosh-cpi-src-in, timeout: *timeouts-long}
+        - {trigger: false, passed: [lifecycle, bats-ubuntu-manual], get: bosh-openstack-cpi-release, timeout: *timeouts-long}
         - {trigger: false, get: release-version-semver, params: {bump: major}, timeout: *timeouts-long}
 
       - task: promote
         tags: ["nimbus"]
         timeout: *timeouts-long
-        file: bosh-cpi-src-in/ci/tasks/promote-candidate.yml
+        file: bosh-openstack-cpi-release/ci/tasks/promote-candidate.yml
         params:
           aws_access_key_id: ((bosh-openstack-cpi-blobs_assume_aws_access_key.username))
           aws_secret_access_key: ((bosh-openstack-cpi-blobs_assume_aws_access_key.password))
@@ -243,15 +243,14 @@ jobs:
         timeout: *timeouts-long
         params: {file: release-version-semver/number}
 
-      - put: bosh-cpi-src-out
+      - put: bosh-openstack-cpi-release
         timeout: *timeouts-long
         params: {repository: promote/repo, rebase: true, tag: promote/integer_version, tag_prefix: "v"}
 
   - name: bump-deps
     plan:
     - in_parallel:
-      - get: bosh-cpi-src
-        resource: bosh-cpi-src-in
+      - get: bosh-openstack-cpi-release
       - get: ruby-release
       - get: bosh-ruby-release-registry-image
       - get: weekly
@@ -260,25 +259,24 @@ jobs:
       image: bosh-ruby-release-registry-image
       file: ruby-release/ci/tasks/shared/bump-gems.yml
       input_mapping:
-        input-repo: bosh-cpi-src
+        input-repo: bosh-openstack-cpi-release
       output_mapping:
-        output-repo: bosh-cpi-src
+        output-repo: bosh-openstack-cpi-release
       params:
         GEM_DIRS: src/bosh_openstack_cpi
         GIT_USER_NAME: CI Bot
         GIT_USER_EMAIL: bots@cloudfoundry.org
         PACKAGE: ruby-3.1
         VENDOR: true
-    - put: bosh-cpi-src-out
+    - put: bosh-openstack-cpi-release
       params:
-        repository: bosh-cpi-src
+        repository: bosh-openstack-cpi-release
         rebase: true
 
   - name: bump-bosh-packages
     plan:
     - in_parallel:
-      - get: bosh-cpi-src
-        resource: bosh-cpi-src-in
+      - get: bosh-openstack-cpi-release
       - get: ruby-release
         trigger: true
       - get: bosh-ecosystem-concourse-image
@@ -286,9 +284,9 @@ jobs:
       image: bosh-ecosystem-concourse-image
       file: ruby-release/ci/tasks/shared/bump-ruby-package.yml
       input_mapping:
-        bosh-release: bosh-cpi-src
+        bosh-release: bosh-openstack-cpi-release
       output_mapping:
-        bosh-release: bosh-cpi-src
+        bosh-release: bosh-openstack-cpi-release
       params:
         GIT_USER_NAME: CI Bot
         GIT_USER_EMAIL: cf-bosh-eng@pivotal.io
@@ -302,9 +300,9 @@ jobs:
               secret_access_key: ((bosh-openstack-cpi-blobs_assume_aws_access_key.password))
               assume_role_arn: ((bosh-openstack-cpi-blobs_assume_aws_access_key.role_arn))
         RUBY_VERSION_PATH: src/bosh_openstack_cpi/.ruby-version
-    - put: bosh-cpi-src-out
+    - put: bosh-openstack-cpi-release
       params:
-        repository: bosh-cpi-src
+        repository: bosh-openstack-cpi-release
         rebase: true
 
 resource_types:
@@ -366,19 +364,7 @@ resources:
       secret_access_key:  ((bosh-openstack-cpi-ci_assume_aws_access_key.password))
       aws_role_arn:       ((bosh-openstack-cpi-ci_assume_aws_access_key.role_arn))
 
-  - name: bosh-cpi-src-in
-    type: git
-    tags: ["nimbus"]
-    source:
-      uri: https://github.com/cloudfoundry/bosh-openstack-cpi-release.git
-      branch: master
-      ignore_paths:
-        - releases/bosh-openstack-cpi/**
-        - .final_builds/**
-        - docs/**
-        - README.md
-
-  - name: bosh-cpi-src-out
+  - name: bosh-openstack-cpi-release
     type: git
     tags: ["nimbus"]
     source:
@@ -462,9 +448,3 @@ resources:
       start: 3:00 -0700
       stop: 4:30 -0700
       days: [ Saturday ]
-  # - name: validator-src-in
-  #   type: git
-  #   tags: ["nimbus"]
-  #   source:
-  #     uri: https://github.com/cloudfoundry-incubator/cf-openstack-validator
-  #     branch: master

@@ -2,7 +2,7 @@
 
 set -euo pipefail
 
-source bosh-cpi-src-in/ci/tasks/utils.sh
+source bosh-openstack-cpi-release/ci/tasks/utils.sh
 
 : ${BOSH_OPENSTACK_DOMAIN:?}
 : ${BOSH_OPENSTACK_AUTH_URL_V3:?}
@@ -45,7 +45,7 @@ mkdir "${PWD}/openstack-lifecycle-stemcell/stemcell"
 tar -C "${PWD}/openstack-lifecycle-stemcell/stemcell" -xzf "${PWD}/openstack-lifecycle-stemcell/stemcell.tgz"
 export BOSH_OPENSTACK_STEMCELL_PATH="${PWD}/openstack-lifecycle-stemcell/stemcell"
 
-cd bosh-cpi-src-in/src/bosh_openstack_cpi
+cd bosh-openstack-cpi-release/src/bosh_openstack_cpi
 
 bundle install
 

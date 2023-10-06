@@ -2,7 +2,7 @@
 
 set -e
 
-source bosh-cpi-src-in/ci/tasks/utils.sh
+source bosh-openstack-cpi-release/ci/tasks/utils.sh
 
 optional_value file_content
 

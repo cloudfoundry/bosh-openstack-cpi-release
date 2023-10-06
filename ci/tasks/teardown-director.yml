@@ -5,7 +5,7 @@ image_resource:
   source:
     repository: boshcpi/openstack-cpi-release
 inputs:
-  - name: bosh-cpi-src-in
+  - name: bosh-openstack-cpi-release
   - name: bosh-cpi-dev-artifacts
   - name: bosh-director-deployment
   - name: stemcell
@@ -13,4 +13,4 @@ inputs:
   - name: version-semver
   - name: terraform-bats
 run:
-  path: bosh-cpi-src-in/ci/tasks/teardown-director.sh
+  path: bosh-openstack-cpi-release/ci/tasks/teardown-director.sh
