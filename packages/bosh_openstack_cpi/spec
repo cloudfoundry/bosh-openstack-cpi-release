@@ -1,7 +1,7 @@
 ---
 name: bosh_openstack_cpi
 dependencies:
-- ruby-3.1
+- openstack-ruby-3.1
 files:
 - bosh_openstack_cpi/Gemfile
 - bosh_openstack_cpi/Gemfile.lock
