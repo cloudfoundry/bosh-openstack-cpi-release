@@ -577,7 +577,7 @@ describe Bosh::OpenStackCloud::Openstack do
         end
 
         it 'enriches the BOSH error message with the whole response body' do
-          expected_response_body = JSON.dump('notOverLimit' => 'arbitrary content')
+          expected_response_body = JSON.dump({'notOverLimit' => 'arbitrary content'})
           expected_message = "OpenStack API RequestEntityTooLarge #{expected_response_body}.\nCheck task debug log for details."
 
           expect {
@@ -598,7 +598,7 @@ describe Bosh::OpenStackCloud::Openstack do
       let(:body) { JSON.dump({}) }
 
       context 'when the error includes a `message` property on 2nd level of body' do
-        let(:body) { JSON.dump('SomeError' => { 'message' => 'some-message' }) }
+        let(:body) { JSON.dump({'SomeError' => { 'message' => 'some-message' }}) }
 
         it 'should raise a CloudError exception with OpenStack API message' do
           expect {
@@ -611,7 +611,7 @@ describe Bosh::OpenStackCloud::Openstack do
       end
 
       context 'when the error does not include a message' do
-        let(:body) { JSON.dump('SomeError' => { 'some_key' => 'some_val' }) }
+        let(:body) { JSON.dump({'SomeError' => { 'some_key' => 'some_val' }}) }
 
         it 'should raise a CloudError exception with OpenStack API message without anything from body' do
           expect {
@@ -646,7 +646,7 @@ describe Bosh::OpenStackCloud::Openstack do
       let(:body) { JSON.dump({}) }
 
       context 'when the error includes a `message` property on 2nd level of body' do
-        let(:body) { JSON.dump('SomeError' => { 'message' => 'some-message' }) }
+        let(:body) { JSON.dump({'SomeError' => { 'message' => 'some-message' }}) }
 
         it 'should raise a CloudError exception with OpenStack API message' do
           expect {
@@ -659,7 +659,7 @@ describe Bosh::OpenStackCloud::Openstack do
       end
 
       context 'when the error does not include a message' do
-        let(:body) { JSON.dump('SomeError' => { 'some_key' => 'some_val' }) }
+        let(:body) { JSON.dump({'SomeError' => { 'some_key' => 'some_val' }}) }
 
         it 'should raise a CloudError exception with OpenStack API message without anything from body' do
           expect {
@@ -728,7 +728,7 @@ describe Bosh::OpenStackCloud::Openstack do
       let(:body) { JSON.dump({}) }
 
       context 'when the error includes a `message` property on 2nd level of body' do
-        let(:body) { JSON.dump('Forbidden' => { 'message' => 'some-message' }) }
+        let(:body) { JSON.dump({'Forbidden' => { 'message' => 'some-message' }}) }
 
         it 'should raise a CloudError exception with OpenStack API message' do
           expect {
@@ -741,7 +741,7 @@ describe Bosh::OpenStackCloud::Openstack do
       end
 
       context 'when the error does not include a message' do
-        let(:body) { JSON.dump('SomeError' => { 'some_key' => 'some_val' }) }
+        let(:body) { JSON.dump({'SomeError' => { 'some_key' => 'some_val' }}) }
 
         it 'should raise a CloudError exception with OpenStack API message without anything from body' do
           expect {
@@ -882,19 +882,19 @@ describe Bosh::OpenStackCloud::Openstack do
     end
 
     it 'should return nil if response is no key is found' do
-      response = Excon::Response.new(body: JSON.dump('foo' => 'bar'))
+      response = Excon::Response.new(body: JSON.dump({'foo' => 'bar'}))
 
       expect(subject.parse_openstack_response(response, 'key')).to be_nil
     end
 
     it 'should return the contents if key is found' do
-      response = Excon::Response.new(body: JSON.dump('key' => 'foo'))
+      response = Excon::Response.new(body: JSON.dump({'key' => 'foo'}))
 
       expect(subject.parse_openstack_response(response, 'key')).to eql('foo')
     end
 
     it 'should return the contents of the first key found' do
-      response = Excon::Response.new(body: JSON.dump('key1' => 'foo', 'key2' => 'bar'))
+      response = Excon::Response.new(body: JSON.dump({'key1' => 'foo', 'key2' => 'bar'}))
 
       expect(subject.parse_openstack_response(response, 'key2', 'key1')).to eql('bar')
     end
