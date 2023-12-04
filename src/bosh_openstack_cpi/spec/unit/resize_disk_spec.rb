@@ -98,7 +98,7 @@ describe Bosh::OpenStackCloud::Cloud, 'resize_disk' do
       allow(volume).to receive(:extend).and_raise(Excon::Error::BadRequest.new('', '', response))
     end
 
-    let(:body) { JSON.dump('badRequest' => { 'message' => 'some-message' }) }
+    let(:body) { JSON.dump({'badRequest' => { 'message' => 'some-message' }}) }
 
     it 'raises an error' do
       expect {
