@@ -170,7 +170,6 @@ jobs:
         timeout: *timeouts-long
         file: bosh-openstack-cpi-release/ci/tasks/deploy-manual-networking.yml
         params:
-          bosh_vcap_password:                   ((bosh_vcap_password))
           openstack_flavor:                     "m1.small"
           openstack_connection_timeout:         "600"
           openstack_read_timeout:               "180"
@@ -194,7 +193,6 @@ jobs:
           stemcell_name:                            "bosh-openstack-kvm-ubuntu-jammy-go_agent"
           openstack_flavor_with_ephemeral_disk:     ((config-json.openstack_flavor_with_ephemeral_disk))
           openstack_flavor_with_no_ephemeral_disk:  ((config-json.openstack_flavor_with_no_ephemeral_disk))
-          bosh_vcap_password:                       ((bosh_vcap_password))
           availability_zone:                        ((config-json.availability_zone))
           DEBUG_BATS:                               *debug_bats
           bats_rspec_tags:                          "--tag ~ssh"

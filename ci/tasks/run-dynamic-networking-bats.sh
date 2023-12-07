@@ -5,23 +5,13 @@ set -x
 source bosh-openstack-cpi-release/ci/tasks/utils.sh
 
 : ${stemcell_name:?}
-: ${bosh_vcap_password:?}
 : ${openstack_flavor_with_ephemeral_disk:?}
 : ${openstack_flavor_with_no_ephemeral_disk:?}
-: ${private_key_data:?}
 
 optional_value availability_zone
 optional_value bats_rspec_tags
 
 working_dir=$PWD
-
-mkdir -p $working_dir/keys
-export BAT_VCAP_PRIVATE_KEY="$working_dir/keys/bats.pem"
-echo "$private_key_data" > $BAT_VCAP_PRIVATE_KEY
-
-eval $(ssh-agent)
-chmod go-r $BAT_VCAP_PRIVATE_KEY
-ssh-add $BAT_VCAP_PRIVATE_KEY
 
 #copy terraform metadata in order to use it in 'print_task_errors' and 'teardown_director' task
 # where no distinction is made between manual and dynamic
@@ -33,8 +23,6 @@ export_terraform_variable "director_public_ip"
 export_terraform_variable "primary_net_id"
 export_terraform_variable "security_group"
 
-bosh_vcap_password_hash=$(mkpasswd -m sha-512 -S $(dd if=/dev/random count=10 bs=1 | base32) "${bosh_vcap_password}")
-
 if [ ! -f "${working_dir}/stemcell/stemcell.tgz" ]; then
   #  only needed for registry removal
   mv ${working_dir}/stemcell/*.tgz ${working_dir}/stemcell/stemcell.tgz
@@ -42,11 +30,8 @@ fi
 
 export BAT_STEMCELL="${working_dir}/stemcell/stemcell.tgz"
 export BAT_DIRECTOR=${director_public_ip}
-export BAT_DNS_HOST=${director_public_ip}
 export BAT_INFRASTRUCTURE='openstack'
-export BAT_NETWORKING='dynamic'
 export BAT_BOSH_CLI='bosh-go'
-export BAT_PRIVATE_KEY="not-needed-key"
 
 export BOSH_ENVIRONMENT="$( manifest_path /instance_groups/name=bosh/networks/name=public/static_ips/0 2>/dev/null )"
 export BOSH_CLIENT="admin"
@@ -67,6 +52,9 @@ properties:
   pool_size: 1
   instances: 1
   flavor_with_no_ephemeral_disk: ${openstack_flavor_with_no_ephemeral_disk}
+  ssh_key_pair:
+    public_key: "$( creds_path /jumpbox_ssh/public_key )"
+    private_key: "$(creds_path /jumobox_ssh/private_key | sed 's/$/\\n/' | tr -d '\n')"
   stemcell:
     name: ${stemcell_name}
     version: latest
@@ -76,7 +64,6 @@ properties:
       cloud_properties:
         net_id: ${primary_net_id}
         security_groups: [${security_group}]
-  password: ${bosh_vcap_password_hash}
 EOF
 
 cd bats

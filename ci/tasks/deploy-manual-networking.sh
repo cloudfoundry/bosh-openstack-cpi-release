@@ -5,7 +5,6 @@ set -ex
 source bosh-openstack-cpi-release/ci/tasks/utils.sh
 
 # Variables from pipeline.yml
-: ${bosh_vcap_password:?}
 : ${openstack_flavor:?}
 : ${openstack_connection_timeout:?}
 : ${openstack_read_timeout:?}
@@ -39,7 +38,6 @@ export_terraform_variable "director_public_ip"
 semver=`cat version-semver/number`
 cpi_release_name="bosh-openstack-cpi"
 deployment_dir="${PWD}/bosh-director-deployment"
-bosh_vcap_password_hash=$(mkpasswd -m sha-512 -S $(dd if=/dev/random count=10 bs=1 | base32) "${bosh_vcap_password}")
 
 maybe_use_custom_ca_ops_file=""
 maybe_load_custom_ca_file=""
@@ -86,7 +84,6 @@ bosh-go int ../bosh-deployment/bosh.yml \
     -o ../bosh-openstack-cpi-release/ci/ops_files/move-agent-properties-to-env-for-create-env.yml \
     -v auth_url=${openstack_auth_url} \
     -v availability_zone=${availability_zone:-'~'} \
-    -v bosh_vcap_password_hash=${bosh_vcap_password_hash} \
     -v default_security_groups=[${security_group}] \
     -v default_key_name=${default_key_name} \
     -v director_name='bosh' \

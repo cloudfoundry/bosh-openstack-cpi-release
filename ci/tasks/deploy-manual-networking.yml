@@ -18,7 +18,6 @@ outputs:
 run:
   path: bosh-openstack-cpi-release/ci/tasks/deploy-manual-networking.sh
 params:
-  bosh_vcap_password:                  ""
   openstack_flavor:                    ""
   openstack_connection_timeout:        ""
   openstack_read_timeout:              ""

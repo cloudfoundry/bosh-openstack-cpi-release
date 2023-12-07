@@ -5,7 +5,6 @@ set -e -x
 source bosh-openstack-cpi-release/ci/tasks/utils.sh
 
 : ${stemcell_name:?}
-: ${bosh_vcap_password:?}
 : ${openstack_flavor_with_ephemeral_disk:?}
 : ${openstack_flavor_with_no_ephemeral_disk:?}
 
@@ -47,19 +46,13 @@ working_dir=$PWD
 # checked by BATs environment helper (bosh-acceptance-tests.git/lib/bat/env.rb)
 export BAT_STEMCELL="${working_dir}/stemcell/stemcell.tgz"
 export BAT_DIRECTOR=${director_public_ip}
-export BAT_DNS_HOST=${director_public_ip}
 export BAT_INFRASTRUCTURE='openstack'
-export BAT_NETWORKING='manual'
 export BAT_BOSH_CLI='bosh-go'
-export BAT_PRIVATE_KEY="$(creds_path /jumobox_ssh/private_key)"
-export BAT_DIRECTOR_USER='admin'
 
 export BOSH_ENVIRONMENT="$( manifest_path /instance_groups/name=bosh/networks/name=public/static_ips/0 2>/dev/null )"
 export BOSH_CLIENT="admin"
 export BOSH_CLIENT_SECRET="$( creds_path /admin_password )"
 export BOSH_CA_CERT="$( creds_path /director_ssl/ca )"
-
-bosh_vcap_password_hash=$(mkpasswd -m sha-512 -S $(dd if=/dev/random count=10 bs=1 | base32) "${bosh_vcap_password}")
 
 echo "using bosh CLI version..."
 bosh-go --version
@@ -76,6 +69,9 @@ properties:
   instance_type: ${openstack_flavor_with_ephemeral_disk}
   availability_zone: ${availability_zone:-"~"}
   flavor_with_no_ephemeral_disk: ${openstack_flavor_with_no_ephemeral_disk}
+  ssh_key_pair:
+    public_key: "$( creds_path /jumpbox_ssh/public_key )"
+    private_key: "$(creds_path /jumobox_ssh/private_key | sed 's/$/\\n/' | tr -d '\n')"
   stemcell:
     name: ${stemcell_name}
     version: latest
@@ -100,7 +96,6 @@ properties:
     reserved: [${secondary_net_dhcp_pool}]
     static: [${secondary_net_static_range}]
     gateway: ${secondary_net_gateway}
-  password: ${bosh_vcap_password_hash}
 EOF
 
 cd bats

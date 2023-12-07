@@ -18,7 +18,6 @@ outputs:
 run:
   path: bosh-openstack-cpi-release/ci/tasks/deploy-dynamic-networking.sh
 params:
-  bosh_vcap_password:                  ""
   director_ca:                         ""
   director_ca_private_key:             ""
   openstack_flavor:                    ""

@@ -23,7 +23,6 @@
       availability_zone: ((availability_zone))
     env:
       bosh:
-        password: ((bosh_vcap_password_hash))
         mbus:
           cert: ((mbus_bootstrap_ssl))
 

@@ -18,6 +18,5 @@ params:
   stemcell_name:                            replace-me
   openstack_flavor_with_ephemeral_disk:     replace-me
   openstack_flavor_with_no_ephemeral_disk:  replace-me
-  bosh_vcap_password:                       replace-me
   availability_zone:                        replace-me
   bats_rspec_tags:                          ""
