@@ -49,7 +49,7 @@ export BAT_DIRECTOR=${director_public_ip}
 export BAT_INFRASTRUCTURE='openstack'
 export BAT_BOSH_CLI='bosh-go'
 
-export BOSH_ENVIRONMENT="$( manifest_path /instance_groups/name=bosh/networks/name=public/static_ips/0 2>/dev/null )"
+export BOSH_ENVIRONMENT="${director_public_ip}"
 export BOSH_CLIENT="admin"
 export BOSH_CLIENT_SECRET="$( creds_path /admin_password )"
 export BOSH_CA_CERT="$( creds_path /director_ssl/ca )"
@@ -69,6 +69,9 @@ properties:
   instance_type: ${openstack_flavor_with_ephemeral_disk}
   availability_zone: ${availability_zone:-"~"}
   flavor_with_no_ephemeral_disk: ${openstack_flavor_with_no_ephemeral_disk}
+  ssh_gateway:
+    host: "${director_public_ip}"
+    username: "jumpbox"
   ssh_key_pair:
     public_key: "$( creds_path /jumpbox_ssh/public_key )"
     private_key: "$( creds_path /jumpbox_ssh/private_key | sed 's/$/\\n/' | tr -d '\n' )"
