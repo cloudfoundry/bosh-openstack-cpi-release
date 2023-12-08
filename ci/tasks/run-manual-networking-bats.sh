@@ -71,7 +71,7 @@ properties:
   flavor_with_no_ephemeral_disk: ${openstack_flavor_with_no_ephemeral_disk}
   ssh_key_pair:
     public_key: "$( creds_path /jumpbox_ssh/public_key )"
-    private_key: "$(creds_path /jumobox_ssh/private_key | sed 's/$/\\n/' | tr -d '\n')"
+    private_key: "$( creds_path /jumpbox_ssh/private_key | sed 's/$/\\n/' | tr -d '\n' )"
   stemcell:
     name: ${stemcell_name}
     version: latest
