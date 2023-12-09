@@ -54,6 +54,11 @@ export BOSH_CLIENT="admin"
 export BOSH_CLIENT_SECRET="$( creds_path /admin_password )"
 export BOSH_CA_CERT="$( creds_path /director_ssl/ca )"
 
+ssh_private_key=$( creds_path /jumpbox_ssh/private_key | sed 's/$/\\n/' | tr -d '\n' )
+private_key_path=$(mktemp)
+echo -e "${ssh_private_key}" > ${private_key_path}
+export BOSH_ALL_PROXY="ssh+socks5://jumpbox@${director_public_ip}:22?private-key=${private_key_path}"
+
 echo "using bosh CLI version..."
 bosh-go --version
 
