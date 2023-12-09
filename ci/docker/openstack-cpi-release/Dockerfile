@@ -14,25 +14,16 @@ RUN apt-get install -y \
     mysql-client libmysqlclient-dev \
     postgresql postgresql-client libpq-dev \
     build-essential checkinstall \
-    libreadline-gplv2-dev libncursesw5-dev libssl-dev libsqlite3-dev tk-dev libgdbm-dev libc6-dev libbz2-dev \
+    libncursesw5-dev libssl-dev libsqlite3-dev tk-dev libgdbm-dev libc6-dev libbz2-dev \
     whois \
     netcat \
+    python3 \
+    python3-pip \
     libyaml-dev jq && \
     apt-get clean
 
-
-# install python from source
-RUN CURRENT=$PWD && \
-    cd /usr/src && \
-    wget https://www.python.org/ftp/python/2.7.16/Python-2.7.16.tgz && \
-    tar xzf Python-2.7.16.tgz && \
-    cd Python-2.7.16 && \
-    ./configure && \
-    make install && \
-    cd $CURRENT
-
-RUN python -m ensurepip && pip install pytz && pip install pyrsistent==0.16.1 python-openstackclient==3.19.0 && \
-    pip install awscli==1.19.112
+RUN pip3 install pytz && pip3 install pyrsistent python-openstackclient && \
+    pip3 install awscli
 
 # install newest git CLI
 RUN apt-get install software-properties-common -y; \
