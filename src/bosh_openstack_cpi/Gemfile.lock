@@ -19,7 +19,7 @@ GEM
       rexml
     diff-lcs (1.5.0)
     excon (0.71.1)
-    fog-core (2.3.0)
+    fog-core (2.4.0)
       builder
       excon (~> 0.71)
       formatador (>= 0.2, < 2.0)
@@ -41,14 +41,14 @@ GEM
       multi_json (>= 1.8.4)
     membrane (1.1.0)
     method_source (1.0.0)
-    mime-types (3.5.1)
+    mime-types (3.5.2)
       mime-types-data (~> 3.2015)
     mime-types-data (3.2023.1205)
     minitar (0.5.4)
     multi_json (1.15.0)
     netaddr (2.0.6)
     parallel (1.24.0)
-    parser (3.2.2.4)
+    parser (3.3.0.0)
       ast (~> 2.4.1)
       racc
     pry (0.14.2)
