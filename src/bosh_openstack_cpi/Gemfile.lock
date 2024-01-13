@@ -48,7 +48,7 @@ GEM
     multi_json (1.15.0)
     netaddr (2.0.6)
     parallel (1.24.0)
-    parser (3.3.0.0)
+    parser (3.3.0.3)
       ast (~> 2.4.1)
       racc
     pry (0.14.2)
@@ -62,7 +62,7 @@ GEM
     rainbow (3.1.1)
     rake (10.3.2)
     rb-readline (0.5.5)
-    regexp_parser (2.8.3)
+    regexp_parser (2.9.0)
     rexml (3.2.6)
     rspec (3.10.0)
       rspec-core (~> 3.10.0)
