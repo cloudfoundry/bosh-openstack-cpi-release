@@ -71,7 +71,6 @@ echo "check bosh deployment interpolation"
 bosh-go int ../bosh-deployment/bosh.yml \
     --var-errs --var-errs-unused \
     --vars-store ./credentials.yml \
-    -o ../bosh-deployment/misc/powerdns.yml \
     -o ../bosh-deployment/openstack/cpi.yml \
     ${maybe_use_custom_ca_ops_file} \
     -o ../bosh-deployment/external-ip-not-recommended.yml \

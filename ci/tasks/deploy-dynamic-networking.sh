@@ -64,7 +64,6 @@ OPS_FILES=()
 OPTIONAL_VARIABLES=()
 
 OPS_FILES+=( "--ops-file=../bosh-deployment/jumpbox-user.yml" )
-OPS_FILES+=( "--ops-file=../bosh-deployment/misc/powerdns.yml" )
 OPS_FILES+=( "--ops-file=../bosh-deployment/openstack/cpi.yml" )
 OPS_FILES+=( "--ops-file=../bosh-deployment/external-ip-not-recommended.yml" )
 OPS_FILES+=( "--ops-file=../bosh-deployment/misc/source-releases/bosh.yml" )
