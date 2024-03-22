@@ -45,6 +45,3 @@
 - type: replace
   path: /instance_groups/name=bosh/properties/director/generate_vm_passwords?
   value: false
-
-- type: remove
-  path: /instance_groups/name=bosh/properties/dns/recursor?
