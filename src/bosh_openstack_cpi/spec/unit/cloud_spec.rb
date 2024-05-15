@@ -238,6 +238,15 @@ describe Bosh::OpenStackCloud::Cloud do
 
               expect { subject }.to raise_error(ArgumentError, /Invalid OpenStack cloud properties/)
             end
+
+            it 'raises ArgumentError if too many credentials are provided' do
+              options['openstack']['api_key'] = 'fake_api_key'
+              options['openstack']['username'] = 'fake_username'
+              options['openstack']['application_credential_id'] = 'fake-application-credential-id'
+              options['openstack']['application_credential_secret'] = 'fake-application-credential-secret'
+
+              expect { subject }.to raise_error(ArgumentError, /Invalid OpenStack cloud properties/)
+            end
           end
 
         end
