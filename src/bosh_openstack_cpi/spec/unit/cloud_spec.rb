@@ -214,6 +214,12 @@ describe Bosh::OpenStackCloud::Cloud do
               expect { subject }.to raise_error(ArgumentError, /Invalid OpenStack cloud properties/)
             end
 
+            it 'raises ArgumentError if both username and application credential id are provided' do
+              options['openstack']['application_credential_id'] = 'fake-application-credential-id'
+
+              expect { subject }.to raise_error(ArgumentError, /Invalid OpenStack cloud properties/)
+            end
+
             it 'does not raise an error if application credential id and secret are provided' do
               options['openstack']['api_key'] = nil
               options['openstack']['username'] = nil

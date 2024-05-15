@@ -745,6 +745,7 @@ module Bosh::OpenStackCloud
     # @raise [ArgumentError] if options are not valid
     def validate_options
       raise ArgumentError, "Invalid OpenStack cloud properties: No 'openstack' properties specified." unless @options['openstack']
+
       auth_url = @options['openstack']['auth_url']
       user_domain_name = @options['openstack']['user_domain_name']
       project_domain_name = @options['openstack']['project_domain_name']
@@ -753,12 +754,12 @@ module Bosh::OpenStackCloud
       api_key = @options['openstack']['api_key']
       application_credential_id = @options['openstack']['application_credential_id']
       application_credential_secret = @options['openstack']['application_credential_secret']
+      validate_cloud_properties(username, api_key, application_credential_id, application_credential_secret)
+
       schema = Membrane::SchemaParser.parse do
         openstack_options_schema = {
           'openstack' => {
             'auth_url' => String,
-            'username' => String,
-            'api_key' => String,
             optional('region') => String,
             optional('endpoint_type') => String,
             optional('state_timeout') => Numeric,
@@ -783,15 +784,11 @@ module Bosh::OpenStackCloud
           optional('agent') => Hash,
         }
 
-        unless ((username && api_key) || (application_credential_id && application_credential_secret)) ||
-          !(username && api_key && application_credential_id && application_credential_secret)
-          raise ArgumentError, "Invalid OpenStack cloud properties: '#{username} and #{api_key}' or '#{application_credential_id} and #{application_credential_secret}' is required."
-        end
-
-        if username && api_key
+        if username
+          puts "username: #{username}"
           openstack_options_schema['openstack']['username'] = String
           openstack_options_schema['openstack']['api_key'] = String
-        elsif application_credential_id && application_credential_secret
+        else
           openstack_options_schema['openstack']['application_credential_id'] = String
           openstack_options_schema['openstack']['application_credential_secret'] = String
         end
@@ -817,6 +814,24 @@ module Bosh::OpenStackCloud
       schema.validate(@options)
     rescue Membrane::SchemaValidationError => e
       raise ArgumentError, "Invalid OpenStack cloud properties: #{e.inspect}"
+    end
+
+    def validate_cloud_properties(username, api_key, application_credential_id, application_credential_secret)
+      return if valid_credentials?(username, api_key, application_credential_id, application_credential_secret)
+      raise ArgumentError, 'Invalid OpenStack cloud properties: username and api_key or application_credential_id and application_credential_secret is required'
+    end
+
+    def valid_credentials?(username, api_key, application_credential_id, application_credential_secret)
+      valid_user_credentials?(username, api_key, application_credential_id, application_credential_secret) ||
+        valid_app_credentials?(username, api_key, application_credential_id, application_credential_secret)
+    end
+
+    def valid_user_credentials?(username, api_key, application_credential_id, application_credential_secret)
+      username && api_key && !application_credential_id && !application_credential_secret
+    end
+
+    def valid_app_credentials?(username, api_key, application_credential_id, application_credential_secret)
+      !username && !api_key && application_credential_id && application_credential_secret
     end
 
     def stemcell_api_version
