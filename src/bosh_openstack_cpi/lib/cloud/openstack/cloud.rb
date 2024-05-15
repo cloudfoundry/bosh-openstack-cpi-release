@@ -784,7 +784,7 @@ module Bosh::OpenStackCloud
         }
 
         unless ((username && api_key) || (application_credential_id && application_credential_secret)) ||
-          (username && api_key && application_credential_id && application_credential_secret)
+          !(username && api_key && application_credential_id && application_credential_secret)
           raise ArgumentError, "Invalid OpenStack cloud properties: '#{username} and #{api_key}' or '#{application_credential_id} and #{application_credential_secret}' is required."
         end
 
