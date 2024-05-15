@@ -749,6 +749,10 @@ module Bosh::OpenStackCloud
       user_domain_name = @options['openstack']['user_domain_name']
       project_domain_name = @options['openstack']['project_domain_name']
       project_id = @options['openstack']['project_id']
+      username = @options['openstack']['username']
+      api_key = @options['openstack']['api_key']
+      application_credential_id = @options['openstack']['application_credential_id']
+      application_credential_secret = @options['openstack']['application_credential_secret']
       schema = Membrane::SchemaParser.parse do
         openstack_options_schema = {
           'openstack' => {
@@ -778,6 +782,20 @@ module Bosh::OpenStackCloud
           },
           optional('agent') => Hash,
         }
+
+        unless ((username && api_key) || (application_credential_id && application_credential_secret)) ||
+          (username && api_key && application_credential_id && application_credential_secret)
+          raise ArgumentError, "Invalid OpenStack cloud properties: '#{username} and #{api_key}' or '#{application_credential_id} and #{application_credential_secret}' is required."
+        end
+
+        if username && api_key
+          openstack_options_schema['openstack']['username'] = String
+          openstack_options_schema['openstack']['api_key'] = String
+        elsif application_credential_id && application_credential_secret
+          openstack_options_schema['openstack']['application_credential_id'] = String
+          openstack_options_schema['openstack']['application_credential_secret'] = String
+        end
+
         if Bosh::OpenStackCloud::Openstack.is_v3(auth_url)
           if project_id
             openstack_options_schema['openstack']['project_id'] = String

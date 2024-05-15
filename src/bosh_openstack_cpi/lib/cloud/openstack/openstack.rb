@@ -267,6 +267,8 @@ module Bosh::OpenStackCloud
         openstack_auth_url: auth_url,
         openstack_username: options['username'],
         openstack_api_key: options['api_key'],
+        openstack_application_credential_id: options['application_credential_id'],
+        openstack_application_credential_secret: options['application_credential_secret'],
         openstack_tenant: options['tenant'],
         openstack_project_name: options['project'],
         openstack_project_id: options['project_id'],
