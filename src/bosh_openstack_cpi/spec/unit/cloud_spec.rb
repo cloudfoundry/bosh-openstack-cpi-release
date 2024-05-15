@@ -189,6 +189,57 @@ describe Bosh::OpenStackCloud::Cloud do
             end
           end
 
+          context 'when checking authentication' do
+            before do
+              options['openstack']['auth_url'] = 'http://fake-auth-url/v2.0'
+              options['openstack']['tenant'] = 'fake-tenant'
+            end
+
+            it 'raises ArgumentError if there are no authentication credentials provided' do
+              options['openstack']['username'] = nil
+              options['openstack']['api_key'] = nil
+
+              expect { subject }.to raise_error(ArgumentError, /Invalid OpenStack cloud properties/)
+            end
+
+            it 'raises ArgumentError if only api_key is provided' do
+              options['openstack']['api_key'] = nil
+
+              expect { subject }.to raise_error(ArgumentError, /Invalid OpenStack cloud properties/)
+            end
+
+            it 'raises ArgumentError if only username is provided' do
+              options['openstack']['username'] = nil
+
+              expect { subject }.to raise_error(ArgumentError, /Invalid OpenStack cloud properties/)
+            end
+
+            it 'does not raise an error if application credential id and secret are provided' do
+              options['openstack']['api_key'] = nil
+              options['openstack']['username'] = nil
+              options['openstack']['application_credential_id'] = 'fake-application-credential-id'
+              options['openstack']['application_credential_secret'] = 'fake-application-credential-secret'
+
+              expect { subject }.to_not raise_error
+            end
+
+            it 'raises ArgumentError if only application credential id is provided' do
+              options['openstack']['api_key'] = nil
+              options['openstack']['username'] = nil
+              options['openstack']['application_credential_id'] = 'fake-application-credential-id'
+
+              expect { subject }.to raise_error(ArgumentError, /Invalid OpenStack cloud properties/)
+            end
+
+            it 'raises ArgumentError if only application credential secret is provided' do
+              options['openstack']['api_key'] = nil
+              options['openstack']['username'] = nil
+              options['openstack']['application_credential_secret'] = 'fake-application-credential-secret'
+
+              expect { subject }.to raise_error(ArgumentError, /Invalid OpenStack cloud properties/)
+            end
+          end
+
         end
 
         context 'when options are empty' do

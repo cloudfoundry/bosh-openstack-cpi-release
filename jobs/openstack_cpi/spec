@@ -18,9 +18,13 @@ properties:
     - description: Keystone V3 endpoint
       value: http://192.168.0.1:5000/v3
   openstack.username:
-    description: OpenStack user name (required)
+    description: OpenStack user name (required, if application_credential_id and application_credential_secret are not provided)
   openstack.api_key:
-    description: OpenStack API key (required)
+    description: OpenStack API key (required, if application_credential_id and application_credential_secret are not provided)
+  openstack.application_credential_id:
+    description: OpenStack application credential id (required, if username and api_key are not provided)
+  openstack.application_credential_secret:
+    description: OpenStack application credential secret (required, if username and api_key are not provided)
   openstack.tenant:
     description: OpenStack tenant name (required for Keystone API V2)
   openstack.project:
