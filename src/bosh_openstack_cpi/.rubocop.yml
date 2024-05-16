@@ -3,7 +3,7 @@ inherit_from: .rubocop_todo.yml
 AllCops:
   TargetRubyVersion: 3.1.0
   Exclude:
-  - tmp/**/*
+    - tmp/**/*
 
 # Layout
 Layout/FirstHashElementIndentation:
@@ -24,7 +24,8 @@ Metrics/AbcSize:
 
 Metrics/BlockLength:
   Max: 82
-  IgnoredMethods: [describe, context, let, it, chdir, shared_examples, shared_examples_for]
+  IgnoredMethods:
+    [describe, context, let, it, chdir, shared_examples, shared_examples_for]
 
 Metrics/ClassLength:
   Max: 535
@@ -120,8 +121,6 @@ Style/SwapValues: # new in 1.1
   Enabled: true
 
 # Gemspec
-Gemspec/DateAssignment: # new in 1.10
-  Enabled: true
 Gemspec/RequireMFA: # new in 1.23
   Enabled: true
 
@@ -174,4 +173,3 @@ Naming/BlockForwarding: # new in 1.24
   Enabled: true
 Security/IoMethods: # new in 1.22
   Enabled: true
-
