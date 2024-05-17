@@ -785,7 +785,6 @@ module Bosh::OpenStackCloud
         }
 
         if username
-          puts "username: #{username}"
           openstack_options_schema['openstack']['username'] = String
           openstack_options_schema['openstack']['api_key'] = String
         else
