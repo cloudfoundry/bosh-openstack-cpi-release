@@ -4,9 +4,7 @@ set -e
 
 source bosh-openstack-cpi-release/ci/tasks/utils.sh
 
-metadata=terraform-bats/metadata
-
-export_terraform_variable "director_public_ip"
+export_terraform_variable terraform-cpi/metadata "director_public_ip"
 
 deployment_dir=${PWD}/bosh-director-deployment
 

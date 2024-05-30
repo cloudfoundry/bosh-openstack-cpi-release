@@ -14,7 +14,6 @@ inputs:
   - name: bosh-deployment
 outputs:
   - name: bosh-director-deployment
-  - name: terraform-cpi-deploy
 run:
   path: bosh-openstack-cpi-release/ci/tasks/deploy-manual-networking.sh
 params:

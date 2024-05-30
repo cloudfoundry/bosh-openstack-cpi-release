@@ -19,21 +19,18 @@ source bosh-openstack-cpi-release/ci/tasks/utils.sh
 : ${distro:?}
 optional_value availability_zone
 
-cp terraform-cpi/metadata terraform-cpi-deploy
-metadata=terraform-cpi/metadata
-
 # Variables from TF
-export_terraform_variable "default_key_name"
-export_terraform_variable "openstack_project"
-export_terraform_variable "director_private_ip"
-export_terraform_variable "primary_net_gateway"
-export_terraform_variable "primary_net_cidr"
-export_terraform_variable "security_group"
+export_terraform_variable terraform-cpi/metadata "default_key_name"
+export_terraform_variable terraform-cpi/metadata "openstack_project"
+export_terraform_variable terraform-cpi/metadata "director_private_ip"
+export_terraform_variable terraform-cpi/metadata "primary_net_gateway"
+export_terraform_variable terraform-cpi/metadata "primary_net_cidr"
+export_terraform_variable terraform-cpi/metadata "security_group"
 
-export_terraform_variable "openstack_project"
-export_terraform_variable "primary_net_id"
-export_terraform_variable "dns"
-export_terraform_variable "director_public_ip"
+export_terraform_variable terraform-cpi/metadata "openstack_project"
+export_terraform_variable terraform-cpi/metadata "primary_net_id"
+export_terraform_variable terraform-cpi/metadata "dns"
+export_terraform_variable terraform-cpi/metadata "director_public_ip"
 
 semver=`cat version-semver/number`
 cpi_release_name="bosh-openstack-cpi"

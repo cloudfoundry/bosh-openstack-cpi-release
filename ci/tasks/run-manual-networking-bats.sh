@@ -11,36 +11,23 @@ source bosh-openstack-cpi-release/ci/tasks/utils.sh
 optional_value availability_zone
 optional_value bats_rspec_tags
 
-####
-#
-# TODO:
-# - reference stemcell like vCloud bats job does
-# - copy rogue vm check from vSphere pipeline
-#
-####
-
-#copy terraform metadata in order to use it in 'print_task_errors' and 'teardown_director' task
-# where no distinction is made between manual and dynamic
-cp terraform-cpi-deploy/metadata terraform-bats
-metadata=terraform-bats/metadata
-
-export_terraform_variable "director_public_ip"
-export_terraform_variable "director_private_ip"
-export_terraform_variable "floating_ip"
-export_terraform_variable "primary_net_id"
-export_terraform_variable "primary_net_cidr"
-export_terraform_variable "primary_net_gateway"
-export_terraform_variable "primary_net_static_range"
-export_terraform_variable "primary_net_manual_ip"
-export_terraform_variable "primary_net_second_manual_ip"
-export_terraform_variable "primary_net_dhcp_pool"
-export_terraform_variable "secondary_net_id"
-export_terraform_variable "secondary_net_cidr"
-export_terraform_variable "secondary_net_gateway"
-export_terraform_variable "secondary_net_static_range"
-export_terraform_variable "secondary_net_manual_ip"
-export_terraform_variable "secondary_net_dhcp_pool"
-export_terraform_variable "security_group"
+export_terraform_variable terraform-cpi/metadata "director_public_ip"
+export_terraform_variable terraform-cpi/metadata "director_private_ip"
+export_terraform_variable terraform-cpi/metadata "floating_ip"
+export_terraform_variable terraform-cpi/metadata "primary_net_id"
+export_terraform_variable terraform-cpi/metadata "primary_net_cidr"
+export_terraform_variable terraform-cpi/metadata "primary_net_gateway"
+export_terraform_variable terraform-cpi/metadata "primary_net_static_range"
+export_terraform_variable terraform-cpi/metadata "primary_net_manual_ip"
+export_terraform_variable terraform-cpi/metadata "primary_net_second_manual_ip"
+export_terraform_variable terraform-cpi/metadata "primary_net_dhcp_pool"
+export_terraform_variable terraform-cpi/metadata "secondary_net_id"
+export_terraform_variable terraform-cpi/metadata "secondary_net_cidr"
+export_terraform_variable terraform-cpi/metadata "secondary_net_gateway"
+export_terraform_variable terraform-cpi/metadata "secondary_net_static_range"
+export_terraform_variable terraform-cpi/metadata "secondary_net_manual_ip"
+export_terraform_variable terraform-cpi/metadata "secondary_net_dhcp_pool"
+export_terraform_variable terraform-cpi/metadata "security_group"
 
 working_dir=$PWD
 # checked by BATs environment helper (bosh-acceptance-tests.git/lib/bat/env.rb)
