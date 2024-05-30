@@ -6,7 +6,7 @@ image_resource:
     repository: boshcpi/openstack-cpi-release
 inputs:
   - name: bosh-openstack-cpi-release
-  - name: terraform-bats
+  - name: terraform-cpi
   - name: bosh-director-deployment
 run:
   path: bosh-openstack-cpi-release/ci/tasks/print_task_errors.sh

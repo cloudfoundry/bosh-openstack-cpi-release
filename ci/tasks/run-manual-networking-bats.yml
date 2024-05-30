@@ -8,10 +8,8 @@ inputs:
   - name: bosh-openstack-cpi-release
   - name: stemcell
   - name: bats
-  - name: terraform-cpi-deploy
+  - name: terraform-cpi
   - name: bosh-director-deployment
-outputs:
-  - name: terraform-bats
 run:
   path: bosh-openstack-cpi-release/ci/tasks/run-manual-networking-bats.sh
 params:

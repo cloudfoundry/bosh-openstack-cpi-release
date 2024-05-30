@@ -81,7 +81,8 @@ find_bosh_compiled_release(){
 }
 
 export_terraform_variable() {
-    local variable_name=$1
-    local prefix=$2
+    local metadata=$1
+    local variable_name=$2
+    local prefix=$3
     export ${prefix}${variable_name}=$(cat ${metadata} | jq -c --raw-output ".${variable_name}")
 }

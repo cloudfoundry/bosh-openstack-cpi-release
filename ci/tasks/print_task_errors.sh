@@ -4,9 +4,7 @@ set -e
 
 source bosh-openstack-cpi-release/ci/tasks/utils.sh
 
-metadata=terraform-bats/metadata
-
-export_terraform_variable "director_public_ip"
+export_terraform_variable terraform-cpi/metadata "director_public_ip"
 export BOSH_ENVIRONMENT=${director_public_ip}
 export BOSH_CLIENT=admin
 export BOSH_CLIENT_SECRET=$(bosh-go int bosh-director-deployment/credentials.yml  --path /admin_password)
