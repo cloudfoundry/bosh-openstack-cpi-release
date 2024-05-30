@@ -23,6 +23,8 @@ source bosh-openstack-cpi-release/ci/tasks/utils.sh
 
 optional_value BOSH_OPENSTACK_AVAILABILITY_ZONE
 
+metadata=terraform-cpi/metadata
+
 export BOSH_OPENSTACK_MANUAL_IP=$(cat ${metadata} | jq --raw-output ".manual_ip")
 export BOSH_OPENSTACK_ALLOWED_ADDRESS_PAIRS=$(cat ${metadata} | jq --raw-output ".allowed_address_pairs")
 export BOSH_OPENSTACK_NO_DHCP_MANUAL_IP_1=$(cat ${metadata} | jq --raw-output ".no_dhcp_manual_ip_1")
