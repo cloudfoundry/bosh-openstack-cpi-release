@@ -166,6 +166,24 @@ module Bosh::OpenStackCloud
       @network
     end
 
+    def loadbalancer
+      unless @loadbalancer
+        begin
+          Bosh::Common.retryable(@retry_options) do |tries, error|
+            @logger.error("Failed #{tries} times, last failure due to: #{error.inspect}") unless error.nil?
+            params_lb = @params.merge(:openstack_service_type => 'load-balancer')
+            @loadbalancer = Fog::OpenStack::Network.new(params_lb)
+          end
+        rescue Excon::Error::Socket => e
+          cloud_error(socket_error_msg + e.message.to_s)
+        rescue Bosh::Common::RetryCountExceeded, Excon::Error::Client, Excon::Error::Server, Fog::Errors::NotFound => e
+          cloud_error("Unable to connect to the OpenStack loadbalancer Service API: #{e.message}. Check task debug log for details.")
+        end
+      end
+
+      @loadbalancer
+    end
+
     ##
     # Waits for a resource to be on a target state
     #
