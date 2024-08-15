@@ -11,6 +11,7 @@ releases/*.tgz
 releases/**/*.tgz
 .DS_Store
 *.swp
+*.iml
 *~
 *#
 #*

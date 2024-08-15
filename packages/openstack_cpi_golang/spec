@@ -1,0 +1,10 @@
+---
+name: openstack_cpi_golang
+
+dependencies:
+- golang-1-linux
+
+files:
+- "openstack_cpi_golang/**/*.go"
+- "openstack_cpi_golang/go.{mod,sum}"
+- "openstack_cpi_golang/vendor/modules.txt"

@@ -1,0 +1,80 @@
+<%=
+  params = {
+    'cloud' => {
+      'plugin' => 'openstack',
+      'properties' => {
+        'openstack' => {
+          'auth_url' => p('openstack.auth_url'),
+          'default_key_name' => p('openstack.default_key_name'),
+          'default_security_groups' => p('openstack.default_security_groups'),
+          'default_volume_type' => p('openstack.default_volume_type', nil),
+          'wait_resource_poll_interval' => p('openstack.wait_resource_poll_interval'),
+          'ignore_server_availability_zone' => p('openstack.ignore_server_availability_zone'),
+          'use_nova_networking' => p('openstack.use_nova_networking')
+        },
+      }
+    }
+  }
+
+  openstack_params = params['cloud']['properties']['openstack']
+  if_p('openstack.application_credential_id')     { |value| openstack_params['application_credential_id'] = value }
+  if_p('openstack.application_credential_secret') { |value| openstack_params['application_credential_secret'] = value }
+  if_p('openstack.username')                      { |value| openstack_params['username'] = value }
+  if_p('openstack.api_key')                       { |value| openstack_params['api_key'] = value }
+  if_p('openstack.region')                        { |value| openstack_params['region'] = value }
+  if_p('openstack.endpoint_type')                 { |value| openstack_params['endpoint_type'] = value }
+  if_p('openstack.state_timeout')                 { |value| openstack_params['state_timeout'] = value }
+  if_p('openstack.stemcell_public_visibility')    { |value| openstack_params['stemcell_public_visibility'] = value }
+  if_p('openstack.connection_options')            { |value| openstack_params['connection_options'] = value }
+  if_p('openstack.boot_from_volume')              { |value| openstack_params['boot_from_volume'] = value }
+  if_p('openstack.config_drive')                  { |value| openstack_params['config_drive'] = value }
+  if_p('openstack.use_dhcp')                      { |value| openstack_params['use_dhcp'] = value }
+  if_p('openstack.domain')                        { |value| openstack_params['domain'] = value }
+  if_p('openstack.user_domain_name')              { |value| openstack_params['user_domain_name'] = value }
+  if_p('openstack.project_domain_name')           { |value| openstack_params['project_domain_name'] = value }
+  if_p('openstack.project')                       { |value| openstack_params['project'] = value }
+  if_p('openstack.project_id')                    { |value| openstack_params['project_id'] = value }
+  if_p('openstack.tenant')                        { |value| openstack_params['tenant'] = value }
+  if_p('openstack.human_readable_vm_names')       { |value| openstack_params['human_readable_vm_names'] = value }
+
+  if_p('openstack.enable_auto_anti_affinity') do
+    raise "Property 'enable_auto_anti_affinity' is no longer supported. Please remove it from your configuration."
+  end
+
+  if_p('ntp') do |ntp|
+    params['cloud']['properties']['agent'] ||= {}
+    params['cloud']['properties']['agent']['ntp'] = ntp
+  end
+
+  if p(['registry.username', 'registry.password', 'registry.endpoint', 'registry.host'], false)
+    params['cloud']['properties']['registry'] = {
+          'user' => p('registry.username'),
+          'password' => p('registry.password'),
+          'address' => p('registry.host')
+        }
+
+    if_p('registry.endpoint') do |endpoint|
+      params['cloud']['properties']['registry']['endpoint'] = endpoint
+    end.else do
+      # 'registry.host==127.0.0.1' && registry.port==6901 is a special bosh-init case. Don't raise exception in this case.
+      if p('openstack.human_readable_vm_names') == true && p('registry.host') != '127.0.0.1' && p('registry.port') != 6901
+        raise "Property 'human_readable_vm_names' can only be used together with 'registry.endpoint'. " +
+              "Please refer to http://bosh.io/docs/openstack-registry.html."
+      else
+        params['cloud']['properties']['registry']['endpoint'] = "http://#{p('registry.host')}:#{p('registry.port')}"
+      end
+    end
+  end
+
+  if_p('agent.mbus') do |mbus|
+    params['cloud']['properties']['agent'] ||= {}
+    params['cloud']['properties']['agent']['mbus'] = mbus
+  end.else do
+    if p(['nats.user', 'nats.password', 'nats.address', 'agent.nats.address'], false)
+      params['cloud']['properties']['agent'] ||= {}
+      params['cloud']['properties']['agent']['mbus'] = "nats://#{p('nats.user')}:#{p('nats.password')}@#{p(['agent.nats.address', 'nats.address'])}:#{p('nats.port')}"
+    end
+  end
+
+  JSON.dump(params)
+%>

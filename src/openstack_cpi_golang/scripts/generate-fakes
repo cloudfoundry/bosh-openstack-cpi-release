@@ -1,0 +1,11 @@
+#!/bin/bash
+
+script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+
+cd "${script_dir}/.."
+
+echo "deleting old fakes ..."
+find . -type d -name "*fakes" | xargs rm -rf
+
+echo "generating fakes ..."
+go generate ./cpi/...
