@@ -2,6 +2,7 @@ package cpi
 
 import (
 	"fmt"
+
 	"github.com/cloudfoundry/bosh-cpi-go/rpc"
 	"github.com/cloudfoundry/bosh-openstack-cpi-release/src/openstack_cpi_golang/cpi/config"
 	"github.com/cloudfoundry/bosh-openstack-cpi-release/src/openstack_cpi_golang/cpi/utils"

@@ -3,10 +3,11 @@ package config
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/gophercloud/gophercloud"
 	"io"
 	"io/fs"
 	"strings"
+
+	"github.com/gophercloud/gophercloud"
 )
 
 type CpiConfig struct {

@@ -1,10 +1,11 @@
 package config_test
 
 import (
+	"testing/fstest"
+
 	"github.com/cloudfoundry/bosh-openstack-cpi-release/src/openstack_cpi_golang/cpi/config"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	"testing/fstest"
 )
 
 var _ = Describe("OpenstackConfig", func() {

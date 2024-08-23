@@ -2,16 +2,16 @@ package main
 
 import (
 	"flag"
+	"os"
+
 	"github.com/cloudfoundry/bosh-openstack-cpi-release/src/openstack_cpi_golang/cpi"
 	"github.com/cloudfoundry/bosh-openstack-cpi-release/src/openstack_cpi_golang/cpi/config"
 	"github.com/cloudfoundry/bosh-openstack-cpi-release/src/openstack_cpi_golang/cpi/utils"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
-	"os"
 )
 
 var (
 	configPathOpt = flag.String("configFile", "", "Path to configuration file")
-	caCertPathOpt = flag.String("caCert", "", "Path to ca cert file")
 )
 
 func main() {
