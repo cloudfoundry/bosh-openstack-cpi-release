@@ -1,0 +1,31 @@
+set -e -x
+
+platform=`uname | tr '[:upper:]' '[:lower:]'`
+
+if [ -z "$BOSH_PACKAGES_DIR" ]; then
+	pkg_dir=$(readlink -nf /var/vcap/packages/golang-1-${platform})
+else
+	pkg_dir=$BOSH_PACKAGES_DIR/golang-1-${platform}
+fi
+
+source ${pkg_dir}/bosh/compile.env
+
+# Set GOCACHE since compile.env.generic hardcodes GOCACHE to /var/vcap/data
+mkdir -p /tmp/go/.cache
+export GOCACHE=${GOPATH}/.cache
+
+mkdir ../src && cp -a * ../src/ && mv ../src ./src
+
+mkdir -p $BOSH_INSTALL_TARGET/bin
+
+pushd ./src/openstack_cpi_golang
+  export GOARCH=amd64
+  export GOOS=darwin
+  export GOTOOLDIR=$GOROOT/pkg/darwin_amd64
+  go build -o $BOSH_INSTALL_TARGET/bin/cpi-darwin
+
+  export GOARCH=amd64
+  export GOOS=linux
+  export GOTOOLDIR=$GOROOT/pkg/linux_amd64
+  go build -o $BOSH_INSTALL_TARGET/bin/cpi-linux
+popd

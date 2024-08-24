@@ -1,0 +1,49 @@
+name: Go
+
+concurrency:
+  group: '${{ github.workflow }}-${{ github.head_ref || github.run_id }}'
+  cancel-in-progress: true
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'src/openstack_cpi_golang/**'
+
+jobs:
+  go:
+    strategy:
+      matrix:
+        os: [macos-latest, windows-2019, ubuntu-latest]
+    name: Run tests and Lint on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: src/openstack_cpi_golang/go.mod
+
+      - name: Install golangci-lint
+        run: |
+          go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
+
+      - name: Run golangci-lint and tests on Windows
+        if: ${{ matrix.os == 'windows-2019' }}
+        run: |
+          cd src/openstack_cpi_golang
+          golangci-lint run
+          go test ./cpi/...
+          go test ./integration/...
+
+      - name: Run golangci-lint and tests on non-Windows
+        if: ${{ matrix.os != 'windows-2019' }}
+        run: |
+          cd src/openstack_cpi_golang
+          golangci-lint run --enable goimports
+          go test ./cpi/...
+          go test ./integration/...
+        shell: bash
