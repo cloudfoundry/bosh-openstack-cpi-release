@@ -277,7 +277,24 @@ jobs:
       - get: bosh-openstack-cpi-release
       - get: ruby-release
         trigger: true
+      - get: golang-release
+        trigger: true
       - get: bosh-ecosystem-concourse-image
+    - task: bump-golang-packages
+      file: golang-release/ci/tasks/shared/bump-golang-package.yml
+      input_mapping:
+        input_repo: bosh-openstack-cpi-release
+      output_mapping:
+        output_repo: bosh-openstack-cpi-release
+      params:
+        PACKAGES: [golang-1-linux]
+        PRIVATE_YML: |
+          blobstore:
+            provider: s3
+            options:
+              access_key_id:     ((bosh-openstack-cpi-blobs_assume_aws_access_key.username))
+              secret_access_key: ((bosh-openstack-cpi-blobs_assume_aws_access_key.password))
+              assume_role_arn: ((bosh-openstack-cpi-blobs_assume_aws_access_key.role_arn))
     - task: bump-ruby-package
       image: bosh-ecosystem-concourse-image
       file: ruby-release/ci/tasks/shared/bump-ruby-package.yml
@@ -430,6 +447,10 @@ resources:
       repository: bosh/ruby-release
       username: ((docker.username))
       password: ((docker.password))
+  - name: golang-release
+    type: git
+    source:
+      uri: https://github.com/cloudfoundry/bosh-package-golang-release.git
   - name: ruby-release
     type: git
     source:
