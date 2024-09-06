@@ -118,7 +118,8 @@ module Bosh::OpenStackCloud
     def self.normalize_image_properties(properties)
       image_properties = {}
       image_options = %w[version os_type os_distro architecture auto_disk_config
-                         hw_vif_model hypervisor_type vmware_adaptertype vmware_disktype
+                         hw_vif_model hw_disk_bus_model hw_scsi_model hw_disk_bus
+                         hypervisor_type vmware_adaptertype vmware_disktype
                          vmware_linked_clone vmware_ostype]
       image_options.reject { |image_option| properties[property_option_for_image_option(image_option)].nil? }.each do |image_option|
         image_properties[image_option.to_sym] = properties[property_option_for_image_option(image_option)].to_s
