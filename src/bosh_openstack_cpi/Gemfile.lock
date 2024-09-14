@@ -101,7 +101,7 @@ GEM
     ruby-progressbar (1.13.0)
     semi_semantic (1.2.0)
     timecop (0.9.10)
-    unicode-display_width (2.5.0)
+    unicode-display_width (2.6.0)
     webmock (3.14.0)
       addressable (>= 2.8.0)
       crack (>= 0.3.2)
