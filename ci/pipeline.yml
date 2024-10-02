@@ -47,6 +47,7 @@ jobs:
   - task: build
     timeout: *timeouts-long
     file: bosh-openstack-cpi-release/ci/tasks/build-candidate.yml
+    image: openstack-cpi-release-docker-image
   - put: bosh-cpi-dev-artifacts
     timeout: *timeouts-long
     params:
