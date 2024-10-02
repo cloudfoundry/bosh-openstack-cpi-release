@@ -115,13 +115,13 @@ PLATFORMS
 DEPENDENCIES
   bosh-template
   bosh_common
-  bosh_cpi (~> 2.5.0)
-  excon (~> 0.71.0)
-  fog-openstack (~> 1.1.1)
-  httpclient (= 2.8.3)
-  membrane (~> 1.1.0)
+  bosh_cpi
+  excon
+  fog-openstack
+  httpclient
+  membrane
   minitar
-  netaddr (~> 2.0.4)
+  netaddr
   pry-byebug
   rake
   rb-readline
