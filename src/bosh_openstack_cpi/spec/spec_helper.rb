@@ -2,9 +2,7 @@ $LOAD_PATH.unshift File.expand_path('../lib', __dir__)
 
 require 'tmpdir'
 require 'zlib'
-require 'archive/tar/minitar'
 require 'webmock'
-include Archive::Tar
 require 'tempfile'
 require 'timecop'
 
