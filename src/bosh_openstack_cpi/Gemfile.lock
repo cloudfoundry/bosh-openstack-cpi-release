@@ -120,17 +120,17 @@ DEPENDENCIES
   fog-openstack (~> 1.1.1)
   httpclient (= 2.8.3)
   membrane (~> 1.1.0)
-  minitar (~> 0.5.4)
+  minitar
   netaddr (~> 2.0.4)
   pry-byebug
-  rake (~> 10.3.2)
+  rake
   rb-readline
-  rspec (~> 3.10.0)
-  rspec-its (~> 1.3.0)
+  rspec
+  rspec-its
   rubocop
   rubocop-git
-  timecop (~> 0.9.4)
-  webmock (~> 3.14.0)
+  timecop
+  webmock
 
 BUNDLED WITH
    2.3.27
