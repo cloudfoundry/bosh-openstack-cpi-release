@@ -1,12 +1,12 @@
 source 'https://rubygems.org'
 
 gem 'bosh_common'
-gem 'bosh_cpi',      '~>2.5.0'
-gem 'excon',         '~>0.71.0'
-gem 'fog-openstack', '~>1.1.1'
-gem 'httpclient',    '=2.8.3'
-gem 'membrane',      '~>1.1.0'
-gem 'netaddr',       '~>2.0.4'
+gem 'bosh_cpi'
+gem 'excon'
+gem 'fog-openstack'
+gem 'httpclient'
+gem 'membrane'
+gem 'netaddr'
 
 group :development, :test do
   gem 'minitar'
