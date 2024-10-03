@@ -297,7 +297,9 @@ describe Bosh::OpenStackCloud::Cloud do
         expect(cpi.registry).to receive(:read_settings).with('name')
         expect(cpi.registry).to receive(:update_settings).with('name', anything)
 
-        cpi.update_agent_settings(server) {}
+        cpi.update_agent_settings(server) {
+          # intentionally empty
+        }
       end
     end
 
@@ -311,7 +313,9 @@ describe Bosh::OpenStackCloud::Cloud do
         expect(cpi.registry).to receive(:read_settings).with('registry-tag-value')
         expect(cpi.registry).to receive(:update_settings).with('registry-tag-value', anything)
 
-        cpi.update_agent_settings(server) {}
+        cpi.update_agent_settings(server) {
+          # intentionally empty
+        }
       end
     end
 
@@ -325,7 +329,9 @@ describe Bosh::OpenStackCloud::Cloud do
 
         expect(cpi.logger).to receive(:info).with("Updating settings for server 'id' with registry key 'name'...")
 
-        cpi.update_agent_settings(server) {}
+        cpi.update_agent_settings(server) {
+          # intentionally empty
+        }
       end
     end
 
@@ -345,7 +351,9 @@ describe Bosh::OpenStackCloud::Cloud do
         allow(server.metadata).to receive(:get).with(:registry_key).and_return(nil)
         expect(cpi.logger).to_not receive(:info)
 
-        cpi.update_agent_settings(server) {}
+        cpi.update_agent_settings(server) {
+          # intentionally empty
+        }
       end
     end
   end

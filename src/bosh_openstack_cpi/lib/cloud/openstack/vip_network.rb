@@ -4,15 +4,6 @@ module Bosh::OpenStackCloud
   # in OpenStack)
   class VipNetwork < Network
     ##
-    # Creates a new vip network
-    #
-    # @param [String] name Network name
-    # @param [Hash] spec Raw network spec
-    def initialize(name, spec)
-      super
-    end
-
-    ##
     # Configures OpenStack vip network
     #
     # @param [Bosh::OpenStackCloud::Openstack] openstack

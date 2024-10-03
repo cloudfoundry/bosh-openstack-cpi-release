@@ -25,7 +25,8 @@ module Support
       cpi.detach_disk(vm_id, disk_id)
 
       disk_snapshot_id = create_disk_snapshot(disk_id) unless @config.disable_snapshots
-    rescue Exception => create_error
+    rescue StandardError => create_error
+      # intentionally blank
     ensure
       funcs = [
         -> { clean_up_disk(disk_id) },
@@ -112,7 +113,7 @@ module Support
       funcs.each do |f|
         begin
           f.call
-        rescue Exception => e
+        rescue StandardError => e
           exceptions << e
         end
       end

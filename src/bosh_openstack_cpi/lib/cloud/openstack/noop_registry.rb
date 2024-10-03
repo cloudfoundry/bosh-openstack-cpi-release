@@ -12,6 +12,7 @@ module Bosh::OpenStackCloud
 
     def delete_settings(instance_id) end
 
-    def endpoint() end
+    def endpoint
+    end
   end
 end

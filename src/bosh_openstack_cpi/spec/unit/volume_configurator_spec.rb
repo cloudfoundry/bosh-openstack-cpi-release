@@ -1,7 +1,7 @@
 require 'spec_helper'
 
 describe Bosh::OpenStackCloud::VolumeConfigurator do
-  let (:logger) do
+  let(:logger) do
     logger = double('logger')
     allow(logger).to receive(:debug)
     allow(logger).to receive(:error)
@@ -10,10 +10,10 @@ describe Bosh::OpenStackCloud::VolumeConfigurator do
   subject { Bosh::OpenStackCloud::VolumeConfigurator.new(logger) }
   describe 'select_boot_volume_size' do
     context 'when the flavor has no disk' do
-      let (:flavor) { double('flavor', disk: 0, name: 'mock_flavor_without_disk') }
+      let(:flavor) { double('flavor', disk: 0, name: 'mock_flavor_without_disk') }
 
       context 'and resource pool contains root_disk.size > 1' do
-        let (:resource_pool) { { 'root_disk' => { 'size' => 50 } } }
+        let(:resource_pool) { { 'root_disk' => { 'size' => 50 } } }
 
         it 'takes root disk size from resource pool as boot_volume size' do
           boot_volume_size = subject.select_boot_volume_size(flavor, resource_pool)
@@ -22,7 +22,7 @@ describe Bosh::OpenStackCloud::VolumeConfigurator do
       end
 
       context 'and resource pool contains root_disk.size = 1' do
-        let (:resource_pool) { { 'root_disk' => { 'size' => 1 } } }
+        let(:resource_pool) { { 'root_disk' => { 'size' => 1 } } }
 
         it 'takes root disk size from resource pool as boot_volume size' do
           boot_volume_size = subject.select_boot_volume_size(flavor, resource_pool)
@@ -31,7 +31,7 @@ describe Bosh::OpenStackCloud::VolumeConfigurator do
       end
 
       context 'and resource pool contains root_disk.size < 1' do
-        let (:resource_pool) { { 'root_disk' => { 'size' => 0 } } }
+        let(:resource_pool) { { 'root_disk' => { 'size' => 0 } } }
 
         it 'throw an error' do
           expect {
@@ -41,7 +41,7 @@ describe Bosh::OpenStackCloud::VolumeConfigurator do
       end
 
       context 'root_disk not defined in resource pool' do
-        let (:resource_pool) { {} }
+        let(:resource_pool) { {} }
 
         it 'takes the root disk size from the flavor' do
           expect {
@@ -51,7 +51,7 @@ describe Bosh::OpenStackCloud::VolumeConfigurator do
       end
 
       context 'root_disk.size not defined in resource pool' do
-        let (:resource_pool) { { 'root_disk' => {} } }
+        let(:resource_pool) { { 'root_disk' => {} } }
 
         it 'throw an error' do
           expect {
@@ -62,10 +62,10 @@ describe Bosh::OpenStackCloud::VolumeConfigurator do
     end
 
     context 'when the flavor has disk' do
-      let (:flavor) { double('flavor', disk: 10) }
+      let(:flavor) { double('flavor', disk: 10) }
 
       context 'and resource pool contains root_disk.size > 1' do
-        let (:resource_pool) { { 'root_disk' => { 'size' => 50 } } }
+        let(:resource_pool) { { 'root_disk' => { 'size' => 50 } } }
 
         it 'takes root disk size from resource pool as boot_volume size' do
           boot_volume_size = subject.select_boot_volume_size(flavor, resource_pool)
@@ -74,7 +74,7 @@ describe Bosh::OpenStackCloud::VolumeConfigurator do
       end
 
       context 'and resource pool contains root_disk.size = 1' do
-        let (:resource_pool) { { 'root_disk' => { 'size' => 1 } } }
+        let(:resource_pool) { { 'root_disk' => { 'size' => 1 } } }
 
         it 'takes root disk size from resource pool as boot_volume size' do
           boot_volume_size = subject.select_boot_volume_size(flavor, resource_pool)
@@ -83,7 +83,7 @@ describe Bosh::OpenStackCloud::VolumeConfigurator do
       end
 
       context 'and resource pool contains root_disk.size < 1' do
-        let (:resource_pool) { { 'root_disk' => { 'size' => 0 } } }
+        let(:resource_pool) { { 'root_disk' => { 'size' => 0 } } }
 
         it 'throw an error' do
           expect {
@@ -93,7 +93,7 @@ describe Bosh::OpenStackCloud::VolumeConfigurator do
       end
 
       context 'root_disk not defined in resource pool' do
-        let (:resource_pool) { {} }
+        let(:resource_pool) { {} }
 
         it 'takes the root disk size from the flavor' do
           boot_volume_size = subject.select_boot_volume_size(flavor, resource_pool)
@@ -103,7 +103,7 @@ describe Bosh::OpenStackCloud::VolumeConfigurator do
       end
 
       context 'root_disk.size not defined in resource pool' do
-        let (:resource_pool) { { 'root_disk' => {} } }
+        let(:resource_pool) { { 'root_disk' => {} } }
 
         it 'throw an error' do
           expect {
@@ -117,7 +117,7 @@ describe Bosh::OpenStackCloud::VolumeConfigurator do
   describe 'boot_from_volume?' do
     context 'when global setting for boot_from_volume is false' do
       context 'when boot_from_volume set for vm type' do
-        let (:resource_pool) { { 'boot_from_volume' => true } }
+        let(:resource_pool) { { 'boot_from_volume' => true } }
 
         it 'returns true' do
           boot_from_volume = subject.boot_from_volume?(false, resource_pool)
@@ -127,7 +127,7 @@ describe Bosh::OpenStackCloud::VolumeConfigurator do
       end
 
       context 'when boot_from_volume set to false for vm type' do
-        let (:resource_pool) { { 'boot_from_volume' => false } }
+        let(:resource_pool) { { 'boot_from_volume' => false } }
 
         it 'returns false' do
           boot_from_volume = subject.boot_from_volume?(false, resource_pool)
@@ -137,7 +137,7 @@ describe Bosh::OpenStackCloud::VolumeConfigurator do
       end
 
       context 'when boot_from_volume is not set for vm type' do
-        let (:resource_pool) { {} }
+        let(:resource_pool) { {} }
 
         it 'returns false' do
           boot_from_volume = subject.boot_from_volume?(false, resource_pool)
@@ -149,7 +149,7 @@ describe Bosh::OpenStackCloud::VolumeConfigurator do
 
     context 'when global setting for boot_from_volume is true' do
       context 'when boot_from_volume is not set for vm type' do
-        let (:resource_pool) { {} }
+        let(:resource_pool) { {} }
 
         it 'it returns true' do
           boot_from_volume = subject.boot_from_volume?(true, resource_pool)
@@ -159,7 +159,7 @@ describe Bosh::OpenStackCloud::VolumeConfigurator do
       end
 
       context 'when boot_from_volume is set to false for vm type' do
-        let (:resource_pool) { { 'boot_from_volume' => false } }
+        let(:resource_pool) { { 'boot_from_volume' => false } }
 
         it 'it returns true' do
           boot_from_volume = subject.boot_from_volume?(true, resource_pool)
@@ -169,7 +169,7 @@ describe Bosh::OpenStackCloud::VolumeConfigurator do
       end
 
       context 'when boot_from_volume is set to true for vm type' do
-        let (:resource_pool) { { 'boot_from_volume' => true } }
+        let(:resource_pool) { { 'boot_from_volume' => true } }
 
         it 'it returns true' do
           boot_from_volume = subject.boot_from_volume?(true, resource_pool)

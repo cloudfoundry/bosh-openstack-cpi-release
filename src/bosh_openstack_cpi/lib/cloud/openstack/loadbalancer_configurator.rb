@@ -35,7 +35,7 @@ module Bosh::OpenStackCloud
           membership_id = retry_on_conflict_pending_update(pool_id) {
             @openstack.network.create_lbaas_pool_member(pool_id, ip, port, subnet_id:).body['member']['id']
           }
-        rescue Excon::Error::Conflict => e
+        rescue Excon::Error::Conflict
           lbaas_pool_members = @openstack.with_openstack(retryable: true) { @openstack.network.list_lbaas_pool_members(pool_id) }
           membership_id =
             lbaas_pool_members
@@ -89,7 +89,6 @@ module Bosh::OpenStackCloud
     end
 
     def retry_on_conflict_pending_update(pool_id)
-      update_complete = false
       action_result = nil
       start_time = Time.now
       attempts = 0
@@ -97,11 +96,11 @@ module Bosh::OpenStackCloud
       loadbalancer_id = loadbalancer_id(pool_id)
       resource = LoadBalancerResource.new(loadbalancer_id, @openstack)
 
-      begin
+      loop do
         @openstack.wait_resource(resource, :active, :provisioning_status)
         attempts += 1
         action_result = yield
-        update_complete = true
+        break
       rescue Excon::Error::Conflict => e
         neutron_error = @openstack.parse_openstack_response(e.response, 'NeutronError')
         if neutron_error&.fetch('message', '')&.include? 'PENDING_UPDATE'
@@ -112,7 +111,7 @@ module Bosh::OpenStackCloud
         else
           raise e
         end
-      end until update_complete
+      end
       @openstack.wait_resource(resource, :active, :provisioning_status)
 
       action_result

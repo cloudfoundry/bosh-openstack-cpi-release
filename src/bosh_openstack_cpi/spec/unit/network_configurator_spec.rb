@@ -617,11 +617,11 @@ describe Bosh::OpenStackCloud::NetworkConfigurator do
         it 'raises VMCreationFailed' do
           expect {
             subject.check_preconditions(use_nova_networking, use_config_drive, use_dhcp)
-          }.to raise_error { |e|
+          }.to(raise_error { |e|
             expect(e).to be_a(Bosh::Clouds::VMCreationFailed)
             expect(e.ok_to_retry).to be(false)
             expect(e.message).to eq("Multiple manual networks can only be used with 'openstack.use_nova_networking=false'. Multiple networks require Neutron.")
-          }
+          })
         end
       end
 
@@ -631,10 +631,10 @@ describe Bosh::OpenStackCloud::NetworkConfigurator do
         it 'raises VMCreationFailed' do
           expect {
             subject.check_preconditions(use_nova_networking, use_config_drive, use_dhcp)
-          }.to raise_error { |e|
+          }.to(raise_error { |e|
             expect(e).to be_a(Bosh::Clouds::VMCreationFailed)
             expect(e.message).to eq("Multiple manual networks can only be used with 'openstack.use_dhcp=false' and 'openstack.config_drive=cdrom|disk'")
-          }
+          })
         end
       end
 
@@ -644,10 +644,10 @@ describe Bosh::OpenStackCloud::NetworkConfigurator do
         it 'raises VMCreationFailed' do
           expect {
             subject.check_preconditions(use_nova_networking, use_config_drive, use_dhcp)
-          }.to raise_error { |e|
+          }.to(raise_error { |e|
             expect(e).to be_a(Bosh::Clouds::VMCreationFailed)
             expect(e.message).to eq("Multiple manual networks can only be used with 'openstack.use_dhcp=false' and 'openstack.config_drive=cdrom|disk'")
-          }
+          })
         end
       end
     end

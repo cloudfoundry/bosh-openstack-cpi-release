@@ -557,10 +557,10 @@ describe Bosh::OpenStackCloud::Cloud, 'create_vm' do
 
       expect {
         cloud.create_vm('agent-id', 'sc-id', resource_pool_spec, { 'network_a' => dynamic_network_spec }, nil, environment)
-      }.to raise_error { |error|
+      }.to(raise_error { |error|
              expect(error).to be_a(Bosh::Clouds::VMCreationFailed)
              expect(error.ok_to_retry).to eq(false)
-           }
+           })
       expect(cloud.openstack).to have_received(:wait_resource).with(server, %i[terminated deleted], :state, true)
     end
 
@@ -569,10 +569,10 @@ describe Bosh::OpenStackCloud::Cloud, 'create_vm' do
 
       expect {
         cloud.create_vm('agent-id', 'sc-id', resource_pool_spec, { 'network_a' => dynamic_network_spec }, nil, environment)
-      }.to raise_error { |error|
+      }.to(raise_error { |error|
              expect(error).to be_a(Bosh::Clouds::VMCreationFailed)
              expect(error.ok_to_retry).to eq(false)
-           }
+           })
       expect(cloud.openstack).to have_received(:wait_resource).with(server, %i[terminated deleted], :state, true)
     end
 
@@ -714,7 +714,7 @@ describe Bosh::OpenStackCloud::Cloud, 'create_vm' do
 
     context 'when "human_readable_vm_names" is disabled' do
       let(:options) do
-        options = mock_cloud_options['properties']
+        mock_cloud_options['properties']
       end
 
       it 'does not tag server with registry tag' do

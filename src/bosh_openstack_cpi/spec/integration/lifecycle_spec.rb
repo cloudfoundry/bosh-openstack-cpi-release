@@ -156,7 +156,7 @@ describe Bosh::OpenStackCloud::Cloud do
         @multiple_nics_vm_id = create_vm(@stemcell_id, multiple_network_spec, [])
 
         vm = openstack.compute.servers.get(@multiple_nics_vm_id)
-        network_interfaces = vm.addresses.map { |_, network_interfaces| network_interfaces }.flatten
+        network_interfaces = vm.addresses.map { |_, interfaces| interfaces }.flatten
         network_interface_1 = network_interfaces.find(&where_ip_address_is(@config.no_dhcp_manual_ip_1))
         network_interface_2 = network_interfaces.find(&where_ip_address_is(@config.no_dhcp_manual_ip_2))
 
@@ -199,7 +199,7 @@ describe Bosh::OpenStackCloud::Cloud do
 
       def clean_up_port(ip, net_id)
         ports = openstack.with_openstack(retryable: true) do
-          openstack.network.ports.all("fixed_ips": ["ip_address=#{ip}", "network_id": net_id])
+          openstack.network.ports.all(fixed_ips: ["ip_address=#{ip}", network_id: net_id])
         end
 
         port_ids = ports.select { |p| p.status == 'DOWN' && p.device_id.empty? && p.device_owner.empty? }.map(&:id)
@@ -295,7 +295,6 @@ describe Bosh::OpenStackCloud::Cloud do
   end
 
   context 'when using cloud_properties and specifying security groups' do
-    let(:security_group) {}
     let(:network_spec) do
       {
         'default' => {
