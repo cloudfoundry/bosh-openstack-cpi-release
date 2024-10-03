@@ -23,6 +23,8 @@ module Bosh::OpenStackCloud
     # @option options [Hash] registry agent options
     # @option cpi_api_version CPI API Version as requested by BOSH director
     def initialize(options, cpi_api_version)
+      super()
+
       @cpi_api_version = cpi_api_version || 1
       @options = normalize_options(options)
 
@@ -634,7 +636,7 @@ module Bosh::OpenStackCloud
     # @return [void]
     def hard_reboot(server)
       @logger.info("Hard rebooting server `#{server.id}'...")
-      @openstack.with_openstack { server.reboot(type = 'HARD') }
+      @openstack.with_openstack { server.reboot('HARD') }
       @openstack.wait_resource(server, :active, :state)
     end
 

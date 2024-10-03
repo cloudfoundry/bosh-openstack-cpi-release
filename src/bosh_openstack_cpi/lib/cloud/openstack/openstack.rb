@@ -66,7 +66,7 @@ module Bosh::OpenStackCloud
         raise_openstack_error(e, format_error_body(e))
       rescue *retryable_errors => e
         raise_openstack_error(e) unless retries < MAX_RETRIES &&
-                                        (dns_problem?(e) || connectivity_problem?(e) && retryable || server_problem?(e))
+                                        (dns_problem?(e) || (connectivity_problem?(e) && retryable) || server_problem?(e))
 
         retries += 1
         log_retry_error(e, retries)
@@ -323,7 +323,7 @@ module Bosh::OpenStackCloud
       hash_with_msg_property = proc { |_k, v| (v.is_a? Hash) && v['message'] }
 
       body ||= {}
-      _, value = body.find &hash_with_msg_property
+      _, value = body.find(&hash_with_msg_property)
       value ? "(#{value['message']})" : ''
     end
 

@@ -160,7 +160,7 @@ describe Bosh::OpenStackCloud::Cloud do
       description: '',
       size: 1,
     }
-    server = double('server', id: 'i-test',
+    double('server', id: 'i-test',
                               availability_zone: 'foobar-land')
     volume = double('volume', id: 'v-foobar')
 

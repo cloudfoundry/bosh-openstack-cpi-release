@@ -20,7 +20,6 @@ module Bosh::OpenStackCloud
       end
     end
 
-    private
 
     def self.port_attached?(floating_ip)
       return false if floating_ip['port_id'].nil? || floating_ip['port_id'].empty?

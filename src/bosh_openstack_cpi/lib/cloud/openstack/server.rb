@@ -222,7 +222,6 @@ module Bosh::OpenStackCloud
       network_spec.each_value do |properties|
         if properties.key?('dns') && !properties['dns'].nil?
           yield properties['dns']
-          return
         end
       end
     end

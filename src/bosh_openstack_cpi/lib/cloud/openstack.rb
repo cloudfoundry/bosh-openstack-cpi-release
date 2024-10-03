@@ -5,11 +5,9 @@ end
 require 'fog/openstack'
 require 'httpclient'
 require 'json'
-require 'pp'
 require 'set'
 require 'tmpdir'
 require 'securerandom'
-require 'json'
 require 'membrane'
 require 'netaddr'
 

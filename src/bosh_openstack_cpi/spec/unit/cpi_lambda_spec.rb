@@ -31,7 +31,7 @@ describe Bosh::OpenStackCloud::CpiLambda do
       it 'raises an error' do
         expect {
           subject.call({}, 1)
-        }.to raise_error /Could not find cloud properties in the configuration/
+        }.to raise_error(/Could not find cloud properties in the configuration/)
       end
     end
 

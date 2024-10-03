@@ -87,7 +87,9 @@ describe Bosh::OpenStackCloud::Helpers do
       error = nil
 
       expect {
-        error = subject.catch_error {}
+        error = subject.catch_error {
+          # intentionally empty
+        }
       }.to_not raise_error
 
       expect(error).to eq(nil)

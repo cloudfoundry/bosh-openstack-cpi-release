@@ -74,9 +74,8 @@ module Bosh::OpenStackCloud
     ##
     # Setup network configuration for one network spec.
     #
-    # @param [String] network spec name
-    # @param [Hash] network spec
-    #   configure
+    # @param [String] name
+    # @param [Hash] network_spec
     def initialize_network(name, network_spec)
       network_type = NetworkConfigurator.network_type(network_spec)
 
@@ -153,6 +152,28 @@ module Bosh::OpenStackCloud
       end
     end
 
+    def self.network_type(network)
+      # in case of a manual network bosh doesn't provide a type.
+      network.fetch('type', 'manual')
+    end
+
+    def self.private_network_specs(network_spec)
+      network_spec.values.reject { |spec| spec['type'] == 'vip' }
+    end
+
+    ##
+    # Extracts the network ID from the network configuration
+    #
+    # @param [Hash] network_spec Network specification
+    # @return [Hash] network ID
+    def self.extract_net_id(network_spec)
+      if network_spec && network_spec['cloud_properties']
+        cloud_properties = network_spec['cloud_properties']
+        return cloud_properties['net_id'] if cloud_properties&.key?('net_id')
+      end
+      nil
+    end
+
     ##
     # Applies network configuration to the vm
     #
@@ -218,15 +239,6 @@ module Bosh::OpenStackCloud
       network.spec == default_network_spec
     end
 
-    def self.network_type(network)
-      # in case of a manual network bosh doesn't provide a type.
-      network.fetch('type', 'manual')
-    end
-
-    def self.private_network_specs(network_spec)
-      network_spec.values.reject { |spec| spec['type'] == 'vip' }
-    end
-
     def multiple_private_networks?
       @networks.length > 1
     end
@@ -246,19 +258,6 @@ module Bosh::OpenStackCloud
         end
       end
       []
-    end
-
-    ##
-    # Extracts the network ID from the network configuration
-    #
-    # @param [Hash] network_spec Network specification
-    # @return [Hash] network ID
-    def self.extract_net_id(network_spec)
-      if network_spec && network_spec['cloud_properties']
-        cloud_properties = network_spec['cloud_properties']
-        return cloud_properties['net_id'] if cloud_properties&.key?('net_id')
-      end
-      nil
     end
   end
 end

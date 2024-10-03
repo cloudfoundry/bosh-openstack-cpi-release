@@ -7,6 +7,4 @@ namespace :spec do
   end
 end
 
-RuboCop::RakeTask.new do |t|
-  t.options = ['--fail-level=E'] # only fail on `Error`
-end
+RuboCop::RakeTask.new
