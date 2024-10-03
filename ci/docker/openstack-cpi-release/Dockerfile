@@ -1,6 +1,6 @@
 FROM ubuntu:jammy
 
-ENV bosh_cli_version 7.2.2
+ENV bosh_cli_version 7.7.2
 ENV DEBIAN_FRONTEND noninteractive
 
 RUN apt-get -y update && apt-get install -y locales && locale-gen en_US.UTF-8
@@ -43,11 +43,10 @@ RUN mkdir /tmp/ruby-install && \
 RUN ruby-install --system ruby 3.1.0
 
 #BOSH CLI
-RUN \
-  wget --quiet https://s3.amazonaws.com/bosh-cli-artifacts/bosh-cli-${bosh_cli_version}-linux-amd64 --output-document="/usr/bin/bosh" && \
-  chmod +x /usr/bin/bosh && \
-  cp /usr/bin/bosh /usr/local/bin/bosh-go && \
-  chmod +x /usr/local/bin/bosh-go
+RUN curl -sL https://github.com/cloudfoundry/bosh-cli/releases/download/v${bosh_cli_version}/bosh-cli-${bosh_cli_version}-linux-amd64 \
+    > /usr/bin/bosh \
+    && chmod +x /usr/bin/bosh && \
+    cp /usr/bin/bosh /usr/local/bin/bosh-go
 
 #GitHub CLI
 RUN cd /tmp && \
