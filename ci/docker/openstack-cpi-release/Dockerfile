@@ -29,7 +29,7 @@ RUN pip3 install pytz && pip3 install pyrsistent python-openstackclient && \
 RUN apt-get install software-properties-common -y; \
     add-apt-repository ppa:git-core/ppa -y; \
     apt-get update; \
-    apt-get install git -y
+    apt-get install -y git git-lfs
 
 # ruby-install
 RUN mkdir /tmp/ruby-install && \
