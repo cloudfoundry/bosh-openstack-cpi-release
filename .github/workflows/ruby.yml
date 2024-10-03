@@ -1,0 +1,17 @@
+name: Run Specs
+on: [ push, pull_request ]
+
+jobs:
+  unit_specs:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+      with: { lfs: true }
+    - uses: ruby/setup-ruby@v1
+      with: { working-directory: src/bosh_openstack_cpi/ }
+    - name: lint-and-test
+      run: |
+        bundle install
+        bundle exec rake rubocop
+        bundle exec rake spec:unit
+      working-directory: src/bosh_openstack_cpi/
