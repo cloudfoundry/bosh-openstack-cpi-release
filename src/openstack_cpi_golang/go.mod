@@ -7,6 +7,7 @@ toolchain go1.21.3
 require (
 	github.com/cloudfoundry/bosh-cpi-go v0.0.0-20240224100157-0922490cd354
 	github.com/cloudfoundry/bosh-utils v0.0.446
+	github.com/google/uuid v1.6.0
 	github.com/gophercloud/gophercloud v1.12.0
 	github.com/maxbrunsfeld/counterfeiter/v6 v6.8.1
 	github.com/onsi/ginkgo/v2 v2.17.1
