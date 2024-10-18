@@ -24,7 +24,7 @@ func TestIntegration(t *testing.T) {
 }
 
 var defaultConfig config.CpiConfig
-var bootFromVolumeConfig config.CpiConfig //nolint:unused // To be used in subsequent PR.
+var bootFromVolumeConfig config.CpiConfig
 var logger = utils.NewLogger(boshlog.NewWriterLogger(boshlog.LevelDebug, os.Stderr))
 var Mux *http.ServeMux
 var Server *httptest.Server
@@ -68,7 +68,6 @@ func getDefaultConfig(url string) config.CpiConfig {
 	return defaultConfig
 }
 
-// nolint:unused // To be used in subsequent PR.
 func getBootFromVolumeConfig(url string) config.CpiConfig {
 	bootFromVolumeConfig.Cloud.Properties.Openstack = config.OpenstackConfig{
 		AuthURL:                 url,
@@ -108,7 +107,7 @@ func MockAuthentication() {
 	Mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		switch r.Method {
 		case http.MethodGet:
-			fmt.Fprintf(w, `{
+			_, _ = fmt.Fprintf(w, `{
 					"versions": {"values": [
 						{"status": "stable","id": "v3.0","links": [{ "href": "%s", "rel": "self" }]},
 						{"status": "stable","id": "v2.0","links": [{ "href": "%s", "rel": "self" }]}
@@ -123,7 +122,7 @@ func MockAuthentication() {
 			w.Header().Add("X-Subject-Token", "0123456789")
 			w.WriteHeader(http.StatusCreated)
 
-			fmt.Fprintf(w, `{
+			_, _ = fmt.Fprintf(w, `{
 					"token": {
 						"expires_at": "2013-02-02T18:30:59.000000Z",
 						"catalog": [{
@@ -174,14 +173,8 @@ func writeJsonParamToStdIn(json string) {
 	os.Stdin = reader
 
 	go func() {
-		_, err := writer.WriteString(json)
-		if err != nil {
-			return
-		}
-		err = writer.Close()
-		if err != nil {
-			return
-		}
+		_, _ = writer.WriteString(json)
+		_ = writer.Close()
 	}()
 }
 
@@ -192,10 +185,7 @@ func setupReadableStdOut() (chan string, *os.File) {
 	// copy the output in a separate goroutine so reading from the pipe doesn't block indefinitely
 	go func() {
 		var buf bytes.Buffer
-		_, err := io.Copy(&buf, reader)
-		if err != nil {
-			return
-		}
+		_, _ = io.Copy(&buf, reader)
 		outChannel <- buf.String()
 	}()
 

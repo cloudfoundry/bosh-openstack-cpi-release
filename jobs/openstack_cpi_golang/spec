@@ -4,13 +4,10 @@ templates:
   cpi.erb: bin/cpi
   cpi.json.erb: config/cpi.json
   cacert.pem.erb: config/cacert.pem
-  cpi-golang.erb: bin/cpi-golang
-  cpi-ruby.erb: bin/cpi-ruby
 
 packages:
 - openstack_cpi_golang
 - bosh_openstack_cpi
-- openstack-ruby-3.1
 
 properties:
   openstack.auth_url:
