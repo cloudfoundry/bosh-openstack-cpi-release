@@ -7,7 +7,6 @@ templates:
 
 packages:
 - openstack_cpi_golang
-- bosh_openstack_cpi
 
 properties:
   openstack.auth_url:
