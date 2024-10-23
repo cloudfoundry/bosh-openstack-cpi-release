@@ -23,7 +23,7 @@ var _ = Describe("RootImage", func() {
 			rootImagePath, err := NewRootImage().Get("testdata/image", targetDirPath)
 
 			Expect(err).ToNot(HaveOccurred())
-			Expect(rootImagePath).To(MatchRegexp("/tmp/unpacked-image-[0-9]+/root.img"))
+			Expect(rootImagePath).To(MatchRegexp(".*/unpacked-image-[0-9]+/root.img"))
 		})
 
 		It("fails if the root.img cannot be found", func() {

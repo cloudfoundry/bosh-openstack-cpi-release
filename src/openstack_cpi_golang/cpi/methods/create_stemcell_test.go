@@ -181,7 +181,7 @@ var _ = Describe("CreateStemcellMethod", func() {
 
 			imagePath, tempDirPath := rootImageProvider.GetArgsForCall(0)
 			Expect(imagePath).To(Equal("imagePath"))
-			Expect(tempDirPath).To(MatchRegexp("/tmp/unpacked-image-\\d+"))
+			Expect(tempDirPath).To(MatchRegexp(".*/unpacked-image-\\d+"))
 		})
 
 	})
