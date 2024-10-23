@@ -12,7 +12,7 @@ var _ = Describe("RootImage", func() {
 
 	Context("Get", func() {
 		BeforeEach(func() {
-			targetDirPath, _ = os.MkdirTemp("/tmp", "unpacked-image-")
+			targetDirPath, _ = os.MkdirTemp("", "unpacked-image-")
 		})
 
 		AfterEach(func() {
