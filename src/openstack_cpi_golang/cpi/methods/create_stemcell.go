@@ -62,7 +62,7 @@ func (a CreateStemcellMethod) CreateStemcell(
 		imageID, creationError = a.lightStemcellCreator.Create(imageService, cloudProps)
 
 	} else {
-		tempDirPath, err := os.MkdirTemp("/tmp", "unpacked-image-")
+		tempDirPath, err := os.MkdirTemp("", "unpacked-image-")
 		if err != nil {
 			return apiv1.StemcellCID{}, fmt.Errorf("failed to create temp dir: %w", err)
 		}
