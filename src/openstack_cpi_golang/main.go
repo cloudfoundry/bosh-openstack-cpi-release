@@ -12,6 +12,7 @@ import (
 
 var (
 	configPathOpt = flag.String("configFile", "", "Path to configuration file")
+	caCertPathOpt = flag.String("caCert", "", "Path to ca cert file") //nolint:unused
 )
 
 func main() {

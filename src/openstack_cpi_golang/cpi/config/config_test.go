@@ -201,7 +201,7 @@ var _ = Describe("OpenstackConfig", func() {
 			It("returns an error if username and application credential is set", func() {
 				_, err := config.NewConfigFromPath(fileSystem, "some/path/invalid_user_config.json")
 
-				Expect(err.Error()).To(ContainSubstring("Invalid OpenStack cloud properties: username and api_key or application_credential_id and application_credential_secret is required"))
+				Expect(err.Error()).To(ContainSubstring("invalid OpenStack cloud properties: username and api_key or application_credential_id and application_credential_secret is required"))
 			})
 
 			It("config drive can be set to disk", func() {
@@ -221,13 +221,13 @@ var _ = Describe("OpenstackConfig", func() {
 			It("returns an error if config drive is invalid", func() {
 				_, err := config.NewConfigFromPath(fileSystem, "some/path/invalid_config_drive.json")
 
-				Expect(err.Error()).To(ContainSubstring("Invalid OpenStack cloud properties: config_drive must be either 'cdrom' or 'disk'"))
+				Expect(err.Error()).To(ContainSubstring("invalid OpenStack cloud properties: config_drive must be either 'cdrom' or 'disk'"))
 			})
 
 			It("returns an error if config is empty", func() {
 				_, err := config.NewConfigFromPath(fileSystem, "some/path/empty_config.json")
 
-				Expect(err.Error()).To(ContainSubstring("Invalid OpenStack cloud properties: username and api_key or application_credential_id and application_credential_secret is required"))
+				Expect(err.Error()).To(ContainSubstring("invalid OpenStack cloud properties: username and api_key or application_credential_id and application_credential_secret is required"))
 			})
 
 			It("succeeds with username and api_key", func() {
