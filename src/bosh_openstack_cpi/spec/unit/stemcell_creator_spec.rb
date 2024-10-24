@@ -32,6 +32,16 @@ describe Bosh::OpenStackCloud::HeavyStemcellCreator do
       )
     end
 
+    it 'supports virtio multiqueue network' do
+      properties = {
+        'hw_vif_multiqueue_enabled' => true,
+      }
+
+      expect(subject.normalize_image_properties(properties)).to include(
+        :hw_vif_multiqueue_enabled,
+      )
+    end
+
     it 'maps hypervisor key to hypervisor_type' do
       properties = {
         'hypervisor' => 'kvm',
