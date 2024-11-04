@@ -6,7 +6,6 @@ image_resource:
     repository: boshcpi/openstack-cpi-release
 inputs:
   - name: bosh-openstack-cpi-release
-  - name: bosh-cpi-dev-artifacts
   - name: bosh-director-deployment
   - name: stemcell
   - name: bosh-release
