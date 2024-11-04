@@ -363,25 +363,24 @@ resources:
   type: terraform
   tags: [ "nimbus" ]
   source:
-    backend_type: s3
+    backend_type: gcs
     backend_config:
-      bucket: bosh-openstack-cpi-ci
-      key: terraform/terraform.tfstate
+      bucket: bosh-openstack-cpi-blobs
+      prefix: terraform
+      credentials: ((cloud-foundry-gcp-credentials))
+    vars:
       region: us-east-1
       access_key: ((bosh-openstack-cpi-ci_assume_aws_access_key.username))
       secret_key: ((bosh-openstack-cpi-ci_assume_aws_access_key.password))
       role_arn: ((bosh-openstack-cpi-ci_assume_aws_access_key.role_arn))
 
 - name: lifecycle-log
-  type: s3
+  type: gcs
   tags: [ "nimbus" ]
   source:
-    bucket: bosh-openstack-cpi-ci # OpenStack CPI account
+    bucket: bosh-openstack-cpi-blobs # OpenStack CPI account
     versioned_file: lifecycle.log
-    region_name: us-east-1
-    access_key_id: ((bosh-openstack-cpi-ci_assume_aws_access_key.username))
-    secret_access_key: ((bosh-openstack-cpi-ci_assume_aws_access_key.password))
-    aws_role_arn: ((bosh-openstack-cpi-ci_assume_aws_access_key.role_arn))
+    json_key: ((cloud-foundry-gcp-credentials))
 
 - name: bosh-openstack-cpi-release
   type: git
