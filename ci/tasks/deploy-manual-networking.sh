@@ -50,7 +50,13 @@ case "$openstack_ca_file_path" in
 esac
 
 echo "setting up artifacts used in bosh.yml"
-cp ./bosh-cpi-dev-artifacts/${cpi_release_name}-${semver}.tgz ${deployment_dir}/${cpi_release_name}.tgz
+pushd bosh-openstack-cpi-release
+    bosh-go -n create-release \
+    --name "bosh-openstack-cpi" \
+    --tarball "../bosh-openstack-cpi-dev.tgz"
+
+popd
+cp ./bosh-openstack-cpi-dev.tgz ${deployment_dir}/${cpi_release_name}.tgz
 cp ./stemcell-director/*.tgz ${deployment_dir}/stemcell.tgz
 prepare_bosh_release ${distro}
 

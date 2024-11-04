@@ -23,7 +23,7 @@ jobs:
     params: { PIPELINE_FILENAME: "pipeline.yml" }
     input_mapping: { pipeline-repo: bosh-openstack-cpi-release }
 
-- name: build-candidate
+- name: run-specs
   serial: true
   build_log_retention:
     builds: *build_logs_to_retain
@@ -33,25 +33,9 @@ jobs:
     - get: bosh-openstack-cpi-release
       timeout: *timeouts-long
       trigger: true
-    - get: version-semver
-      timeout: *timeouts-long
-      params:
-        bump: patch
-  - put: version-semver
-    timeout: *timeouts-long
-    params:
-      file: version-semver/number
   - task: run-unit-specs
     file: bosh-openstack-cpi-release/ci/tasks/run-unit-specs.yml
     image: openstack-cpi-release-docker-image
-  - task: build
-    timeout: *timeouts-long
-    file: bosh-openstack-cpi-release/ci/tasks/build-candidate.yml
-    image: openstack-cpi-release-docker-image
-  - put: bosh-cpi-dev-artifacts
-    timeout: *timeouts-long
-    params:
-      file: candidate/*.tgz
 
 - name: lifecycle
   serial: true
@@ -60,13 +44,10 @@ jobs:
     builds: *build_logs_to_retain
   plan:
   - in_parallel:
-    - get: bosh-cpi-dev-artifacts
-      passed: [ build-candidate ]
+    - get: bosh-openstack-cpi-release
+      passed: [ run-specs ]
       timeout: *timeouts-long
       trigger: true
-    - get: bosh-openstack-cpi-release
-      passed: [ build-candidate ]
-      timeout: *timeouts-long
     - get: openstack-lifecycle-stemcell
       resource: openstack-ubuntu-jammy-stemcell
       timeout: *timeouts-long
@@ -140,9 +121,7 @@ jobs:
     builds: *build_logs_to_retain
   plan:
   - in_parallel:
-    - { trigger: true,  passed: [ build-candidate ], get: bosh-cpi-dev-artifacts, timeout: *timeouts-long }
-    - { trigger: false, passed: [ build-candidate ], get: version-semver, timeout: *timeouts-long }
-    - { trigger: false, passed: [ build-candidate ], get: bosh-openstack-cpi-release, timeout: *timeouts-long }
+    - { trigger: true, passed: [ run-specs ], get: bosh-openstack-cpi-release, timeout: *timeouts-long }
     - { trigger: false,                    get: bosh-release, timeout: *timeouts-long }
     - { trigger: true,                    get: stemcell-director, resource: openstack-ubuntu-jammy-stemcell, timeout: *timeouts-long }
     - { trigger: false,                    get: stemcell, resource: openstack-ubuntu-jammy-stemcell, timeout: *timeouts-long }
@@ -239,18 +218,26 @@ jobs:
     builds: *build_logs_to_retain
   plan:
   - in_parallel:
-    - { trigger: false, passed: [ lifecycle, bats-ubuntu-manual ], get: bosh-cpi-dev-artifacts, timeout: *timeouts-long }
+    - { trigger: false, get: bosh-shared-ci, timeout: *timeouts-long }
     - { trigger: false, passed: [ lifecycle, bats-ubuntu-manual ], get: bosh-openstack-cpi-release, timeout: *timeouts-long }
     - { trigger: false, get: release-version-semver, params: { bump: major }, timeout: *timeouts-long }
 
   - task: promote
     tags: [ "nimbus" ]
     timeout: *timeouts-long
-    file: bosh-openstack-cpi-release/ci/tasks/promote-candidate.yml
+    file: bosh-shared-ci/tasks/release/create-final-release.yml
+    input_mapping:
+      release_repo: bosh-openstack-cpi-release
+      version: release-version-semver
     params:
-      aws_access_key_id: ((bosh-openstack-cpi-blobs_assume_aws_access_key.username))
-      aws_secret_access_key: ((bosh-openstack-cpi-blobs_assume_aws_access_key.password))
-      aws_assume_role_arn: ((bosh-openstack-cpi-blobs_assume_aws_access_key.role_arn))
+      GIT_USER_NAME: CI Bot
+      GIT_USER_EMAIL: bots@cloudfoundry.org
+      PRIVATE_YML: |
+        blobstore:
+          provider: gcs
+          options:
+            credentials_source: static
+            json_key: '((cloud-foundry-gcp-credentials))'
 
   - put: release-version-semver
     timeout: *timeouts-long
@@ -258,7 +245,10 @@ jobs:
 
   - put: bosh-openstack-cpi-release
     timeout: *timeouts-long
-    params: { repository: promote/repo, rebase: true, tag: promote/integer_version, tag_prefix: "v" }
+    params:
+      repository: release_repo
+      rebase: true
+      tag: release_metadata/tag-name
 
 - name: bump-deps
   plan:
@@ -310,11 +300,10 @@ jobs:
       PACKAGES: [ golang-1-linux ]
       PRIVATE_YML: |
         blobstore:
-          provider: s3
+          provider: gcs
           options:
-            access_key_id:     ((bosh-openstack-cpi-blobs_assume_aws_access_key.username))
-            secret_access_key: ((bosh-openstack-cpi-blobs_assume_aws_access_key.password))
-            assume_role_arn: ((bosh-openstack-cpi-blobs_assume_aws_access_key.role_arn))
+            credentials_source: static
+            json_key: '((cloud-foundry-gcp-credentials))'
   - task: bump-ruby-package
     image: bosh-ecosystem-concourse-image
     file: ruby-release/ci/tasks/shared/bump-ruby-package.yml
@@ -329,11 +318,10 @@ jobs:
       PACKAGE_PREFIX: "openstack"
       PRIVATE_YML: |
         blobstore:
-          provider: s3
+          provider: gcs
           options:
-            access_key_id:     ((bosh-openstack-cpi-blobs_assume_aws_access_key.username))
-            secret_access_key: ((bosh-openstack-cpi-blobs_assume_aws_access_key.password))
-            assume_role_arn: ((bosh-openstack-cpi-blobs_assume_aws_access_key.role_arn))
+            credentials_source: static
+            json_key: '((cloud-foundry-gcp-credentials))'
       RUBY_VERSION_PATH: src/bosh_openstack_cpi/.ruby-version
   - task: run-unit-specs
     file: bosh-openstack-cpi-release/ci/tasks/run-unit-specs.yml
@@ -365,42 +353,34 @@ resource_types:
     password: ((docker.password))
 
 resources:
+- name: bosh-shared-ci
+  type: git
+  source:
+    uri: git@github.com:cloudfoundry/bosh-shared-ci.git
+    private_key: ((github_deploy_key_bosh-shared-ci.private_key))
+
 - name: terraform-cpi
   type: terraform
   tags: [ "nimbus" ]
   source:
-    backend_type: s3
+    backend_type: gcs
     backend_config:
-      bucket: bosh-openstack-cpi-ci
-      key: terraform/terraform.tfstate
+      bucket: bosh-openstack-cpi-blobs
+      prefix: terraform
+      credentials: ((cloud-foundry-gcp-credentials))
+    vars:
       region: us-east-1
       access_key: ((bosh-openstack-cpi-ci_assume_aws_access_key.username))
       secret_key: ((bosh-openstack-cpi-ci_assume_aws_access_key.password))
       role_arn: ((bosh-openstack-cpi-ci_assume_aws_access_key.role_arn))
 
-
-- name: bosh-cpi-dev-artifacts
-  type: s3
-  tags: [ "nimbus" ]
-  source:
-    regexp: bosh-openstack-cpi-([0-9.]+)\.tgz
-    bucket: bosh-openstack-cpi-ci # OpenStack CPI account
-    region_name: us-east-1
-    access_key_id: ((bosh-openstack-cpi-ci_assume_aws_access_key.username))
-    secret_access_key: ((bosh-openstack-cpi-ci_assume_aws_access_key.password))
-    aws_role_arn: ((bosh-openstack-cpi-ci_assume_aws_access_key.role_arn))
-
-
 - name: lifecycle-log
-  type: s3
+  type: gcs
   tags: [ "nimbus" ]
   source:
-    bucket: bosh-openstack-cpi-ci # OpenStack CPI account
+    bucket: bosh-openstack-cpi-blobs # OpenStack CPI account
     versioned_file: lifecycle.log
-    region_name: us-east-1
-    access_key_id: ((bosh-openstack-cpi-ci_assume_aws_access_key.username))
-    secret_access_key: ((bosh-openstack-cpi-ci_assume_aws_access_key.password))
-    aws_role_arn: ((bosh-openstack-cpi-ci_assume_aws_access_key.role_arn))
+    json_key: ((cloud-foundry-gcp-credentials))
 
 - name: bosh-openstack-cpi-release
   type: git
@@ -409,17 +389,6 @@ resources:
     uri: git@github.com:cloudfoundry/bosh-openstack-cpi-release.git
     branch: master
     private_key: ((github_deploy_key_bosh-openstack-cpi-release.private_key))
-
-- name: version-semver
-  type: semver
-  tags: [ "nimbus" ]
-  source:
-    key: current-version
-    bucket: bosh-openstack-cpi-ci
-    access_key_id: ((bosh-openstack-cpi-ci_assume_aws_access_key.username))
-    secret_access_key: ((bosh-openstack-cpi-ci_assume_aws_access_key.password))
-    assume_role_arn: ((bosh-openstack-cpi-ci_assume_aws_access_key.role_arn))
-    region_name: us-east-1
 
 - name: release-version-semver
   type: semver
