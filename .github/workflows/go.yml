@@ -9,12 +9,15 @@ on:
   pull_request:
     paths:
       - 'src/openstack_cpi_golang/**'
+  push:
+    paths:
+      - 'src/openstack_cpi_golang/**'
 
 jobs:
   go:
     strategy:
       matrix:
-        os: [macos-latest, windows-2019, ubuntu-latest]
+        os: [macos-latest, ubuntu-latest]
     name: Run tests and Lint on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
 
@@ -28,22 +31,14 @@ jobs:
           go-version-file: src/openstack_cpi_golang/go.mod
 
       - name: Install golangci-lint
-        run: |
-          go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
+        uses: golangci/golangci-lint-action@v6
+        with:
+          working-directory: src/openstack_cpi_golang
 
-      - name: Run golangci-lint and tests on Windows
-        if: ${{ matrix.os == 'windows-2019' }}
-        run: |
-          cd src/openstack_cpi_golang
-          golangci-lint run
-          go test ./cpi/...
-          go test ./integration/...
+      - name: Run unit tests
+        run: scripts/run-unit-tests
+        working-directory: src/openstack_cpi_golang
 
-      - name: Run golangci-lint and tests on non-Windows
-        if: ${{ matrix.os != 'windows-2019' }}
-        run: |
-          cd src/openstack_cpi_golang
-          golangci-lint run --enable goimports
-          go test ./cpi/...
-          go test ./integration/...
-        shell: bash
+      - name: Run integration tests
+        run: scripts/run-integration-tests
+        working-directory: src/openstack_cpi_golang
