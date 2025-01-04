@@ -22,7 +22,7 @@ GEM
       bigdecimal
       rexml
     diff-lcs (1.5.1)
-    excon (1.2.2)
+    excon (1.2.3)
     fog-core (2.6.0)
       builder
       excon (~> 1.0)
