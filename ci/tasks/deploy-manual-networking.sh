@@ -32,7 +32,6 @@ export_terraform_variable terraform-cpi/metadata "primary_net_id"
 export_terraform_variable terraform-cpi/metadata "dns"
 export_terraform_variable terraform-cpi/metadata "director_public_ip"
 
-semver=`cat version-semver/number`
 cpi_release_name="bosh-openstack-cpi"
 deployment_dir="${PWD}/bosh-director-deployment"
 

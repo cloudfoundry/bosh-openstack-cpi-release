@@ -7,7 +7,6 @@ image_resource:
 inputs:
   - name: bosh-openstack-cpi-release
   - name: bosh-release
-  - name: version-semver
   - name: stemcell-director
   - name: terraform-cpi
   - name: bosh-deployment
