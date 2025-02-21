@@ -9,7 +9,6 @@ inputs:
   - name: bosh-director-deployment
   - name: stemcell
   - name: bosh-release
-  - name: version-semver
   - name: terraform-cpi
 run:
   path: bosh-openstack-cpi-release/ci/tasks/teardown-director.sh
