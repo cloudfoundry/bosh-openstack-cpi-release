@@ -1,7 +1,7 @@
 ---
 custom:
   timeouts:
-    long: &timeouts-long 2h
+    long: &timeouts-long 3h
   debug_bats: &debug_bats true
 
 jobs:
