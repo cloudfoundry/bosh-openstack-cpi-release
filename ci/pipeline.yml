@@ -249,6 +249,7 @@ jobs:
         input_mapping:
           input_repo: bosh-openstack-cpi-release
         params:
+          GIT_PRIVATE_KEY: ((github_deploy_key_bosh-openstack-cpi-release.private_key))
           SEVERITY: CRITICAL,HIGH
         on_success:
           do:
