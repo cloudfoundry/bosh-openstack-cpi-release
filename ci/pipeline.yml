@@ -49,6 +49,7 @@ jobs:
   - task: write_ca_file
     tags: [ "openstack" ]
     file: bosh-openstack-cpi-release/ci/tasks/write-ca-file.yml
+    image: openstack-cpi-release-docker-image
     params:
       file_content: ((concourse_openstack_auth.openstack_ca_cert))
 
@@ -77,6 +78,7 @@ jobs:
       tags: [ "openstack" ]
       timeout: *timeouts-long
       file: bosh-openstack-cpi-release/ci/tasks/run-lifecycle.yml
+      image: openstack-cpi-release-docker-image
       params:
         BOSH_OPENSTACK_DOMAIN: ((config-json.lifecycle_openstack_domain))
         BOSH_OPENSTACK_PROJECT: ((config-json.openstack_project))
