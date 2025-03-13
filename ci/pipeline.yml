@@ -45,6 +45,8 @@ jobs:
     - get: openstack-lifecycle-stemcell
       resource: openstack-ubuntu-jammy-stemcell
       timeout: *timeouts-long
+    - get: terraform-image
+      tags: [ "openstack" ]
 
   - task: write_ca_file
     tags: [ "openstack" ]
