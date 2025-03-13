@@ -3,4 +3,4 @@ platform: linux
 
 inputs: [ {name: terraform-cpi } ]
 run:
-  path: 'ci/tasks/terraform-destroy-lifecycle.sh'
+  path: 'terraform-cpi/ci/tasks/terraform-destroy-lifecycle.sh'

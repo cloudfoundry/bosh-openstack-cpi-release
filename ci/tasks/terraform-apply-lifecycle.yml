@@ -4,4 +4,4 @@ platform: linux
 inputs: [ { name: bosh-openstack-cpi-release } ]
 outputs: [ {name: terraform-cpi } ]
 run:
-  path: 'ci/tasks/terraform-apply-lifecycle.sh'
+  path: 'bosh-openstack-cpi-release/ci/tasks/terraform-apply-lifecycle.sh'

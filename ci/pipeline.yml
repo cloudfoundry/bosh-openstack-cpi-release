@@ -40,12 +40,16 @@ jobs:
   - in_parallel:
     - get: bosh-openstack-cpi-release
       passed: [ run-specs ]
+      tags: [ "openstack" ]
       timeout: *timeouts-long
       trigger: true
     - get: openstack-lifecycle-stemcell
       resource: openstack-ubuntu-jammy-stemcell
+      tags: [ "openstack" ]
       timeout: *timeouts-long
     - get: terraform-image
+      tags: [ "openstack" ]
+    - get: openstack-cpi-release-docker-image
       tags: [ "openstack" ]
 
   - task: write_ca_file
