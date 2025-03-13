@@ -53,26 +53,26 @@ jobs:
     params:
       file_content: ((concourse_openstack_auth.openstack_ca_cert))
 
-  - put: terraform-cpi
+  - task: terraform-apply
     tags: [ "openstack" ]
     timeout: *timeouts-long
-    params:
-      env_name: "lifecycle-openstack-tests"
-      terraform_source: bosh-openstack-cpi-release/ci/terraform/ci/lifecycle
-      vars: &lifecycle-terraform-vars
-        prefix: "lifecycle-openstack-tests"
-        auth_url: ((concourse_openstack_auth.auth_url))
-        cacert_file: ((config-json.tf_ca_file_path))
-        user_name: ((config-json.openstack_username))
-        password: ((config-json.openstack_password))
-        domain_name: ((config-json.lifecycle_openstack_domain))
-        project_name: ((config-json.openstack_project))
-        ext_net_id: ((config-json.tf_external_network_id))
-        ext_net_name: ((config-json.tf_external_network_name))
-        region_name: ((config-json.tf_region_name))
-        openstack_default_key_public_key: ((config-json.tf_default_public_key))
-        dns_nameservers: ((config-json.tf_dns_nameservers))
-        use_lbaas: false
+    image: terraform-image
+    file: "bosh-openstack-cpi-release/ci/tasks/terraform-apply-lifecycle.yml"
+    params: &lifecycle-terraform-params
+      TF_VAR_prefix: "lifecycle-openstack-tests"
+      TF_VAR_auth_url: ((concourse_openstack_auth.auth_url))
+      TF_VAR_cacert_file: ((config-json.tf_ca_file_path))
+      TF_VAR_user_name: ((config-json.openstack_username))
+      TF_VAR_password: ((config-json.openstack_password))
+      TF_VAR_domain_name: ((config-json.lifecycle_openstack_domain))
+      TF_VAR_project_name: ((config-json.openstack_project))
+      TF_VAR_ext_net_id: ((config-json.tf_external_network_id))
+      TF_VAR_ext_net_name: ((config-json.tf_external_network_name))
+      TF_VAR_region_name: ((config-json.tf_region_name))
+      TF_VAR_openstack_default_key_public_key: ((config-json.tf_default_public_key))
+      TF_VAR_dns_nameservers: ((config-json.tf_dns_nameservers))
+      TF_VAR_use_lbaas: false
+
   - do:
     - task: test
       tags: [ "openstack" ]
@@ -100,15 +100,12 @@ jobs:
       timeout: *timeouts-long
       params: { file: output/lifecycle.log }
     ensure:
-      put: terraform-cpi
+      task: terraform-destroy
       tags: [ "openstack" ]
-      params:
-        action: destroy
-        env_name: "lifecycle-openstack-tests"
-        terraform_source: bosh-openstack-cpi-release/ci/terraform/ci/lifecycle
-        vars: *lifecycle-terraform-vars
-      get_params:
-        action: destroy
+      timeout: *timeouts-long
+      image: terraform-image
+      file: "bosh-openstack-cpi-release/ci/tasks/terraform-destroy-lifecycle.yml"
+      params: *lifecycle-terraform-params
 
 - name: bats-ubuntu-manual
   serial: true
@@ -421,7 +418,7 @@ resource_types:
 - name: terraform
   type: registry-image
   check_every: 168h
-  source:
+  source: &terraform-resource-source-keys
     repository: ljfranklin/terraform-resource
     username: ((docker.username))
     password: ((docker.password))
@@ -537,6 +534,7 @@ resources:
 
 - name: openstack-cpi-release-docker-image
   type: docker-image
+  tags: [ "openstack" ]
   check_every: never
   source:
     username: ((docker.username))
@@ -579,3 +577,8 @@ resources:
     start: 3:00 -0700
     stop: 4:30 -0700
     days: [ Saturday ]
+
+- name: terraform-image
+  type: registry-image
+  check_every: 168h
+  source: *terraform-resource-source-keys
