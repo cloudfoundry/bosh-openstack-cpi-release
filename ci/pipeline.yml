@@ -47,13 +47,13 @@ jobs:
       timeout: *timeouts-long
 
   - task: write_ca_file
-    tags: [ "nimbus" ]
+    tags: [ "openstack" ]
     file: bosh-openstack-cpi-release/ci/tasks/write-ca-file.yml
     params:
       file_content: ((concourse_openstack_auth.openstack_ca_cert))
 
   - put: terraform-cpi
-    tags: [ "nimbus" ]
+    tags: [ "openstack" ]
     timeout: *timeouts-long
     params:
       env_name: "lifecycle-openstack-tests"
@@ -74,7 +74,7 @@ jobs:
         use_lbaas: false
   - do:
     - task: test
-      tags: [ "nimbus" ]
+      tags: [ "openstack" ]
       timeout: *timeouts-long
       file: bosh-openstack-cpi-release/ci/tasks/run-lifecycle.yml
       params:
@@ -94,12 +94,12 @@ jobs:
         BOSH_OPENSTACK_AVAILABILITY_ZONE: ((config-json.availability_zone))
         BOSH_OPENSTACK_EXCLUDE_CINDER_V1: true
     - put: lifecycle-log
-      tags: [ "nimbus" ]
+      tags: [ "openstack" ]
       timeout: *timeouts-long
       params: { file: output/lifecycle.log }
     ensure:
       put: terraform-cpi
-      tags: [ "nimbus" ]
+      tags: [ "openstack" ]
       params:
         action: destroy
         env_name: "lifecycle-openstack-tests"
@@ -121,7 +121,7 @@ jobs:
     - { trigger: false,                    get: bosh-deployment, timeout: *timeouts-long }
 
   - put: terraform-cpi
-    tags: [ "nimbus" ]
+    tags: [ "openstack" ]
     timeout: *timeouts-long
     params:
       env_name: bats-ubuntu-manual
@@ -152,7 +152,7 @@ jobs:
 
   - do:
     - task: deploy
-      tags: [ "nimbus" ]
+      tags: [ "openstack" ]
       timeout: *timeouts-long
       file: bosh-openstack-cpi-release/ci/tasks/deploy-manual-networking.yml
       params:
@@ -172,7 +172,7 @@ jobs:
         DEBUG_BATS: *debug_bats
 
     - task: test
-      tags: [ "nimbus" ]
+      tags: [ "openstack" ]
       timeout: *timeouts-long
       file: bosh-openstack-cpi-release/ci/tasks/run-manual-networking-bats.yml
       params:
@@ -184,18 +184,18 @@ jobs:
         bats_rspec_tags: "--tag ~ssh"
       ensure:
         task: print-task-errors
-        tags: [ "nimbus" ]
+        tags: [ "openstack" ]
         timeout: *timeouts-long
         file: bosh-openstack-cpi-release/ci/tasks/print_task_errors.yml
     ensure:
       do:
       - task: teardown-director
-        tags: [ "nimbus" ]
+        tags: [ "openstack" ]
         timeout: *timeouts-long
         file: bosh-openstack-cpi-release/ci/tasks/teardown-director.yml
         ensure:
           put: terraform-cpi
-          tags: [ "nimbus" ]
+          tags: [ "openstack" ]
           params:
             action: destroy
             env_name: bats-ubuntu-manual
@@ -303,7 +303,7 @@ jobs:
       trigger: true
     - get: release-notes
   - task: promote
-    tags: [ "nimbus" ]
+    tags: [ "openstack" ]
     timeout: *timeouts-long
     file: bosh-shared-ci/tasks/release/create-final-release.yml
     input_mapping:
@@ -454,7 +454,7 @@ resources:
 
 - name: terraform-cpi
   type: terraform
-  tags: [ "nimbus" ]
+  tags: [ "openstack" ]
   source:
     backend_type: gcs
     backend_config:
@@ -469,7 +469,7 @@ resources:
 
 - name: lifecycle-log
   type: gcs
-  tags: [ "nimbus" ]
+  tags: [ "openstack" ]
   source:
     bucket: bosh-openstack-cpi-blobs
     versioned_file: lifecycle.log
@@ -484,7 +484,7 @@ resources:
 
 - name: bosh-openstack-cpi-release
   type: git
-  tags: [ "nimbus" ]
+  tags: [ "openstack" ]
   source:
     uri: git@github.com:cloudfoundry/bosh-openstack-cpi-release.git
     branch: master
@@ -509,26 +509,26 @@ resources:
 
 - name: bats
   type: git
-  tags: [ "nimbus" ]
+  tags: [ "openstack" ]
   source:
     uri: https://github.com/cloudfoundry/bosh-acceptance-tests.git
     branch: master
 
 - name: bosh-release
   type: bosh-io-release
-  tags: [ "nimbus" ]
+  tags: [ "openstack" ]
   source:
     repository: cloudfoundry/bosh
 
 - name: openstack-ubuntu-jammy-stemcell
   type: bosh-io-stemcell
-  tags: [ "nimbus" ]
+  tags: [ "openstack" ]
   source:
     name: bosh-openstack-kvm-ubuntu-jammy-go_agent
 
 - name: bosh-deployment
   type: git
-  tags: [ "nimbus" ]
+  tags: [ "openstack" ]
   source:
     uri: https://github.com/cloudfoundry/bosh-deployment.git
     branch: master
