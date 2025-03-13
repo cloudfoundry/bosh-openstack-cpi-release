@@ -47,6 +47,8 @@ jobs:
       timeout: *timeouts-long
     - get: terraform-image
       tags: [ "openstack" ]
+    - get: openstack-cpi-release-docker-image
+      tags: [ "openstack" ]
 
   - task: write_ca_file
     tags: [ "openstack" ]
