@@ -8,8 +8,16 @@ pushd bosh-openstack-cpi-release/ci/terraform/ci/lifecycle
   terraform init
   terraform apply -auto-approve -input=false
   cp -r ${BASE_DIR}/bosh-openstack-cpi-release/ci ${BASE_DIR}/terraform-cpi
-  # Write out the 'terraform output' data as JSON, as the terraform-resource would:
-  (echo "{"; terraform output | sed -e 's/\(.*\) =/"\1": /' -e '$ ! s/$/,/'; echo "}") > ${BASE_DIR}/terraform-cpi/metadata
+
+  # This subshell converts 'terraform output' output into JSON to be consumed by former clients of the Terraform Resource.
+  # The only special Terraform construction its awk program handles is 'tolist'. The 'sed' program at the end is to remove
+  # the "," from the last line of the awk output, because I don't know how to make 'awk' do something different on the LAST
+  # line of the input.
+  (
+    echo "{"
+    terraform output | awk -f ${BASE_DIR}/bosh-openstack-cpi-release/ci/tasks/convert-terraform-output-to-mostly-json.awk | sed -e '$ s/,$//'
+    echo "}"
+  ) > ${BASE_DIR}/terraform-cpi/metadata
 popd
 
 echo ""
