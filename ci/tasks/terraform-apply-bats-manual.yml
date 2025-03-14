@@ -1,0 +1,7 @@
+---
+platform: linux
+
+inputs: [ { name: bosh-openstack-cpi-release } ]
+outputs: [ {name: terraform-cpi } ]
+run:
+  path: 'bosh-openstack-cpi-release/ci/tasks/terraform-apply-bats-manual.sh'

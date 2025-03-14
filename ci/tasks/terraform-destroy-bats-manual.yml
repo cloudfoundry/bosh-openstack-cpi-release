@@ -1,0 +1,6 @@
+---
+platform: linux
+
+inputs: [ {name: terraform-cpi } ]
+run:
+  path: 'terraform-cpi/ci/tasks/terraform-destroy-bats-manual.sh'
