@@ -118,6 +118,7 @@ jobs:
   serial_groups: [ cleanup-lock-bats-ubuntu-manual ]
   plan:
   - in_parallel:
+    - { get: terraform-image, tags: [ "openstack" ] }
     - { trigger: true, passed: [ run-specs ], get: bosh-openstack-cpi-release, timeout: *timeouts-long }
     - { trigger: false,                    get: bosh-release, timeout: *timeouts-long }
     - { trigger: true,                    get: stemcell-director, resource: openstack-ubuntu-jammy-stemcell, timeout: *timeouts-long }
@@ -125,35 +126,34 @@ jobs:
     - { trigger: false,                    get: bats, timeout: *timeouts-long }
     - { trigger: false,                    get: bosh-deployment, timeout: *timeouts-long }
 
-  - put: terraform-cpi
+  - task: terraform-apply
     tags: [ "openstack" ]
     timeout: *timeouts-long
-    params:
-      env_name: bats-ubuntu-manual
-      terraform_source: bosh-openstack-cpi-release/ci/terraform/ci/bats-manual
-      vars: &bats-terraform-vars
-        prefix: "bats-ubuntu-manual"
-        auth_url: ((concourse_openstack_auth.auth_url))
-        domain_name: ((concourse_openstack_auth.openstack_domain))
-        user_name: ((config-json.openstack_username))
-        password: ((config-json.openstack_password))
-        project_name: ((config-json.openstack_project))
-        cacert_file: ((config-json.tf_ca_file_path))
-        region_name: ((config-json.tf_region_name))
-        primary_net_name: "bats-ubuntu-manual-primary"
-        primary_net_cidr: "10.0.4.0/24"
-        primary_net_allocation_pool_start: "10.0.4.200"
-        primary_net_allocation_pool_end: "10.0.4.254"
-        secondary_net_name: "bats-ubuntu-manual-secondary"
-        secondary_net_cidr: "10.0.5.0/24"
-        secondary_net_allocation_pool_start: "10.0.5.200"
-        secondary_net_allocation_pool_end: "10.0.5.254"
-        ext_net_name: ((config-json.tf_external_network_name))
-        ext_net_id: ((config-json.tf_external_network_id))
-        ext_net_cidr: ((config-json.tf_ext_net_cidr))
-        dns_nameservers: ((config-json.tf_dns_nameservers))
-        concourse_external_network_cidr: null
-        openstack_default_key_public_key: ((config-json.tf_default_public_key))
+    image: terraform-image
+    file: "bosh-openstack-cpi-release/ci/tasks/terraform-apply-bats-manual.yml"
+    params: &bats-terraform-vars
+      TF_VAR_prefix: "bats-ubuntu-manual"
+      TF_VAR_auth_url: ((concourse_openstack_auth.auth_url))
+      TF_VAR_domain_name: ((concourse_openstack_auth.openstack_domain))
+      TF_VAR_user_name: ((config-json.openstack_username))
+      TF_VAR_password: ((config-json.openstack_password))
+      TF_VAR_project_name: ((config-json.openstack_project))
+      TF_VAR_cacert_file: ((config-json.tf_ca_file_path))
+      TF_VAR_region_name: ((config-json.tf_region_name))
+      TF_VAR_primary_net_name: "bats-ubuntu-manual-primary"
+      TF_VAR_primary_net_cidr: "10.0.4.0/24"
+      TF_VAR_primary_net_allocation_pool_start: "10.0.4.200"
+      TF_VAR_primary_net_allocation_pool_end: "10.0.4.254"
+      TF_VAR_secondary_net_name: "bats-ubuntu-manual-secondary"
+      TF_VAR_secondary_net_cidr: "10.0.5.0/24"
+      TF_VAR_secondary_net_allocation_pool_start: "10.0.5.200"
+      TF_VAR_secondary_net_allocation_pool_end: "10.0.5.254"
+      TF_VAR_ext_net_name: ((config-json.tf_external_network_name))
+      TF_VAR_ext_net_id: ((config-json.tf_external_network_id))
+      TF_VAR_ext_net_cidr: ((config-json.tf_ext_net_cidr))
+      TF_VAR_dns_nameservers: ((config-json.tf_dns_nameservers))
+      TF_VAR_concourse_external_network_cidr: null
+      TF_VAR_openstack_default_key_public_key: ((config-json.tf_default_public_key))
 
   - do:
     - task: deploy
@@ -199,15 +199,12 @@ jobs:
         timeout: *timeouts-long
         file: bosh-openstack-cpi-release/ci/tasks/teardown-director.yml
         ensure:
-          put: terraform-cpi
+          task: terraform-destroy
           tags: [ "openstack" ]
-          params:
-            action: destroy
-            env_name: bats-ubuntu-manual
-            terraform_source: bosh-openstack-cpi-release/ci/terraform/ci/bats-manual
-            vars: *bats-terraform-vars
-          get_params:
-            action: destroy
+          timeout: *timeouts-long
+          image: terraform-image
+          file: "bosh-openstack-cpi-release/ci/tasks/terraform-destroy-bats-manual.yml"
+          params: *bats-terraform-vars
 
 - name: bump-major
   serial_groups: [ version ]
@@ -456,21 +453,6 @@ resources:
   source:
     uri: git@github.com:cloudfoundry/bosh-shared-ci.git
     private_key: ((github_deploy_key_bosh-shared-ci.private_key))
-
-- name: terraform-cpi
-  type: terraform
-  tags: [ "openstack" ]
-  source:
-    backend_type: gcs
-    backend_config:
-      bucket: bosh-openstack-cpi-blobs
-      prefix: terraform
-      credentials: ((cloud-foundry-gcp-credentials))
-    vars:
-      region: us-east-1
-      access_key: ((bosh-openstack-cpi-ci_assume_aws_access_key.username))
-      secret_key: ((bosh-openstack-cpi-ci_assume_aws_access_key.password))
-      role_arn: ((bosh-openstack-cpi-ci_assume_aws_access_key.role_arn))
 
 - name: lifecycle-log
   type: gcs
