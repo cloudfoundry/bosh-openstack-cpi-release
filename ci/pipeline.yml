@@ -119,12 +119,12 @@ jobs:
   plan:
   - in_parallel:
     - { get: terraform-image, tags: [ "openstack" ] }
-    - { trigger: true, passed: [ run-specs ], get: bosh-openstack-cpi-release, timeout: *timeouts-long }
-    - { trigger: false,                    get: bosh-release, timeout: *timeouts-long }
-    - { trigger: true,                    get: stemcell-director, resource: openstack-ubuntu-jammy-stemcell, timeout: *timeouts-long }
-    - { trigger: false,                    get: stemcell, resource: openstack-ubuntu-jammy-stemcell, timeout: *timeouts-long }
-    - { trigger: false,                    get: bats, timeout: *timeouts-long }
-    - { trigger: false,                    get: bosh-deployment, timeout: *timeouts-long }
+    - { trigger: true, passed: [ run-specs ], get: bosh-openstack-cpi-release, timeout: *timeouts-long, tags: [ "openstack" ] }
+    - { trigger: false,                    get: bosh-release, timeout: *timeouts-long, tags: [ "openstack" ] }
+    - { trigger: true,                    get: stemcell-director, resource: openstack-ubuntu-jammy-stemcell, timeout: *timeouts-long, tags: [ "openstack" ] }
+    - { trigger: false,                    get: stemcell, resource: openstack-ubuntu-jammy-stemcell, timeout: *timeouts-long, tags: [ "openstack" ] }
+    - { trigger: false,                    get: bats, timeout: *timeouts-long, tags: [ "openstack" ] }
+    - { trigger: false,                    get: bosh-deployment, timeout: *timeouts-long, tags: [ "openstack" ] }
 
   - task: terraform-apply
     tags: [ "openstack" ]
