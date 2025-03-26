@@ -1,0 +1,45 @@
+name: bosh-openstack-cpi
+version: 55.0.4
+commit_hash: 796c7799
+uncommitted_changes: false
+jobs:
+- name: openstack_cpi
+  version: 5a9755b8d049f5511df9a7d1fd1c6a3b1016f9a7d3079ed2d9aae5786820911d
+  fingerprint: 5a9755b8d049f5511df9a7d1fd1c6a3b1016f9a7d3079ed2d9aae5786820911d
+  sha1: sha256:fababa1d1d16a0da966b464afb512b919699a964d42657dff35b23bb25999113
+  packages:
+  - openstack-ruby-3.1
+  - bosh_openstack_cpi
+- name: openstack_cpi_golang
+  version: 32f5ebd3c5bdd3311d606a71b987be4f820bf756da83cd195d95abd49bf010a7
+  fingerprint: 32f5ebd3c5bdd3311d606a71b987be4f820bf756da83cd195d95abd49bf010a7
+  sha1: sha256:c353e20a3739a6e3ba3d244f5e9e371424a761f06ea8b7bed17a9405044d16b6
+  packages:
+  - openstack_cpi_golang
+packages:
+- name: bosh_openstack_cpi
+  version: a567abf49d1506f3338dc5d337f18fb6c644ddc3ce40c3c64de4d89c87a0aa09
+  fingerprint: a567abf49d1506f3338dc5d337f18fb6c644ddc3ce40c3c64de4d89c87a0aa09
+  sha1: sha256:d8f09e443befc3afcd6fea0fd56f5fc7e52cabb70ab0b6dd838204bf2a3cc24b
+  dependencies:
+  - openstack-ruby-3.1
+- name: golang-1-linux
+  version: 7e16dacbe34be58aa80f17d6f9626d3668282accb2d859ccb13675710dccac31
+  fingerprint: 7e16dacbe34be58aa80f17d6f9626d3668282accb2d859ccb13675710dccac31
+  sha1: sha256:aa2f06492f045074bac9c7cc5f8d0fea65cf50cbb18db7313fba022d098cb018
+  dependencies: []
+- name: openstack-ruby-3.1
+  version: 3f5087ca889c581c3d64e1e7affe51677631c4d46c66778ba74d50a6172cd4e4
+  fingerprint: 3f5087ca889c581c3d64e1e7affe51677631c4d46c66778ba74d50a6172cd4e4
+  sha1: sha256:28e7b6aa9336e845eb9a14eeae3bf8b5b7f444d3bf1d6424460c8876fc77a4c9
+  dependencies: []
+- name: openstack_cpi_golang
+  version: 34b62c9c73044991a9ab7aeaae2020364ddded066b8a039627bb85f17979515a
+  fingerprint: 34b62c9c73044991a9ab7aeaae2020364ddded066b8a039627bb85f17979515a
+  sha1: sha256:297b96a8fca4fa519d7875d2b8e7e6e71732f3a3b93518af472e2d9080fc8c8c
+  dependencies:
+  - golang-1-linux
+license:
+  version: ea2e8a54b7403eff37a24eb20dbd07a0cb44beb96f52886db6a348ec87f5ccec
+  fingerprint: ea2e8a54b7403eff37a24eb20dbd07a0cb44beb96f52886db6a348ec87f5ccec
+  sha1: sha256:5ea6d3e2ca51bde6aa41e4e19896ebc1eaea259cdb868e2ab3383347d60d426d
