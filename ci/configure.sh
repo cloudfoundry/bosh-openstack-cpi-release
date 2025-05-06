@@ -2,5 +2,5 @@
 
 set -eu
 
-fly -t bosh-ecosystem set-pipeline -p "bosh-openstack-cpi" \
+fly -t "${CONCOURSE_TARGET:-bosh-ecosystem}" set-pipeline -p "bosh-openstack-cpi" \
     -c ci/pipeline.yml
