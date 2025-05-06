@@ -451,8 +451,7 @@ resources:
 - name: bosh-shared-ci
   type: git
   source:
-    uri: git@github.com:cloudfoundry/bosh-shared-ci.git
-    private_key: ((github_deploy_key_bosh-shared-ci.private_key))
+    uri: https://github.com/cloudfoundry/bosh-shared-ci.git
 
 - name: lifecycle-log
   type: gcs
@@ -473,9 +472,10 @@ resources:
   type: git
   tags: [ "openstack" ]
   source:
-    uri: git@github.com:cloudfoundry/bosh-openstack-cpi-release.git
+    uri: https://github.com/cloudfoundry/bosh-openstack-cpi-release.git
     branch: master
-    private_key: ((github_deploy_key_bosh-openstack-cpi-release.private_key))
+    username: bosh-admin-bot
+    password: ((github_read_write_token))
 
 - name: bosh-openstack-cpi-release-github-release
   type: github-release
@@ -489,10 +489,11 @@ resources:
   source:
     initial_version: "35.0.0"
     driver: git
-    uri: git@github.com:cloudfoundry/bosh-openstack-cpi-release.git
+    uri: https://github.com/cloudfoundry/bosh-openstack-cpi-release.git
     branch: release-semver
     file: VERSION
-    private_key: ((github_deploy_key_bosh-openstack-cpi-release.private_key))
+    username: bosh-admin-bot
+    password: ((github_read_write_token))
 
 - name: bats
   type: git
