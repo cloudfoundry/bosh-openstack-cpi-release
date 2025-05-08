@@ -33,13 +33,13 @@ jobs:
 
       - name: Run golangci-lint
         if: ${{ matrix.os != 'windows-2019' }}
-        uses: golangci/golangci-lint-action@v6
+        uses: golangci/golangci-lint-action@v8
         with:
           working-directory: src/openstack_cpi_golang
 
       - name: Run golangci-lint
         if: ${{ matrix.os == 'windows-2019' }}
-        uses: golangci/golangci-lint-action@v6
+        uses: golangci/golangci-lint-action@v8
         with:
           working-directory: src/openstack_cpi_golang
           args: --disable=goimports
