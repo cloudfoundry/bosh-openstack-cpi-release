@@ -34,7 +34,7 @@ var _ = Describe("DELETE STEMCELL", func() {
 		err := cpi.Execute(getDefaultConfig(Endpoint()), logger)
 		Expect(err).ShouldNot(HaveOccurred())
 
-		stdOutWriter.Close()
+		stdOutWriter.Close() //nolint:errcheck
 		Expect(<-outChannel).To(ContainSubstring(`"error":null`))
 	})
 })

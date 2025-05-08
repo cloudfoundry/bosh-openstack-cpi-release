@@ -118,7 +118,7 @@ var _ = Describe("ComputeService", func() {
 		It("resolves the key pair via cloud config name", func() {
 			computeFacade.GetOSKeyPairReturns(&keypairs.KeyPair{Name: "the_key_name"}, nil)
 
-			_, _ = computeService.CreateServer(
+			_, _ = computeService.CreateServer( //nolint:errcheck
 				apiv1.StemcellCID{},
 				properties.CreateVM{
 					InstanceType: "the_instance_type",
@@ -142,7 +142,7 @@ var _ = Describe("ComputeService", func() {
 			openstackConfig := config.OpenstackConfig{StateTimeOut: 10, DefaultKeyName: "key_name_from_config"}
 			cpiConfig.Cloud.Properties.Openstack = openstackConfig
 
-			_, _ = computeService.CreateServer(
+			_, _ = computeService.CreateServer( //nolint:errcheck
 				apiv1.StemcellCID{},
 				defaultCloudConfig,
 				networkConfig,
@@ -305,7 +305,7 @@ var _ = Describe("ComputeService", func() {
 				Expect(err).ToNot(HaveOccurred())
 
 				userData := properties.UserData{}
-				_ = json.Unmarshal(userDataBytes, &userData)
+				_ = json.Unmarshal(userDataBytes, &userData) //nolint:errcheck
 				Expect(userData.Server.Name).To(Equal(server["name"]))
 				Expect(userData.VM.Name).To(Equal(server["name"]))
 				Expect(userData.Disks.System).To(Equal("/dev/sda"))
@@ -332,7 +332,7 @@ var _ = Describe("ComputeService", func() {
 			computeFacade.CreateServerReturnsOnCall(0, nil, errors.New("boom"))
 			computeFacade.CreateServerReturnsOnCall(1, &servers.Server{ID: "123-456"}, nil)
 
-			_, _ = computeService.CreateServer(
+			_, _ = computeService.CreateServer( //nolint:errcheck
 				apiv1.StemcellCID{},
 				defaultCloudConfig,
 				networkConfig,
@@ -342,12 +342,12 @@ var _ = Describe("ComputeService", func() {
 			)
 
 			_, opts := computeFacade.CreateServerArgsForCall(0)
-			createMap, _ := opts.ToServerCreateMap()
+			createMap, _ := opts.ToServerCreateMap() //nolint:errcheck
 			server := createMap["server"].(map[string]interface{})
 			Expect(server["availability_zone"]).To(Equal("z1"))
 
 			_, opts = computeFacade.CreateServerArgsForCall(1)
-			createMap, _ = opts.ToServerCreateMap()
+			createMap, _ = opts.ToServerCreateMap() //nolint:errcheck
 			server = createMap["server"].(map[string]interface{})
 			Expect(server["availability_zone"]).To(Equal("z2"))
 
@@ -361,7 +361,7 @@ var _ = Describe("ComputeService", func() {
 
 			compute.ComputeServicePollingInterval = 0
 
-			_, _ = computeService.CreateServer(
+			_, _ = computeService.CreateServer( //nolint:errcheck
 				apiv1.StemcellCID{},
 				defaultCloudConfig,
 				networkConfig,
@@ -371,12 +371,12 @@ var _ = Describe("ComputeService", func() {
 			)
 
 			_, opts := computeFacade.CreateServerArgsForCall(0)
-			createMap, _ := opts.ToServerCreateMap()
+			createMap, _ := opts.ToServerCreateMap() //nolint:errcheck
 			server := createMap["server"].(map[string]interface{})
 			Expect(server["availability_zone"]).To(Equal("z1"))
 
 			_, opts = computeFacade.CreateServerArgsForCall(1)
-			createMap, _ = opts.ToServerCreateMap()
+			createMap, _ = opts.ToServerCreateMap() //nolint:errcheck
 			server = createMap["server"].(map[string]interface{})
 			Expect(server["availability_zone"]).To(Equal("z2"))
 

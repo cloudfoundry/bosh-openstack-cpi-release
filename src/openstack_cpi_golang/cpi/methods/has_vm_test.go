@@ -30,7 +30,7 @@ var _ = Describe("HasVMMethod", func() {
 		})
 
 		It("creates the compute service", func() {
-			_, _ = methods.NewHasVMMethod(
+			_, _ = methods.NewHasVMMethod( //nolint:errcheck
 				&computeServiceBuilder,
 				&logger,
 			).HasVM(

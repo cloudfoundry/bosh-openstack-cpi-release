@@ -23,7 +23,8 @@ var _ = Describe("Create Disk", func() {
 			if r.Method == "POST" {
 				w.WriteHeader(http.StatusAccepted)
 
-				fmt.Fprintf(w, `{
+				fmt.Fprintf(w, //nolint:errcheck
+					`{
 					"volume": {
 						"id": "2b955850-f177-45f7-9f49-ecb2c256d161"
 					}
@@ -35,7 +36,8 @@ var _ = Describe("Create Disk", func() {
 			switch r.Method {
 			case http.MethodGet:
 				w.WriteHeader(http.StatusOK)
-				fmt.Fprintf(w, `{
+				fmt.Fprintf(w, //nolint:errcheck
+					`{
 					"server": {
 						"id": "server-id",
         				"OS-EXT-AZ:availability_zone": "us-west"
@@ -50,7 +52,8 @@ var _ = Describe("Create Disk", func() {
 				callCount++
 				if callCount == 1 {
 					w.WriteHeader(http.StatusOK)
-					fmt.Fprintf(w, `{
+					fmt.Fprintf(w, //nolint:errcheck
+						`{
 					"volume": {
 						"id": "2b955850-f177-45f7-9f49-ecb2c256d161",
 						"status": "available"        				
@@ -58,7 +61,8 @@ var _ = Describe("Create Disk", func() {
 					}`)
 				} else {
 					w.WriteHeader(http.StatusOK)
-					fmt.Fprintf(w, `{
+					fmt.Fprintf(w, //nolint:errcheck
+						`{
 					"volume": {
 						"id": "2b955850-f177-45f7-9f49-ecb2c256d161",
 						"status": "error"        				
@@ -89,7 +93,7 @@ var _ = Describe("Create Disk", func() {
 		err := cpi.Execute(getDefaultConfig(Endpoint()), logger)
 		Expect(err).ShouldNot(HaveOccurred())
 
-		stdOutWriter.Close()
+		stdOutWriter.Close() //nolint:errcheck
 		actual := <-outChannel
 		Expect(actual).To(ContainSubstring(`"result":"2b955850-f177-45f7-9f49-ecb2c256d161","error":null`))
 	})
@@ -111,7 +115,7 @@ var _ = Describe("Create Disk", func() {
 			err := cpi.Execute(getDefaultConfig(Endpoint()), logger)
 			Expect(err).ShouldNot(HaveOccurred())
 
-			stdOutWriter.Close()
+			stdOutWriter.Close() //nolint:errcheck
 			actual := <-outChannel
 			Expect(actual).To(ContainSubstring(`create disk: volume became error state while waiting to become available`))
 		})

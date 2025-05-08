@@ -36,7 +36,7 @@ var _ = Describe("RetryOnError", func() {
 	})
 
 	It("logs the current error", func() {
-		_ = utils.RetryOnError(retryConfig, &logger)(nil, "", "", nil, errors.New("boom"), 0)
+		_ = utils.RetryOnError(retryConfig, &logger)(nil, "", "", nil, errors.New("boom"), 0) //nolint:errcheck
 
 		tag, msg, _ := logger.WarnArgsForCall(0)
 		Expect(tag).To(Equal("retry on error"))

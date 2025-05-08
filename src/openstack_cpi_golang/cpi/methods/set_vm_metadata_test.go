@@ -66,7 +66,7 @@ var _ = Describe("NewSetVMMetadataMethod", func() {
 		})
 
 		It("creates the compute service", func() {
-			_ = methods.NewSetVMMetadataMethod(
+			_ = methods.NewSetVMMetadataMethod( //nolint:errcheck
 				computeServiceBuilder,
 				logger,
 				cpiConfig,
@@ -93,7 +93,7 @@ var _ = Describe("NewSetVMMetadataMethod", func() {
 		})
 
 		It("deletes nil value out imported metadata map", func() {
-			_ = methods.NewSetVMMetadataMethod(
+			_ = methods.NewSetVMMetadataMethod( //nolint:errcheck
 				computeServiceBuilder,
 				logger,
 				cpiConfig,

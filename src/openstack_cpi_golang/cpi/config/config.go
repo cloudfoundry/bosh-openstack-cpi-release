@@ -102,7 +102,7 @@ func (p Properties) Validate() error {
 }
 
 func (o OpenstackConfig) Validate() error {
-	if !((o.usernameIsSet() && !o.applicationCredentialIsSet()) ||
+	if !((o.usernameIsSet() && !o.applicationCredentialIsSet()) || //nolint:staticcheck
 		(!o.usernameIsSet() && o.applicationCredentialIsSet())) {
 		return fmt.Errorf("'invalid OpenStack cloud properties: username and api_key or application_credential_id and application_credential_secret is required'")
 	}
@@ -147,7 +147,7 @@ func NewConfigFromPath(filesystem fs.FS, path string) (CpiConfig, error) {
 	if err != nil {
 		return config, fmt.Errorf("failed to open configuration file: %w", err)
 	}
-	defer file.Close()
+	defer file.Close() //nolint:errcheck
 
 	data, err := io.ReadAll(file)
 	if err != nil {

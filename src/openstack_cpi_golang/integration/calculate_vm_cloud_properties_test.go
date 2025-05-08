@@ -20,7 +20,8 @@ var _ = Describe("Calculate VM cloud properties", func() {
 			w.Header().Add("Content-Type", "application/json")
 			w.WriteHeader(http.StatusOK)
 
-			fmt.Fprintf(w, `{
+			fmt.Fprintf(w, //nolint:errcheck
+				`{
 				"flavors": [
 					{
 						"disk": 1,
@@ -68,7 +69,7 @@ var _ = Describe("Calculate VM cloud properties", func() {
 		err := cpi.Execute(getDefaultConfig(Endpoint()), logger)
 		Expect(err).ShouldNot(HaveOccurred())
 
-		stdOutWriter.Close()
+		stdOutWriter.Close() //nolint:errcheck
 		actual := <-outChannel
 		Expect(actual).To(ContainSubstring(`"result":{"instance_type":"m_c2_m16"},"error":null`))
 	})
@@ -89,7 +90,7 @@ var _ = Describe("Calculate VM cloud properties", func() {
 		err := cpi.Execute(getBootFromVolumeConfig(Endpoint()), logger)
 		Expect(err).ShouldNot(HaveOccurred())
 
-		stdOutWriter.Close()
+		stdOutWriter.Close() //nolint:errcheck
 		actual := <-outChannel
 		Expect(actual).To(ContainSubstring(`"result":{"instance_type":"m_c2_m16","root_disk":{"size":"4099.0"}},"error":null`))
 	})
@@ -110,7 +111,7 @@ var _ = Describe("Calculate VM cloud properties", func() {
 		err := cpi.Execute(getDefaultConfig(Endpoint()), logger)
 		Expect(err).ShouldNot(HaveOccurred())
 
-		stdOutWriter.Close()
+		stdOutWriter.Close() //nolint:errcheck
 		Expect(<-outChannel).To(ContainSubstring("Unable to meet requested VM requirements: 10 CPU, 8192 MB RAM, 4 GB Disk."))
 	})
 })

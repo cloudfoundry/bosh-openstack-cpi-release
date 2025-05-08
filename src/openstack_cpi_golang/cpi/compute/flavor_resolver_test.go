@@ -34,7 +34,7 @@ var _ = Describe("FlavorResolver", func() {
 
 	Context("ResolveFlavorForInstanceType", func() {
 		It("lists flavors", func() {
-			_, _ = compute.NewFlavorResolver(serviceClients, &computeFacade).ResolveFlavorForInstanceType("the_instance_type")
+			_, _ = compute.NewFlavorResolver(serviceClients, &computeFacade).ResolveFlavorForInstanceType("the_instance_type") //nolint:errcheck
 
 			Expect(computeFacade.ListFlavorsCallCount()).To(Equal(1))
 		})
@@ -48,7 +48,7 @@ var _ = Describe("FlavorResolver", func() {
 		})
 
 		It("extract flavors", func() {
-			_, _ = compute.NewFlavorResolver(serviceClients, &computeFacade).ResolveFlavorForInstanceType("the_instance_type")
+			_, _ = compute.NewFlavorResolver(serviceClients, &computeFacade).ResolveFlavorForInstanceType("the_instance_type") //nolint:errcheck
 
 			Expect(computeFacade.ExtractFlavorsArgsForCall(0)).To(Equal(flavorsPage))
 			Expect(computeFacade.ExtractFlavorsCallCount()).To(Equal(1))
@@ -87,7 +87,7 @@ var _ = Describe("FlavorResolver", func() {
 		})
 
 		It("lists flavors", func() {
-			_, _ = compute.NewFlavorResolver(serviceClients, &computeFacade).ResolveFlavorForRequirements(vmResources, bootFromVolume)
+			_, _ = compute.NewFlavorResolver(serviceClients, &computeFacade).ResolveFlavorForRequirements(vmResources, bootFromVolume) //nolint:errcheck
 
 			Expect(computeFacade.ListFlavorsCallCount()).To(Equal(1))
 		})
@@ -101,7 +101,7 @@ var _ = Describe("FlavorResolver", func() {
 		})
 
 		It("extract flavors", func() {
-			_, _ = compute.NewFlavorResolver(serviceClients, &computeFacade).ResolveFlavorForRequirements(vmResources, bootFromVolume)
+			_, _ = compute.NewFlavorResolver(serviceClients, &computeFacade).ResolveFlavorForRequirements(vmResources, bootFromVolume) //nolint:errcheck
 
 			Expect(computeFacade.ExtractFlavorsArgsForCall(0)).To(Equal(flavorsPage))
 			Expect(computeFacade.ExtractFlavorsCallCount()).To(Equal(1))

@@ -20,7 +20,8 @@ var _ = Describe("REBOOT VM", func() {
 		Mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 			switch r.Method {
 			case http.MethodGet:
-				_, _ = fmt.Fprintf(w, `{
+				_, _ = fmt.Fprintf(w, //nolint:errcheck
+					`{
 					"versions": {"values": [
 						{"status": "stable","id": "v3.0","links": [{ "href": "%s", "rel": "self" }]},
 						{"status": "stable","id": "v2.0","links": [{ "href": "%s", "rel": "self" }]}
@@ -35,7 +36,8 @@ var _ = Describe("REBOOT VM", func() {
 				w.Header().Add("X-Subject-Token", "0123456789")
 				w.WriteHeader(http.StatusCreated)
 
-				_, _ = fmt.Fprintf(w, `{
+				_, _ = fmt.Fprintf(w, //nolint:errcheck
+					`{
 					"token": {
 						"expires_at": "2013-02-02T18:30:59.000000Z",
 						"catalog": [{
@@ -76,7 +78,8 @@ var _ = Describe("REBOOT VM", func() {
 			switch r.Method {
 			case http.MethodGet:
 				w.WriteHeader(http.StatusOK)
-				_, _ = fmt.Fprintf(w, `{
+				_, _ = fmt.Fprintf(w, //nolint:errcheck
+					`{
 					"server": {
 						"id": "active-server-id",
 						"status": "ACTIVE"
@@ -89,7 +92,7 @@ var _ = Describe("REBOOT VM", func() {
 			switch r.Method {
 			case http.MethodGet:
 				w.WriteHeader(http.StatusNotFound)
-				_, _ = fmt.Fprintf(w, `{}`)
+				_, _ = fmt.Fprintf(w, `{}`) //nolint:errcheck
 			}
 		})
 
@@ -97,7 +100,8 @@ var _ = Describe("REBOOT VM", func() {
 			switch r.Method {
 			case http.MethodGet:
 				w.WriteHeader(http.StatusOK)
-				_, _ = fmt.Fprintf(w, `{
+				_, _ = fmt.Fprintf(w, //nolint:errcheck
+					`{
 					"server": {
 						"id": "error-reboot-server-id",
 						"status": "ACTIVE"
@@ -114,14 +118,16 @@ var _ = Describe("REBOOT VM", func() {
 
 			switch switchCase {
 			case 1:
-				_, _ = fmt.Fprintf(w, `{
+				_, _ = fmt.Fprintf(w, //nolint:errcheck
+					`{
 					"server": {
 						"id": "error-server-state-id",
 						"status": "ACTIVE"
 					}
 				}`)
 			case 0:
-				_, _ = fmt.Fprintf(w, `{
+				_, _ = fmt.Fprintf(w, //nolint:errcheck
+					`{
 					"server": {
 						"id": "error-server-state-id",
 						"status": "ERROR"
@@ -134,13 +140,13 @@ var _ = Describe("REBOOT VM", func() {
 			switch r.Method {
 			case http.MethodPost:
 				var result map[string]interface{}
-				body, _ := io.ReadAll(r.Body)
-				_ = json.Unmarshal(body, &result)
+				body, _ := io.ReadAll(r.Body)     //nolint:errcheck
+				_ = json.Unmarshal(body, &result) //nolint:errcheck
 
 				cpiRebootMethod := result["reboot"].(map[string]interface{})
 				if cpiRebootMethod["type"].(string) == "SOFT" {
 					w.WriteHeader(http.StatusAccepted)
-					_, _ = fmt.Fprintf(w, `{ }`)
+					_, _ = fmt.Fprintf(w, `{ }`) //nolint:errcheck
 				}
 			}
 		})
@@ -149,13 +155,13 @@ var _ = Describe("REBOOT VM", func() {
 			switch r.Method {
 			case http.MethodPost:
 				var result map[string]interface{}
-				body, _ := io.ReadAll(r.Body)
-				_ = json.Unmarshal(body, &result)
+				body, _ := io.ReadAll(r.Body)     //nolint:errcheck
+				_ = json.Unmarshal(body, &result) //nolint:errcheck
 
 				cpiRebootMethod := result["reboot"].(map[string]interface{})
 				if cpiRebootMethod["type"].(string) == "SOFT" {
 					w.WriteHeader(http.StatusNotFound)
-					_, _ = fmt.Fprintf(w, `{}`)
+					_, _ = fmt.Fprintf(w, `{}`) //nolint:errcheck
 				}
 			}
 		})
@@ -164,13 +170,13 @@ var _ = Describe("REBOOT VM", func() {
 			switch r.Method {
 			case http.MethodPost:
 				var result map[string]interface{}
-				body, _ := io.ReadAll(r.Body)
-				_ = json.Unmarshal(body, &result)
+				body, _ := io.ReadAll(r.Body)     //nolint:errcheck
+				_ = json.Unmarshal(body, &result) //nolint:errcheck
 
 				cpiRebootMethod := result["reboot"].(map[string]interface{})
 				if cpiRebootMethod["type"].(string) == "SOFT" {
 					w.WriteHeader(http.StatusAccepted)
-					_, _ = fmt.Fprintf(w, `{ }`)
+					_, _ = fmt.Fprintf(w, `{ }`) //nolint:errcheck
 				}
 			}
 		})
@@ -194,7 +200,7 @@ var _ = Describe("REBOOT VM", func() {
 		err := cpi.Execute(cpiConfig, logger)
 		Expect(err).ShouldNot(HaveOccurred())
 
-		_ = stdOutWriter.Close()
+		_ = stdOutWriter.Close() //nolint:errcheck
 		Expect(<-outChannel).To(ContainSubstring(`"result":"","error":null`))
 	})
 
@@ -208,7 +214,7 @@ var _ = Describe("REBOOT VM", func() {
 		err := cpi.Execute(getDefaultConfig(Endpoint()), logger)
 		Expect(err).ShouldNot(HaveOccurred())
 
-		_ = stdOutWriter.Close()
+		_ = stdOutWriter.Close() //nolint:errcheck
 		Expect(<-outChannel).To(
 			ContainSubstring(`reboot_vm: failed to retrieve server information: Resource not found`),
 		)
@@ -224,7 +230,7 @@ var _ = Describe("REBOOT VM", func() {
 		err := cpi.Execute(getDefaultConfig(Endpoint()), logger)
 		Expect(err).ShouldNot(HaveOccurred())
 
-		_ = stdOutWriter.Close()
+		_ = stdOutWriter.Close() //nolint:errcheck
 		Expect(<-outChannel).To(
 			ContainSubstring(`reboot_vm: failed to reboot server: Resource not found`),
 		)
@@ -240,7 +246,7 @@ var _ = Describe("REBOOT VM", func() {
 		err := cpi.Execute(getDefaultConfig(Endpoint()), logger)
 		Expect(err).ShouldNot(HaveOccurred())
 
-		_ = stdOutWriter.Close()
+		_ = stdOutWriter.Close() //nolint:errcheck
 		Expect(<-outChannel).To(
 			ContainSubstring(`reboot_vm: compute_service: server became ERROR state while waiting to become ACTIVE"`),
 		)

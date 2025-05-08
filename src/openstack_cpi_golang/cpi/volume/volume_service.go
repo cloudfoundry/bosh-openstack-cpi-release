@@ -82,7 +82,7 @@ func (v volumeService) CreateVolume(
 ) (*volumes.Volume, error) {
 	volumeType := cloudProps.VolumeType
 
-	uuid, _ := uuid.NewRandom()
+	uuid, _ := uuid.NewRandom() //nolint:errcheck
 	name := fmt.Sprintf("volume-%s", uuid)
 	createOpts := v.getVolumeCreateOpts(size, az, volumeType, name)
 	volume, err := v.volumeFacade.CreateVolume(v.serviceClients.ServiceClient, createOpts)

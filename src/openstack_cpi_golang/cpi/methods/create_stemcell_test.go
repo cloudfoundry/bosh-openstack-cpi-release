@@ -104,7 +104,7 @@ var _ = Describe("CreateStemcellMethod", func() {
 
 			theCloudProps := &MockStemcellCloudProps{ImageID: "123-456"}
 
-			_, _ = methods.NewCreateStemcellMethod(
+			_, _ = methods.NewCreateStemcellMethod( //nolint:errcheck
 				&imageServiceBuilder,
 				&heavyStemcellCreator,
 				&lightStemcellCreator,
@@ -127,7 +127,7 @@ var _ = Describe("CreateStemcellMethod", func() {
 
 			theCloudProps := &MockStemcellCloudProps{}
 
-			_, _ = methods.NewCreateStemcellMethod(
+			_, _ = methods.NewCreateStemcellMethod( //nolint:errcheck
 				&imageServiceBuilder,
 				&heavyStemcellCreator,
 				&lightStemcellCreator,
@@ -170,7 +170,7 @@ var _ = Describe("CreateStemcellMethod", func() {
 
 			theCloudProps := &MockStemcellCloudProps{}
 
-			_, _ = methods.NewCreateStemcellMethod(
+			_, _ = methods.NewCreateStemcellMethod( //nolint:errcheck
 				&imageServiceBuilder,
 				&heavyStemcellCreator,
 				&lightStemcellCreator,

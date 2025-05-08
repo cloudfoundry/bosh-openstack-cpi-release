@@ -23,7 +23,8 @@ var _ = Describe("DetachDiskMethod Integration Tests", func() {
 			case http.MethodGet:
 				w.Header().Add("Content-Type", "application/json")
 				w.WriteHeader(http.StatusOK)
-				fmt.Fprint(w, `{
+				fmt.Fprint(w, //nolint:errcheck
+					`{
 					"server": {
 						"id": "server-id-ok",
 						"status": "ACTIVE"
@@ -55,7 +56,7 @@ var _ = Describe("DetachDiskMethod Integration Tests", func() {
 						"tag": "tag-2",
 						"delete_on_termination": false
 					}]}`
-				fmt.Fprint(w, payload)
+				fmt.Fprint(w, payload) //nolint:errcheck
 			default:
 				w.WriteHeader(http.StatusNotImplemented)
 			}
@@ -77,7 +78,8 @@ var _ = Describe("DetachDiskMethod Integration Tests", func() {
 			case http.MethodGet:
 				w.Header().Add("Content-Type", "application/json")
 				w.WriteHeader(http.StatusOK)
-				fmt.Fprint(w, `{
+				fmt.Fprint(w, //nolint:errcheck
+					`{
 					"volume": {
 						"id": "volume-id-already-1",
 						"status": "available"
@@ -107,7 +109,7 @@ var _ = Describe("DetachDiskMethod Integration Tests", func() {
 			}`)
 			err := cpi.Execute(getDefaultConfig(Endpoint()), logger)
 			Expect(err).ShouldNot(HaveOccurred())
-			stdOutWriter.Close()
+			stdOutWriter.Close() //nolint:errcheck
 			actual := <-outChannel
 			Expect(actual).To(ContainSubstring(`"result":null,"error":null`))
 		})
@@ -124,7 +126,7 @@ var _ = Describe("DetachDiskMethod Integration Tests", func() {
 			}`)
 			err := cpi.Execute(getDefaultConfig(Endpoint()), logger)
 			Expect(err).ShouldNot(HaveOccurred())
-			stdOutWriter.Close()
+			stdOutWriter.Close() //nolint:errcheck
 			actual := <-outChannel
 			Expect(actual).To(ContainSubstring(`"result":null,"error":null`))
 		})
@@ -152,7 +154,7 @@ var _ = Describe("DetachDiskMethod Integration Tests", func() {
 			}
 			err := cpi.Execute(currentConfig, logger)
 			Expect(err).ShouldNot(HaveOccurred())
-			stdOutWriter.Close()
+			stdOutWriter.Close() //nolint:errcheck
 			actual := <-outChannel
 			Expect(actual).To(ContainSubstring("Internal Server Error"))
 		})

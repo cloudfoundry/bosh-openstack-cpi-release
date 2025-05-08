@@ -54,7 +54,7 @@ var _ = Describe("NetworkService", func() {
 
 	Context("Resolve", func() {
 		It("resolves security groups by id", func() {
-			_, _ = network.NewSecurityGroupsResolver(serviceClients, &networkingFacade, &logger).Resolve([]string{"the_group_id"})
+			_, _ = network.NewSecurityGroupsResolver(serviceClients, &networkingFacade, &logger).Resolve([]string{"the_group_id"}) //nolint:errcheck
 
 			_, securityGroupID := networkingFacade.GetSecurityGroupsArgsForCall(0)
 			Expect(securityGroupID).To(Equal("the_group_id"))
@@ -63,7 +63,7 @@ var _ = Describe("NetworkService", func() {
 		It("logs a warning if getting security group by id fails", func() {
 			networkingFacade.GetSecurityGroupsReturns(nil, errors.New("boom"))
 
-			_, _ = network.NewSecurityGroupsResolver(serviceClients, &networkingFacade, &logger).Resolve([]string{"the_group_id"})
+			_, _ = network.NewSecurityGroupsResolver(serviceClients, &networkingFacade, &logger).Resolve([]string{"the_group_id"}) //nolint:errcheck
 
 			_, msg, _ := logger.WarnArgsForCall(0)
 			Expect(msg).To(Equal("failed to get security group 'the_group_id' by id: boom. Trying to get security group by name"))
@@ -82,7 +82,7 @@ var _ = Describe("NetworkService", func() {
 				networkingFacade.GetSecurityGroupsReturns(nil, nil)
 				networkingFacade.ListSecurityGroupsReturns(securityGroupsPage, nil)
 
-				_, _ = network.NewSecurityGroupsResolver(serviceClients, &networkingFacade, &logger).Resolve([]string{"the_group_id"})
+				_, _ = network.NewSecurityGroupsResolver(serviceClients, &networkingFacade, &logger).Resolve([]string{"the_group_id"}) //nolint:errcheck
 
 				Expect(networkingFacade.GetSecurityGroupsCallCount()).To(Equal(1))
 			})
@@ -100,7 +100,7 @@ var _ = Describe("NetworkService", func() {
 				networkingFacade.GetSecurityGroupsReturns(nil, errors.New("baam"))
 				networkingFacade.ListSecurityGroupsReturns(securityGroupsPage, nil)
 
-				_, _ = network.NewSecurityGroupsResolver(serviceClients, &networkingFacade, &logger).Resolve([]string{"the_group_id"})
+				_, _ = network.NewSecurityGroupsResolver(serviceClients, &networkingFacade, &logger).Resolve([]string{"the_group_id"}) //nolint:errcheck
 
 				page := networkingFacade.ExtractSecurityGroupsArgsForCall(0)
 				Expect(page).To(Equal(securityGroupsPage))

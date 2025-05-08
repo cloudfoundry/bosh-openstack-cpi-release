@@ -20,7 +20,8 @@ var _ = Describe("GetDisksMethod Integration Tests", func() {
 			case http.MethodGet:
 				w.Header().Add("Content-Type", "application/json")
 				w.WriteHeader(http.StatusOK)
-				fmt.Fprint(w, `{
+				fmt.Fprint(w, //nolint:errcheck
+					`{
 					"server": {
 						"id": "server-id-ok",
 						"status": "ACTIVE"
@@ -35,7 +36,8 @@ var _ = Describe("GetDisksMethod Integration Tests", func() {
 			case http.MethodGet:
 				w.Header().Add("Content-Type", "application/json")
 				w.WriteHeader(http.StatusOK)
-				fmt.Fprint(w, `{
+				fmt.Fprint(w, //nolint:errcheck
+					`{
 					"server": {
 						"id": "server-id-ok-no-disks",
 						"status": "ACTIVE"
@@ -75,7 +77,7 @@ var _ = Describe("GetDisksMethod Integration Tests", func() {
 						"tag": "tag-2",
 						"delete_on_termination": false
 					}]}`
-				fmt.Fprint(w, payload)
+				fmt.Fprint(w, payload) //nolint:errcheck
 			default:
 				w.WriteHeader(http.StatusNotImplemented)
 			}
@@ -87,7 +89,7 @@ var _ = Describe("GetDisksMethod Integration Tests", func() {
 				w.Header().Set("Content-Type", "application/json")
 				w.WriteHeader(http.StatusOK)
 				payload := `{ "volumeAttachments": []}`
-				fmt.Fprint(w, payload)
+				fmt.Fprint(w, payload) //nolint:errcheck
 			default:
 				w.WriteHeader(http.StatusNotImplemented)
 			}
@@ -109,7 +111,7 @@ var _ = Describe("GetDisksMethod Integration Tests", func() {
 		}`)
 		err := cpi.Execute(getDefaultConfig(Endpoint()), logger)
 		Expect(err).ShouldNot(HaveOccurred())
-		stdOutWriter.Close()
+		stdOutWriter.Close() //nolint:errcheck
 		actual := <-outChannel
 		Expect(actual).To(ContainSubstring(`"result":["volume-id-already-1","volume-id-already-2"],"error":null,"log":""`))
 	})
@@ -125,7 +127,7 @@ var _ = Describe("GetDisksMethod Integration Tests", func() {
 		}`)
 		err := cpi.Execute(getDefaultConfig(Endpoint()), logger)
 		Expect(err).ShouldNot(HaveOccurred())
-		stdOutWriter.Close()
+		stdOutWriter.Close() //nolint:errcheck
 		actual := <-outChannel
 		Expect(actual).To(ContainSubstring(`"message":"get_disks: Failed to get VM server-id-not-ok: failed to retrieve server information: Resource not found`))
 	})
@@ -141,7 +143,7 @@ var _ = Describe("GetDisksMethod Integration Tests", func() {
 		}`)
 		err := cpi.Execute(getDefaultConfig(Endpoint()), logger)
 		Expect(err).ShouldNot(HaveOccurred())
-		stdOutWriter.Close()
+		stdOutWriter.Close() //nolint:errcheck
 		actual := <-outChannel
 		Expect(actual).To(ContainSubstring(`"result":[],"error":null`))
 	})

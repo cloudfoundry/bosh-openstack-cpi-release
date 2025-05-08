@@ -80,8 +80,8 @@ var _ = Describe("LoadbalancerService", func() {
 		})
 
 		It("lists loadbalancer pools", func() {
-			_, _ = loadbalancer.NewLoadbalancerService(serviceClients, &loadbalancerFacade, &logger).
-				GetPool("pool-name")
+			_, _ = loadbalancer.NewLoadbalancerService(serviceClients, &loadbalancerFacade, &logger). //nolint:errcheck
+															GetPool("pool-name")
 
 			_, listOpts := loadbalancerFacade.ListPoolsArgsForCall(0)
 			Expect(listOpts.Name).To(Equal("pool-name"))
@@ -98,8 +98,8 @@ var _ = Describe("LoadbalancerService", func() {
 		})
 
 		It("extracts loadbalancer pools", func() {
-			_, _ = loadbalancer.NewLoadbalancerService(serviceClients, &loadbalancerFacade, &logger).
-				GetPool("pool-name")
+			_, _ = loadbalancer.NewLoadbalancerService(serviceClients, &loadbalancerFacade, &logger). //nolint:errcheck
+															GetPool("pool-name")
 
 			Expect(loadbalancerFacade.ExtractPoolsArgsForCall(0)).To(Equal(poolsPage))
 		})

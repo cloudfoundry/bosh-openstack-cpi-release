@@ -33,7 +33,8 @@ var _ = Describe("NetworkConfigBuilder", func() {
 
 	Context("NewNetworkConfig", func() {
 		BeforeEach(func() {
-			networkingConfig, _ = createNetworkConfig(&securityGroupsResolver, []byte(`{
+			networkingConfig, _ = createNetworkConfig(&securityGroupsResolver, //nolint:errcheck
+				[]byte(`{
 				"name1": {
 					"type":    "manual",
 					"ip":      "1.1.1.1",
@@ -202,7 +203,8 @@ var _ = Describe("NetworkConfigBuilder", func() {
 		It("returns cloud properties security groups", func() {
 			securityGroupsResolver.ResolveReturns([]string{"resolved_security_group_1", "resolved_security_group_2"}, nil)
 
-			networkingConfig, _ = createNetworkConfig(&securityGroupsResolver, []byte(`{
+			networkingConfig, _ = createNetworkConfig(&securityGroupsResolver, //nolint:errcheck
+				[]byte(`{
 					"name1": {
 						"type":    "manual",
 						"ip":      "1.1.1.1",
@@ -226,7 +228,8 @@ var _ = Describe("NetworkConfigBuilder", func() {
 		It("returns network security groups if cloud properties do not define security groups", func() {
 			securityGroupsResolver.ResolveReturns([]string{"resolved_network_security_group_1", "resolved_network_security_group_2"}, nil)
 
-			networkingConfig, _ = createNetworkConfig(&securityGroupsResolver, []byte(`{
+			networkingConfig, _ = createNetworkConfig(&securityGroupsResolver, //nolint:errcheck
+				[]byte(`{
 					"name1": {
 						"type":    "manual",
 						"ip":      "1.1.1.1",
@@ -250,7 +253,8 @@ var _ = Describe("NetworkConfigBuilder", func() {
 		It("returns default security groups if network security groups are not defined", func() {
 			securityGroupsResolver.ResolveReturns([]string{"resolved_default_group_1", "resolved_default_group_2"}, nil)
 
-			networkingConfig, _ = createNetworkConfig(&securityGroupsResolver, []byte(`{
+			networkingConfig, _ = createNetworkConfig(&securityGroupsResolver, //nolint:errcheck
+				[]byte(`{
 					"name1": {
 						"type":    "manual",
 						"ip":      "1.1.1.1",
@@ -276,7 +280,8 @@ var _ = Describe("NetworkConfigBuilder", func() {
 				"resolved_security_group_1", "resolved_security_group_2", "resolved_security_group_3", "resolved_security_group_4",
 			}, nil)
 
-			networkingConfig, _ = createNetworkConfig(&securityGroupsResolver, []byte(`{
+			networkingConfig, _ = createNetworkConfig(&securityGroupsResolver, //nolint:errcheck
+				[]byte(`{
 				"name1": {
 					"type":    "manual",
 					"ip":      "1.1.1.1",

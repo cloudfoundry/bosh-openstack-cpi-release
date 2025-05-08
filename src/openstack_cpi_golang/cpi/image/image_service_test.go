@@ -66,8 +66,8 @@ var _ = Describe("ImageService", func() {
 				StemcellPubliclyVisible: true,
 			}
 
-			_, _ = image.NewImageService(serviceClients, &imagesFacade, &httpClient, &logger).
-				CreateImage(cloudProps, openstackConfig)
+			_, _ = image.NewImageService(serviceClients, &imagesFacade, &httpClient, &logger). //nolint:errcheck
+														CreateImage(cloudProps, openstackConfig)
 
 			public := images.ImageVisibilityPublic
 			createOpts := images.CreateOpts{
@@ -106,8 +106,8 @@ var _ = Describe("ImageService", func() {
 		It("returns the id of an existing image entity in OpenStack", func() {
 			imagesFacade.GetImageReturns(&images.Image{ID: "123-456", Status: "active"}, nil)
 
-			_, _ = image.NewImageService(serviceClients, &imagesFacade, &httpClient, &logger).
-				GetImage("123-456")
+			_, _ = image.NewImageService(serviceClients, &imagesFacade, &httpClient, &logger). //nolint:errcheck
+														GetImage("123-456")
 
 			serviceClient, imageID := imagesFacade.GetImageArgsForCall(0)
 			Expect(serviceClient).To(Equal(serviceClient))
@@ -152,7 +152,7 @@ var _ = Describe("ImageService", func() {
 		})
 
 		It("succeeds without error", func() {
-			serviceClient.ProviderClient.TokenID = "token"
+			serviceClient.ProviderClient.TokenID = "token" //nolint:staticcheck
 			header := http.Header{}
 			request := http.Request{Header: header}
 			httpClient.NewRequestReturns(&request, nil)
@@ -170,8 +170,8 @@ var _ = Describe("ImageService", func() {
 			httpClient.NewRequestReturns(&request, nil)
 			httpClient.DoReturns(&http.Response{StatusCode: 204}, nil)
 
-			_ = image.NewImageService(serviceClients, &imagesFacade, &httpClient, &logger).
-				UploadImage("123-456", "testdata/root.img")
+			_ = image.NewImageService(serviceClients, &imagesFacade, &httpClient, &logger). //nolint:errcheck
+													UploadImage("123-456", "testdata/root.img")
 
 			Expect(httpClient.DoCallCount()).To(Equal(1))
 		})
@@ -217,8 +217,8 @@ var _ = Describe("ImageService", func() {
 		It("deletes an existing image in OpenStack", func() {
 			imagesFacade.DeleteImageReturns(nil)
 
-			_ = image.NewImageService(serviceClients, &imagesFacade, &httpClient, &logger).
-				DeleteImage("123-456")
+			_ = image.NewImageService(serviceClients, &imagesFacade, &httpClient, &logger). //nolint:errcheck
+													DeleteImage("123-456")
 
 			serviceClient, imageID := imagesFacade.DeleteImageArgsForCall(0)
 			Expect(serviceClient).To(Equal(serviceClient))

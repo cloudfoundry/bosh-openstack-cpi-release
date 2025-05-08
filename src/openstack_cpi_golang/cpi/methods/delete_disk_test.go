@@ -138,7 +138,7 @@ var _ = Describe("DeleteDisk", func() {
 			})
 
 			It("issues a logger message", func() {
-				_ = methods.NewDeleteDiskMethod(
+				_ = methods.NewDeleteDiskMethod( //nolint:errcheck
 					&volumeServiceBuilder,
 					cpiConfig,
 					&logger,

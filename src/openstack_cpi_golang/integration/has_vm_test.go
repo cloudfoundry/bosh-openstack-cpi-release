@@ -20,7 +20,8 @@ var _ = Describe("HAS VM", func() {
 			switch r.Method {
 			case http.MethodGet:
 				w.WriteHeader(http.StatusOK)
-				fmt.Fprintf(w, `{
+				fmt.Fprintf(w, //nolint:errcheck
+					`{
 					"server": {
 						"id": "active-server-id",
 						"status": "ACTIVE"
@@ -33,7 +34,8 @@ var _ = Describe("HAS VM", func() {
 			switch r.Method {
 			case http.MethodGet:
 				w.WriteHeader(http.StatusOK)
-				fmt.Fprintf(w, `{
+				fmt.Fprintf(w, //nolint:errcheck
+					`{
 					"server": {
 						"id": "deleted-server-id",
 						"status": "DELETED"
@@ -46,7 +48,8 @@ var _ = Describe("HAS VM", func() {
 			switch r.Method {
 			case http.MethodGet:
 				w.WriteHeader(http.StatusOK)
-				fmt.Fprintf(w, `{
+				fmt.Fprintf(w, //nolint:errcheck
+					`{
 					"server": {
 						"id": "terminated-server-id",
 						"status": "TERMINATED"
@@ -59,7 +62,7 @@ var _ = Describe("HAS VM", func() {
 			switch r.Method {
 			case http.MethodGet:
 				w.WriteHeader(http.StatusNotFound)
-				fmt.Fprintf(w, `{}`)
+				fmt.Fprintf(w, `{}`) //nolint:errcheck
 			}
 		})
 
@@ -67,7 +70,7 @@ var _ = Describe("HAS VM", func() {
 			switch r.Method {
 			case http.MethodGet:
 				w.WriteHeader(http.StatusInternalServerError)
-				fmt.Fprintf(w, `{}`)
+				fmt.Fprintf(w, `{}`) //nolint:errcheck
 			}
 		})
 
@@ -87,7 +90,7 @@ var _ = Describe("HAS VM", func() {
 		err := cpi.Execute(getDefaultConfig(Endpoint()), logger)
 		Expect(err).ShouldNot(HaveOccurred())
 
-		stdOutWriter.Close()
+		stdOutWriter.Close() //nolint:errcheck
 		Expect(<-outChannel).To(ContainSubstring(`"result":true,"error":null`))
 	})
 
@@ -101,7 +104,7 @@ var _ = Describe("HAS VM", func() {
 		err := cpi.Execute(getDefaultConfig(Endpoint()), logger)
 		Expect(err).ShouldNot(HaveOccurred())
 
-		stdOutWriter.Close()
+		stdOutWriter.Close() //nolint:errcheck
 		Expect(<-outChannel).To(ContainSubstring(`"result":false,"error":null`))
 	})
 
@@ -115,7 +118,7 @@ var _ = Describe("HAS VM", func() {
 		err := cpi.Execute(getDefaultConfig(Endpoint()), logger)
 		Expect(err).ShouldNot(HaveOccurred())
 
-		stdOutWriter.Close()
+		stdOutWriter.Close() //nolint:errcheck
 		Expect(<-outChannel).To(ContainSubstring(`"result":false,"error":null`))
 	})
 
@@ -129,7 +132,7 @@ var _ = Describe("HAS VM", func() {
 		err := cpi.Execute(getDefaultConfig(Endpoint()), logger)
 		Expect(err).ShouldNot(HaveOccurred())
 
-		stdOutWriter.Close()
+		stdOutWriter.Close() //nolint:errcheck
 		Expect(<-outChannel).To(ContainSubstring(`"result":false,"error":null`))
 	})
 
@@ -151,7 +154,7 @@ var _ = Describe("HAS VM", func() {
 		err := cpi.Execute(cpiConfig, logger)
 		Expect(err).ShouldNot(HaveOccurred())
 
-		stdOutWriter.Close()
+		stdOutWriter.Close() //nolint:errcheck
 		Expect(<-outChannel).To(ContainSubstring(`message":"has_vm: failed to retrieve server information: max retry attempts (10) reached, err: Internal Server Error`))
 	})
 

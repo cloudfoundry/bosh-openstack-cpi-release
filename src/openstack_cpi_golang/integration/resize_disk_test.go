@@ -44,7 +44,7 @@ var _ = Describe("RESIZE DISK", func() {
 			err := cpi.Execute(getDefaultConfig(Endpoint()), logger)
 			Expect(err).ShouldNot(HaveOccurred())
 
-			stdOutWriter.Close()
+			stdOutWriter.Close() //nolint:errcheck
 			Expect(<-outChannel).To(ContainSubstring(`cannot resize volume because volume with id`))
 
 		})
@@ -57,7 +57,8 @@ var _ = Describe("RESIZE DISK", func() {
 				switch r.Method {
 				case http.MethodGet:
 					w.WriteHeader(http.StatusOK)
-					fmt.Fprintf(w, `{
+					fmt.Fprintf(w, //nolint:errcheck
+						`{
 					"volume": {
 						"id": "disk-id",
 						"size": 5,
@@ -81,7 +82,7 @@ var _ = Describe("RESIZE DISK", func() {
 			err := cpi.Execute(getDefaultConfig(Endpoint()), logger)
 			Expect(err).ShouldNot(HaveOccurred())
 
-			stdOutWriter.Close()
+			stdOutWriter.Close() //nolint:errcheck
 			Expect(<-outChannel).To(ContainSubstring(`{"result":null,"error":null,"log":""}`))
 		})
 
@@ -98,7 +99,7 @@ var _ = Describe("RESIZE DISK", func() {
 			err := cpi.Execute(getDefaultConfig(Endpoint()), logger)
 			Expect(err).ShouldNot(HaveOccurred())
 
-			stdOutWriter.Close()
+			stdOutWriter.Close() //nolint:errcheck
 			Expect(<-outChannel).To(ContainSubstring(`cannot resize volume to a smaller size from`))
 		})
 
@@ -115,7 +116,7 @@ var _ = Describe("RESIZE DISK", func() {
 			err := cpi.Execute(getDefaultConfig(Endpoint()), logger)
 			Expect(err).ShouldNot(HaveOccurred())
 
-			stdOutWriter.Close()
+			stdOutWriter.Close() //nolint:errcheck
 			Expect(<-outChannel).To(ContainSubstring(`cannot resize volume disk-id due to attachments`))
 		})
 	})
@@ -127,7 +128,8 @@ var _ = Describe("RESIZE DISK", func() {
 				switch r.Method {
 				case http.MethodGet:
 					w.WriteHeader(http.StatusOK)
-					fmt.Fprintf(w, `{
+					fmt.Fprintf(w, //nolint:errcheck
+						`{
 					"volume": {
 						"id": "disk-id",
 						"size": 4,
@@ -158,7 +160,7 @@ var _ = Describe("RESIZE DISK", func() {
 			err := cpi.Execute(getDefaultConfig(Endpoint()), logger)
 			Expect(err).ShouldNot(HaveOccurred())
 
-			stdOutWriter.Close()
+			stdOutWriter.Close() //nolint:errcheck
 			Expect(<-outChannel).To(ContainSubstring(`failed to resize volume`))
 		})
 	})
@@ -170,7 +172,8 @@ var _ = Describe("RESIZE DISK", func() {
 				switch r.Method {
 				case http.MethodGet:
 					w.WriteHeader(http.StatusOK)
-					fmt.Fprintf(w, `{
+					fmt.Fprintf(w, //nolint:errcheck
+						`{
 					"volume": {
 						"id": "disk-id",
 						"size": 4,		
@@ -205,7 +208,7 @@ var _ = Describe("RESIZE DISK", func() {
 			err := cpi.Execute(config, logger)
 			Expect(err).ShouldNot(HaveOccurred())
 
-			stdOutWriter.Close()
+			stdOutWriter.Close() //nolint:errcheck
 			Expect(<-outChannel).To(ContainSubstring(`failed while waiting on resizing volume`))
 		})
 	})
@@ -217,7 +220,8 @@ var _ = Describe("RESIZE DISK", func() {
 				switch r.Method {
 				case http.MethodGet:
 					w.WriteHeader(http.StatusOK)
-					fmt.Fprintf(w, `{
+					fmt.Fprintf(w, //nolint:errcheck
+						`{
 					"volume": {
 						"id": "disk-id",
 						"size": 4,
@@ -252,7 +256,7 @@ var _ = Describe("RESIZE DISK", func() {
 			err := cpi.Execute(config, logger)
 			Expect(err).ShouldNot(HaveOccurred())
 
-			stdOutWriter.Close()
+			stdOutWriter.Close() //nolint:errcheck
 			Expect(<-outChannel).To(ContainSubstring(`{"result":null,"error":null,"log":""}`))
 		})
 	})

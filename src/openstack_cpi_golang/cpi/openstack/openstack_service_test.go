@@ -48,7 +48,7 @@ var _ = Describe("OpenstackService", func() {
 				ProjectName: "the_tenant",
 			}
 
-			_, _ = openstack.NewOpenstackService(&openstackFacade, &envVar).ImageServiceV2(openstackConfig)
+			_, _ = openstack.NewOpenstackService(&openstackFacade, &envVar).ImageServiceV2(openstackConfig) //nolint:errcheck
 
 			opts := openstackFacade.AuthenticatedClientArgsForCall(0)
 			Expect(opts).To(Equal(gophercloud.AuthOptions{
@@ -61,7 +61,7 @@ var _ = Describe("OpenstackService", func() {
 		})
 
 		It("gets the region of the service from the environment", func() {
-			_, _ = openstack.NewOpenstackService(&openstackFacade, &envVar).ImageServiceV2(config.OpenstackConfig{})
+			_, _ = openstack.NewOpenstackService(&openstackFacade, &envVar).ImageServiceV2(config.OpenstackConfig{}) //nolint:errcheck
 
 			_, endpointOpts := openstackFacade.NewImageServiceV2ArgsForCall(0)
 			Expect(endpointOpts).To(Equal(gophercloud.EndpointOpts{
@@ -97,7 +97,7 @@ var _ = Describe("OpenstackService", func() {
 				ProjectName: "the_tenant",
 			}
 
-			_, _ = openstack.NewOpenstackService(&openstackFacade, &envVar).ComputeServiceV2(openstackConfig)
+			_, _ = openstack.NewOpenstackService(&openstackFacade, &envVar).ComputeServiceV2(openstackConfig) //nolint:errcheck
 
 			opts := openstackFacade.AuthenticatedClientArgsForCall(0)
 			Expect(opts).To(Equal(gophercloud.AuthOptions{
@@ -110,7 +110,7 @@ var _ = Describe("OpenstackService", func() {
 		})
 
 		It("gets the region of the service from the environment", func() {
-			_, _ = openstack.NewOpenstackService(&openstackFacade, &envVar).ComputeServiceV2(config.OpenstackConfig{})
+			_, _ = openstack.NewOpenstackService(&openstackFacade, &envVar).ComputeServiceV2(config.OpenstackConfig{}) //nolint:errcheck
 
 			_, endpointOpts := openstackFacade.NewComputeV2ArgsForCall(0)
 			Expect(endpointOpts).To(Equal(gophercloud.EndpointOpts{
@@ -146,7 +146,7 @@ var _ = Describe("OpenstackService", func() {
 				ProjectName: "the_tenant",
 			}
 
-			_, _ = openstack.NewOpenstackService(&openstackFacade, &envVar).LoadbalancerV2(openstackConfig)
+			_, _ = openstack.NewOpenstackService(&openstackFacade, &envVar).LoadbalancerV2(openstackConfig) //nolint:errcheck
 
 			opts := openstackFacade.AuthenticatedClientArgsForCall(0)
 			Expect(opts).To(Equal(gophercloud.AuthOptions{
@@ -159,7 +159,7 @@ var _ = Describe("OpenstackService", func() {
 		})
 
 		It("gets the region of the service from the environment", func() {
-			_, _ = openstack.NewOpenstackService(&openstackFacade, &envVar).LoadbalancerV2(config.OpenstackConfig{})
+			_, _ = openstack.NewOpenstackService(&openstackFacade, &envVar).LoadbalancerV2(config.OpenstackConfig{}) //nolint:errcheck
 
 			_, endpointOpts := openstackFacade.NewLoadBalancerV2ArgsForCall(0)
 			Expect(endpointOpts).To(Equal(gophercloud.EndpointOpts{
@@ -195,7 +195,7 @@ var _ = Describe("OpenstackService", func() {
 				ProjectName: "the_tenant",
 			}
 
-			_, _ = openstack.NewOpenstackService(&openstackFacade, &envVar).NetworkServiceV2(openstackConfig)
+			_, _ = openstack.NewOpenstackService(&openstackFacade, &envVar).NetworkServiceV2(openstackConfig) //nolint:errcheck
 
 			opts := openstackFacade.AuthenticatedClientArgsForCall(0)
 			Expect(opts).To(Equal(gophercloud.AuthOptions{
@@ -208,7 +208,7 @@ var _ = Describe("OpenstackService", func() {
 		})
 
 		It("gets the region of the service from the environment", func() {
-			_, _ = openstack.NewOpenstackService(&openstackFacade, &envVar).NetworkServiceV2(config.OpenstackConfig{})
+			_, _ = openstack.NewOpenstackService(&openstackFacade, &envVar).NetworkServiceV2(config.OpenstackConfig{}) //nolint:errcheck
 
 			_, endpointOpts := openstackFacade.NewNetworkV2ArgsForCall(0)
 			Expect(endpointOpts).To(Equal(gophercloud.EndpointOpts{
