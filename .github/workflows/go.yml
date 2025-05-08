@@ -32,17 +32,9 @@ jobs:
           go-version-file: src/openstack_cpi_golang/go.mod
 
       - name: Run golangci-lint
-        if: ${{ matrix.os != 'windows-2019' }}
         uses: golangci/golangci-lint-action@v8
         with:
           working-directory: src/openstack_cpi_golang
-
-      - name: Run golangci-lint
-        if: ${{ matrix.os == 'windows-2019' }}
-        uses: golangci/golangci-lint-action@v8
-        with:
-          working-directory: src/openstack_cpi_golang
-          args: --disable=goimports
 
       - name: Run unit tests
         run: scripts/run-unit-tests
