@@ -17,7 +17,8 @@ var _ = Describe("SET VM METADATA", func() {
 		Mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 			switch r.Method {
 			case http.MethodGet:
-				fmt.Fprintf(w, `{
+				fmt.Fprintf(w, //nolint:errcheck
+					`{
 				"versions": {"values": [
 					{"status": "stable","id": "v3.0","links": [{ "href": "%s", "rel": "self" }]},
 					{"status": "stable","id": "v2.0","links": [{ "href": "%s", "rel": "self" }]}
@@ -32,7 +33,8 @@ var _ = Describe("SET VM METADATA", func() {
 				w.Header().Add("X-Subject-Token", "0123456789")
 				w.WriteHeader(http.StatusCreated)
 
-				fmt.Fprintf(w, `{
+				fmt.Fprintf(w, //nolint:errcheck
+					`{
 				"token": {
 					"expires_at": "2013-02-02T18:30:59.000000Z",
 					"catalog": [{
@@ -62,7 +64,8 @@ var _ = Describe("SET VM METADATA", func() {
 				switch r.Method {
 				case http.MethodGet:
 					w.WriteHeader(http.StatusOK)
-					fmt.Fprintf(w, `{
+					fmt.Fprintf(w, //nolint:errcheck
+						`{
 					"server": {
 						"id": "server-id",
 						"name": "old-name",
@@ -71,7 +74,8 @@ var _ = Describe("SET VM METADATA", func() {
 				}`)
 				case http.MethodPut:
 					w.WriteHeader(http.StatusOK)
-					fmt.Fprintf(w, `{
+					fmt.Fprintf(w, //nolint:errcheck
+						`{
 						"server": {
 							"id": "server-id",
 							"name": "old-name",
@@ -86,7 +90,8 @@ var _ = Describe("SET VM METADATA", func() {
 				switch r.Method {
 				case http.MethodGet:
 					w.WriteHeader(http.StatusOK)
-					fmt.Fprintf(w, `{
+					fmt.Fprintf(w, //nolint:errcheck
+						`{
 				   "server": {
 					  "id": "server-id",
 					  "name": "old-name",
@@ -95,7 +100,8 @@ var _ = Describe("SET VM METADATA", func() {
 					}`)
 				case http.MethodPost:
 					w.WriteHeader(http.StatusOK)
-					fmt.Fprintf(w, `{
+					fmt.Fprintf(w, //nolint:errcheck
+						`{
 			   			"server": {
 						"id": "server-id",
 						"name": "old-name",
@@ -112,7 +118,8 @@ var _ = Describe("SET VM METADATA", func() {
 				switch r.Method {
 				case http.MethodPut:
 					w.WriteHeader(http.StatusOK)
-					fmt.Fprintf(w, `{
+					fmt.Fprintf(w, //nolint:errcheck
+						`{
 						"server": {
 							"id": "server-id",
 							"name": "old-name",
@@ -129,7 +136,8 @@ var _ = Describe("SET VM METADATA", func() {
 				switch r.Method {
 				case http.MethodPut:
 					w.WriteHeader(http.StatusOK)
-					fmt.Fprintf(w, `{
+					fmt.Fprintf(w, //nolint:errcheck
+						`{
 						"server": {
 							"id": "server-id",
 							"name": "old-name",
@@ -146,7 +154,8 @@ var _ = Describe("SET VM METADATA", func() {
 				switch r.Method {
 				case http.MethodPut:
 					w.WriteHeader(http.StatusOK)
-					fmt.Fprintf(w, `{
+					fmt.Fprintf(w, //nolint:errcheck
+						`{
 						"server": {
 							"id": "server-id",
 							"name": "old-name",
@@ -163,7 +172,8 @@ var _ = Describe("SET VM METADATA", func() {
 				switch r.Method {
 				case http.MethodPut:
 					w.WriteHeader(http.StatusOK)
-					fmt.Fprintf(w, `{
+					fmt.Fprintf(w, //nolint:errcheck
+						`{
 						"server": {
 							"id": "server-id",
 							"name": "old-name",
@@ -194,7 +204,7 @@ var _ = Describe("SET VM METADATA", func() {
 			err := cpi.Execute(config, logger)
 			Expect(err).ShouldNot(HaveOccurred())
 
-			stdOutWriter.Close()
+			stdOutWriter.Close() //nolint:errcheck
 			Expect(<-outChannel).To(ContainSubstring(`"result":null,"error":null`))
 		})
 
@@ -219,7 +229,7 @@ var _ = Describe("SET VM METADATA", func() {
 			err := cpi.Execute(config, logger)
 			Expect(err).ShouldNot(HaveOccurred())
 
-			stdOutWriter.Close()
+			stdOutWriter.Close() //nolint:errcheck
 			Expect(<-outChannel).To(ContainSubstring(`"result":null,"error":null`))
 		})
 
@@ -243,7 +253,7 @@ var _ = Describe("SET VM METADATA", func() {
 			err := cpi.Execute(config, logger)
 			Expect(err).ShouldNot(HaveOccurred())
 
-			stdOutWriter.Close()
+			stdOutWriter.Close() //nolint:errcheck
 			Expect(<-outChannel).To(ContainSubstring(`"result":null,"error":null`))
 		})
 
@@ -269,7 +279,7 @@ var _ = Describe("SET VM METADATA", func() {
 			err := cpi.Execute(config, logger)
 			Expect(err).ShouldNot(HaveOccurred())
 
-			stdOutWriter.Close()
+			stdOutWriter.Close() //nolint:errcheck
 			Expect(<-outChannel).To(ContainSubstring(`"result":null,"error":null`))
 		})
 
@@ -294,7 +304,7 @@ var _ = Describe("SET VM METADATA", func() {
 			err := cpi.Execute(config, logger)
 			Expect(err).ShouldNot(HaveOccurred())
 
-			stdOutWriter.Close()
+			stdOutWriter.Close() //nolint:errcheck
 			Expect(<-outChannel).To(ContainSubstring(`"result":null,"error":null`))
 		})
 	})
@@ -306,7 +316,8 @@ var _ = Describe("SET VM METADATA", func() {
 				switch r.Method {
 				case http.MethodGet:
 					w.WriteHeader(http.StatusOK)
-					fmt.Fprintf(w, `{
+					fmt.Fprintf(w, //nolint:errcheck
+						`{
 						"server": {
 							"ID": "get_meta_not_found",
 							"name": "name"
@@ -319,7 +330,8 @@ var _ = Describe("SET VM METADATA", func() {
 				switch r.Method {
 				case http.MethodPut:
 					w.WriteHeader(http.StatusOK)
-					fmt.Fprintf(w, `{
+					fmt.Fprintf(w, //nolint:errcheck
+						`{
 							"server": {
 								"ID": "get_meta_not_found",
 								"name": "Name"
@@ -332,7 +344,8 @@ var _ = Describe("SET VM METADATA", func() {
 				switch r.Method {
 				case http.MethodPut:
 					w.WriteHeader(http.StatusOK)
-					fmt.Fprintf(w, `{
+					fmt.Fprintf(w, //nolint:errcheck
+						`{
 							"server": {
 								"ID": "get_meta_not_found",
 								"name": "Name"
@@ -345,7 +358,8 @@ var _ = Describe("SET VM METADATA", func() {
 				switch r.Method {
 				case http.MethodGet:
 					w.WriteHeader(http.StatusUnauthorized)
-					fmt.Fprintf(w, `{
+					fmt.Fprintf(w, //nolint:errcheck
+						`{
 						"server": {
 							"ID": "get_meta_not_found",
 							"name": "name"
@@ -372,7 +386,7 @@ var _ = Describe("SET VM METADATA", func() {
 			err := cpi.Execute(getDefaultConfig(Endpoint()), logger)
 			Expect(err).ShouldNot(HaveOccurred())
 
-			stdOutWriter.Close()
+			stdOutWriter.Close() //nolint:errcheck
 			Expect(<-outChannel).To(ContainSubstring(`"message":"failed to get Metadata`))
 
 		})
@@ -386,7 +400,8 @@ var _ = Describe("SET VM METADATA", func() {
 				switch r.Method {
 				case http.MethodGet:
 					w.WriteHeader(http.StatusOK)
-					fmt.Fprintf(w, `{
+					fmt.Fprintf(w, //nolint:errcheck
+						`{
 						"metadata": {
 							"foo": "foo_value",
 							"lbaas_pool_1": "pool_id_1/member_id_1",
@@ -397,7 +412,8 @@ var _ = Describe("SET VM METADATA", func() {
 
 				case http.MethodPost:
 					w.WriteHeader(http.StatusBadRequest)
-					fmt.Fprintf(w, `{
+					fmt.Fprintf(w, //nolint:errcheck
+						`{
 						"server": {
 							"ID": "get_meta",
 							"name": "name"
@@ -425,7 +441,7 @@ var _ = Describe("SET VM METADATA", func() {
 			err := cpi.Execute(getDefaultConfig(Endpoint()), logger)
 			Expect(err).ShouldNot(HaveOccurred())
 
-			stdOutWriter.Close()
+			stdOutWriter.Close() //nolint:errcheck
 			Expect(<-outChannel).To(ContainSubstring(`"failed to delete Metadata`))
 
 		})
@@ -440,7 +456,8 @@ var _ = Describe("SET VM METADATA", func() {
 				switch r.Method {
 				case http.MethodGet:
 					w.WriteHeader(http.StatusOK)
-					fmt.Fprintf(w, `{
+					fmt.Fprintf(w, //nolint:errcheck
+						`{
 							"metadata": {
 								"foo": "foo_value",
 								"lbaas_pool_1": "pool_id_1/member_id_1",
@@ -477,7 +494,7 @@ var _ = Describe("SET VM METADATA", func() {
 			err := cpi.Execute(config, logger)
 			Expect(err).ShouldNot(HaveOccurred())
 
-			stdOutWriter.Close()
+			stdOutWriter.Close() //nolint:errcheck
 			Expect(<-outChannel).To(ContainSubstring(`"message":"failed to update`))
 		})
 
@@ -490,7 +507,8 @@ var _ = Describe("SET VM METADATA", func() {
 				switch r.Method {
 				case http.MethodGet:
 					w.WriteHeader(http.StatusOK)
-					fmt.Fprintf(w, `{
+					fmt.Fprintf(w, //nolint:errcheck
+						`{
 						"server": {
 							"id": "update_failed",
 							"name": "name"
@@ -503,7 +521,8 @@ var _ = Describe("SET VM METADATA", func() {
 				switch r.Method {
 				case http.MethodPut:
 					w.WriteHeader(http.StatusOK)
-					fmt.Fprintf(w, `{
+					fmt.Fprintf(w, //nolint:errcheck
+						`{
 							"server": {
 								"ID": "update_failed",
 								"name": "Name"
@@ -516,7 +535,8 @@ var _ = Describe("SET VM METADATA", func() {
 				switch r.Method {
 				case http.MethodPut:
 					w.WriteHeader(http.StatusOK)
-					fmt.Fprintf(w, `{
+					fmt.Fprintf(w, //nolint:errcheck
+						`{
 							"server": {
 								"id": "get_meta_not_found",
 								"name": "Name"
@@ -529,7 +549,8 @@ var _ = Describe("SET VM METADATA", func() {
 				switch r.Method {
 				case http.MethodGet:
 					w.WriteHeader(http.StatusOK)
-					fmt.Fprintf(w, `{
+					fmt.Fprintf(w, //nolint:errcheck
+						`{
 						"server": {
 							"id": "update_failed",
 							"name": "name"
@@ -537,7 +558,8 @@ var _ = Describe("SET VM METADATA", func() {
 					}`)
 				case http.MethodPost:
 					w.WriteHeader(http.StatusOK)
-					fmt.Fprintf(w, `{
+					fmt.Fprintf(w, //nolint:errcheck
+						`{
 						"server": {
 							"id": "update_failed",
 							"name": "name"
@@ -569,7 +591,7 @@ var _ = Describe("SET VM METADATA", func() {
 			err := cpi.Execute(config, logger)
 			Expect(err).ShouldNot(HaveOccurred())
 
-			stdOutWriter.Close()
+			stdOutWriter.Close() //nolint:errcheck
 			Expect(<-outChannel).To(ContainSubstring(`"message":"failed to update`))
 		})
 

@@ -22,7 +22,7 @@ var _ = Describe("Testing the 'info' CPI method", func() {
 			err := cpi.Execute(getDefaultConfig("http://foo.bar"), logger)
 			Expect(err).ShouldNot(HaveOccurred())
 
-			stdOutWriter.Close()
+			stdOutWriter.Close() //nolint:errcheck
 			Expect(<-outChannel).To(Equal(`{"result":{"api_version":2,"stemcell_formats":["openstack-raw","openstack-qcow2","openstack-light"]},"error":null,"log":""}`))
 		})
 	})

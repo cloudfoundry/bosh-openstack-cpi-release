@@ -18,7 +18,7 @@ var _ = Describe("Delete VM", func() {
 		switch r.Method {
 		case http.MethodDelete:
 			w.WriteHeader(http.StatusNoContent)
-			fmt.Fprintf(w, `{}`)
+			fmt.Fprintf(w, `{}`) //nolint:errcheck
 
 		case http.MethodGet:
 			getServerCount++
@@ -28,14 +28,16 @@ var _ = Describe("Delete VM", func() {
 
 			switch switchCase {
 			case 1:
-				fmt.Fprintf(w, `{
+				fmt.Fprintf(w, //nolint:errcheck
+					`{
 					"server": {
 						"id": "%s",
 						"status": "ACTIVE"
 					}
 				}`, serverId)
 			case 0:
-				fmt.Fprintf(w, `{
+				fmt.Fprintf(w, //nolint:errcheck
+					`{
 					"server": {
 						"id": "%s",
 						"status": "DELETED"
@@ -57,7 +59,7 @@ var _ = Describe("Delete VM", func() {
 			switch r.Method {
 			case http.MethodDelete:
 				w.WriteHeader(http.StatusNoContent)
-				fmt.Fprintf(w, `{}`)
+				fmt.Fprintf(w, `{}`) //nolint:errcheck
 			}
 		})
 
@@ -65,7 +67,7 @@ var _ = Describe("Delete VM", func() {
 			switch r.Method {
 			case http.MethodDelete:
 				w.WriteHeader(http.StatusNotFound)
-				fmt.Fprintf(w, `{}`)
+				fmt.Fprintf(w, `{}`) //nolint:errcheck
 			}
 		})
 
@@ -73,7 +75,7 @@ var _ = Describe("Delete VM", func() {
 			switch r.Method {
 			case http.MethodDelete:
 				w.WriteHeader(http.StatusNoContent)
-				fmt.Fprintf(w, `{}`)
+				fmt.Fprintf(w, `{}`) //nolint:errcheck
 
 			case http.MethodGet:
 				w.Header().Add("Content-Type", "application/json")
@@ -81,13 +83,15 @@ var _ = Describe("Delete VM", func() {
 
 				deviceID := r.URL.Query().Get("device_id")
 				if deviceID != "1" && deviceID != "server_id_wrong_port" {
-					fmt.Fprintf(w, `{
+					fmt.Fprintf(w, //nolint:errcheck
+						`{
 						"ports": []
 					}`)
 				}
 
-				if deviceID == "1" {
-					fmt.Fprintf(w, `{
+				if deviceID == "1" { //nolint:staticcheck
+					fmt.Fprintf(w, //nolint:errcheck
+						`{
 						"ports": [
 							{
 								"device_id": "1",
@@ -96,7 +100,8 @@ var _ = Describe("Delete VM", func() {
 						]
 					}`)
 				} else if deviceID == "server_id_wrong_port" {
-					fmt.Fprintf(w, `{
+					fmt.Fprintf(w, //nolint:errcheck
+						`{
 						"ports": [
 							{
 								"device_id": "server_id_wrong_port",
@@ -121,7 +126,8 @@ var _ = Describe("Delete VM", func() {
 			case http.MethodGet:
 				w.WriteHeader(http.StatusOK)
 
-				fmt.Fprintf(w, `{
+				fmt.Fprintf(w, //nolint:errcheck
+					`{
 					"metadata": {
 						"foo": "foo_value",
 						"lbaas_pool_1": "pool_id_1/member_id_1",
@@ -144,7 +150,8 @@ var _ = Describe("Delete VM", func() {
 			case http.MethodGet:
 				w.WriteHeader(http.StatusOK)
 
-				fmt.Fprintf(w, `{
+				fmt.Fprintf(w, //nolint:errcheck
+					`{
 					"metadata": {
 						"lbaas_pool_1": "pool_id_1/member_id_1",
 						"lbaas_pool_3": "pool_id_1/member_id_error"
@@ -157,7 +164,7 @@ var _ = Describe("Delete VM", func() {
 			switch r.Method {
 			case http.MethodDelete:
 				w.WriteHeader(http.StatusNotFound)
-				fmt.Fprintf(w, `{}`)
+				fmt.Fprintf(w, `{}`) //nolint:errcheck
 
 			case http.MethodGet:
 				getServerCount++
@@ -166,7 +173,8 @@ var _ = Describe("Delete VM", func() {
 				switch switchCase {
 				case 1:
 					w.WriteHeader(http.StatusOK)
-					fmt.Fprintf(w, `{
+					fmt.Fprintf(w, //nolint:errcheck
+						`{
 						"server": {
 							"id": "1",
 							"status": "ACTIVE"
@@ -174,7 +182,7 @@ var _ = Describe("Delete VM", func() {
 					}`)
 				case 0:
 					w.WriteHeader(http.StatusNotFound)
-					fmt.Fprintf(w, `{}`)
+					fmt.Fprintf(w, `{}`) //nolint:errcheck
 				}
 			}
 		})
@@ -188,7 +196,8 @@ var _ = Describe("Delete VM", func() {
 			case http.MethodGet:
 				w.WriteHeader(http.StatusOK)
 
-				fmt.Fprintf(w, `{
+				fmt.Fprintf(w, //nolint:errcheck
+					`{
 					"metadata": {
 						"foo": "foo_value",
 						"lbaas_pool_id_timeout": "pool_id_timeout/member_id_1"
@@ -201,7 +210,7 @@ var _ = Describe("Delete VM", func() {
 			switch r.Method {
 			case http.MethodGet:
 				w.WriteHeader(http.StatusNotFound)
-				fmt.Fprintf(w, `{}`)
+				fmt.Fprintf(w, `{}`) //nolint:errcheck
 			}
 		})
 
@@ -210,7 +219,8 @@ var _ = Describe("Delete VM", func() {
 			case http.MethodGet:
 				w.WriteHeader(http.StatusOK)
 
-				fmt.Fprintf(w, `{
+				fmt.Fprintf(w, //nolint:errcheck
+					`{
 					"pool": {
 						"id": "pool_id_1",
 						"loadbalancers": [{"id": "lbas_id_1"}],
@@ -225,7 +235,8 @@ var _ = Describe("Delete VM", func() {
 			case http.MethodGet:
 				w.WriteHeader(http.StatusOK)
 
-				fmt.Fprintf(w, `{
+				fmt.Fprintf(w, //nolint:errcheck
+					`{
 					"pool": {
 						"id": "pool_id_timeout",
 						"loadbalancers": [{"id": "lbas_id_timeout"}]
@@ -239,7 +250,7 @@ var _ = Describe("Delete VM", func() {
 			case http.MethodDelete:
 				w.WriteHeader(http.StatusNoContent)
 
-				fmt.Fprintf(w, `{}`)
+				fmt.Fprintf(w, `{}`) //nolint:errcheck
 			}
 		})
 
@@ -248,7 +259,7 @@ var _ = Describe("Delete VM", func() {
 			case http.MethodDelete:
 				w.WriteHeader(http.StatusNotFound)
 
-				fmt.Fprintf(w, `{}`)
+				fmt.Fprintf(w, `{}`) //nolint:errcheck
 			}
 		})
 
@@ -257,7 +268,7 @@ var _ = Describe("Delete VM", func() {
 			case http.MethodDelete:
 				w.WriteHeader(http.StatusInternalServerError)
 
-				fmt.Fprintf(w, `{}`)
+				fmt.Fprintf(w, `{}`) //nolint:errcheck
 			}
 		})
 
@@ -266,7 +277,8 @@ var _ = Describe("Delete VM", func() {
 			case http.MethodGet:
 				w.WriteHeader(http.StatusOK)
 
-				fmt.Fprintf(w, `{
+				fmt.Fprintf(w, //nolint:errcheck
+					`{
 					"loadbalancer": {
 						"id": "lbas_id_1",
 						"provisioning_status": "ACTIVE"
@@ -280,7 +292,8 @@ var _ = Describe("Delete VM", func() {
 			case http.MethodGet:
 				w.WriteHeader(http.StatusOK)
 
-				fmt.Fprintf(w, `{
+				fmt.Fprintf(w, //nolint:errcheck
+					`{
 					"loadbalancer": {
 						"id": "lbas_id_timeout",
 						"provisioning_status": "PENDING_UPDATE"
@@ -304,7 +317,7 @@ var _ = Describe("Delete VM", func() {
 		err := cpi.Execute(getDefaultConfig(Endpoint()), logger)
 		Expect(err).ShouldNot(HaveOccurred())
 
-		stdOutWriter.Close()
+		stdOutWriter.Close() //nolint:errcheck
 		Expect(<-outChannel).To(ContainSubstring(`"result":null,"error":null`))
 	})
 
@@ -320,7 +333,7 @@ var _ = Describe("Delete VM", func() {
 		err := cpi.Execute(cpiConfig, logger)
 		Expect(err).ShouldNot(HaveOccurred())
 
-		stdOutWriter.Close()
+		stdOutWriter.Close() //nolint:errcheck
 		Expect(<-outChannel).To(ContainSubstring(`message":"delete_vm: failed while waiting for loadbalancer to become active: timeout while waiting for loadbalancer 'lbas_id_timeout'`))
 	})
 
@@ -334,7 +347,7 @@ var _ = Describe("Delete VM", func() {
 		err := cpi.Execute(getDefaultConfig(Endpoint()), logger)
 		Expect(err).ShouldNot(HaveOccurred())
 
-		stdOutWriter.Close()
+		stdOutWriter.Close() //nolint:errcheck
 		Expect(<-outChannel).To(ContainSubstring(`"result":null,"error":null`))
 	})
 
@@ -348,7 +361,7 @@ var _ = Describe("Delete VM", func() {
 		err := cpi.Execute(getDefaultConfig(Endpoint()), logger)
 		Expect(err).ShouldNot(HaveOccurred())
 
-		stdOutWriter.Close()
+		stdOutWriter.Close() //nolint:errcheck
 		Expect(<-outChannel).To(ContainSubstring(`"result":null,"error":null`))
 	})
 
@@ -362,7 +375,7 @@ var _ = Describe("Delete VM", func() {
 		err := cpi.Execute(getDefaultConfig(Endpoint()), logger)
 		Expect(err).ShouldNot(HaveOccurred())
 
-		stdOutWriter.Close()
+		stdOutWriter.Close() //nolint:errcheck
 		Expect(<-outChannel).To(ContainSubstring(`"result":null,"error":null`))
 	})
 
@@ -378,7 +391,7 @@ var _ = Describe("Delete VM", func() {
 		err := cpi.Execute(cpiConfig, logger)
 		Expect(err).ShouldNot(HaveOccurred())
 
-		stdOutWriter.Close()
+		stdOutWriter.Close() //nolint:errcheck
 		Expect(<-outChannel).To(ContainSubstring(`message":"delete_vm: failed to delete pool member: max retry attempts (10) reached, err: Internal Server Error`))
 	})
 })

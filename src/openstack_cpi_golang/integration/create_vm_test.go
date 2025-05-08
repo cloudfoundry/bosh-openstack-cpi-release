@@ -27,7 +27,8 @@ var _ = Describe("Create VM", func() {
 			case http.MethodGet:
 				w.WriteHeader(http.StatusOK)
 
-				fmt.Fprintf(w, `{
+				fmt.Fprintf(w, //nolint:errcheck
+					`{
 					"status": "active",
 					"visibility": "private",
 					"id": "b2173dd3-7ad6-4362-baa6-a68bce3565cb",
@@ -43,7 +44,8 @@ var _ = Describe("Create VM", func() {
 				w.Header().Add("Content-Type", "application/json")
 				w.WriteHeader(http.StatusOK)
 
-				fmt.Fprintf(w, `{
+				fmt.Fprintf(w, //nolint:errcheck
+					`{
 					"security_group": {
 						"id": "85cc3048-abc3-43cc-89b3-377341426ac5"
 					}
@@ -60,7 +62,8 @@ var _ = Describe("Create VM", func() {
 			w.Header().Add("Content-Type", "application/json")
 			w.WriteHeader(http.StatusOK)
 
-			fmt.Fprintf(w, `{
+			fmt.Fprintf(w, //nolint:errcheck
+				`{
 				"security_groups": [
 					{
 						"id": "191e4194-1b33-4886-8b2e-4a4e5de3f9ff",
@@ -74,7 +77,8 @@ var _ = Describe("Create VM", func() {
 			w.Header().Add("Content-Type", "application/json")
 			w.WriteHeader(http.StatusOK)
 
-			fmt.Fprintf(w, `{
+			fmt.Fprintf(w, //nolint:errcheck
+				`{
 				"keypair": {
 					"name": "default_key_name",
 					"id": 1
@@ -91,7 +95,8 @@ var _ = Describe("Create VM", func() {
 			w.Header().Add("Content-Type", "application/json")
 			w.WriteHeader(http.StatusOK)
 
-			fmt.Fprintf(w, `{
+			fmt.Fprintf(w, //nolint:errcheck
+				`{
 				"subnets": [
 					{
 						"cidr": "10.0.11.0/24",
@@ -126,14 +131,15 @@ var _ = Describe("Create VM", func() {
 				err := cpi.Execute(getDefaultConfig(Endpoint()), logger)
 				Expect(err).ShouldNot(HaveOccurred())
 
-				stdOutWriter.Close()
+				stdOutWriter.Close() //nolint:errcheck
 				Expect(<-outChannel).To(ContainSubstring("could not find the image 'not-existing-image-id' in OpenStack"))
 			})
 
 			It("fails if an image is not active", func() {
 				Mux.HandleFunc("/v2/images/not-active-image-id", func(w http.ResponseWriter, r *http.Request) {
 					w.WriteHeader(http.StatusOK)
-					fmt.Fprintf(w, `{
+					fmt.Fprintf(w, //nolint:errcheck
+						`{
 					"status": "deleted"
 				}`)
 				})
@@ -150,7 +156,7 @@ var _ = Describe("Create VM", func() {
 				err := cpi.Execute(getDefaultConfig(Endpoint()), logger)
 				Expect(err).ShouldNot(HaveOccurred())
 
-				stdOutWriter.Close()
+				stdOutWriter.Close() //nolint:errcheck
 				Expect(<-outChannel).To(ContainSubstring("image 'not-active-image-id' is not in active state, it is in state: deleted"))
 			})
 		})
@@ -177,7 +183,7 @@ var _ = Describe("Create VM", func() {
 				err := cpi.Execute(getDefaultConfig(Endpoint()), logger)
 				Expect(err).ShouldNot(HaveOccurred())
 
-				stdOutWriter.Close()
+				stdOutWriter.Close() //nolint:errcheck
 				Expect(<-outChannel).To(ContainSubstring("failed to create network config: invalid manual network configuration: manual network must have a net_id"))
 			})
 
@@ -210,7 +216,7 @@ var _ = Describe("Create VM", func() {
 				err := cpi.Execute(defaultConfig, logger)
 				Expect(err).ShouldNot(HaveOccurred())
 
-				stdOutWriter.Close()
+				stdOutWriter.Close() //nolint:errcheck
 				Expect(<-outChannel).To(ContainSubstring("multiple manual networks can only be used with"))
 			})
 
@@ -243,7 +249,7 @@ var _ = Describe("Create VM", func() {
 				err := cpi.Execute(defaultConfig, logger)
 				Expect(err).ShouldNot(HaveOccurred())
 
-				stdOutWriter.Close()
+				stdOutWriter.Close() //nolint:errcheck
 				Expect(<-outChannel).To(ContainSubstring("multiple manual networks can only be used with"))
 			})
 
@@ -276,7 +282,7 @@ var _ = Describe("Create VM", func() {
 				err := cpi.Execute(defaultConfig, logger)
 				Expect(err).ShouldNot(HaveOccurred())
 
-				stdOutWriter.Close()
+				stdOutWriter.Close() //nolint:errcheck
 				Expect(<-outChannel).To(ContainSubstring("only one dynamic should be defined per instance"))
 			})
 
@@ -309,7 +315,7 @@ var _ = Describe("Create VM", func() {
 				err := cpi.Execute(defaultConfig, logger)
 				Expect(err).ShouldNot(HaveOccurred())
 
-				stdOutWriter.Close()
+				stdOutWriter.Close() //nolint:errcheck
 				Expect(<-outChannel).To(ContainSubstring("only one vip should be defined per instance"))
 			})
 
@@ -334,7 +340,7 @@ var _ = Describe("Create VM", func() {
 				err := cpi.Execute(getDefaultConfig(Endpoint()), logger)
 				Expect(err).ShouldNot(HaveOccurred())
 
-				stdOutWriter.Close()
+				stdOutWriter.Close() //nolint:errcheck
 				Expect(<-outChannel).To(ContainSubstring("failed to create network config: invalid manual network configuration: manual network must have a net_id"))
 			})
 
@@ -370,7 +376,7 @@ var _ = Describe("Create VM", func() {
 				err := cpi.Execute(getDefaultConfig(Endpoint()), logger)
 				Expect(err).ShouldNot(HaveOccurred())
 
-				stdOutWriter.Close()
+				stdOutWriter.Close() //nolint:errcheck
 				Expect(<-outChannel).To(ContainSubstring("failed to resolve security group: could not resolve security group 'not-exiting-group'"))
 			})
 		})
@@ -382,7 +388,8 @@ var _ = Describe("Create VM", func() {
 					case http.MethodGet:
 						w.Header().Add("Content-Type", "application/json")
 						w.WriteHeader(http.StatusOK)
-						fmt.Fprintf(w, `{
+						fmt.Fprintf(w, //nolint:errcheck
+							`{
 						"port": {
 							"id": "65c0ee9f-d634-4522-8954-51021b570b0d",
 							"status": "DOWN"
@@ -393,7 +400,7 @@ var _ = Describe("Create VM", func() {
 						w.Header().Add("Content-Type", "application/json")
 						w.WriteHeader(http.StatusForbidden)
 
-						fmt.Fprintf(w, `{}`)
+						fmt.Fprintf(w, `{}`) //nolint:errcheck
 					}
 				})
 
@@ -402,7 +409,7 @@ var _ = Describe("Create VM", func() {
 					case http.MethodDelete:
 						w.WriteHeader(http.StatusNoContent)
 
-						fmt.Fprintf(w, `{}`)
+						fmt.Fprintf(w, `{}`) //nolint:errcheck
 					}
 				})
 
@@ -445,7 +452,7 @@ var _ = Describe("Create VM", func() {
 				err := cpi.Execute(getDefaultConfig(Endpoint()), logger)
 				Expect(err).ShouldNot(HaveOccurred())
 
-				stdOutWriter.Close()
+				stdOutWriter.Close() //nolint:errcheck
 				Expect(<-outChannel).To(ContainSubstring("failed to recreate port on network 'fbe64fb7-b47c-4fd1-b158-9411d5c3ebf3' for ip '10.0.11.16' Request forbidden"))
 			})
 
@@ -455,13 +462,14 @@ var _ = Describe("Create VM", func() {
 					case http.MethodGet:
 						w.Header().Add("Content-Type", "application/json")
 						w.WriteHeader(http.StatusOK)
-						fmt.Fprintf(w, `{"ports": []}`)
+						fmt.Fprintf(w, `{"ports": []}`) //nolint:errcheck
 
 					case http.MethodPost:
 						w.Header().Add("Content-Type", "application/json")
 						w.WriteHeader(http.StatusCreated)
 
-						fmt.Fprintf(w, `{
+						fmt.Fprintf(w, //nolint:errcheck
+							`{
 					"port": {
 						"id": "65c0ee9f-d634-4522-8954-51021b570b0d",
 						"status": "ACTIVE"
@@ -511,7 +519,7 @@ var _ = Describe("Create VM", func() {
 				err := cpi.Execute(getDefaultConfig(Endpoint()), logger)
 				Expect(err).ShouldNot(HaveOccurred())
 
-				stdOutWriter.Close()
+				stdOutWriter.Close() //nolint:errcheck
 				Expect(<-outChannel).To(ContainSubstring("failed create network opts: configured VRRP port with ip '198.51.100.221' does not exist"))
 			})
 		})
@@ -523,7 +531,8 @@ var _ = Describe("Create VM", func() {
 					case http.MethodGet:
 						w.WriteHeader(http.StatusAccepted)
 
-						fmt.Fprintf(w, `{
+						fmt.Fprintf(w, //nolint:errcheck
+							`{
 						"server": {
 							"id": "f5dc173b-6804-445a-a6d8-c705dad5b5eb",
 							"status": "ACTIVE"
@@ -539,13 +548,14 @@ var _ = Describe("Create VM", func() {
 					case http.MethodGet:
 						w.Header().Add("Content-Type", "application/json")
 						w.WriteHeader(http.StatusOK)
-						fmt.Fprintf(w, `{"ports": []}`)
+						fmt.Fprintf(w, `{"ports": []}`) //nolint:errcheck
 
 					case http.MethodPost:
 						w.Header().Add("Content-Type", "application/json")
 						w.WriteHeader(http.StatusCreated)
 
-						fmt.Fprintf(w, `{
+						fmt.Fprintf(w, //nolint:errcheck
+							`{
 							"port": {
 								"id": "65c0ee9f-d634-4522-8954-51021b570b0d",
 								"status": "ACTIVE"
@@ -561,7 +571,8 @@ var _ = Describe("Create VM", func() {
 						w.Header().Add("Content-Type", "application/json")
 						w.WriteHeader(http.StatusOK)
 
-						fmt.Fprintf(w, `{
+						fmt.Fprintf(w, //nolint:errcheck
+							`{
 						"flavors": [
 							{
 								"disk": 1,
@@ -612,7 +623,7 @@ var _ = Describe("Create VM", func() {
 					err := cpi.Execute(getDefaultConfig(Endpoint()), logger)
 					Expect(err).ShouldNot(HaveOccurred())
 
-					stdOutWriter.Close()
+					stdOutWriter.Close() //nolint:errcheck
 					Expect(<-outChannel).To(ContainSubstring("failed to resolve flavor of instance type 'wrong_flavor': flavor for instance type 'wrong_flavor' not found"))
 				})
 
@@ -662,7 +673,7 @@ var _ = Describe("Create VM", func() {
 					err := cpi.Execute(defaultConfig, logger)
 					Expect(err).ShouldNot(HaveOccurred())
 
-					stdOutWriter.Close()
+					stdOutWriter.Close() //nolint:errcheck
 					Expect(<-outChannel).To(ContainSubstring("failed to resolve keypair: failed to retrieve 'unknown_key_name'"))
 				})
 
@@ -709,7 +720,7 @@ var _ = Describe("Create VM", func() {
 					err := cpi.Execute(defaultConfig, logger)
 					Expect(err).ShouldNot(HaveOccurred())
 
-					stdOutWriter.Close()
+					stdOutWriter.Close() //nolint:errcheck
 					Expect(<-outChannel).To(ContainSubstring("failed to create server in availability zone"))
 				})
 			})
@@ -720,7 +731,8 @@ var _ = Describe("Create VM", func() {
 						w.Header().Add("Content-Type", "application/json")
 						w.WriteHeader(http.StatusOK)
 
-						fmt.Fprintf(w, `{
+						fmt.Fprintf(w, //nolint:errcheck
+							`{
 					"flavors": [
 						{
 							"disk": 0,
@@ -785,7 +797,7 @@ var _ = Describe("Create VM", func() {
 					err := cpi.Execute(defaultConfig, logger)
 					Expect(err).ShouldNot(HaveOccurred())
 
-					stdOutWriter.Close()
+					stdOutWriter.Close() //nolint:errcheck
 					Expect(<-outChannel).To(ContainSubstring("flavor '1' has a root disk size of 0. Either pick a different flavor or define root_disk.size in your VM cloud_properties"))
 				})
 			})
@@ -799,7 +811,8 @@ var _ = Describe("Create VM", func() {
 				case http.MethodGet:
 					w.WriteHeader(http.StatusAccepted)
 
-					fmt.Fprintf(w, `{
+					fmt.Fprintf(w, //nolint:errcheck
+						`{
 					"server": {
 						"id": "f5dc173b-6804-445a-a6d8-c705dad5b5eb",
 						"status": "ACTIVE"
@@ -807,7 +820,8 @@ var _ = Describe("Create VM", func() {
 				}`)
 				case http.MethodPost:
 					w.WriteHeader(http.StatusCreated)
-					fmt.Fprintf(w, `{
+					fmt.Fprintf(w, //nolint:errcheck
+						`{
 					"server": {
 						"id": "f5dc173b-6804-445a-a6d8-c705dad5b5eb"
 					}
@@ -819,7 +833,8 @@ var _ = Describe("Create VM", func() {
 				w.Header().Add("Content-Type", "application/json")
 				w.WriteHeader(http.StatusOK)
 
-				fmt.Fprintf(w, `{
+				fmt.Fprintf(w, //nolint:errcheck
+					`{
 				"flavors": [
 					{
 						"disk": 1,
@@ -836,7 +851,8 @@ var _ = Describe("Create VM", func() {
 				case http.MethodGet:
 					w.Header().Add("Content-Type", "application/json")
 					w.WriteHeader(http.StatusOK)
-					fmt.Fprintf(w, `{
+					fmt.Fprintf(w, //nolint:errcheck
+						`{
 						"ports": [
 							{
 								"id": "65c0ee9f-d634-4522-8954-51021b570b0d",
@@ -849,7 +865,8 @@ var _ = Describe("Create VM", func() {
 					w.Header().Add("Content-Type", "application/json")
 					w.WriteHeader(http.StatusCreated)
 
-					fmt.Fprintf(w, `{
+					fmt.Fprintf(w, //nolint:errcheck
+						`{
 						"port": {
 							"id": "65c0ee9f-d634-4522-8954-51021b570b0d",
 							"status": "ACTIVE"
@@ -866,7 +883,8 @@ var _ = Describe("Create VM", func() {
 					case http.MethodGet:
 						w.WriteHeader(http.StatusOK)
 
-						fmt.Fprintf(w, `{
+						fmt.Fprintf(w, //nolint:errcheck
+							`{
 							"server": {
 								"id": "f5dc173b-6804-445a-a6d8-c705dad5b5eb",
 								"status": "ACTIVE"
@@ -917,7 +935,7 @@ var _ = Describe("Create VM", func() {
 					err := cpi.Execute(getDefaultConfig(Endpoint()), logger)
 					Expect(err).ShouldNot(HaveOccurred())
 
-					stdOutWriter.Close()
+					stdOutWriter.Close() //nolint:errcheck
 					Expect(<-outChannel).To(ContainSubstring(`"result":["f5dc173b-6804-445a-a6d8-c705dad5b5eb",{"bosh":{"type":"manual","ip":"10.0.11.16","netmask":"255.255.255.0","gateway":"10.0.11.1","dns":null,"default":["dns","gateway"],"routes":null,"cloud_properties":{"availability_zone":"z1","net_id":"fbe64fb7-b47c-4fd1-b158-9411d5c3ebf3","security_groups":["0c8a5d1a-8922-4d65-a0b2-dd78ab869e04","bosh_acceptance_tests"]}}}],"error":null`))
 				})
 			})
@@ -965,7 +983,7 @@ var _ = Describe("Create VM", func() {
 					err := cpi.Execute(defaultConfig, logger)
 					Expect(err).ShouldNot(HaveOccurred())
 
-					stdOutWriter.Close()
+					stdOutWriter.Close() //nolint:errcheck
 					Expect(<-outChannel).To(ContainSubstring(`"result":["f5dc173b-6804-445a-a6d8-c705dad5b5eb",{"bosh":{"type":"manual","ip":"10.0.11.16","netmask":"255.255.255.0","gateway":"10.0.11.1","dns":null,"default":["dns","gateway"],"routes":null,"cloud_properties":{"availability_zone":"z1","net_id":"fbe64fb7-b47c-4fd1-b158-9411d5c3ebf3","security_groups":["0c8a5d1a-8922-4d65-a0b2-dd78ab869e04","bosh_acceptance_tests"]}}}],"error":null`))
 				})
 
@@ -987,7 +1005,7 @@ var _ = Describe("Create VM", func() {
 					err := cpi.Execute(getDefaultConfig(Endpoint()), logger)
 					Expect(err).ShouldNot(HaveOccurred())
 
-					stdOutWriter.Close()
+					stdOutWriter.Close() //nolint:errcheck
 					Expect(<-outChannel).To(ContainSubstring("failed to validate cloud properties: load balancer pool defined without name"))
 				})
 
@@ -1009,7 +1027,7 @@ var _ = Describe("Create VM", func() {
 					err := cpi.Execute(getDefaultConfig(Endpoint()), logger)
 					Expect(err).ShouldNot(HaveOccurred())
 
-					stdOutWriter.Close()
+					stdOutWriter.Close() //nolint:errcheck
 					Expect(<-outChannel).To(ContainSubstring("load balancer pool 'myPool' has no port definition"))
 				})
 
@@ -1030,7 +1048,7 @@ var _ = Describe("Create VM", func() {
 					err := cpi.Execute(getDefaultConfig(Endpoint()), logger)
 					Expect(err).ShouldNot(HaveOccurred())
 
-					stdOutWriter.Close()
+					stdOutWriter.Close() //nolint:errcheck
 					Expect(<-outChannel).To(ContainSubstring("only one property of 'availability_zone' and 'availability_zones' can be configured"))
 				})
 
@@ -1050,7 +1068,7 @@ var _ = Describe("Create VM", func() {
 					err := cpi.Execute(getDefaultConfig(Endpoint()), logger)
 					Expect(err).ShouldNot(HaveOccurred())
 
-					stdOutWriter.Close()
+					stdOutWriter.Close() //nolint:errcheck
 					Expect(<-outChannel).To(ContainSubstring("cannot use multiple azs without 'openstack.ignore_server_availability_zone' set to true"))
 				})
 			})
@@ -1066,7 +1084,8 @@ var _ = Describe("Create VM", func() {
 								w.Header().Add("Content-Type", "application/json")
 								w.WriteHeader(http.StatusOK)
 
-								fmt.Fprintf(w, `{
+								fmt.Fprintf(w, //nolint:errcheck
+									`{
 									"floatingips": [
 										{
 											"id": "floating_ip_id_1"
@@ -1083,7 +1102,8 @@ var _ = Describe("Create VM", func() {
 							w.Header().Add("Content-Type", "application/json")
 							w.WriteHeader(http.StatusOK)
 
-							fmt.Fprintf(w, `{
+							fmt.Fprintf(w, //nolint:errcheck
+								`{
 								"floatingips": [
 									{
 										"id": "floating_ip_id_1"
@@ -1132,7 +1152,7 @@ var _ = Describe("Create VM", func() {
 					err := cpi.Execute(getDefaultConfig(Endpoint()), logger)
 					Expect(err).ShouldNot(HaveOccurred())
 
-					stdOutWriter.Close()
+					stdOutWriter.Close() //nolint:errcheck
 					Expect(<-outChannel).To(ContainSubstring(`"result":["f5dc173b-6804-445a-a6d8-c705dad5b5eb",{"bosh":{"type":"vip","ip":"10.0.11.16","netmask":"255.255.255.0","gateway":"10.0.11.1","dns":null,"default":["dns","gateway"],"routes":null,"cloud_properties":{"availability_zone":"z1","net_id":"fbe64fb7-b47c-4fd1-b158-9411d5c3ebf3","security_groups":["0c8a5d1a-8922-4d65-a0b2-dd78ab869e04","bosh_acceptance_tests"]}}}],"error":null`))
 				})
 
@@ -1146,7 +1166,8 @@ var _ = Describe("Create VM", func() {
 								w.Header().Add("Content-Type", "application/json")
 								w.WriteHeader(http.StatusOK)
 
-								fmt.Fprintf(w, `{
+								fmt.Fprintf(w, //nolint:errcheck
+									`{
 									"floatingips": [
 										{
 											"id": "floating_ip_id_1"
@@ -1204,7 +1225,7 @@ var _ = Describe("Create VM", func() {
 					err := cpi.Execute(getDefaultConfig(Endpoint()), logger)
 					Expect(err).ShouldNot(HaveOccurred())
 
-					stdOutWriter.Close()
+					stdOutWriter.Close() //nolint:errcheck
 					Expect(<-outChannel).To(ContainSubstring(`failed to associate floating ip to port`))
 				})
 
@@ -1215,7 +1236,8 @@ var _ = Describe("Create VM", func() {
 							w.Header().Add("Content-Type", "application/json")
 							w.WriteHeader(http.StatusOK)
 
-							fmt.Fprintf(w, `{
+							fmt.Fprintf(w, //nolint:errcheck
+								`{
 								"floatingips": []
 							}`)
 
@@ -1261,7 +1283,7 @@ var _ = Describe("Create VM", func() {
 					err := cpi.Execute(getDefaultConfig(Endpoint()), logger)
 					Expect(err).ShouldNot(HaveOccurred())
 
-					stdOutWriter.Close()
+					stdOutWriter.Close() //nolint:errcheck
 					Expect(<-outChannel).To(ContainSubstring(`failed to get floating IP: floating IP 10.0.11.16 not allocated`))
 				})
 			})
@@ -1277,7 +1299,8 @@ var _ = Describe("Create VM", func() {
 						w.Header().Add("Content-Type", "application/json")
 						w.WriteHeader(http.StatusOK)
 
-						fmt.Fprintf(w, `{
+						fmt.Fprintf(w, //nolint:errcheck
+							`{
 							"pools": [
 								{
 									"id": "pool_id_1",
@@ -1297,7 +1320,8 @@ var _ = Describe("Create VM", func() {
 
 						w.WriteHeader(http.StatusOK)
 
-						fmt.Fprintf(w, `{
+						fmt.Fprintf(w, //nolint:errcheck
+							`{
 							"loadbalancer": {
 								"id": "the-lb-id",
 								"provisioning_status": "ACTIVE"
@@ -1313,7 +1337,8 @@ var _ = Describe("Create VM", func() {
 
 						w.WriteHeader(http.StatusCreated)
 
-						fmt.Fprintf(w, `{
+						fmt.Fprintf(w, //nolint:errcheck
+							`{
 							"member": {
 								"id": "member_id_1",
 								"name": "myPoolMember",
@@ -1330,7 +1355,7 @@ var _ = Describe("Create VM", func() {
 
 						w.WriteHeader(http.StatusOK)
 
-						fmt.Fprintf(w, `{"meta": {}}`)
+						fmt.Fprintf(w, `{"meta": {}}`) //nolint:errcheck
 					})
 
 					writeJsonParamToStdIn(`{
@@ -1375,7 +1400,7 @@ var _ = Describe("Create VM", func() {
 					err := cpi.Execute(getDefaultConfig(Endpoint()), logger)
 					Expect(err).ShouldNot(HaveOccurred())
 
-					stdOutWriter.Close()
+					stdOutWriter.Close() //nolint:errcheck
 					Expect(<-outChannel).To(ContainSubstring(`"result":["f5dc173b-6804-445a-a6d8-c705dad5b5eb",{"bosh":{"type":"manual","ip":"10.0.11.16","netmask":"255.255.255.0","gateway":"10.0.11.1","dns":null,"default":["dns","gateway"],"routes":null,"cloud_properties":{"availability_zone":"z1","net_id":"fbe64fb7-b47c-4fd1-b158-9411d5c3ebf3","security_groups":["0c8a5d1a-8922-4d65-a0b2-dd78ab869e04","bosh_acceptance_tests"]}}}],"error":null`))
 				})
 
@@ -1422,7 +1447,7 @@ var _ = Describe("Create VM", func() {
 					err := cpi.Execute(getDefaultConfig(Endpoint()), logger)
 					Expect(err).ShouldNot(HaveOccurred())
 
-					stdOutWriter.Close()
+					stdOutWriter.Close() //nolint:errcheck
 					Expect(<-outChannel).To(ContainSubstring(`failed to get pool ID of pool 'myPool': failed to list loadbalancer pools`))
 				})
 
@@ -1436,7 +1461,8 @@ var _ = Describe("Create VM", func() {
 						w.Header().Add("Content-Type", "application/json")
 						w.WriteHeader(http.StatusOK)
 
-						fmt.Fprintf(w, `{
+						fmt.Fprintf(w, //nolint:errcheck
+							`{
 							"pools": [
 								{
 									"id": "pool_id_1",
@@ -1489,7 +1515,7 @@ var _ = Describe("Create VM", func() {
 					err := cpi.Execute(getDefaultConfig(Endpoint()), logger)
 					Expect(err).ShouldNot(HaveOccurred())
 
-					stdOutWriter.Close()
+					stdOutWriter.Close() //nolint:errcheck
 					Expect(<-outChannel).To(ContainSubstring(`failed to create port: failed create network opts: failed to get subnet: failed to list subnets`))
 				})
 
@@ -1503,7 +1529,8 @@ var _ = Describe("Create VM", func() {
 						w.Header().Add("Content-Type", "application/json")
 						w.WriteHeader(http.StatusOK)
 
-						fmt.Fprintf(w, `{
+						fmt.Fprintf(w, //nolint:errcheck
+							`{
 							"pools": [
 								{
 									"id": "pool_id_1",
@@ -1556,7 +1583,7 @@ var _ = Describe("Create VM", func() {
 					err := cpi.Execute(getDefaultConfig(Endpoint()), logger)
 					Expect(err).ShouldNot(HaveOccurred())
 
-					stdOutWriter.Close()
+					stdOutWriter.Close() //nolint:errcheck
 					Expect(<-outChannel).To(ContainSubstring(`no load balancers or listeners associated with pool 'pool_id_1'`))
 				})
 
@@ -1570,7 +1597,8 @@ var _ = Describe("Create VM", func() {
 						w.Header().Add("Content-Type", "application/json")
 						w.WriteHeader(http.StatusOK)
 
-						fmt.Fprintf(w, `{
+						fmt.Fprintf(w, //nolint:errcheck
+							`{
 							"pools": [
 								{
 									"id": "pool_id_1",
@@ -1590,7 +1618,8 @@ var _ = Describe("Create VM", func() {
 
 						w.WriteHeader(http.StatusOK)
 
-						fmt.Fprintf(w, `{
+						fmt.Fprintf(w, //nolint:errcheck
+							`{
 							"loadbalancer": {
 								"id": "the-lb-id",
 								"provisioning_status": "PENDING_UPDATE"
@@ -1640,7 +1669,7 @@ var _ = Describe("Create VM", func() {
 					err := cpi.Execute(getDefaultConfig(Endpoint()), logger)
 					Expect(err).ShouldNot(HaveOccurred())
 
-					stdOutWriter.Close()
+					stdOutWriter.Close() //nolint:errcheck
 					Expect(<-outChannel).To(ContainSubstring(`timeout while waiting for loadbalancer 'the-lb-id' to become active`))
 				})
 
@@ -1654,7 +1683,8 @@ var _ = Describe("Create VM", func() {
 						w.Header().Add("Content-Type", "application/json")
 						w.WriteHeader(http.StatusOK)
 
-						fmt.Fprintf(w, `{
+						fmt.Fprintf(w, //nolint:errcheck
+							`{
 							"pools": [
 								{
 									"id": "pool_id_1",
@@ -1674,7 +1704,8 @@ var _ = Describe("Create VM", func() {
 
 						w.WriteHeader(http.StatusOK)
 
-						fmt.Fprintf(w, `{
+						fmt.Fprintf(w, //nolint:errcheck
+							`{
 							"loadbalancer": {
 								"id": "the-lb-id",
 								"provisioning_status": "ACTIVE"
@@ -1690,7 +1721,8 @@ var _ = Describe("Create VM", func() {
 
 						w.WriteHeader(http.StatusOK)
 
-						fmt.Fprintf(w, `{
+						fmt.Fprintf(w, //nolint:errcheck
+							`{
 							"pool": {
 								"id": "pool_id_1",
 								"name": "myPool",
@@ -1707,7 +1739,8 @@ var _ = Describe("Create VM", func() {
 
 						w.WriteHeader(http.StatusCreated)
 
-						fmt.Fprintf(w, `{
+						fmt.Fprintf(w, //nolint:errcheck
+							`{
 							"member": {
 								"id": "member_id_1",
 								"name": "myPoolMember",
@@ -1724,7 +1757,7 @@ var _ = Describe("Create VM", func() {
 
 						w.WriteHeader(http.StatusBadRequest)
 
-						fmt.Fprintf(w, `{"meta": {}}`)
+						fmt.Fprintf(w, `{"meta": {}}`) //nolint:errcheck
 					})
 
 					writeJsonParamToStdIn(`{
@@ -1769,7 +1802,7 @@ var _ = Describe("Create VM", func() {
 					err := cpi.Execute(getDefaultConfig(Endpoint()), logger)
 					Expect(err).ShouldNot(HaveOccurred())
 
-					stdOutWriter.Close()
+					stdOutWriter.Close() //nolint:errcheck
 					Expect(<-outChannel).To(ContainSubstring(`failed to update metadata for server 'f5dc173b-6804-445a-a6d8-c705dad5b5eb' with error:`))
 				})
 			})
@@ -1783,7 +1816,8 @@ var _ = Describe("Create VM", func() {
 					case http.MethodGet:
 						w.WriteHeader(http.StatusOK)
 
-						fmt.Fprintf(w, `{
+						fmt.Fprintf(w, //nolint:errcheck
+							`{
 							"server": {
 								"id": "f5dc173b-6804-445a-a6d8-c705dad5b5eb",
 								"status": "BUILD"
@@ -1836,7 +1870,7 @@ var _ = Describe("Create VM", func() {
 				err := cpi.Execute(defaultConfig, logger)
 				Expect(err).ShouldNot(HaveOccurred())
 
-				stdOutWriter.Close()
+				stdOutWriter.Close() //nolint:errcheck
 				Expect(<-outChannel).To(ContainSubstring(`timeout while waiting for server to become active`))
 			})
 		})
@@ -1848,7 +1882,8 @@ var _ = Describe("Create VM", func() {
 					case http.MethodGet:
 						w.WriteHeader(http.StatusOK)
 
-						fmt.Fprintf(w, `{
+						fmt.Fprintf(w, //nolint:errcheck
+							`{
 							"server": {
 								"id": "f5dc173b-6804-445a-a6d8-c705dad5b5eb",
 								"status": "ERROR"
@@ -1901,7 +1936,7 @@ var _ = Describe("Create VM", func() {
 				err := cpi.Execute(defaultConfig, logger)
 				Expect(err).ShouldNot(HaveOccurred())
 
-				stdOutWriter.Close()
+				stdOutWriter.Close() //nolint:errcheck
 				Expect(<-outChannel).To(ContainSubstring(`server became ERROR state while waiting to become ACTIVE`))
 			})
 		})

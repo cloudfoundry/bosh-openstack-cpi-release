@@ -107,7 +107,8 @@ func MockAuthentication() {
 	Mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		switch r.Method {
 		case http.MethodGet:
-			_, _ = fmt.Fprintf(w, `{
+			_, _ = fmt.Fprintf(w, //nolint:errcheck
+				`{
 					"versions": {"values": [
 						{"status": "stable","id": "v3.0","links": [{ "href": "%s", "rel": "self" }]},
 						{"status": "stable","id": "v2.0","links": [{ "href": "%s", "rel": "self" }]}
@@ -122,7 +123,8 @@ func MockAuthentication() {
 			w.Header().Add("X-Subject-Token", "0123456789")
 			w.WriteHeader(http.StatusCreated)
 
-			_, _ = fmt.Fprintf(w, `{
+			_, _ = fmt.Fprintf(w, //nolint:errcheck
+				`{
 					"token": {
 						"expires_at": "2013-02-02T18:30:59.000000Z",
 						"catalog": [{
@@ -169,23 +171,23 @@ func MockAuthentication() {
 }
 
 func writeJsonParamToStdIn(json string) {
-	reader, writer, _ := os.Pipe()
+	reader, writer, _ := os.Pipe() //nolint:errcheck
 	os.Stdin = reader
 
 	go func() {
-		_, _ = writer.WriteString(json)
-		_ = writer.Close()
+		_, _ = writer.WriteString(json) //nolint:errcheck
+		_ = writer.Close()              //nolint:errcheck
 	}()
 }
 
 func setupReadableStdOut() (chan string, *os.File) {
-	reader, writer, _ := os.Pipe()
+	reader, writer, _ := os.Pipe() //nolint:errcheck
 	os.Stdout = writer
 	outChannel := make(chan string)
 	// copy the output in a separate goroutine so reading from the pipe doesn't block indefinitely
 	go func() {
 		var buf bytes.Buffer
-		_, _ = io.Copy(&buf, reader)
+		_, _ = io.Copy(&buf, reader) //nolint:errcheck
 		outChannel <- buf.String()
 	}()
 

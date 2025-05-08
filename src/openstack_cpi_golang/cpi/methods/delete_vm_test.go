@@ -50,7 +50,7 @@ var _ = Describe("DeleteVMMethod", func() {
 		})
 
 		It("creates the compute service", func() {
-			_ = methods.NewDeleteVMMethod(
+			_ = methods.NewDeleteVMMethod( //nolint:errcheck
 				&networkServiceBuilder,
 				&computeServiceBuilder,
 				&loadbalancerServiceBuilder,
@@ -80,7 +80,7 @@ var _ = Describe("DeleteVMMethod", func() {
 		})
 
 		It("creates the network service", func() {
-			_ = methods.NewDeleteVMMethod(
+			_ = methods.NewDeleteVMMethod( //nolint:errcheck
 				&networkServiceBuilder,
 				&computeServiceBuilder,
 				&loadbalancerServiceBuilder,
@@ -143,7 +143,7 @@ var _ = Describe("DeleteVMMethod", func() {
 		})
 
 		It("calls serverMetadata with correct cid", func() {
-			_ = methods.NewDeleteVMMethod(
+			_ = methods.NewDeleteVMMethod( //nolint:errcheck
 				&networkServiceBuilder,
 				&computeServiceBuilder,
 				&loadbalancerServiceBuilder,

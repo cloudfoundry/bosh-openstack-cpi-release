@@ -45,8 +45,8 @@ var _ = Describe("AttachDiskMethod Integration Tests", func() {
 						"attachments": attachments,
 					},
 				}
-				response, _ := json.Marshal(responsePayload)
-				fmt.Fprint(w, string(response))
+				response, _ := json.Marshal(responsePayload) //nolint:errcheck
+				fmt.Fprint(w, string(response))              //nolint:errcheck
 				getVolumeCallCount++
 			default:
 				w.WriteHeader(http.StatusNotImplemented)
@@ -63,7 +63,7 @@ var _ = Describe("AttachDiskMethod Integration Tests", func() {
 						"status": "ACTIVE"
 					}
 				}`
-				fmt.Fprint(w, payload)
+				fmt.Fprint(w, payload) //nolint:errcheck
 			default:
 				w.WriteHeader(http.StatusNotImplemented)
 			}
@@ -81,7 +81,7 @@ var _ = Describe("AttachDiskMethod Integration Tests", func() {
 						"volumeId": "volume-id-ok"
 					}
 				}`
-				fmt.Fprint(w, payload)
+				fmt.Fprint(w, payload) //nolint:errcheck
 			case http.MethodGet:
 				w.Header().Set("Content-Type", "application/json")
 				w.WriteHeader(http.StatusOK)
@@ -91,7 +91,7 @@ var _ = Describe("AttachDiskMethod Integration Tests", func() {
 						"serverId": "server-id-ok",
 						"volumeId": "volume-id-ok"
 				}]}`
-				fmt.Fprint(w, payload)
+				fmt.Fprint(w, payload) //nolint:errcheck
 				//log.Printf("Mux: Payload: %s\n", payload)
 			default:
 				w.WriteHeader(http.StatusNotImplemented)
@@ -118,7 +118,7 @@ var _ = Describe("AttachDiskMethod Integration Tests", func() {
 
 			err := cpi.Execute(getDefaultConfig(Endpoint()), logger)
 			Expect(err).ShouldNot(HaveOccurred())
-			stdOutWriter.Close()
+			stdOutWriter.Close() //nolint:errcheck
 			actual := <-outChannel
 			Expect(actual).To(ContainSubstring(`"result":null,"error":null`))
 		})
@@ -135,7 +135,7 @@ var _ = Describe("AttachDiskMethod Integration Tests", func() {
 			}`)
 			err := cpi.Execute(getDefaultConfig(Endpoint()), logger)
 			Expect(err).ShouldNot(HaveOccurred())
-			stdOutWriter.Close()
+			stdOutWriter.Close() //nolint:errcheck
 			actual := <-outChannel
 			Expect(actual).To(ContainSubstring(`{"result":"/dev/sdb","error":null,"log":""}`))
 		})

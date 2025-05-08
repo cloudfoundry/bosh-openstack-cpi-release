@@ -44,7 +44,7 @@ var _ = Describe("DELETE SNAPSHOT", func() {
 			err := cpi.Execute(config, logger)
 			Expect(err).ShouldNot(HaveOccurred())
 
-			_ = stdOutWriter.Close()
+			_ = stdOutWriter.Close() //nolint:errcheck
 			Expect(<-outChannel).To(ContainSubstring(`"result":null,"error":null`))
 		})
 	})
@@ -71,7 +71,7 @@ var _ = Describe("DELETE SNAPSHOT", func() {
 			err := cpi.Execute(config, logger)
 			Expect(err).ShouldNot(HaveOccurred())
 
-			_ = stdOutWriter.Close()
+			_ = stdOutWriter.Close() //nolint:errcheck
 			Expect(<-outChannel).To(ContainSubstring(`"message":"deleteSnapshot: Failed to delete snapshot ID snapshot-id`))
 		})
 	})
@@ -85,7 +85,8 @@ var _ = Describe("DELETE SNAPSHOT", func() {
 					w.WriteHeader(http.StatusAccepted)
 				case http.MethodGet:
 					w.WriteHeader(http.StatusOK)
-					_, _ = fmt.Fprintf(w, `{
+					_, _ = fmt.Fprintf(w, //nolint:errcheck
+						`{
 						"snapshot": {
 							"id": "snapshot-id",
 							"status": "available"
@@ -104,7 +105,7 @@ var _ = Describe("DELETE SNAPSHOT", func() {
 			err := cpi.Execute(config, logger)
 			Expect(err).ShouldNot(HaveOccurred())
 
-			_ = stdOutWriter.Close()
+			_ = stdOutWriter.Close() //nolint:errcheck
 			Expect(<-outChannel).To(ContainSubstring(`"message":"deleteSnapshot: Failed while waiting for snapshot ID snapshot-id to be deleted`))
 		})
 	})

@@ -29,8 +29,8 @@ var _ = Describe("SetDiskMetadataMethod Integration Tests", func() {
 					"id":       "volume-id-ok",
 					"metadata": metadata,
 				}
-				response, _ := json.Marshal(responsePayload)
-				fmt.Fprint(w, string(response))
+				response, _ := json.Marshal(responsePayload) //nolint:errcheck
+				fmt.Fprint(w, string(response))              //nolint:errcheck
 			case http.MethodPut:
 				if setMetadataIsSuccessful {
 					w.WriteHeader(http.StatusOK)
@@ -40,8 +40,8 @@ var _ = Describe("SetDiskMetadataMethod Integration Tests", func() {
 							"key2": "value2",
 						},
 					}
-					response, _ := json.Marshal(responsePayload)
-					fmt.Fprint(w, string(response))
+					response, _ := json.Marshal(responsePayload) //nolint:errcheck
+					fmt.Fprint(w, string(response))              //nolint:errcheck
 				} else {
 					w.WriteHeader(http.StatusNotFound)
 				}
@@ -72,7 +72,7 @@ var _ = Describe("SetDiskMetadataMethod Integration Tests", func() {
 			}`)
 			err := cpi.Execute(getDefaultConfig(Endpoint()), logger)
 			Expect(err).ShouldNot(HaveOccurred())
-			stdOutWriter.Close()
+			stdOutWriter.Close() //nolint:errcheck
 			actual := <-outChannel
 			fmt.Printf("actual: %s\n", actual)
 			var response map[string]interface{}
@@ -102,7 +102,7 @@ var _ = Describe("SetDiskMetadataMethod Integration Tests", func() {
 			}`)
 			err := cpi.Execute(getDefaultConfig(Endpoint()), logger)
 			Expect(err).ShouldNot(HaveOccurred())
-			stdOutWriter.Close()
+			stdOutWriter.Close() //nolint:errcheck
 			actual := <-outChannel
 			fmt.Printf("actual: %s\n", actual)
 			var response map[string]interface{}

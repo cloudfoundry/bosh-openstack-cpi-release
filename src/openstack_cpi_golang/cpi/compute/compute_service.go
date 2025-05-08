@@ -391,7 +391,7 @@ func (c computeService) GetMatchingFlavor(vmResources apiv1.VMResources, bootFro
 	}
 
 	if len(possibleFlavors) == 0 {
-		return flavors.Flavor{}, fmt.Errorf("Unable to meet requested VM requirements: %d CPU, %d MB RAM, %g GB Disk.\n",
+		return flavors.Flavor{}, fmt.Errorf("Unable to meet requested VM requirements: %d CPU, %d MB RAM, %g GB Disk.\n", //nolint:staticcheck
 			vmResources.CPU,
 			vmResources.RAM,
 			float64(vmResources.EphemeralDiskSize)/1024,

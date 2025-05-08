@@ -106,7 +106,7 @@ func (c imageService) UploadImage(imageID string, imageFilePath string) error {
 		}
 
 		if resp.StatusCode != http.StatusNoContent {
-			defer resp.Body.Close()
+			defer resp.Body.Close() //nolint:errcheck
 			bodyBytes, err := io.ReadAll(resp.Body)
 			if err != nil {
 				return fmt.Errorf("failed to read response body: %w", err)

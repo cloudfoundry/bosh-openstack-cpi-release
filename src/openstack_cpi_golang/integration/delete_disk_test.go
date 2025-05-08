@@ -23,7 +23,8 @@ var _ = Describe("Delete Disk", func() {
 				callCount++
 				if callCount == 1 {
 					w.WriteHeader(http.StatusOK)
-					fmt.Fprintf(w, `{
+					fmt.Fprintf(w, //nolint:errcheck
+						`{
 					"volume": {
 						"id": "volume_id",
 						"status": "available"
@@ -31,7 +32,8 @@ var _ = Describe("Delete Disk", func() {
 					}`)
 				} else {
 					w.WriteHeader(http.StatusOK)
-					fmt.Fprintf(w, `{
+					fmt.Fprintf(w, //nolint:errcheck
+						`{
 					"volume": {
 						"id": "volume_id",
 						"status": "deleted"
@@ -60,7 +62,7 @@ var _ = Describe("Delete Disk", func() {
 		err := cpi.Execute(getDefaultConfig(Endpoint()), logger)
 		Expect(err).ShouldNot(HaveOccurred())
 
-		stdOutWriter.Close()
+		stdOutWriter.Close() //nolint:errcheck
 		Expect(<-outChannel).To(ContainSubstring(`"result":null,"error":null`))
 	})
 
@@ -77,7 +79,7 @@ var _ = Describe("Delete Disk", func() {
 			err := cpi.Execute(getDefaultConfig(Endpoint()), logger)
 			Expect(err).ShouldNot(HaveOccurred())
 
-			stdOutWriter.Close()
+			stdOutWriter.Close() //nolint:errcheck
 			Expect(<-outChannel).To(ContainSubstring(`cannot delete volume volume_id, state is deleted`))
 		})
 	})

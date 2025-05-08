@@ -64,7 +64,7 @@ var _ = Describe("NetworkService", func() {
 
 	Context("ConfigureVIPNetwork", func() {
 		It("lists floating ips", func() {
-			_ = network.NewNetworkService(serviceClients, &networkingFacade, &logger).ConfigureVIPNetwork("123-456", networkConfig)
+			_ = network.NewNetworkService(serviceClients, &networkingFacade, &logger).ConfigureVIPNetwork("123-456", networkConfig) //nolint:errcheck
 
 			_, listOpts := networkingFacade.ListFloatingIpsArgsForCall(0)
 			Expect(listOpts.FloatingIP).To(Equal("3.3.3.3"))
@@ -78,7 +78,7 @@ var _ = Describe("NetworkService", func() {
 		})
 
 		It("extracts floating ips", func() {
-			_ = network.NewNetworkService(serviceClients, &networkingFacade, &logger).ConfigureVIPNetwork("123-456", networkConfig)
+			_ = network.NewNetworkService(serviceClients, &networkingFacade, &logger).ConfigureVIPNetwork("123-456", networkConfig) //nolint:errcheck
 
 			pages := networkingFacade.ExtractFloatingIPsArgsForCall(0)
 			Expect(pages).To(Equal(floatingIpPage))
@@ -99,7 +99,7 @@ var _ = Describe("NetworkService", func() {
 		})
 
 		It("gets ports", func() {
-			_ = network.NewNetworkService(serviceClients, &networkingFacade, &logger).ConfigureVIPNetwork("123-456", networkConfig)
+			_ = network.NewNetworkService(serviceClients, &networkingFacade, &logger).ConfigureVIPNetwork("123-456", networkConfig) //nolint:errcheck
 
 			serviceClient, listOpts := networkingFacade.ListPortsArgsForCall(0)
 			Expect(listOpts.DeviceID).To(Equal("123-456"))
@@ -123,7 +123,7 @@ var _ = Describe("NetworkService", func() {
 		})
 
 		It("associates the floating ip to a port", func() {
-			_ = network.NewNetworkService(serviceClients, &networkingFacade, &logger).ConfigureVIPNetwork("123-456", networkConfig)
+			_ = network.NewNetworkService(serviceClients, &networkingFacade, &logger).ConfigureVIPNetwork("123-456", networkConfig) //nolint:errcheck
 
 			_, floatingIpId, updateOpts := networkingFacade.UpdateFloatingIPArgsForCall(0)
 			Expect(floatingIpId).To(Equal("the_floating_ip_id"))
@@ -141,7 +141,7 @@ var _ = Describe("NetworkService", func() {
 	Context("GetSubnetID", func() {
 
 		It("lists subnets", func() {
-			_, _ = network.NewNetworkService(serviceClients, &networkingFacade, &logger).GetSubnetID("the-net-id", "1.1.1.1")
+			_, _ = network.NewNetworkService(serviceClients, &networkingFacade, &logger).GetSubnetID("the-net-id", "1.1.1.1") //nolint:errcheck
 
 			Expect(networkingFacade.ListSubnetsCallCount()).To(Equal(1))
 		})
@@ -155,7 +155,7 @@ var _ = Describe("NetworkService", func() {
 		})
 
 		It("extracts subnets", func() {
-			_, _ = network.NewNetworkService(serviceClients, &networkingFacade, &logger).GetSubnetID("the-net-id", "1.1.1.1")
+			_, _ = network.NewNetworkService(serviceClients, &networkingFacade, &logger).GetSubnetID("the-net-id", "1.1.1.1") //nolint:errcheck
 
 			page := networkingFacade.ExtractSubnetsArgsForCall(0)
 
@@ -247,8 +247,8 @@ var _ = Describe("NetworkService", func() {
 		})
 
 		It("lists VRRP ports if the port check is enabled", func() {
-			_, _ = network.NewNetworkService(serviceClients, &networkingFacade, &logger).
-				CreatePort(defaultNetwork, securityGroups, cloudProperties)
+			_, _ = network.NewNetworkService(serviceClients, &networkingFacade, &logger). //nolint:errcheck
+													CreatePort(defaultNetwork, securityGroups, cloudProperties)
 
 			Expect(networkingFacade.ListPortsCallCount()).To(Equal(1))
 		})
@@ -257,8 +257,8 @@ var _ = Describe("NetworkService", func() {
 			cloudProperties := properties.CreateVM{
 				AllowedAddressPairs: "allowed-address-pairs",
 			}
-			_, _ = network.NewNetworkService(serviceClients, &networkingFacade, &logger).
-				CreatePort(defaultNetwork, securityGroups, cloudProperties)
+			_, _ = network.NewNetworkService(serviceClients, &networkingFacade, &logger). //nolint:errcheck
+													CreatePort(defaultNetwork, securityGroups, cloudProperties)
 
 			Expect(networkingFacade.ListPortsCallCount()).To(Equal(0))
 		})
@@ -268,8 +268,8 @@ var _ = Describe("NetworkService", func() {
 				AllowedAddressPairs: "allowed-address-pairs",
 				VRRPPortCheck:       new(bool),
 			}
-			_, _ = network.NewNetworkService(serviceClients, &networkingFacade, &logger).
-				CreatePort(defaultNetwork, securityGroups, cloudProperties)
+			_, _ = network.NewNetworkService(serviceClients, &networkingFacade, &logger). //nolint:errcheck
+													CreatePort(defaultNetwork, securityGroups, cloudProperties)
 
 			Expect(networkingFacade.ListPortsCallCount()).To(Equal(0))
 		})
@@ -285,8 +285,8 @@ var _ = Describe("NetworkService", func() {
 		})
 
 		It("extracts VRRP ports if the port check is enabled", func() {
-			_, _ = network.NewNetworkService(serviceClients, &networkingFacade, &logger).
-				CreatePort(defaultNetwork, securityGroups, cloudProperties)
+			_, _ = network.NewNetworkService(serviceClients, &networkingFacade, &logger). //nolint:errcheck
+													CreatePort(defaultNetwork, securityGroups, cloudProperties)
 
 			Expect(networkingFacade.ExtractPortsCallCount()).To(Equal(1))
 		})
@@ -316,8 +316,8 @@ var _ = Describe("NetworkService", func() {
 				VRRPPortCheck: new(bool),
 			}
 
-			_, _ = network.NewNetworkService(serviceClients, &networkingFacade, &logger).
-				CreatePort(defaultNetwork, securityGroups, cloudProperties)
+			_, _ = network.NewNetworkService(serviceClients, &networkingFacade, &logger). //nolint:errcheck
+													CreatePort(defaultNetwork, securityGroups, cloudProperties)
 
 			_, createOpts := networkingFacade.CreatePortArgsForCall(0)
 
@@ -333,8 +333,8 @@ var _ = Describe("NetworkService", func() {
 		})
 
 		It("creates the port with VRRP port", func() {
-			_, _ = network.NewNetworkService(serviceClients, &networkingFacade, &logger).
-				CreatePort(defaultNetwork, securityGroups, cloudProperties)
+			_, _ = network.NewNetworkService(serviceClients, &networkingFacade, &logger). //nolint:errcheck
+													CreatePort(defaultNetwork, securityGroups, cloudProperties)
 
 			_, createOpts := networkingFacade.CreatePortArgsForCall(0)
 
@@ -346,8 +346,8 @@ var _ = Describe("NetworkService", func() {
 		It("logs that if initial port creation fails", func() {
 			networkingFacade.CreatePortReturns(nil, errors.New("boom"))
 
-			_, _ = network.NewNetworkService(serviceClients, &networkingFacade, &logger).
-				CreatePort(defaultNetwork, securityGroups, cloudProperties)
+			_, _ = network.NewNetworkService(serviceClients, &networkingFacade, &logger). //nolint:errcheck
+													CreatePort(defaultNetwork, securityGroups, cloudProperties)
 
 			tag, msg, _ := logger.WarnArgsForCall(0)
 
@@ -358,8 +358,8 @@ var _ = Describe("NetworkService", func() {
 		It("lists potentially conflicting ports", func() {
 			networkingFacade.CreatePortReturns(nil, errors.New("boom"))
 
-			_, _ = network.NewNetworkService(serviceClients, &networkingFacade, &logger).
-				CreatePort(defaultNetwork, securityGroups, cloudProperties)
+			_, _ = network.NewNetworkService(serviceClients, &networkingFacade, &logger). //nolint:errcheck
+													CreatePort(defaultNetwork, securityGroups, cloudProperties)
 
 			_, listOpts := networkingFacade.ListPortsArgsForCall(1)
 
@@ -380,8 +380,8 @@ var _ = Describe("NetworkService", func() {
 		It("extracts potentially conflicting ports", func() {
 			networkingFacade.CreatePortReturnsOnCall(0, nil, errors.New("boom"))
 
-			_, _ = network.NewNetworkService(serviceClients, &networkingFacade, &logger).
-				CreatePort(defaultNetwork, securityGroups, properties.CreateVM{})
+			_, _ = network.NewNetworkService(serviceClients, &networkingFacade, &logger). //nolint:errcheck
+													CreatePort(defaultNetwork, securityGroups, properties.CreateVM{})
 
 			Expect(networkingFacade.ExtractPortsCallCount()).To(Equal(1))
 		})
@@ -404,8 +404,8 @@ var _ = Describe("NetworkService", func() {
 					{ID: "the-port-id-2", Status: "DOWN", FixedIPs: []ports.IP{{IPAddress: "9.9.9.9"}}},
 				}, nil)
 
-			_, _ = network.NewNetworkService(serviceClients, &networkingFacade, &logger).
-				CreatePort(defaultNetwork, securityGroups, properties.CreateVM{})
+			_, _ = network.NewNetworkService(serviceClients, &networkingFacade, &logger). //nolint:errcheck
+													CreatePort(defaultNetwork, securityGroups, properties.CreateVM{})
 
 			Expect(networkingFacade.DeletePortCallCount()).To(Equal(2))
 			_, portID := networkingFacade.DeletePortArgsForCall(0)
@@ -422,8 +422,8 @@ var _ = Describe("NetworkService", func() {
 					{ID: "the-port-id-2", Status: "UP", FixedIPs: []ports.IP{{IPAddress: "9.9.9.9"}}},
 				}, nil)
 
-			_, _ = network.NewNetworkService(serviceClients, &networkingFacade, &logger).
-				CreatePort(defaultNetwork, securityGroups, properties.CreateVM{})
+			_, _ = network.NewNetworkService(serviceClients, &networkingFacade, &logger). //nolint:errcheck
+													CreatePort(defaultNetwork, securityGroups, properties.CreateVM{})
 
 			Expect(networkingFacade.DeletePortCallCount()).To(Equal(1))
 			_, portID := networkingFacade.DeletePortArgsForCall(0)
@@ -437,8 +437,8 @@ var _ = Describe("NetworkService", func() {
 					{ID: "the-port-id-1", Status: "DOWN", FixedIPs: []ports.IP{{IPAddress: "9.9.9.9"}}},
 				}, nil)
 
-			_, _ = network.NewNetworkService(serviceClients, &networkingFacade, &logger).
-				CreatePort(defaultNetwork, securityGroups, properties.CreateVM{})
+			_, _ = network.NewNetworkService(serviceClients, &networkingFacade, &logger). //nolint:errcheck
+													CreatePort(defaultNetwork, securityGroups, properties.CreateVM{})
 
 			Expect(networkingFacade.CreatePortCallCount()).To(Equal(2))
 		})
@@ -469,7 +469,7 @@ var _ = Describe("NetworkService", func() {
 	Context("GetPorts", func() {
 
 		It("serviceClient is retryable", func() {
-			_, _ = network.NewNetworkService(serviceClients, &networkingFacade, &logger).GetPorts("123-456", networkConfig.DefaultNetwork, true)
+			_, _ = network.NewNetworkService(serviceClients, &networkingFacade, &logger).GetPorts("123-456", networkConfig.DefaultNetwork, true) //nolint:errcheck
 
 			serviceClient, _ := networkingFacade.ListPortsArgsForCall(0)
 
@@ -477,7 +477,7 @@ var _ = Describe("NetworkService", func() {
 		})
 
 		It("serviceClient is not retryable", func() {
-			_, _ = network.NewNetworkService(serviceClients, &networkingFacade, &logger).GetPorts("123-456", networkConfig.DefaultNetwork, false)
+			_, _ = network.NewNetworkService(serviceClients, &networkingFacade, &logger).GetPorts("123-456", networkConfig.DefaultNetwork, false) //nolint:errcheck
 
 			serviceClient, _ := networkingFacade.ListPortsArgsForCall(0)
 
@@ -485,7 +485,7 @@ var _ = Describe("NetworkService", func() {
 		})
 
 		It("lists ports", func() {
-			_, _ = network.NewNetworkService(serviceClients, &networkingFacade, &logger).GetPorts("123-456", networkConfig.DefaultNetwork, false)
+			_, _ = network.NewNetworkService(serviceClients, &networkingFacade, &logger).GetPorts("123-456", networkConfig.DefaultNetwork, false) //nolint:errcheck
 
 			_, listOpts := networkingFacade.ListPortsArgsForCall(0)
 			Expect(listOpts.DeviceID).To(Equal("123-456"))
@@ -500,7 +500,7 @@ var _ = Describe("NetworkService", func() {
 		})
 
 		It("extracts ports", func() {
-			_, _ = network.NewNetworkService(serviceClients, &networkingFacade, &logger).GetPorts("123-456", networkConfig.DefaultNetwork, false)
+			_, _ = network.NewNetworkService(serviceClients, &networkingFacade, &logger).GetPorts("123-456", networkConfig.DefaultNetwork, false) //nolint:errcheck
 
 			pages := networkingFacade.ExtractPortsArgsForCall(0)
 			Expect(pages).To(Equal(portPage))
@@ -519,14 +519,14 @@ var _ = Describe("NetworkService", func() {
 		var ports = []ports.Port{{ID: "test"}}
 
 		It("serviceClient is retryable", func() {
-			_ = network.NewNetworkService(serviceClients, &networkingFacade, &logger).DeletePorts(ports)
+			_ = network.NewNetworkService(serviceClients, &networkingFacade, &logger).DeletePorts(ports) //nolint:errcheck
 			serviceClient, _ := networkingFacade.DeletePortArgsForCall(0)
 
 			Expect(serviceClient).To(BeAssignableToTypeOf(utilsRetryableServiceClient))
 		})
 
 		It("deletes the port with the correct ID", func() {
-			_ = network.NewNetworkService(serviceClients, &networkingFacade, &logger).DeletePorts(ports)
+			_ = network.NewNetworkService(serviceClients, &networkingFacade, &logger).DeletePorts(ports) //nolint:errcheck
 			_, act := networkingFacade.DeletePortArgsForCall(0)
 
 			Expect(act).To(Equal("test"))

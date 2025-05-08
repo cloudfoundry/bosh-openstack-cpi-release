@@ -19,7 +19,8 @@ var _ = Describe("Has Disk", func() {
 			switch r.Method {
 			case http.MethodGet:
 				w.WriteHeader(http.StatusOK)
-				fmt.Fprintf(w, `{
+				fmt.Fprintf(w, //nolint:errcheck
+					`{
 					"volume": {
 						"id": "volume-id"
 					}
@@ -49,7 +50,7 @@ var _ = Describe("Has Disk", func() {
 		err := cpi.Execute(getDefaultConfig(Endpoint()), logger)
 		Expect(err).ShouldNot(HaveOccurred())
 
-		stdOutWriter.Close()
+		stdOutWriter.Close() //nolint:errcheck
 		Expect(<-outChannel).To(ContainSubstring(`"result":true,"error":null`))
 	})
 
@@ -63,7 +64,7 @@ var _ = Describe("Has Disk", func() {
 		err := cpi.Execute(getDefaultConfig(Endpoint()), logger)
 		Expect(err).ShouldNot(HaveOccurred())
 
-		stdOutWriter.Close()
+		stdOutWriter.Close() //nolint:errcheck
 		Expect(<-outChannel).To(ContainSubstring(`"result":false,"error":null`))
 	})
 

@@ -30,7 +30,7 @@ var _ = Describe("HasDiskMethod", func() {
 		})
 
 		It("creates the volume service", func() {
-			_, _ = methods.NewHasDiskMethod(
+			_, _ = methods.NewHasDiskMethod( //nolint:errcheck
 				&volumeServicebuilder,
 				&logger,
 			).HasDisk(

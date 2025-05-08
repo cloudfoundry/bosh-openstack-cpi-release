@@ -66,7 +66,7 @@ func (a CreateStemcellMethod) CreateStemcell(
 		if err != nil {
 			return apiv1.StemcellCID{}, fmt.Errorf("failed to create temp dir: %w", err)
 		}
-		defer os.RemoveAll(tempDirPath)
+		defer os.RemoveAll(tempDirPath) //nolint:errcheck
 
 		rootImagePath, err := a.rootImageProvider.Get(imagePath, tempDirPath)
 		if err != nil {

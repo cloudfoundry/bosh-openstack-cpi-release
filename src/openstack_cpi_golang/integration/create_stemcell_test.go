@@ -28,7 +28,8 @@ var _ = Describe("Create Stemcell", func() {
 		Mux.HandleFunc("/v2/images", func(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusCreated)
 
-			fmt.Fprintf(w, `{
+			fmt.Fprintf(w, //nolint:errcheck
+				`{
 				"status": "queued",
 				"visibility": "private",
 				"id": "b2173dd3-7ad6-4362-baa6-a68bce3565cb",
@@ -57,7 +58,7 @@ var _ = Describe("Create Stemcell", func() {
 		err := cpi.Execute(getDefaultConfig(Endpoint()), logger)
 		Expect(err).ShouldNot(HaveOccurred())
 
-		stdOutWriter.Close()
+		stdOutWriter.Close() //nolint:errcheck
 		Expect(<-outChannel).To(ContainSubstring(`"result":"b2173dd3-7ad6-4362-baa6-a68bce3565cb"`))
 	})
 
@@ -65,7 +66,8 @@ var _ = Describe("Create Stemcell", func() {
 		Mux.HandleFunc("/v2/images/b2173dd3-7ad6-4362-baa6-a68bce3565cb", func(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusOK)
 
-			fmt.Fprintf(w, `{
+			fmt.Fprintf(w, //nolint:errcheck
+				`{
 				"status": "active",
 				"visibility": "private",
 				"id": "b2173dd3-7ad6-4362-baa6-a68bce3565cb",
@@ -91,7 +93,7 @@ var _ = Describe("Create Stemcell", func() {
 		err := cpi.Execute(getDefaultConfig(Endpoint()), logger)
 		Expect(err).ShouldNot(HaveOccurred())
 
-		stdOutWriter.Close()
+		stdOutWriter.Close() //nolint:errcheck
 		Expect(<-outChannel).To(ContainSubstring(`"result":"b2173dd3-7ad6-4362-baa6-a68bce3565cb"`))
 	})
 
@@ -101,13 +103,14 @@ var _ = Describe("Create Stemcell", func() {
 			if atomic.LoadInt64(&count) == 0 {
 				// fail on first request
 				w.WriteHeader(http.StatusInternalServerError)
-				fmt.Fprintf(w, `{}`)
+				fmt.Fprintf(w, `{}`) //nolint:errcheck
 
 				atomic.AddInt64(&count, 1)
 			} else {
 				// succeed on second request
 				w.WriteHeader(http.StatusOK)
-				fmt.Fprintf(w, `{
+				fmt.Fprintf(w, //nolint:errcheck
+					`{
 					"status": "active",
 					"visibility": "private",
 					"id": "b2173dd3-7ad6-4362-baa6-a68bce3565cb",
@@ -141,7 +144,7 @@ var _ = Describe("Create Stemcell", func() {
 		err := cpi.Execute(cpiConfig, logger)
 		Expect(err).ShouldNot(HaveOccurred())
 
-		stdOutWriter.Close()
+		stdOutWriter.Close() //nolint:errcheck
 		Expect(<-outChannel).To(ContainSubstring(`"result":"b2173dd3-7ad6-4362-baa6-a68bce3565cb"`))
 	})
 })

@@ -68,7 +68,7 @@ var _ = Describe("CreateDisk", func() {
 		})
 
 		It("creates the volume service", func() {
-			_, _ = methods.NewCreateDiskMethod(
+			_, _ = methods.NewCreateDiskMethod( //nolint:errcheck
 				&computeServiceBuilder,
 				&volumeServiceBuilder,
 				cpiConfig,
@@ -101,7 +101,7 @@ var _ = Describe("CreateDisk", func() {
 		})
 
 		It("creates the compute service", func() {
-			_, _ = methods.NewCreateDiskMethod(
+			_, _ = methods.NewCreateDiskMethod( //nolint:errcheck
 				&computeServiceBuilder,
 				&volumeServiceBuilder,
 				cpiConfig,
@@ -140,7 +140,7 @@ var _ = Describe("CreateDisk", func() {
 			})
 
 			It("gets the server availability zone", func() {
-				_, _ = methods.NewCreateDiskMethod(
+				_, _ = methods.NewCreateDiskMethod( //nolint:errcheck
 					&computeServiceBuilder,
 					&volumeServiceBuilder,
 					cpiConfig,
@@ -178,7 +178,7 @@ var _ = Describe("CreateDisk", func() {
 
 		Context("when ignore_server_availability_zone is true", func() {
 			It("does not get the server availability zone", func() {
-				_, _ = methods.NewCreateDiskMethod(
+				_, _ = methods.NewCreateDiskMethod( //nolint:errcheck
 					&computeServiceBuilder,
 					&volumeServiceBuilder,
 					cpiConfig,
@@ -194,7 +194,7 @@ var _ = Describe("CreateDisk", func() {
 		})
 
 		It("creates the volume", func() {
-			_, _ = methods.NewCreateDiskMethod(
+			_, _ = methods.NewCreateDiskMethod( //nolint:errcheck
 				&computeServiceBuilder,
 				&volumeServiceBuilder,
 				cpiConfig,

@@ -57,8 +57,8 @@ var _ = Describe("heavyStemcellCreator", func() {
 			imageServiceClient.UploadImageReturns(nil)
 			theCloudProps := properties.CreateStemcell{}
 
-			_, _ = image.NewHeavyStemcellCreator(config).
-				Create(&imageServiceClient, properties.CreateStemcell{}, "root/image/path")
+			_, _ = image.NewHeavyStemcellCreator(config). //nolint:errcheck
+									Create(&imageServiceClient, properties.CreateStemcell{}, "root/image/path")
 
 			cloudProps, config := imageServiceClient.CreateImageArgsForCall(0)
 			Expect(cloudProps).To(Equal(theCloudProps))
@@ -69,8 +69,8 @@ var _ = Describe("heavyStemcellCreator", func() {
 			imageServiceClient.CreateImageReturns("1234", nil)
 			imageServiceClient.UploadImageReturns(nil)
 
-			_, _ = image.NewHeavyStemcellCreator(config).
-				Create(&imageServiceClient, properties.CreateStemcell{}, "root/image/path")
+			_, _ = image.NewHeavyStemcellCreator(config). //nolint:errcheck
+									Create(&imageServiceClient, properties.CreateStemcell{}, "root/image/path")
 
 			imageID, imageFilePath := imageServiceClient.UploadImageArgsForCall(0)
 			Expect(imageID).To(Equal("1234"))
