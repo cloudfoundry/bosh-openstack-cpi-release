@@ -41,7 +41,7 @@ module Bosh::OpenStackCloud
     def self.get_floating_ip(openstack, ip)
       floating_ips = openstack.with_openstack(retryable: true) { openstack.network.list_floating_ips('floating_ip_address' => ip).body['floatingips'] }
       if floating_ips.length > 1
-        cloud_error("Floating IP '#{ip}' found in multiple networks: #{floating_ips.map { |ip| "'#{ip['floating_network_id']}'" }.join(', ')}")
+        cloud_error("Floating IP '#{ip}' found in multiple networks: #{floating_ips.map { |floating_ip| "'#{floating_ip['floating_network_id']}'" }.join(', ')}")
       elsif floating_ips.empty?
         cloud_error("Floating IP '#{ip}' not allocated")
       end
