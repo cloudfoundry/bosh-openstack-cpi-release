@@ -11,15 +11,17 @@ jobs:
   - get: bosh-openstack-cpi-release
   - put: openstack-cpi-release-docker-image
     params:
-      build: "bosh-openstack-cpi-release/ci/docker/openstack-cpi-release"
+      build: bosh-openstack-cpi-release/ci/docker/openstack-cpi-release
 
 - name: pipeline-locator
   plan:
   - get: bosh-openstack-cpi-release
   - task: pipeline-location
     file: bosh-openstack-cpi-release/ci/tasks/pipeline-locator.yml
-    params: { PIPELINE_FILENAME: "pipeline.yml" }
-    input_mapping: { pipeline-repo: bosh-openstack-cpi-release }
+    params:
+      PIPELINE_FILENAME: "pipeline.yml"
+    input_mapping:
+      pipeline-repo: bosh-openstack-cpi-release
 
 - name: run-specs
   serial: true
@@ -40,30 +42,30 @@ jobs:
   - in_parallel:
     - get: bosh-openstack-cpi-release
       passed: [ run-specs ]
-      tags: [ "openstack" ]
+      tags: [openstack]
       timeout: *timeouts-long
       trigger: true
     - get: openstack-lifecycle-stemcell
       resource: openstack-ubuntu-jammy-stemcell
-      tags: [ "openstack" ]
+      tags: [openstack]
       timeout: *timeouts-long
     - get: terraform-image
-      tags: [ "openstack" ]
+      tags: [openstack]
     - get: openstack-cpi-release-docker-image
-      tags: [ "openstack" ]
+      tags: [openstack]
 
   - task: write_ca_file
-    tags: [ "openstack" ]
+    tags: [openstack]
     file: bosh-openstack-cpi-release/ci/tasks/write-ca-file.yml
     image: openstack-cpi-release-docker-image
     params:
       file_content: ((concourse_openstack_auth.openstack_ca_cert))
 
   - task: terraform-apply
-    tags: [ "openstack" ]
+    tags: [openstack]
     timeout: *timeouts-long
     image: terraform-image
-    file: "bosh-openstack-cpi-release/ci/tasks/terraform-apply-lifecycle.yml"
+    file: bosh-openstack-cpi-release/ci/tasks/terraform-apply-lifecycle.yml
     params: &lifecycle-terraform-params
       TF_VAR_prefix: "lifecycle-openstack-tests"
       TF_VAR_auth_url: ((concourse_openstack_auth.auth_url))
@@ -81,7 +83,7 @@ jobs:
 
   - do:
     - task: test
-      tags: [ "openstack" ]
+      tags: [openstack]
       timeout: *timeouts-long
       file: bosh-openstack-cpi-release/ci/tasks/run-lifecycle.yml
       image: openstack-cpi-release-docker-image
@@ -102,15 +104,16 @@ jobs:
         BOSH_OPENSTACK_AVAILABILITY_ZONE: ((config-json.availability_zone))
         BOSH_OPENSTACK_EXCLUDE_CINDER_V1: true
     - put: lifecycle-log
-      tags: [ "openstack" ]
+      tags: [openstack]
       timeout: *timeouts-long
-      params: { file: output/lifecycle.log }
+      params:
+        file: output/lifecycle.log
     ensure:
       task: terraform-destroy
-      tags: [ "openstack" ]
+      tags: [openstack]
       timeout: *timeouts-long
       image: terraform-image
-      file: "bosh-openstack-cpi-release/ci/tasks/terraform-destroy-lifecycle.yml"
+      file: bosh-openstack-cpi-release/ci/tasks/terraform-destroy-lifecycle.yml
       params: *lifecycle-terraform-params
 
 - name: bats-ubuntu-manual
@@ -118,19 +121,37 @@ jobs:
   serial_groups: [ cleanup-lock-bats-ubuntu-manual ]
   plan:
   - in_parallel:
-    - { get: terraform-image, tags: [ "openstack" ] }
-    - { trigger: true, passed: [ run-specs ], get: bosh-openstack-cpi-release, timeout: *timeouts-long, tags: [ "openstack" ] }
-    - { trigger: false,                    get: bosh-release, timeout: *timeouts-long, tags: [ "openstack" ] }
-    - { trigger: true,                    get: stemcell-director, resource: openstack-ubuntu-jammy-stemcell, timeout: *timeouts-long, tags: [ "openstack" ] }
-    - { trigger: false,                    get: stemcell, resource: openstack-ubuntu-jammy-stemcell, timeout: *timeouts-long, tags: [ "openstack" ] }
-    - { trigger: false,                    get: bats, timeout: *timeouts-long, tags: [ "openstack" ] }
-    - { trigger: false,                    get: bosh-deployment, timeout: *timeouts-long, tags: [ "openstack" ] }
+    - get: terraform-image
+      tags: [openstack]
+    - passed: [ run-specs ]
+      get: bosh-openstack-cpi-release
+      timeout: *timeouts-long
+      tags: [openstack]
+      trigger: true
+    - get: bosh-release
+      timeout: *timeouts-long
+      tags: [openstack]
+    - get: stemcell-director
+      resource: openstack-ubuntu-jammy-stemcell
+      timeout: *timeouts-long
+      tags: [openstack]
+      trigger: true
+    - get: stemcell
+      resource: openstack-ubuntu-jammy-stemcell
+      timeout: *timeouts-long
+      tags: [openstack]
+    - get: bats
+      timeout: *timeouts-long
+      tags: [openstack]
+    - get: bosh-deployment
+      timeout: *timeouts-long
+      tags: [openstack]
 
   - task: terraform-apply
-    tags: [ "openstack" ]
+    tags: [openstack]
     timeout: *timeouts-long
     image: terraform-image
-    file: "bosh-openstack-cpi-release/ci/tasks/terraform-apply-bats-manual.yml"
+    file: bosh-openstack-cpi-release/ci/tasks/terraform-apply-bats-manual.yml
     params: &bats-terraform-vars
       TF_VAR_prefix: "bats-ubuntu-manual"
       TF_VAR_auth_url: ((concourse_openstack_auth.auth_url))
@@ -157,7 +178,7 @@ jobs:
 
   - do:
     - task: deploy
-      tags: [ "openstack" ]
+      tags: [openstack]
       timeout: *timeouts-long
       file: bosh-openstack-cpi-release/ci/tasks/deploy-manual-networking.yml
       params:
@@ -177,7 +198,7 @@ jobs:
         DEBUG_BATS: *debug_bats
 
     - task: test
-      tags: [ "openstack" ]
+      tags: [openstack]
       timeout: *timeouts-long
       file: bosh-openstack-cpi-release/ci/tasks/run-manual-networking-bats.yml
       params:
@@ -189,21 +210,21 @@ jobs:
         bats_rspec_tags: "--tag ~ssh"
       ensure:
         task: print-task-errors
-        tags: [ "openstack" ]
+        tags: [openstack]
         timeout: *timeouts-long
         file: bosh-openstack-cpi-release/ci/tasks/print_task_errors.yml
     ensure:
       do:
       - task: teardown-director
-        tags: [ "openstack" ]
+        tags: [openstack]
         timeout: *timeouts-long
         file: bosh-openstack-cpi-release/ci/tasks/teardown-director.yml
         ensure:
           task: terraform-destroy
-          tags: [ "openstack" ]
+          tags: [openstack]
           timeout: *timeouts-long
           image: terraform-image
-          file: "bosh-openstack-cpi-release/ci/tasks/terraform-destroy-bats-manual.yml"
+          file: bosh-openstack-cpi-release/ci/tasks/terraform-destroy-bats-manual.yml
           params: *bats-terraform-vars
 
 - name: bump-major
@@ -305,7 +326,7 @@ jobs:
       trigger: true
     - get: release-notes
   - task: promote
-    tags: [ "openstack" ]
+    tags: [openstack]
     timeout: *timeouts-long
     file: bosh-shared-ci/tasks/release/create-final-release.yml
     input_mapping:
@@ -455,7 +476,7 @@ resources:
 
 - name: lifecycle-log
   type: gcs
-  tags: [ "openstack" ]
+  tags: [openstack]
   source:
     bucket: bosh-openstack-cpi-blobs
     versioned_file: lifecycle.log
@@ -470,7 +491,6 @@ resources:
 
 - name: bosh-openstack-cpi-release
   type: git
-  tags: [ "openstack" ]
   source:
     uri: https://github.com/cloudfoundry/bosh-openstack-cpi-release.git
     branch: master
@@ -497,33 +517,28 @@ resources:
 
 - name: bats
   type: git
-  tags: [ "openstack" ]
   source:
     uri: https://github.com/cloudfoundry/bosh-acceptance-tests.git
     branch: master
 
 - name: bosh-release
   type: bosh-io-release
-  tags: [ "openstack" ]
   source:
     repository: cloudfoundry/bosh
 
 - name: openstack-ubuntu-jammy-stemcell
   type: bosh-io-stemcell
-  tags: [ "openstack" ]
   source:
     name: bosh-openstack-kvm-ubuntu-jammy-go_agent
 
 - name: bosh-deployment
   type: git
-  tags: [ "openstack" ]
   source:
     uri: https://github.com/cloudfoundry/bosh-deployment.git
     branch: master
 
 - name: openstack-cpi-release-docker-image
   type: docker-image
-  tags: [ "openstack" ]
   check_every: never
   source:
     username: ((docker.username))
