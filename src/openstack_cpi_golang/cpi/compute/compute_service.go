@@ -543,9 +543,9 @@ func (c computeService) waitForServerToBecomeActive(serverID string, timeout tim
 			case "ACTIVE":
 				return server, nil
 			case "ERROR":
-				return nil, fmt.Errorf("server became ERROR state while waiting to become ACTIVE")
+				return server, fmt.Errorf("server became ERROR state while waiting to become ACTIVE")
 			case "DELETED":
-				return nil, fmt.Errorf("server became DELETED state while waiting to become ACTIVE")
+				return server, fmt.Errorf("server became DELETED state while waiting to become ACTIVE")
 			}
 
 			time.Sleep(ComputeServicePollingInterval)
