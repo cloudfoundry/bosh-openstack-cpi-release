@@ -446,7 +446,7 @@ var _ = Describe("ComputeService", func() {
 			)
 
 			Expect(err.Error()).To(Equal("failed while waiting on the server creation in availability zone 'z1': server became ERROR state while waiting to become ACTIVE"))
-			Expect(server).To(BeNil())
+			Expect(server).To(Equal(&servers.Server{ID: "123-456", Status: "ERROR"}))
 		})
 
 		It("returns an error while waiting if the server creation finishes in state DELETED", func() {
@@ -462,7 +462,7 @@ var _ = Describe("ComputeService", func() {
 			)
 
 			Expect(err.Error()).To(Equal("failed while waiting on the server creation in availability zone 'z1': server became DELETED state while waiting to become ACTIVE"))
-			Expect(server).To(BeNil())
+			Expect(server).To(Equal(&servers.Server{ID: "123-456", Status: "DELETED"}))
 		})
 
 		It("returns an error while waiting if the server creation times out", func() {
