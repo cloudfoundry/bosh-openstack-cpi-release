@@ -22,7 +22,7 @@ GEM
       bigdecimal
       rexml
     diff-lcs (1.6.2)
-    excon (1.2.7)
+    excon (1.2.8)
       logger
     fog-core (2.6.0)
       builder
@@ -38,7 +38,7 @@ GEM
     formatador (1.1.1)
     hashdiff (1.2.0)
     httpclient (2.8.3)
-    json (2.12.2)
+    json (2.13.0)
     language_server-protocol (3.17.0.5)
     lint_roller (1.1.0)
     little-plugger (1.1.4)
@@ -51,8 +51,8 @@ GEM
     mime-types (3.7.0)
       logger
       mime-types-data (~> 3.2025, >= 3.2025.0507)
-    mime-types-data (3.2025.0708)
-    multi_json (1.15.0)
+    mime-types-data (3.2025.0715)
+    multi_json (1.17.0)
     netaddr (2.0.6)
     openssl (3.3.0)
     parallel (1.27.0)
@@ -100,7 +100,7 @@ GEM
       rubocop-ast (>= 1.45.1, < 2.0)
       ruby-progressbar (~> 1.7)
       unicode-display_width (>= 2.4.0, < 4.0)
-    rubocop-ast (1.45.1)
+    rubocop-ast (1.46.0)
       parser (>= 3.3.7.2)
       prism (~> 1.4)
     ruby-progressbar (1.13.0)
