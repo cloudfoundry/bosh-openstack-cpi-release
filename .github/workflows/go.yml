@@ -32,7 +32,7 @@ jobs:
           go-version-file: src/openstack_cpi_golang/go.mod
 
       - name: Run golangci-lint
-        uses: golangci/golangci-lint-action@v8
+        uses: golangci/golangci-lint-action@v9
         with:
           working-directory: src/openstack_cpi_golang
 
