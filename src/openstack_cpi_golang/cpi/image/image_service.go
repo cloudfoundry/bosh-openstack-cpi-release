@@ -59,6 +59,7 @@ func (c imageService) CreateImage(cloudProps properties.CreateStemcell, config c
 		DiskFormat:      cloudProps.DiskFormat,
 		ContainerFormat: cloudProps.ContainerFormat,
 		Properties:      c.getProperties(cloudProps),
+		Tags:            c.getTags(cloudProps),
 	}
 
 	image, err := c.imagesFacade.CreateImage(c.serviceClients.ServiceClient, createOpts)
@@ -149,7 +150,7 @@ func (c imageService) getProperties(cloudProps properties.CreateStemcell) map[st
 	properties["vmware_adaptertype"] = cloudProps.VmwareAdapterType
 	properties["vmware_disktype"] = cloudProps.VmwareDiskType
 	properties["vmware_linked_clone"] = cloudProps.VmwareLinkedClone
-	properties["vmware_ostype"] = cloudProps.VmvareOsType
+	properties["vmware_ostype"] = cloudProps.VmwareOsType
 
 	// Delete the zero-values
 	for key, value := range properties {
@@ -159,4 +160,12 @@ func (c imageService) getProperties(cloudProps properties.CreateStemcell) map[st
 	}
 
 	return properties
+}
+
+func (c imageService) getTags(cloudProps properties.CreateStemcell) []string {
+	// Return the tags from cloud properties if they exist
+	if len(cloudProps.Tags) > 0 {
+		return cloudProps.Tags
+	}
+	return nil
 }
