@@ -30,12 +30,22 @@ module Bosh::OpenStackCloud
       @cloud_properties = cloud_properties
     end
 
-    def create(_, _)
+    def create(_, _, tags = {})
       image_id = @cloud_properties['image_id']
       @logger.info("Checking for image with id '#{image_id}' referenced by light stemcell")
       image = @openstack.with_openstack(retryable: true) { @openstack.image.images.get(image_id) }
       if !image || image.status != 'active'
         cloud_error("No active image with id '#{image_id}' referenced by light stemcell found in OpenStack.")
+      end
+
+      # Apply tags if provided (CPI API v3)
+      unless tags.empty?
+        @logger.info("Tagging light stemcell image '#{image.id}' with tags: #{tags}")
+        begin
+          TagManager.tag_image(image, tags)
+        rescue StandardError => e
+          @logger.warn("Unable to tag image '#{image.id}' with tags '#{tags}': #{e.message}")
+        end
       end
 
       LightStemcell.new(@logger, @openstack, image.id)
@@ -67,7 +77,7 @@ module Bosh::OpenStackCloud
       image
     end
 
-    def create(image_path, is_public)
+    def create(image_path, is_public, tags = {})
       Dir.mktmpdir do |tmp_dir|
         @logger.info('Creating new image...')
 
@@ -91,6 +101,16 @@ module Bosh::OpenStackCloud
 
         @logger.info("Waiting for image '#{image.id}' to have status 'active'...")
         @openstack.wait_resource(image, :active)
+
+        # Apply tags if provided (CPI API v3)
+        unless tags.empty?
+          @logger.info("Tagging image '#{image.id}' with tags: #{tags}")
+          begin
+            TagManager.tag_image(image, tags)
+          rescue StandardError => e
+            @logger.warn("Unable to tag image '#{image.id}' with tags '#{tags}': #{e.message}")
+          end
+        end
 
         HeavyStemcell.new(@logger, @openstack, image.id.to_s)
       end

@@ -63,6 +63,28 @@ describe Bosh::OpenStackCloud::TagManager do
     end
   end
 
+  describe '.tag_image' do
+    let(:image) { double('image') }
+    let(:metadata) { double('metadata') }
+
+    before do
+      allow(image).to receive(:metadata).and_return(metadata)
+      allow(metadata).to receive(:update)
+    end
+
+    it 'sets multiple metadata tags' do
+      Bosh::OpenStackCloud::TagManager.tag_image(image, 'key1' => 'value1', 'key2' => 'value2')
+
+      expect(metadata).to have_received(:update).with('key1' => 'value1', 'key2' => 'value2')
+    end
+
+    it 'formats the tags' do
+      Bosh::OpenStackCloud::TagManager.tag_image(image, 'key1' => 'value1', 2 => 2, 'key3' => nil)
+
+      expect(metadata).to have_received(:update).with('key1' => 'value1', '2' => '2')
+    end
+  end
+
   describe '.format' do
     it 'trims key and value length' do
       formatted_tags = Bosh::OpenStackCloud::TagManager.format('x' * 256 => 'y' * 256)

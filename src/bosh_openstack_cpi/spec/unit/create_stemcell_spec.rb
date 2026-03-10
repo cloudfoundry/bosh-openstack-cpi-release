@@ -261,6 +261,68 @@ describe Bosh::OpenStackCloud::Cloud do
           }.to raise_error(Bosh::Clouds::CloudError, 'No active image with id \'image_id\' referenced by light stemcell found in OpenStack.')
         end
       end
+
+      context 'API v3: with tags in env' do
+        it 'applies tags to the light stemcell image' do
+          tags = { 'deployment' => 'my-deployment', 'team' => 'bosh' }
+          env = { 'tags' => tags }
+          cloud_properties = { 'image_id' => 'image_id' }
+
+          expect(Bosh::OpenStackCloud::TagManager).to receive(:tag_image).with(image, tags)
+
+          stemcell_id = @cloud.create_stemcell('/tmp/foo', cloud_properties, env)
+
+          expect(stemcell_id).to eq('image_id light')
+        end
+      end
+    end
+
+    context 'API v3: given a heavy stemcell with tags in env' do
+      before do
+        @cloud = mock_glance(cloud_options) do |glance|
+          @glance = glance
+        end
+      end
+
+      it 'applies tags from env to the created image' do
+        image_params = {
+          name: 'stemcell-name/x.y.z',
+          disk_format: 'qcow2',
+          container_format: 'bare',
+          visibility: 'private',
+          version: 'x.y.z',
+        }
+
+        tags = { 'team' => 'bosh', 'environment' => 'production' }
+        env = { 'tags' => tags }
+
+        expect(@glance.images).to receive(:create).with(image_params).and_return(image)
+        expect(@cloud.openstack).to receive(:wait_resource).with(image, :queued)
+        expect(@cloud.openstack).to receive(:wait_resource).with(image, :active)
+
+        expect(Dir).to receive(:mktmpdir).and_yield(@tmp_dir)
+        expect_any_instance_of(Bosh::OpenStackCloud::HeavyStemcellCreator).to receive(:unpack_image).with(@tmp_dir, '/tmp/foo')
+
+        fake_file = double(File)
+        expect(File).to receive(:open).with("#{@tmp_dir}/root.img", 'rb').and_return(fake_file)
+        expect(image).to receive(:upload_data).with(fake_file)
+
+        # Expect tags to be applied
+        expect(Bosh::OpenStackCloud::TagManager).to receive(:tag_image).with(image, tags)
+
+        sc_id = @cloud.create_stemcell(
+          '/tmp/foo',
+          {
+            'name' => 'stemcell-name',
+            'version' => 'x.y.z',
+            'container_format' => 'bare',
+            'disk_format' => 'qcow2',
+          },
+          env
+        )
+
+        expect(sc_id).to eq 'i-bar'
+      end
     end
   end
 end

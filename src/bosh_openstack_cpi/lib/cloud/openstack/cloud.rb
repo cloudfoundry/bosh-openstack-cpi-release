@@ -92,10 +92,11 @@ module Bosh::OpenStackCloud
     # @option cloud_properties [optional, String] ramdisk_file Name of the
     #   ramdisk image file provided at the stemcell archive
     # @return [String] OpenStack image UUID of the stemcell
-    def create_stemcell(image_path, cloud_properties)
+    def create_stemcell(image_path, cloud_properties, env = {})
       with_thread_name("create_stemcell(#{image_path}...)") do
+        tags = env.fetch('tags', {})
         stemcell_creator = StemcellCreator.new(@logger, @openstack, cloud_properties)
-        stemcell = stemcell_creator.create(image_path, @stemcell_public_visibility)
+        stemcell = stemcell_creator.create(image_path, @stemcell_public_visibility, tags)
         stemcell.id
       end
     end
@@ -500,7 +501,7 @@ module Bosh::OpenStackCloud
     # Information about Openstack CPI, currently supported stemcell formats
     # @return [Hash] Openstack CPI properties
     def info
-      { 'api_version' => 2, 'stemcell_formats' => ['openstack-raw', 'openstack-qcow2', 'openstack-light'] }
+      { 'api_version' => 3, 'stemcell_formats' => ['openstack-raw', 'openstack-qcow2', 'openstack-light'] }
     end
 
     ##

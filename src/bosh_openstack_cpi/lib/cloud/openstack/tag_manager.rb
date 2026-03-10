@@ -21,6 +21,12 @@ module Bosh::OpenStackCloud
       snapshot.update_metadata(formatted_tags) unless formatted_tags.empty?
     end
 
+    def self.tag_image(image, tags)
+      formatted_tags = format(tags)
+
+      image.metadata.update(formatted_tags) unless formatted_tags.empty?
+    end
+
     def self.format(tags)
       tags
         .reject { |key, value| key.nil? || value.nil? }

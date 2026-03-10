@@ -363,7 +363,7 @@ describe Bosh::OpenStackCloud::Cloud do
 
     it 'returns correct info' do
       cpi = Bosh::OpenStackCloud::Cloud.new(cloud_options['properties'], cpi_api_version)
-      expect(cpi.info).to eq('api_version' => 2, 'stemcell_formats' => ['openstack-raw', 'openstack-qcow2', 'openstack-light'])
+      expect(cpi.info).to eq('api_version' => 3, 'stemcell_formats' => ['openstack-raw', 'openstack-qcow2', 'openstack-light'])
     end
   end
 

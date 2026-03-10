@@ -13,6 +13,6 @@ func NewInfoMethod() InfoMethod {
 func (a InfoMethod) Info() (apiv1.Info, error) {
 	return apiv1.Info{
 		StemcellFormats: []string{"openstack-raw", "openstack-qcow2", "openstack-light"},
-		APIVersion:      2,
+		APIVersion:      3,
 	}, nil
 }
