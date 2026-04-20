@@ -173,7 +173,7 @@ var _ = Describe("ImageService", func() {
 			}
 
 			_, _ = image.NewImageService(serviceClients, &imagesFacade, &httpClient, &logger). //nolint:errcheck
-													CreateImage(cloudProps, openstackConfig)
+														CreateImage(cloudProps, openstackConfig)
 
 			_, opts := imagesFacade.CreateImageArgsForCall(0)
 			createOpts := opts.(images.CreateOpts)
