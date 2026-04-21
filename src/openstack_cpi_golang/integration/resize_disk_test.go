@@ -251,7 +251,6 @@ var _ = Describe("RESIZE DISK", func() {
 			}`)
 
 			config := getDefaultConfig(Endpoint())
-			config.Cloud.Properties.Openstack.StateTimeOut = 0
 
 			err := cpi.Execute(config, logger)
 			Expect(err).ShouldNot(HaveOccurred())
