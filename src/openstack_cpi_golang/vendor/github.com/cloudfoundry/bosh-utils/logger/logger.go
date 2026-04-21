@@ -1,5 +1,7 @@
 package logger
 
+//go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
+
 import (
 	"fmt"
 	"io"
@@ -37,7 +39,7 @@ func Levelify(levelString string) (LogLevel, error) {
 	level, ok := levels[upperLevelString]
 	if !ok {
 		expected := strings.Join(levelKeys, ", ")
-		return level, fmt.Errorf("Unknown LogLevel string '%s', expected one of [%s]", levelString, expected)
+		return level, fmt.Errorf("unknown LogLevel string '%s', expected one of [%s]", levelString, expected)
 	}
 	return level, nil
 }
@@ -52,8 +54,7 @@ func AsString(level LogLevel) string {
 	return "DEBUG"
 }
 
-// to update cd logger && go run github.com/maxbrunsfeld/counterfeiter -generate
-// counterfeiter:generate . Logger
+//counterfeiter:generate . Logger
 type Logger interface {
 	Debug(tag, msg string, args ...interface{})
 	DebugWithDetails(tag, msg string, args ...interface{})
@@ -198,7 +199,7 @@ func (l *logger) printf(tag, msg string, args ...interface{}) {
 	l.loggerMu.Lock()
 	timestamp := time.Now().Format(l.timestampFormat)
 	l.logger.SetPrefix("[" + tag + "] " + timestamp + " ")
-	l.logger.Output(2, s)
+	l.logger.Output(2, s) //nolint:errcheck
 	l.loggerMu.Unlock()
 }
 

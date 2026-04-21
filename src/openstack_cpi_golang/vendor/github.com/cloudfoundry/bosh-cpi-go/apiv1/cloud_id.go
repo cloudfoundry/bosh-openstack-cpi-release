@@ -30,7 +30,7 @@ func (c *cloudID) UnmarshalJSON(data []byte) error {
 	}
 
 	if str == "" {
-		return errors.New("Expected CID to be non-empty")
+		return errors.New("Expected CID to be non-empty") //nolint:staticcheck
 	}
 
 	*c = cloudID{str}
