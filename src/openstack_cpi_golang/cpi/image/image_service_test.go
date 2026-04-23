@@ -87,6 +87,99 @@ var _ = Describe("ImageService", func() {
 			Expect(opts).To(Equal(createOpts))
 		})
 
+		It("includes runtime tags as image properties", func() {
+			imagesFacade.CreateImageReturns(&images.Image{ID: "123-456"}, nil)
+
+			cloudProps := properties.CreateStemcell{
+				Name:            "the_stemcell_name",
+				Version:         "the_stemcell_version",
+				DiskFormat:      "the_disk_format",
+				ContainerFormat: "the_container_format",
+				OsType:          "the_os_type",
+				Tags: map[string]string{
+					"landscape_name": "prod",
+					"team":           "platform",
+				},
+			}
+
+			openstackConfig := config.OpenstackConfig{
+				StemcellPubliclyVisible: true,
+			}
+
+			_, _ = image.NewImageService(serviceClients, &imagesFacade, &httpClient, &logger). //nolint:errcheck
+														CreateImage(cloudProps, openstackConfig)
+
+			public := images.ImageVisibilityPublic
+			createOpts := images.CreateOpts{
+				Name:            "the_stemcell_name/the_stemcell_version",
+				Visibility:      &public,
+				DiskFormat:      "the_disk_format",
+				ContainerFormat: "the_container_format",
+				Properties: map[string]string{
+					"version":          "the_stemcell_version",
+					"os_type":          "the_os_type",
+					"auto_disk_config": "false",
+					"landscape_name":   "prod",
+					"team":             "platform",
+				},
+			}
+
+			_, opts := imagesFacade.CreateImageArgsForCall(0)
+			Expect(opts).To(Equal(createOpts))
+		})
+
+		It("does not allow runtime tags to overwrite fixed image properties", func() {
+			imagesFacade.CreateImageReturns(&images.Image{ID: "123-456"}, nil)
+
+			cloudProps := properties.CreateStemcell{
+				Name:            "the_stemcell_name",
+				Version:         "the_stemcell_version",
+				DiskFormat:      "the_disk_format",
+				ContainerFormat: "the_container_format",
+				OsType:          "the_os_type",
+				Tags: map[string]string{
+					"version": "override-attempt",
+				},
+			}
+
+			openstackConfig := config.OpenstackConfig{
+				StemcellPubliclyVisible: true,
+			}
+
+			_, _ = image.NewImageService(serviceClients, &imagesFacade, &httpClient, &logger). //nolint:errcheck
+														CreateImage(cloudProps, openstackConfig)
+
+			_, opts := imagesFacade.CreateImageArgsForCall(0)
+			createOpts := opts.(images.CreateOpts)
+			Expect(createOpts.Properties["version"]).To(Equal("the_stemcell_version"))
+		})
+
+		It("allows tags to fill in fixed property slots that are not set", func() {
+			imagesFacade.CreateImageReturns(&images.Image{ID: "123-456"}, nil)
+
+			cloudProps := properties.CreateStemcell{
+				Name:            "the_stemcell_name",
+				Version:         "the_stemcell_version",
+				DiskFormat:      "the_disk_format",
+				ContainerFormat: "the_container_format",
+				OsType:          "the_os_type",
+				Tags: map[string]string{
+					"os_distro": "ubuntu",
+				},
+			}
+
+			openstackConfig := config.OpenstackConfig{
+				StemcellPubliclyVisible: true,
+			}
+
+			_, _ = image.NewImageService(serviceClients, &imagesFacade, &httpClient, &logger). //nolint:errcheck
+														CreateImage(cloudProps, openstackConfig)
+
+			_, opts := imagesFacade.CreateImageArgsForCall(0)
+			createOpts := opts.(images.CreateOpts)
+			Expect(createOpts.Properties["os_distro"]).To(Equal("ubuntu"))
+		})
+
 		It("returns an error if image entity creation in OpenStack fails", func() {
 			imagesFacade.CreateImageReturns(&images.Image{ID: "123-456"}, errors.New("boom"))
 

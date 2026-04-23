@@ -158,5 +158,12 @@ func (c imageService) getProperties(cloudProps properties.CreateStemcell) map[st
 		}
 	}
 
+	// Merge runtime tags, skipping keys already set by fixed properties above
+	for key, value := range cloudProps.Tags {
+		if _, exists := properties[key]; !exists {
+			properties[key] = value
+		}
+	}
+
 	return properties
 }
