@@ -46,165 +46,150 @@ jobs:
       OS_PASSWORD: ((openstack_ci_user.password))
       OS_PROJECT: bosh
 
-- name: destroy-devstack
+- name: run-devstack-tests
   serial: true
   serial_groups: [ devstack ]
   plan:
-  - get: bosh-openstack-cpi-release
-    passed: [ create-devstack ]
-    trigger: true
-  - put: gcp-devstack
-    params:
-      terraform_source: bosh-openstack-cpi-release/ci/terraform/ci/gcp-devstack
-      action: destroy
-    get_params:
-      action: destroy
-
-- name: lifecycle
-  serial: true
-  serial_groups: [ devstack, cleanup-lock-lifecycle ]
-  plan:
-  - in_parallel:
-    - get: bosh-openstack-cpi-release
-      passed: [ create-devstack ]
-      timeout: *timeouts-long
-      trigger: true
-    - get: openstack-lifecycle-stemcell
-      resource: openstack-ubuntu-jammy-stemcell
-      timeout: *timeouts-long
-    - get: terraform-image
-    - get: openstack-cpi-release-docker-image
-
-  - task: terraform-apply
-    timeout: *timeouts-long
-    image: terraform-image
-    file: bosh-openstack-cpi-release/ci/tasks/terraform-apply-lifecycle.yml
-    params: &lifecycle-terraform-params
-      TF_VAR_prefix: "lifecycle-openstack-tests"
-      TF_VAR_auth_url: http://10.100.30.2/identity
-      TF_VAR_user_name: ((openstack_ci_user.username))
-      TF_VAR_password: ((openstack_ci_user.password))
-      TF_VAR_domain_name: Default
-      TF_VAR_project_name: bosh
-      TF_VAR_ext_net_name: public
-      TF_VAR_region_name: RegionOne
-      TF_VAR_openstack_default_key_public_key: ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHspetaTfg96YfZO3/xjKxGcjTnFPlxp7uP1KDisvPjB devstack-ci-openstack
-      TF_VAR_dns_nameservers: '["8.8.8.8"]'
-      TF_VAR_use_lbaas: false
-
   - do:
-    - task: test
-      timeout: *timeouts-long
-      file: bosh-openstack-cpi-release/ci/tasks/run-lifecycle.yml
-      image: openstack-cpi-release-docker-image
-      params:
-        BOSH_OPENSTACK_DOMAIN: Default
-        BOSH_OPENSTACK_PROJECT: bosh
-        BOSH_OPENSTACK_USERNAME_V2: ((openstack_ci_user.username))
-        BOSH_OPENSTACK_AUTH_URL_V3: http://10.100.30.2/identity
-        BOSH_OPENSTACK_USERNAME_V3: ((openstack_ci_user.username))
-        BOSH_OPENSTACK_API_KEY_V3: ((openstack_ci_user.password))
-        BOSH_CLI_SILENCE_SLOW_LOAD_WARNING: true
-        BOSH_OPENSTACK_VOLUME_TYPE: lvmdriver-1
-        BOSH_OPENSTACK_CONNECT_TIMEOUT: "600"
-        BOSH_OPENSTACK_READ_TIMEOUT: "120"
-        BOSH_OPENSTACK_WRITE_TIMEOUT: "120"
-        BOSH_OPENSTACK_FLAVOR_WITH_NO_ROOT_DISK: no-root-disk
-        BOSH_OPENSTACK_AVAILABILITY_ZONE: nova
-        BOSH_OPENSTACK_EXCLUDE_CINDER_V1: true
-    - put: lifecycle-log
-      timeout: *timeouts-long
-      params:
-        file: output/lifecycle.log
-    ensure:
-      task: terraform-destroy
+    - in_parallel:
+      - get: bosh-openstack-cpi-release
+        passed: [ create-devstack ]
+        timeout: *timeouts-long
+        trigger: true
+      - get: openstack-lifecycle-stemcell
+        resource: openstack-ubuntu-jammy-stemcell
+        timeout: *timeouts-long
+      - get: terraform-image
+      - get: openstack-cpi-release-docker-image
+      - get: stemcell-director
+        resource: openstack-ubuntu-jammy-stemcell
+        timeout: *timeouts-long
+        trigger: true
+      - get: stemcell
+        resource: openstack-ubuntu-jammy-stemcell
+        timeout: *timeouts-long
+      - get: bosh-release
+        timeout: *timeouts-long
+      - get: bats
+        timeout: *timeouts-long
+      - get: bosh-deployment
+        timeout: *timeouts-long
+
+    - task: lifecycle-terraform-apply
       timeout: *timeouts-long
       image: terraform-image
-      file: bosh-openstack-cpi-release/ci/tasks/terraform-destroy-lifecycle.yml
-      params: *lifecycle-terraform-params
+      file: bosh-openstack-cpi-release/ci/tasks/terraform-apply-lifecycle.yml
+      params: &lifecycle-terraform-params
+        TF_VAR_prefix: "lifecycle-openstack-tests"
+        TF_VAR_auth_url: http://10.100.30.2/identity
+        TF_VAR_user_name: ((openstack_ci_user.username))
+        TF_VAR_password: ((openstack_ci_user.password))
+        TF_VAR_domain_name: Default
+        TF_VAR_project_name: bosh
+        TF_VAR_ext_net_name: public
+        TF_VAR_region_name: RegionOne
+        TF_VAR_openstack_default_key_public_key: ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHspetaTfg96YfZO3/xjKxGcjTnFPlxp7uP1KDisvPjB devstack-ci-openstack
+        TF_VAR_dns_nameservers: '["8.8.8.8"]'
+        TF_VAR_use_lbaas: false
 
-- name: bats-ubuntu-manual
-  serial: true
-  serial_groups: [ devstack, cleanup-lock-bats-ubuntu-manual ]
-  plan:
-  - in_parallel:
-    - get: terraform-image
-    - passed: [ create-devstack ]
-      get: bosh-openstack-cpi-release
-      timeout: *timeouts-long
-      trigger: true
-    - get: bosh-release
-      timeout: *timeouts-long
-    - get: stemcell-director
-      resource: openstack-ubuntu-jammy-stemcell
-      timeout: *timeouts-long
-      trigger: true
-    - get: stemcell
-      resource: openstack-ubuntu-jammy-stemcell
-      timeout: *timeouts-long
-    - get: bats
-      timeout: *timeouts-long
-    - get: bosh-deployment
-      timeout: *timeouts-long
-
-  - task: terraform-apply
-    timeout: *timeouts-long
-    image: terraform-image
-    file: bosh-openstack-cpi-release/ci/tasks/terraform-apply-bats-manual.yml
-    params: &bats-terraform-vars
-      TF_VAR_prefix: "bats-ubuntu-manual"
-      TF_VAR_auth_url: http://10.100.30.2/identity
-      TF_VAR_domain_name: Default
-      TF_VAR_user_name: ((openstack_ci_user.username))
-      TF_VAR_password: ((openstack_ci_user.password))
-      TF_VAR_project_name: bosh
-      TF_VAR_region_name: RegionOne
-      TF_VAR_primary_net_name: "bats-ubuntu-manual-primary"
-      TF_VAR_primary_net_cidr: "10.0.4.0/24"
-      TF_VAR_primary_net_allocation_pool_start: "10.0.4.200"
-      TF_VAR_primary_net_allocation_pool_end: "10.0.4.254"
-      TF_VAR_secondary_net_name: "bats-ubuntu-manual-secondary"
-      TF_VAR_secondary_net_cidr: "10.0.5.0/24"
-      TF_VAR_secondary_net_allocation_pool_start: "10.0.5.200"
-      TF_VAR_secondary_net_allocation_pool_end: "10.0.5.254"
-      TF_VAR_ext_net_name: public
-      TF_VAR_ext_net_cidr: 172.24.4.0/24
-      TF_VAR_dns_nameservers: '["8.8.8.8"]'
-      TF_VAR_concourse_external_network_cidr: 0.0.0.0/0
-      TF_VAR_openstack_default_key_public_key: ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHspetaTfg96YfZO3/xjKxGcjTnFPlxp7uP1KDisvPjB devstack-ci-openstack
-
-  - do:
-    - task: deploy-director
-      timeout: *timeouts-long
-      file: bosh-openstack-cpi-release/ci/tasks/deploy-manual-networking.yml
-      params:
-        openstack_flavor: "m1.small"
-        openstack_connection_timeout: "600"
-        openstack_read_timeout: "180"
-        openstack_write_timeout: "180"
-        openstack_state_timeout: "900"
-        openstack_auth_url: http://10.100.30.2/identity
-        openstack_username: ((openstack_ci_user.username))
-        openstack_api_key: ((openstack_ci_user.password))
-        openstack_domain: Default
-        distro: "ubuntu"
-        availability_zone: nova
-        DEBUG_BATS: *debug_bats
-
-    - task: test
-      timeout: *timeouts-long
-      file: bosh-openstack-cpi-release/ci/tasks/run-manual-networking-bats.yml
-      params:
-        stemcell_name: "bosh-openstack-kvm-ubuntu-jammy-go_agent"
-        openstack_flavor_with_ephemeral_disk: with-ephemeral-disk
-        openstack_flavor_with_no_ephemeral_disk: without-ephemeral-disk
-        availability_zone: nova
-        DEBUG_BATS: *debug_bats
-        bats_rspec_tags: "--tag ~ssh"
-      ensure:
-        task: print-task-errors
+    - do:
+      - task: lifecycle-test
         timeout: *timeouts-long
-        file: bosh-openstack-cpi-release/ci/tasks/print_task_errors.yml
+        file: bosh-openstack-cpi-release/ci/tasks/run-lifecycle.yml
+        image: openstack-cpi-release-docker-image
+        params:
+          BOSH_OPENSTACK_DOMAIN: Default
+          BOSH_OPENSTACK_PROJECT: bosh
+          BOSH_OPENSTACK_USERNAME_V2: ((openstack_ci_user.username))
+          BOSH_OPENSTACK_AUTH_URL_V3: http://10.100.30.2/identity
+          BOSH_OPENSTACK_USERNAME_V3: ((openstack_ci_user.username))
+          BOSH_OPENSTACK_API_KEY_V3: ((openstack_ci_user.password))
+          BOSH_CLI_SILENCE_SLOW_LOAD_WARNING: true
+          BOSH_OPENSTACK_VOLUME_TYPE: lvmdriver-1
+          BOSH_OPENSTACK_CONNECT_TIMEOUT: "600"
+          BOSH_OPENSTACK_READ_TIMEOUT: "120"
+          BOSH_OPENSTACK_WRITE_TIMEOUT: "120"
+          BOSH_OPENSTACK_FLAVOR_WITH_NO_ROOT_DISK: no-root-disk
+          BOSH_OPENSTACK_AVAILABILITY_ZONE: nova
+          BOSH_OPENSTACK_EXCLUDE_CINDER_V1: true
+      - put: lifecycle-log
+        timeout: *timeouts-long
+        params:
+          file: output/lifecycle.log
+      ensure:
+        task: lifecycle-terraform-destroy
+        timeout: *timeouts-long
+        image: terraform-image
+        file: bosh-openstack-cpi-release/ci/tasks/terraform-destroy-lifecycle.yml
+        params: *lifecycle-terraform-params
+
+    - task: bats-terraform-apply
+      timeout: *timeouts-long
+      image: terraform-image
+      file: bosh-openstack-cpi-release/ci/tasks/terraform-apply-bats-manual.yml
+      params: &bats-terraform-vars
+        TF_VAR_prefix: "bats-ubuntu-manual"
+        TF_VAR_auth_url: http://10.100.30.2/identity
+        TF_VAR_domain_name: Default
+        TF_VAR_user_name: ((openstack_ci_user.username))
+        TF_VAR_password: ((openstack_ci_user.password))
+        TF_VAR_project_name: bosh
+        TF_VAR_region_name: RegionOne
+        TF_VAR_primary_net_name: "bats-ubuntu-manual-primary"
+        TF_VAR_primary_net_cidr: "10.0.4.0/24"
+        TF_VAR_primary_net_allocation_pool_start: "10.0.4.200"
+        TF_VAR_primary_net_allocation_pool_end: "10.0.4.254"
+        TF_VAR_secondary_net_name: "bats-ubuntu-manual-secondary"
+        TF_VAR_secondary_net_cidr: "10.0.5.0/24"
+        TF_VAR_secondary_net_allocation_pool_start: "10.0.5.200"
+        TF_VAR_secondary_net_allocation_pool_end: "10.0.5.254"
+        TF_VAR_ext_net_name: public
+        TF_VAR_ext_net_cidr: 172.24.4.0/24
+        TF_VAR_dns_nameservers: '["8.8.8.8"]'
+        TF_VAR_concourse_external_network_cidr: 0.0.0.0/0
+        TF_VAR_openstack_default_key_public_key: ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHspetaTfg96YfZO3/xjKxGcjTnFPlxp7uP1KDisvPjB devstack-ci-openstack
+
+    - do:
+      - task: bats-deploy-director
+        timeout: *timeouts-long
+        file: bosh-openstack-cpi-release/ci/tasks/deploy-manual-networking.yml
+        params:
+          openstack_flavor: "m1.small"
+          openstack_connection_timeout: "600"
+          openstack_read_timeout: "180"
+          openstack_write_timeout: "180"
+          openstack_state_timeout: "900"
+          openstack_auth_url: http://10.100.30.2/identity
+          openstack_username: ((openstack_ci_user.username))
+          openstack_api_key: ((openstack_ci_user.password))
+          openstack_domain: Default
+          distro: "ubuntu"
+          availability_zone: nova
+          DEBUG_BATS: *debug_bats
+
+      - task: bats-test
+        timeout: *timeouts-long
+        file: bosh-openstack-cpi-release/ci/tasks/run-manual-networking-bats.yml
+        params:
+          stemcell_name: "bosh-openstack-kvm-ubuntu-jammy-go_agent"
+          openstack_flavor_with_ephemeral_disk: with-ephemeral-disk
+          openstack_flavor_with_no_ephemeral_disk: without-ephemeral-disk
+          availability_zone: nova
+          DEBUG_BATS: *debug_bats
+          bats_rspec_tags: "--tag ~ssh"
+        ensure:
+          task: print-task-errors
+          timeout: *timeouts-long
+          file: bosh-openstack-cpi-release/ci/tasks/print_task_errors.yml
+
+    ensure:
+      try:
+        put: gcp-devstack
+        params:
+          terraform_source: bosh-openstack-cpi-release/ci/terraform/ci/gcp-devstack
+          action: destroy
+        get_params:
+          action: destroy
 
 - name: bump-major
   serial_groups: [ version ]
@@ -234,8 +219,7 @@ jobs:
         - get: bosh-openstack-cpi-release
           trigger: true
           passed:
-            - lifecycle
-            - bats-ubuntu-manual
+            - run-devstack-tests
         - get: bosh-shared-ci
         - get: version
           resource: release-version-semver
@@ -298,8 +282,7 @@ jobs:
     - get: bosh-shared-ci
     - get: bosh-openstack-cpi-release
       passed:
-      - lifecycle
-      - bats-ubuntu-manual
+      - run-devstack-tests
     - get: version
       resource: release-version-semver
       trigger: true
@@ -422,7 +405,7 @@ jobs:
       bosh-release: bosh-openstack-cpi-release
     params:
       GIT_USER_NAME: CI Bot
-      GIT_USER_EMAIL: cf-bosh-eng@pivotal.io
+      GIT_USER_EMAIL: bots@cloudfoundry.org
       PACKAGE: ruby-3.1
       PACKAGE_PREFIX: "openstack"
       PRIVATE_YML: |
