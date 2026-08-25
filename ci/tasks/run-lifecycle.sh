@@ -60,15 +60,15 @@ cd bosh-openstack-cpi-release/src/bosh_openstack_cpi
 
 bundle install
 
-rspec_args=""
+rspec_args=()
 if [ -n "${BOSH_OPENSTACK_EXCLUDE_CINDER_V1}" ]; then
-  rspec_args="--tag ~cinder_v1"
+  rspec_args=(--tag ~cinder_v1)
 fi
 
 
 if [ -n "${BOSH_OPENSTACK_AUTH_URL_V2}" ]; then
-  bundle exec rspec -f d "${rspec_args}" spec/integration 2>&1 | tee ../../../output/lifecycle.log
+  bundle exec rspec -f d "${rspec_args[@]}" spec/integration 2>&1 | tee ../../../output/lifecycle.log
 else
   echo "Excluding Keystone V2 tests."
-  bundle exec rspec -f d "${rspec_args}" spec/integration --exclude-pattern spec/integration/lifecycle_v2_spec.rb 2>&1 | tee ../../../output/lifecycle.log
+  bundle exec rspec -f d "${rspec_args[@]}" spec/integration --exclude-pattern spec/integration/lifecycle_v2_spec.rb 2>&1 | tee ../../../output/lifecycle.log
 fi
