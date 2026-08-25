@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-set -ex
+set -eo pipefail
 
 # shellcheck disable=SC1091
 source bosh-openstack-cpi-release/ci/tasks/utils.sh

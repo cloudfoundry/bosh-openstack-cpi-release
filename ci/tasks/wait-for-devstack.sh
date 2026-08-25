@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # Polls the DevStack Keystone endpoint until it answers, so downstream jobs don't start against a
-# half-installed cloud. DevStack is installed on the VM via its startup-script (~30-40 min from scratch).
+# half-installed cloud.
 
 set -euo pipefail
 
