@@ -13,16 +13,6 @@ jobs:
     params:
       build: bosh-openstack-cpi-release/ci/docker/openstack-cpi-release
 
-- name: pipeline-locator
-  plan:
-  - get: bosh-openstack-cpi-release
-  - task: pipeline-location
-    file: bosh-openstack-cpi-release/ci/tasks/pipeline-locator.yml
-    params:
-      PIPELINE_FILENAME: "pipeline.yml"
-    input_mapping:
-      pipeline-repo: bosh-openstack-cpi-release
-
 - name: run-specs
   serial: true
   plan:
