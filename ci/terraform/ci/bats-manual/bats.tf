@@ -8,11 +8,15 @@ provider "openstack" {
   cacert_file = var.cacert_file
 }
 
+data "openstack_networking_network_v2" "ext" {
+  name = var.ext_net_name
+}
+
 module "base" {
   source                           = "../modules/base"
   region_name                      = var.region_name
   project_name                     = var.project_name
-  ext_net_id                       = var.ext_net_id
+  ext_net_id                       = data.openstack_networking_network_v2.ext.id
   ext_net_cidr                     = var.ext_net_cidr
   concourse_external_network_cidr  = var.concourse_external_network_cidr
   openstack_default_key_public_key = var.openstack_default_key_public_key
@@ -100,10 +104,6 @@ variable "secondary_net_allocation_pool_end" {
 
 variable "ext_net_name" {
   description = "OpenStack external network name to register floating IP"
-}
-
-variable "ext_net_id" {
-  description = "OpenStack external network id to create router interface port"
 }
 
 variable "ext_net_cidr" {

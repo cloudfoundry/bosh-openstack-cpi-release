@@ -14,7 +14,7 @@ source bosh-openstack-cpi-release/ci/tasks/utils.sh
 : ${openstack_username:?}
 : ${openstack_api_key:?}
 : ${openstack_domain:?}
-: ${openstack_ca_file_path:?}
+openstack_ca_file_path="${openstack_ca_file_path:-}"
 : ${DEBUG_BATS:?}
 : ${distro:?}
 optional_value availability_zone
