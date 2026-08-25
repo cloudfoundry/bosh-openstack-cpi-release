@@ -344,6 +344,30 @@ jobs:
     params:
       file: release_metadata/empty-file
 
+- name: bump-go-deps
+  plan:
+  - in_parallel:
+    - get: bosh-openstack-cpi-release
+    - get: golang-release
+    - get: openstack-cpi-release-docker-image
+    - get: weekly
+      trigger: true
+  - task: bump-deps
+    file: golang-release/ci/tasks/shared/bump-deps.yml
+    input_mapping:
+      input_repo: bosh-openstack-cpi-release
+    output_mapping:
+      output_repo: bosh-openstack-cpi-release
+    params:
+      SOURCE_PATH: src/openstack_cpi_golang
+  - task: run-unit-specs
+    file: bosh-openstack-cpi-release/ci/tasks/run-unit-specs.yml
+    image: openstack-cpi-release-docker-image
+  - put: bosh-openstack-cpi-release
+    params:
+      repository: bosh-openstack-cpi-release
+      rebase: true
+
 - name: bump-deps
   plan:
   - in_parallel:
