@@ -5,7 +5,7 @@
 
 set -euo pipefail
 
-: ${AUTH_URL:?}
+: "${AUTH_URL:?}"
 
 echo "waiting for DevStack Keystone at ${AUTH_URL} ..."
 for i in $(seq 1 100); do
