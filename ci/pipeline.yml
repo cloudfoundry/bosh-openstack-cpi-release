@@ -75,7 +75,7 @@ jobs:
       - get: bosh-deployment
         timeout: *timeouts-long
 
-    - task: lifecycle-terraform-apply
+    - task: lifecycle-apply-terraform
       timeout: *timeouts-long
       image: terraform-image
       file: bosh-openstack-cpi-release/ci/tasks/terraform-apply-lifecycle.yml
@@ -93,7 +93,7 @@ jobs:
         TF_VAR_use_lbaas: false
 
     - do:
-      - task: lifecycle-test
+      - task: run-lifecycle
         timeout: *timeouts-long
         file: bosh-openstack-cpi-release/ci/tasks/run-lifecycle.yml
         image: openstack-cpi-release-docker-image
@@ -117,13 +117,13 @@ jobs:
         params:
           file: output/lifecycle.log
       ensure:
-        task: lifecycle-terraform-destroy
+        task: lifecycle-destroy-terraform
         timeout: *timeouts-long
         image: terraform-image
         file: bosh-openstack-cpi-release/ci/tasks/terraform-destroy-lifecycle.yml
         params: *lifecycle-terraform-params
 
-    - task: bats-terraform-apply
+    - task: bats-apply-terraform
       timeout: *timeouts-long
       image: terraform-image
       file: bosh-openstack-cpi-release/ci/tasks/terraform-apply-bats-manual.yml
@@ -167,7 +167,7 @@ jobs:
           availability_zone: nova
           DEBUG_BATS: *debug_bats
 
-      - task: bats-test
+      - task: run-bats
         timeout: *timeouts-long
         file: bosh-openstack-cpi-release/ci/tasks/run-manual-networking-bats.yml
         params:
@@ -178,13 +178,14 @@ jobs:
           DEBUG_BATS: *debug_bats
           bats_rspec_tags: "--tag ~ssh"
         ensure:
-          task: print-task-errors
+          task: bats-print-errors
           timeout: *timeouts-long
           file: bosh-openstack-cpi-release/ci/tasks/print_task_errors.yml
 
     ensure:
       try:
-        put: gcp-devstack
+        put: destroy-devstack
+        resource: gcp-devstack
         params:
           terraform_source: bosh-openstack-cpi-release/ci/terraform/ci/gcp-devstack
           action: destroy

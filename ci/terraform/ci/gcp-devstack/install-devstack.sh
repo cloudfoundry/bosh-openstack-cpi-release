@@ -1,33 +1,28 @@
 #!/usr/bin/env bash
 
-# Provisions a self-contained DevStack OpenStack on a fresh Ubuntu 24.04 (Noble) GCP VM,
-# configured deterministically so the community Concourse pipeline's static CredHub values
-# (concourse_openstack_auth / config-json) resolve against it. Runs AS the VM, as a sudo-capable
-# non-root user. Intended to be invoked by ci/pipeline.yml's create-devstack-worker job.
-#
-# The worker-registration step (join community Concourse tagged `openstack`) is a separate concern;
-# see start-concourse-worker.sh which this script calls at the end if worker creds are provided.
+# Provisions a self-contained DevStack OpenStack on a fresh Ubuntu 24.04 (Noble) GCP VM.
+# Runs as a sudo-capable non-root user. Invoked by the create-devstack CI task.
 
 set -euo pipefail
 
-### ----- Tunables (override via env from the create-devstack-worker task) -----------------------
-DEVSTACK_BRANCH="${DEVSTACK_BRANCH:-stable/2025.1}"          # Epoxy; matches the validated POC
+### ----- Tunables (can be overridden via environment variables) ---------------------------------
+DEVSTACK_BRANCH="${DEVSTACK_BRANCH:-stable/2025.1}"          # Epoxy
 STACK_USER="${STACK_USER:-stack}"
 STACK_DIR="${STACK_DIR:-/opt/stack}"
 
-# Deterministic OpenStack identity. These MUST match the CredHub concourse_openstack_auth/config-json.
+# OpenStack identity defaults — override via environment or VM metadata.
 OS_PROJECT="${OS_PROJECT:-bosh}"
 OS_USERNAME="${OS_USERNAME:-bosh}"
 OS_PASSWORD="${OS_PASSWORD:-bosh-ci-password}"
 OS_DOMAIN="${OS_DOMAIN:-Default}"
 OS_REGION="${OS_REGION:-RegionOne}"
 
-# HOST_IP is pinned so auth_url is stable across per-run VMs. create-vm.sh should assign this as the
-# VM's static internal IP (gcloud --private-network-ip). Falls back to the primary NIC address.
+# HOST_IP is pinned so auth_url is stable across per-run VMs. Should be set to the VM's static
+# internal IP. Falls back to the primary NIC address.
 HOST_IP="${HOST_IP:-$(ip -4 route get 1.1.1.1 | awk '{print $7; exit}')}"
 
 # DevStack external ("public") network. DevStack always regenerates the neutron network UUID, so
-# downstream terraform must resolve it BY NAME (see note in the pipeline plan). We only pin name/CIDR.
+# downstream terraform resolves it by name. Only name and CIDR are pinned here.
 EXT_NET_NAME="${EXT_NET_NAME:-public}"
 FLOATING_RANGE="${FLOATING_RANGE:-172.24.4.0/24}"
 PUBLIC_NETWORK_GATEWAY="${PUBLIC_NETWORK_GATEWAY:-172.24.4.1}"
@@ -51,19 +46,6 @@ load_credentials() {
   local u p
   u="$(metadata_attr os-username)"; [ -n "$u" ] && OS_USERNAME="$u"
   p="$(metadata_attr os-password)"; [ -n "$p" ] && OS_PASSWORD="$p"
-}
-
-require_nested_kvm() {
-  # POC: N2D (AMD) in europe-west4 does not expose SVM to the guest, so nested virt silently fails.
-  # Use N2 (Intel). Fail fast here rather than deep inside a BATS deploy.
-  if [[ ! -e /dev/kvm ]]; then
-    log "ERROR: /dev/kvm missing — VM has no nested virtualization. Use an N2 (Intel) machine type."
-    exit 1
-  fi
-  if ! grep -Eq 'vmx|svm' /proc/cpuinfo; then
-    log "ERROR: no vmx/svm CPU flag exposed to guest — nested KVM will not work. Use N2 (Intel)."
-    exit 1
-  fi
 }
 
 install_prereqs() {
@@ -125,14 +107,14 @@ os_admin() {
 configure_offbox_floating_access() {
   # Let Concourse workers (off the VM) reach DevStack floating IPs. Traffic is routed here by a GCP VPC
   # route (dest=floating_range, next-hop=this VM) + can_ip_forward. OVN's external network drops
-  # off-subnet sources, so hairpin-SNAT the worker source to the br-ex gateway IP. Validated in BOSH-1744.
+  # off-subnet sources, so hairpin-SNAT the worker source to the br-ex gateway IP.
   sudo sysctl -w net.ipv4.ip_forward=1
   sudo iptables -t nat -C POSTROUTING -s "${WORKER_SOURCE_CIDR}" -d "${FLOATING_RANGE}" -j SNAT --to-source "${PUBLIC_NETWORK_GATEWAY}" 2>/dev/null || \
     sudo iptables -t nat -A POSTROUTING -s "${WORKER_SOURCE_CIDR}" -d "${FLOATING_RANGE}" -j SNAT --to-source "${PUBLIC_NETWORK_GATEWAY}"
 }
 
 register_volumev3_alias() {
-  # POC: Cinder registers as service type `block-storage`; the fog-openstack gem the CPI/tests use
+  # Cinder registers as service type `block-storage`; the fog-openstack gem the CPI/tests use
   # expects a `volumev3` service. Register an alias endpoint pointing at the same Cinder URL.
   local cinder_url
   cinder_url="$(os_admin endpoint list --service block-storage --interface public -f value -c URL | head -1)"
@@ -155,8 +137,7 @@ create_project_and_user() {
 }
 
 create_flavors() {
-  # Test flavors referenced by config-json. Names must match the CredHub values.
-  # with_no_root_disk: root disk = 0 (boot-from-volume path). with/without ephemeral disk vary swap/ephemeral.
+  # Test flavors required by the lifecycle and BATS suites.
   os_admin flavor show m1.small >/dev/null 2>&1 || os_admin flavor create --ram 2048 --disk 20 --vcpus 1 m1.small
   os_admin flavor show no-root-disk >/dev/null 2>&1 || \
     os_admin flavor create --ram 1024 --disk 0 --vcpus 1 no-root-disk
@@ -205,7 +186,6 @@ EOF
 }
 
 main() {
-  require_nested_kvm
   install_prereqs
   load_credentials
   clone_devstack
@@ -218,7 +198,7 @@ main() {
   bump_quotas
   upload_jammy_stemcell
   emit_metadata
-  log "DevStack ready. Start the Concourse worker next (start-concourse-worker.sh)."
+  log "DevStack ready."
 }
 
 main "$@"

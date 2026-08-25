@@ -1,7 +1,7 @@
 # GCP-side infrastructure for the OpenStack CPI test environment: an N2 VM that runs DevStack,
 # attached to the community Concourse VPC (bosh-concourse) so the Concourse workers can reach it.
 #
-# Two reachability paths for the workers (both validated):
+# Two reachability paths for the workers:
 #   1. DevStack API  -> the VM's internal IP (allowed by google_compute_firewall.devstack).
 #   2. Floating IPs  -> routed to the VM (google_compute_route.floating) + can_ip_forward, plus a
 #      SNAT hairpin rule applied by install-devstack.sh so OVN accepts the off-subnet worker source.
@@ -51,7 +51,7 @@ variable "vm_name" {
 }
 
 variable "machine_type" {
-  description = "MUST be a nested-virt-capable Intel type. NOT E2 (worker type) and NOT N2D (no vmx in europe-west4 per POC)."
+  description = "Must be a nested-virt-capable Intel type (e.g. N2). NOT E2 and NOT N2D (no vmx exposed)."
   default     = "n2-standard-4"
 }
 
@@ -68,7 +68,7 @@ variable "image" {
 }
 
 variable "private_ip" {
-  description = "Pinned internal IP so concourse_openstack_auth.auth_url stays stable across per-run VMs."
+  description = "Pinned internal IP so the OpenStack auth_url stays stable across per-run VMs."
   type        = string
   default     = "10.100.30.2"
 }
@@ -95,7 +95,7 @@ variable "os_username" {
 }
 
 variable "os_password" {
-  description = "Password for os_username. Sourced from CredHub (openstack_ci_user) via the pipeline; passed to the VM as metadata, never committed."
+  description = "Password for os_username. Passed to the VM as metadata, never committed to the repo."
   type        = string
   sensitive   = true
 }

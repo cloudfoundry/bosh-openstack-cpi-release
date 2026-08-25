@@ -45,6 +45,7 @@ class IntegrationConfig
     end
 
     @logger = Bosh::Cpi::Logger.new(STDERR)
+    @logger.level = ::Logger::INFO
     @logger.set_request_id("fake-#{Random.rand(100000..999999)}")
 
     @ca_cert_content = LifecycleHelper.get_config(:ca_cert, nil)
