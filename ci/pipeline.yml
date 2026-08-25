@@ -52,13 +52,16 @@ jobs:
     file: bosh-openstack-cpi-release/ci/tasks/wait-for-devstack.yml
     params:
       AUTH_URL: http://10.100.30.2/identity
+      OS_USERNAME: ((openstack_ci_user.username))
+      OS_PASSWORD: ((openstack_ci_user.password))
+      OS_PROJECT: bosh
 
 - name: destroy-devstack
   serial: true
   serial_groups: [ devstack ]
   plan:
   - get: bosh-openstack-cpi-release
-    passed: [ lifecycle, bats-ubuntu-manual ]
+    passed: [ create-devstack ]
     trigger: true
   - put: gcp-devstack
     params:
@@ -67,7 +70,7 @@ jobs:
 
 - name: lifecycle
   serial: true
-  serial_groups: [ cleanup-lock-lifecycle ]
+  serial_groups: [ devstack, cleanup-lock-lifecycle ]
   plan:
   - in_parallel:
     - get: bosh-openstack-cpi-release
@@ -130,7 +133,7 @@ jobs:
 
 - name: bats-ubuntu-manual
   serial: true
-  serial_groups: [ cleanup-lock-bats-ubuntu-manual ]
+  serial_groups: [ devstack, cleanup-lock-bats-ubuntu-manual ]
   plan:
   - in_parallel:
     - get: terraform-image
