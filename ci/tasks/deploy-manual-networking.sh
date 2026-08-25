@@ -105,7 +105,7 @@ bosh-go int ../bosh-deployment/bosh.yml \
     -v openstack_username="${openstack_username}" \
     -v openstack_write_timeout="${openstack_write_timeout}" \
     "${maybe_load_custom_ca_file[@]}" \
-    -v region=null | tee bosh.yml
+    -v region=null > bosh.yml
 
 echo "deploying BOSH..."
 bosh-go create-env bosh.yml \
