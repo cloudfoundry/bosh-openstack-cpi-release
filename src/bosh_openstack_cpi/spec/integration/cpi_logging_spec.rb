@@ -25,14 +25,14 @@ describe Bosh::OpenStackCloud::ExconLoggingInstrumentor do
       'ephemeral_disk_size' => 2 * 1024,
     )
 
-    expect(log.string).to match(%r{excon\.request GET https?://.*:\d+/v\d\.\d/})
-    expect(log.string).to match(%r{excon\.response HTTP/.*:\d+/v\d\.\d/})
+    expect(log.string).to match(%r{excon\.request GET https?://.*:\d+(?:/\w+)*/v\d\.\d/})
+    expect(log.string).to match(%r{excon\.response HTTP/.*:\d+(?:/\w+)*/v\d\.\d/})
   end
 
   it 'logs excon exceptions' do
     cpi.delete_disk('123')
 
-    expect(log.string).to match(%r{excon\.error HTTP/1\.1 404 Not Found /v3/.*/volumes/123 params: .*})
+    expect(log.string).to match(%r{excon\.error HTTP/1\.1 404 Not Found \S*/v3/\S*volumes/123 params: .*})
     expect(log.string).not_to include('excon.error.response')
   end
 
