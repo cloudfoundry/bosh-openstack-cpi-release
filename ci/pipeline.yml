@@ -203,17 +203,6 @@ jobs:
         task: print-task-errors
         timeout: *timeouts-long
         file: bosh-openstack-cpi-release/ci/tasks/print_task_errors.yml
-    ensure:
-      do:
-      - task: teardown-director
-        timeout: *timeouts-long
-        file: bosh-openstack-cpi-release/ci/tasks/teardown-director.yml
-        ensure:
-          task: terraform-destroy
-          timeout: *timeouts-long
-          image: terraform-image
-          file: bosh-openstack-cpi-release/ci/tasks/terraform-destroy-bats-manual.yml
-          params: *bats-terraform-vars
 
 - name: bump-major
   serial_groups: [ version ]
