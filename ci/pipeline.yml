@@ -499,9 +499,10 @@ resources:
 - name: bosh-openstack-cpi-release
   type: git
   source:
-    uri: git@github.com:cloudfoundry/bosh-openstack-cpi-release.git
+    uri: https://github.com/cloudfoundry/bosh-openstack-cpi-release.git
     branch: devstack-gcp-ci
-    private_key: ((github_deploy_key_bosh-openstack-cpi-release.private_key))
+    username: bosh-admin-bot
+    password: ((github_public_repo_token))
 
 - name: bosh-openstack-cpi-release-github-release
   type: github-release
