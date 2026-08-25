@@ -12,8 +12,6 @@ RSpec.configure do |config|
   config.before(:all) { WebMock.allow_net_connect! }
 end
 
-Fog::Logger[:warning] = nil
-
 def upload_stemcell(cpi, stemcell_path)
   stemcell_manifest = Psych.load_file(File.join(stemcell_path, 'stemcell.MF'))
   stemcell_id = cpi.create_stemcell(File.join(stemcell_path, 'image'), stemcell_manifest['cloud_properties'])
