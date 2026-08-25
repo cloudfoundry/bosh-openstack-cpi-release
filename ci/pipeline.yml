@@ -172,7 +172,7 @@ jobs:
       TF_VAR_openstack_default_key_public_key: ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHspetaTfg96YfZO3/xjKxGcjTnFPlxp7uP1KDisvPjB devstack-ci-openstack
 
   - do:
-    - task: deploy
+    - task: deploy-director
       timeout: *timeouts-long
       file: bosh-openstack-cpi-release/ci/tasks/deploy-manual-networking.yml
       params:
