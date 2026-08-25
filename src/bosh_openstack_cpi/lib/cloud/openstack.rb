@@ -5,7 +5,6 @@ end
 require 'fog/openstack'
 require 'httpclient'
 require 'json'
-require 'set'
 require 'tmpdir'
 require 'securerandom'
 require 'membrane'
