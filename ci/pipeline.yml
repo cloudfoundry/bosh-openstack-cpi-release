@@ -368,7 +368,7 @@ jobs:
       repository: bosh-openstack-cpi-release
       rebase: true
 
-- name: bump-deps
+- name: bump-ruby-deps
   plan:
   - in_parallel:
     - get: bosh-openstack-cpi-release
