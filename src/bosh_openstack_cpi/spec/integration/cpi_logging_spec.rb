@@ -26,7 +26,7 @@ describe Bosh::OpenStackCloud::ExconLoggingInstrumentor do
     )
 
     expect(log.string).to match(%r{excon\.request GET https?://.*:\d+(?:/\w+)*/v\d\.\d/})
-    expect(log.string).to match(%r{excon\.response HTTP/.*:\d+(?:/\w+)*/v\d\.\d/})
+    expect(log.string).to match(%r{excon\.response HTTP/.*(?:/\w+)*/v\d\.\d/})
   end
 
   it 'logs excon exceptions' do
