@@ -69,12 +69,14 @@ clone_devstack() {
 write_local_conf() {
   # DevStack serves plain HTTP (no tls-proxy): this is a disposable test cloud reached only over the
   # bosh-concourse VPC, so no CA to juggle per run.
+  local admin_password
+  admin_password=$(printf '%q' "${OS_PASSWORD}")
   sudo -u "${STACK_USER}" tee "${STACK_DIR}/devstack/local.conf" >/dev/null <<EOF
 [[local|localrc]]
 HOST_IP=${HOST_IP}
 SERVICE_HOST=${HOST_IP}
 
-ADMIN_PASSWORD=${OS_PASSWORD}
+ADMIN_PASSWORD=${admin_password}
 DATABASE_PASSWORD=\$ADMIN_PASSWORD
 RABBIT_PASSWORD=\$ADMIN_PASSWORD
 SERVICE_PASSWORD=\$ADMIN_PASSWORD
@@ -194,10 +196,10 @@ main() {
   run_stack
   configure_offbox_floating_access
   register_volumev3_alias
-  create_project_and_user
   create_flavors
   bump_quotas
   upload_jammy_stemcell
+  create_project_and_user
   emit_metadata
   log "DevStack ready."
 }
