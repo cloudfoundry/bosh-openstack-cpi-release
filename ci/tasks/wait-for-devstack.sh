@@ -27,10 +27,15 @@ done
 
 echo "waiting for CI user auth (confirms create_project_and_user has run) ..."
 for i in $(seq 1 20); do
+  payload=$(jq -n \
+    --arg user    "${OS_USERNAME}" \
+    --arg pass    "${OS_PASSWORD}" \
+    --arg project "${OS_PROJECT}" \
+    '{"auth":{"identity":{"methods":["password"],"password":{"user":{"name":$user,"domain":{"name":"Default"},"password":$pass}}},"scope":{"project":{"name":$project,"domain":{"name":"Default"}}}}}')
   code="$(curl -s -o /dev/null -m 10 -w '%{http_code}' \
     -X POST "${AUTH_URL}/v3/auth/tokens" \
     -H "Content-Type: application/json" \
-    -d "{\"auth\":{\"identity\":{\"methods\":[\"password\"],\"password\":{\"user\":{\"name\":\"${OS_USERNAME}\",\"domain\":{\"name\":\"Default\"},\"password\":\"${OS_PASSWORD}\"}}},\"scope\":{\"project\":{\"name\":\"${OS_PROJECT}\",\"domain\":{\"name\":\"Default\"}}}}}" \
+    -d "${payload}" \
     || echo 000)"
   if [ "${code}" = "201" ]; then
     echo "CI user auth OK — DevStack fully ready"

@@ -101,7 +101,8 @@ run_stack() {
 os_admin() {
   # openstack CLI as admin against the freshly-installed cloud.
   sudo -u "${STACK_USER}" bash -c \
-    "source ${STACK_DIR}/devstack/openrc admin admin >/dev/null 2>&1 && openstack $*"
+    "source ${STACK_DIR}/devstack/openrc admin admin >/dev/null 2>&1 && openstack \"\$@\"" \
+    -- "$@"
 }
 
 configure_offbox_floating_access() {
