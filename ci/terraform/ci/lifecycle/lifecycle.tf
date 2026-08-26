@@ -9,7 +9,8 @@ provider "openstack" {
 }
 
 data "openstack_networking_network_v2" "ext" {
-  name = var.ext_net_name
+  name   = var.ext_net_name
+  region = var.region_name
 }
 
 module "base" {
