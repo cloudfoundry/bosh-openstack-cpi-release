@@ -492,7 +492,7 @@ resources:
   type: git
   source:
     uri: https://github.com/cloudfoundry/bosh-openstack-cpi-release.git
-    branch: devstack-gcp-ci
+    branch: master
     username: bosh-admin-bot
     password: ((github_public_repo_token))
 
