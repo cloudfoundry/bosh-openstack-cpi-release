@@ -60,13 +60,15 @@ func (a DeleteVMMethod) DeleteVM(cid apiv1.VMCID) error {
 	}
 
 	if len(serverMetadata) > 0 {
-		loadbalancerService, err := a.loadbalancerServiceBuilder.Build()
-		if err != nil {
-			return fmt.Errorf("delete_vm: %w", err)
-		}
-
+		var loadbalancerService loadbalancer.LoadbalancerService
 		for key, value := range serverMetadata {
 			if strings.HasPrefix(key, "lbaas_pool_") {
+				if loadbalancerService == nil {
+					loadbalancerService, err = a.loadbalancerServiceBuilder.Build()
+					if err != nil {
+						return fmt.Errorf("delete_vm: %w", err)
+					}
+				}
 				parts := strings.Split(value, "/")
 				err = loadbalancerService.DeletePoolMember(parts[0], parts[1], a.cpiConfig.Cloud.Properties.Openstack.StateTimeOut)
 				if err != nil {
