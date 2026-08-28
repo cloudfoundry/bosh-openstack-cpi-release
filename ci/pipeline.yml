@@ -296,7 +296,7 @@ jobs:
         params:
           PACKAGES:
             - golang-1-linux
-            - openstack-ruby-3.1
+            - openstack-ruby-4.0
         on_success:
           do:
             - put: release-notes
@@ -377,7 +377,7 @@ jobs:
       GEM_DIRS: src/bosh_openstack_cpi
       GIT_USER_NAME: CI Bot
       GIT_USER_EMAIL: bots@cloudfoundry.org
-      PACKAGE: ruby-3.1
+      PACKAGE: ruby-4.0
       VENDOR: true
   - task: run-unit-specs
     file: bosh-openstack-cpi-release/ci/tasks/run-unit-specs.yml
@@ -421,7 +421,7 @@ jobs:
     params:
       GIT_USER_NAME: CI Bot
       GIT_USER_EMAIL: cf-bosh-eng@pivotal.io
-      PACKAGE: ruby-3.1
+      PACKAGE: ruby-4.0
       PACKAGE_PREFIX: "openstack"
       PRIVATE_YML: |
         blobstore:

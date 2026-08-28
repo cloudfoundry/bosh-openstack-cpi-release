@@ -3,15 +3,16 @@
 set -e -x
 
 BOSH_PACKAGES_DIR=${BOSH_PACKAGES_DIR:-/var/vcap/packages}
+RUBY_VERSION=$(cat bosh_openstack_cpi/.ruby-version)
 # shellcheck disable=SC1090
-source "${BOSH_PACKAGES_DIR}/openstack-ruby-3.1/bosh/compile.env"
+source "${BOSH_PACKAGES_DIR}/openstack-ruby-${RUBY_VERSION}/bosh/compile.env"
 
 cp -a bosh_openstack_cpi/* "${BOSH_INSTALL_TARGET}"
+echo "${RUBY_VERSION}" > "${BOSH_INSTALL_TARGET}/ruby-version"
 cd "${BOSH_INSTALL_TARGET}"
 
 export BUNDLER_VERSION="$(bundle -v | grep -o -e '[0-9.]*')"
 bundle config set --local cache_path 'vendor/package'
 
 bosh_bundle_local
-
 
