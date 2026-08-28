@@ -25,8 +25,12 @@ for i in $(seq 1 100); do
   fi
 done
 
-echo "waiting for CI user auth (confirms create_project_and_user has run) ..."
-for i in $(seq 1 20); do
+# CI-user auth is the final setup action on the VM (see install-devstack.sh create_user_and_roles),
+# so a 201 here means flavors, project, and quotas are all in place — not just that Keystone answers.
+# Keystone comes up partway through stack.sh, so this must span the rest of stack.sh plus the admin
+# steps.
+echo "waiting for CI user auth (confirms full DevStack setup has completed) ..."
+for i in $(seq 1 30); do
   payload=$(jq -n \
     --arg user    "${OS_USERNAME}" \
     --arg pass    "${OS_PASSWORD}" \

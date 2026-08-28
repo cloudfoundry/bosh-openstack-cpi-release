@@ -131,12 +131,22 @@ register_volumev3_alias() {
   fi
 }
 
-create_project_and_user() {
+create_project() {
   os_admin project show "${OS_PROJECT}" >/dev/null 2>&1 || os_admin project create --domain "${OS_DOMAIN}" "${OS_PROJECT}"
+}
+
+create_user_and_roles() {
+  # Runs last in main(): CI-user auth (which wait-for-devstack polls) only succeeds once every
+  # preceding setup step — flavors, project, quotas — has completed. Auth success therefore means
+  # the cloud is fully ready, not merely that Keystone is answering.
   os_admin user show "${OS_USERNAME}" >/dev/null 2>&1 || \
     os_admin user create --domain "${OS_DOMAIN}" --password "${OS_PASSWORD}" "${OS_USERNAME}"
-  os_admin role add --project "${OS_PROJECT}" --user "${OS_USERNAME}" member || true
-  os_admin role add --project "${OS_PROJECT}" --user "${OS_USERNAME}" admin || true
+  local role
+  for role in member admin; do
+    os_admin role assignment list --project "${OS_PROJECT}" --user "${OS_USERNAME}" --names -f value -c Role \
+      | grep -qx "${role}" \
+      || os_admin role add --project "${OS_PROJECT}" --user "${OS_USERNAME}" "${role}"
+  done
 }
 
 create_flavors() {
@@ -155,18 +165,6 @@ bump_quotas() {
     --volumes 20 --gigabytes 200 \
     --networks 20 --subnets 40 --ports 100 --routers 20 --floating-ips 20 --secgroups 40 \
     "${OS_PROJECT}"
-}
-
-upload_jammy_stemcell() {
-  # The lifecycle suite uploads its own stemcell via the CPI; BATS needs the Jammy image present in
-  # Glance for the director/deployment stemcell. Skip if STEMCELL_IMAGE_PATH not provided.
-  if [[ -n "${STEMCELL_IMAGE_PATH:-}" && -f "${STEMCELL_IMAGE_PATH}" ]]; then
-    os_admin image show bosh-openstack-kvm-ubuntu-jammy-go_agent >/dev/null 2>&1 || \
-      os_admin image create --disk-format qcow2 --container-format bare \
-        --file "${STEMCELL_IMAGE_PATH}" bosh-openstack-kvm-ubuntu-jammy-go_agent
-  else
-    log "STEMCELL_IMAGE_PATH not set; skipping Glance stemcell upload (lifecycle uploads its own)."
-  fi
 }
 
 emit_metadata() {
@@ -196,10 +194,10 @@ main() {
   run_stack
   configure_offbox_floating_access
   register_volumev3_alias
+  create_project
   create_flavors
   bump_quotas
-  upload_jammy_stemcell
-  create_project_and_user
+  create_user_and_roles
   emit_metadata
   log "DevStack ready."
 }
