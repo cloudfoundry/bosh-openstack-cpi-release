@@ -342,6 +342,9 @@ jobs:
     - get: openstack-cpi-release-docker-image
     - get: weekly
       trigger: true
+  - load_var: ruby-version
+    file: bosh-openstack-cpi-release/src/bosh_openstack_cpi/.ruby-version
+    reveal: true
   - task: bump-gems
     image: bosh-ruby-release-registry-image
     file: ruby-release/ci/tasks/shared/bump-gems.yml
@@ -353,7 +356,7 @@ jobs:
       GEM_DIRS: src/bosh_openstack_cpi
       GIT_USER_NAME: CI Bot
       GIT_USER_EMAIL: bots@cloudfoundry.org
-      PACKAGE: ruby-4.0
+      PACKAGE: ruby-((.:ruby-version))
       VENDOR: true
   - task: run-unit-specs
     file: bosh-openstack-cpi-release/ci/tasks/run-unit-specs.yml
@@ -373,6 +376,9 @@ jobs:
       trigger: true
     - get: bosh-ecosystem-concourse-image
     - get: openstack-cpi-release-docker-image
+  - load_var: ruby-version
+    file: bosh-openstack-cpi-release/src/bosh_openstack_cpi/.ruby-version
+    reveal: true
   - task: bump-golang-packages
     file: golang-release/ci/tasks/shared/bump-golang-package.yml
     input_mapping:
@@ -397,7 +403,7 @@ jobs:
     params:
       GIT_USER_NAME: CI Bot      
       GIT_USER_EMAIL: bots@cloudfoundry.org
-      PACKAGE: ruby-4.0
+      PACKAGE: ruby-((.:ruby-version))
       PACKAGE_PREFIX: "openstack"
       PRIVATE_YML: |
         blobstore:
