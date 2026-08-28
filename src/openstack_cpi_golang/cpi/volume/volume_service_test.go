@@ -86,7 +86,7 @@ var _ = Describe("VolumeService", func() {
 		It("returns an error if it cannot get the volume", func() {
 			volumeFacade.GetVolumeReturns(&volumes.Volume{}, errors.New("boom"))
 
-			err := volumeService.WaitForVolumeToBecomeStatus("123-456", 1, "some_target_status")
+			err := volumeService.WaitForVolumeToBecomeStatus("123-456", 5*time.Second, "some_target_status")
 
 			Expect(volumeFacade.GetVolumeCallCount()).To(Equal(1))
 			Expect(err.Error()).To(Equal("failed to retrieve volume information: boom"))
@@ -200,7 +200,7 @@ var _ = Describe("VolumeService", func() {
 		It("returns an error if it cannot get the snapshot", func() {
 			volumeFacade.GetSnapshotReturns(&snapshots.Snapshot{}, errors.New("boom"))
 
-			err := volumeService.WaitForSnapshotToBecomeStatus("123-456", 1, "some_target_status")
+			err := volumeService.WaitForSnapshotToBecomeStatus("123-456", 5*time.Second, "some_target_status")
 
 			Expect(volumeFacade.GetSnapshotCallCount()).To(Equal(1))
 			Expect(err.Error()).To(Equal("failed to retrieve snapshot information: boom"))
