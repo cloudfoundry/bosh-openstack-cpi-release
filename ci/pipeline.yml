@@ -327,6 +327,8 @@ jobs:
   - task: run-unit-specs
     file: bosh-openstack-cpi-release/ci/tasks/run-unit-specs.yml
     image: openstack-cpi-release-docker-image
+  - task: run-golang-unit-specs
+    file: bosh-openstack-cpi-release/ci/tasks/run-golang-unit-specs.yml
   - put: bosh-openstack-cpi-release
     params:
       repository: bosh-openstack-cpi-release
