@@ -1,8 +1,8 @@
 GEM
   remote: https://rubygems.org/
   specs:
-    addressable (2.9.0)
-      public_suffix (>= 2.0.2, < 8.0)
+    addressable (2.8.7)
+      public_suffix (>= 2.0.2, < 7.0)
     ast (2.4.3)
     bigdecimal (3.2.2)
     bosh-template (2.4.0)
@@ -108,14 +108,14 @@ GEM
     timecop (0.9.10)
     unicode-display_width (3.1.4)
       unicode-emoji (~> 4.0, >= 4.0.4)
-    unicode-emoji (4.2.0)
+    unicode-emoji (4.0.4)
     webmock (3.25.1)
       addressable (>= 2.8.0)
       crack (>= 0.3.2)
       hashdiff (>= 0.4.0, < 2.0.0)
 
 PLATFORMS
-  arm64-darwin-25
+  ruby
 
 DEPENDENCIES
   bosh-template
