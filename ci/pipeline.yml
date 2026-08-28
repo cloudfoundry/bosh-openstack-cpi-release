@@ -250,7 +250,7 @@ jobs:
         params:
           PACKAGES:
             - golang-1-linux
-            - openstack-ruby-4.0
+            - openstack-ruby-3.4
         on_success:
           do:
             - put: release-notes
