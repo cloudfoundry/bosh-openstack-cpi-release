@@ -131,6 +131,20 @@ func (f ActionFactory) Create(method string, apiVersion int, context CallContext
 			return nil, cpi.ResizeDisk(diskCID, size)
 		}, nil
 
+	case "update_disk":
+		if apiVersion < 2 {
+			return nil, bosherr.Errorf("Method 'update_disk' requires CPI API version 2 or higher")
+		}
+		updater, ok := cpi.(DiskUpdater)
+		if !ok {
+			return func(diskCID DiskCID, size int, props CloudPropsImpl) (DiskCID, error) {
+				return DiskCID{}, notSupportedError{"Method 'update_disk' is not supported by this CPI"}
+			}, nil
+		}
+		return func(diskCID DiskCID, size int, props CloudPropsImpl) (DiskCID, error) {
+			return updater.UpdateDisk(diskCID, size, props)
+		}, nil
+
 	case "set_disk_metadata":
 		return func(diskCID DiskCID, metadata DiskMeta) (interface{}, error) {
 			return nil, cpi.SetDiskMetadata(diskCID, metadata)
@@ -148,3 +162,11 @@ func (f ActionFactory) Create(method string, apiVersion int, context CallContext
 		return nil, bosherr.Errorf("Unknown method '%s'", method)
 	}
 }
+
+// notSupportedError is returned by the update_disk action when the CPI does not
+// implement DiskUpdater. Its Type() method causes rpc.JSONDispatcher to emit
+// Bosh::Clouds::NotSupported so the director can fall back cleanly.
+type notSupportedError struct{ msg string }
+
+func (e notSupportedError) Error() string { return e.msg }
+func (e notSupportedError) Type() string  { return "Bosh::Clouds::NotSupported" }
