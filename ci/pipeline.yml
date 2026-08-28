@@ -315,8 +315,6 @@ jobs:
     - get: bosh-openstack-cpi-release
     - get: golang-release
     - get: openstack-cpi-release-docker-image
-    - get: weekly
-      trigger: true
   - task: bump-deps
     file: golang-release/ci/tasks/shared/bump-deps.yml
     input_mapping:
@@ -328,6 +326,8 @@ jobs:
   - task: run-unit-specs
     file: bosh-openstack-cpi-release/ci/tasks/run-unit-specs.yml
     image: openstack-cpi-release-docker-image
+  - task: run-golang-unit-specs
+    file: bosh-openstack-cpi-release/ci/tasks/run-golang-unit-specs.yml
   - put: bosh-openstack-cpi-release
     params:
       repository: bosh-openstack-cpi-release
@@ -358,6 +358,8 @@ jobs:
   - task: run-unit-specs
     file: bosh-openstack-cpi-release/ci/tasks/run-unit-specs.yml
     image: openstack-cpi-release-docker-image
+  - task: run-golang-unit-specs
+    file: bosh-openstack-cpi-release/ci/tasks/run-golang-unit-specs.yml
   - put: bosh-openstack-cpi-release
     params:
       repository: bosh-openstack-cpi-release
@@ -387,25 +389,6 @@ jobs:
           options:
             credentials_source: static
             json_key: '((gcp_json_key))'
-  - task: bump-ruby-package
-    image: bosh-ecosystem-concourse-image
-    file: ruby-release/ci/tasks/shared/bump-ruby-package.yml
-    input_mapping:
-      bosh-release: bosh-openstack-cpi-release
-    output_mapping:
-      bosh-release: bosh-openstack-cpi-release
-    params:
-      GIT_USER_NAME: CI Bot
-      GIT_USER_EMAIL: bots@cloudfoundry.org
-      PACKAGE: ruby-3.1
-      PACKAGE_PREFIX: "openstack"
-      PRIVATE_YML: |
-        blobstore:
-          provider: gcs
-          options:
-            credentials_source: static
-            json_key: '((gcp_json_key))'
-      RUBY_VERSION_PATH: src/bosh_openstack_cpi/.ruby-version
   - task: run-unit-specs
     file: bosh-openstack-cpi-release/ci/tasks/run-unit-specs.yml
     image: openstack-cpi-release-docker-image

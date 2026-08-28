@@ -1,0 +1,13 @@
+---
+platform: linux
+
+image_resource:
+  type: registry-image
+  source:
+    repository: ghcr.io/cloudfoundry/bosh/golang-release
+
+inputs:
+- name: bosh-openstack-cpi-release
+
+run:
+  path: bosh-openstack-cpi-release/ci/tasks/run-golang-unit-specs.sh
