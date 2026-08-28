@@ -314,6 +314,8 @@ jobs:
     - get: bosh-openstack-cpi-release
     - get: golang-release
     - get: openstack-cpi-release-docker-image
+    - get: weekly
+      trigger: true
   - task: bump-deps
     file: golang-release/ci/tasks/shared/bump-deps.yml
     input_mapping:
