@@ -2,6 +2,7 @@ AllCops:
   NewCops: enable
   DisabledByDefault: true
   SuggestExtensions: false
+  TargetRubyVersion: 3.5
 
 Lint:
   Enabled: true # equivalent to `--lint`
