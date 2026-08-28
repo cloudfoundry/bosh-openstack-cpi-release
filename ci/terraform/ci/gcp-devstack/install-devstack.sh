@@ -141,8 +141,12 @@ create_user_and_roles() {
   # the cloud is fully ready, not merely that Keystone is answering.
   os_admin user show "${OS_USERNAME}" >/dev/null 2>&1 || \
     os_admin user create --domain "${OS_DOMAIN}" --password "${OS_PASSWORD}" "${OS_USERNAME}"
-  os_admin role add --project "${OS_PROJECT}" --user "${OS_USERNAME}" member || true
-  os_admin role add --project "${OS_PROJECT}" --user "${OS_USERNAME}" admin || true
+  local role
+  for role in member admin; do
+    os_admin role assignment list --project "${OS_PROJECT}" --user "${OS_USERNAME}" --names -f value -c Role \
+      | grep -qx "${role}" \
+      || os_admin role add --project "${OS_PROJECT}" --user "${OS_USERNAME}" "${role}"
+  done
 }
 
 create_flavors() {
