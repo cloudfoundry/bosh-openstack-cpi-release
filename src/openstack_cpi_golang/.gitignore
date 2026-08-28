@@ -1,1 +1,3 @@
 openstack_cpi_golang
+go.work
+go.work.sum
