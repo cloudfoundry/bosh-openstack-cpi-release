@@ -12,7 +12,6 @@
     connect_timeout: ((openstack_connection_timeout))
     read_timeout: ((openstack_read_timeout))
     write_timeout: ((openstack_write_timeout))
-    ca_cert: ((openstack_ca_cert))
 
 - type: replace
   path: /cloud_provider/properties/openstack/connection_options?

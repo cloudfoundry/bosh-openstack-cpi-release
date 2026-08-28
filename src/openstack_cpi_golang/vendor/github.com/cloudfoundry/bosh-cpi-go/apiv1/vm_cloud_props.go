@@ -20,7 +20,7 @@ func (i VMCloudPropsImpl) MarshalJSON() ([]byte, error) {
 }
 
 func (i VMCloudPropsImpl) As(val interface{}) error {
-	return errors.New("Expected to not convert VMCloudPropsImpl")
+	return errors.New("Expected to not convert VMCloudPropsImpl") //nolint:staticcheck
 }
 
 func (i VMCloudPropsImpl) _final() {}

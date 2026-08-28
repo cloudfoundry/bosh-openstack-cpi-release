@@ -57,11 +57,8 @@ func (r JSONCaller) invalidReturnTypes(methodType reflect.Type) (valid bool) {
 
 	errorType := reflect.TypeOf(bosherr.Error(""))
 	secondReturnIsError := errorType.Implements(lastReturnType)
-	if !secondReturnIsError {
-		return true
-	}
 
-	return false
+	return !secondReturnIsError
 }
 
 func (r JSONCaller) extractMethodArgs(runMethodType reflect.Type, args []interface{}) (methodArgs []reflect.Value, err error) {

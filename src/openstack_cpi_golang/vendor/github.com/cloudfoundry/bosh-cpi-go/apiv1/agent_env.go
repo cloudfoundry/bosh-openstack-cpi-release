@@ -78,8 +78,7 @@ func (ae *AgentEnvImpl) AttachEphemeralDisk(hint DiskHint) {
 	ae.spec.Disks.Ephemeral = hint
 }
 
-// todo better type for hint
-func (ae *AgentEnvImpl) AttachPersistentDisk(cid DiskCID, hint DiskHint) {
+func (ae *AgentEnvImpl) AttachPersistentDisk(cid DiskCID, hint DiskHint) { // TODO better type for hint
 	spec := PersistentSpec{}
 
 	if ae.spec.Disks.Persistent != nil {

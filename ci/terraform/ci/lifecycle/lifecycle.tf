@@ -8,11 +8,16 @@ provider "openstack" {
   cacert_file = var.cacert_file
 }
 
+data "openstack_networking_network_v2" "ext" {
+  name   = var.ext_net_name
+  region = var.region_name
+}
+
 module "base" {
   source                           = "../modules/base"
   region_name                      = var.region_name
   project_name                     = var.project_name
-  ext_net_id                       = var.ext_net_id
+  ext_net_id                       = data.openstack_networking_network_v2.ext.id
   ext_net_cidr                     = ""
   concourse_external_network_cidr  = ""
   openstack_default_key_public_key = var.openstack_default_key_public_key
@@ -61,10 +66,6 @@ variable "cacert_file" {
 
 variable "region_name" {
   description = "OpenStack region name"
-}
-
-variable "ext_net_id" {
-  description = "OpenStack external network id to create router interface port"
 }
 
 variable "ext_net_name" {

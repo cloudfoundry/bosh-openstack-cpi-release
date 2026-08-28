@@ -1,0 +1,11 @@
+---
+platform: linux
+inputs:
+  - name: bosh-openstack-cpi-release
+run:
+  path: bosh-openstack-cpi-release/ci/tasks/wait-for-devstack.sh
+params:
+  AUTH_URL: replace-me
+  OS_USERNAME: replace-me
+  OS_PASSWORD: replace-me
+  OS_PROJECT: replace-me

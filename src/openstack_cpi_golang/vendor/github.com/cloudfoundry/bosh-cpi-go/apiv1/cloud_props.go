@@ -11,7 +11,7 @@ type CloudPropsImpl struct {
 var _ json.Marshaler = CloudPropsImpl{}
 
 func (c CloudPropsImpl) As(val interface{}) error {
-	return json.Unmarshal([]byte(c.RawMessage), val)
+	return json.Unmarshal(c.RawMessage, val)
 }
 
 func (c CloudPropsImpl) MarshalJSON() ([]byte, error) {
