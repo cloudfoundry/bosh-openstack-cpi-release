@@ -10,7 +10,15 @@ import (
 )
 
 var _ = Describe("Create Disk", func() {
-	callCount := 0
+	mockVolumeStatus := func(status string) {
+		Mux.HandleFunc("/v3/volumes/2b955850-f177-45f7-9f49-ecb2c256d161", func(w http.ResponseWriter, r *http.Request) {
+			if r.Method == http.MethodGet {
+				w.WriteHeader(http.StatusOK)
+				fmt.Fprintf(w, //nolint:errcheck
+					`{"volume": {"id": "2b955850-f177-45f7-9f49-ecb2c256d161", "status": "%s"}}`, status)
+			}
+		})
+	}
 
 	BeforeEach(func() {
 		SetupHTTP()
@@ -45,32 +53,6 @@ var _ = Describe("Create Disk", func() {
 				}`)
 			}
 		})
-
-		Mux.HandleFunc("/v3/volumes/2b955850-f177-45f7-9f49-ecb2c256d161", func(w http.ResponseWriter, r *http.Request) {
-			switch r.Method {
-			case http.MethodGet:
-				callCount++
-				if callCount == 1 {
-					w.WriteHeader(http.StatusOK)
-					fmt.Fprintf(w, //nolint:errcheck
-						`{
-					"volume": {
-						"id": "2b955850-f177-45f7-9f49-ecb2c256d161",
-						"status": "available"        				
-					}
-					}`)
-				} else {
-					w.WriteHeader(http.StatusOK)
-					fmt.Fprintf(w, //nolint:errcheck
-						`{
-					"volume": {
-						"id": "2b955850-f177-45f7-9f49-ecb2c256d161",
-						"status": "error"        				
-					}
-					}`)
-				}
-			}
-		})
 	})
 
 	AfterEach(func() {
@@ -78,6 +60,8 @@ var _ = Describe("Create Disk", func() {
 	})
 
 	It("creates a volume", func() {
+		mockVolumeStatus("available")
+
 		writeJsonParamToStdIn(`{
 			"method": "create_disk",
 			"arguments": [
@@ -100,6 +84,8 @@ var _ = Describe("Create Disk", func() {
 
 	Context("when the volume creation fails", func() {
 		It("fails when creating a volume", func() {
+			mockVolumeStatus("error")
+
 			writeJsonParamToStdIn(`{
 			"method": "create_disk",
 			"arguments": [

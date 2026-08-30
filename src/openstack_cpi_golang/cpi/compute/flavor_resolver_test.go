@@ -77,6 +77,30 @@ var _ = Describe("FlavorResolver", func() {
 		})
 	})
 
+	Context("GetFlavorById", func() {
+		It("returns the flavor matching the id", func() {
+			flavor, err := compute.NewFlavorResolver(serviceClients, &computeFacade).GetFlavorById("the_flavor_id")
+
+			Expect(err).ToNot(HaveOccurred())
+			Expect(flavor.ID).To(Equal("the_flavor_id"))
+			Expect(flavor.Name).To(Equal("the_instance_type"))
+		})
+
+		It("returns an error if the flavor id is not found", func() {
+			_, err := compute.NewFlavorResolver(serviceClients, &computeFacade).GetFlavorById("not_existing_flavor_id")
+
+			Expect(err.Error()).To(ContainSubstring("flavor for id 'not_existing_flavor_id' not found"))
+		})
+
+		It("returns an error if flavors cannot be retrieved", func() {
+			computeFacade.ListFlavorsReturns(nil, errors.New("boom"))
+
+			_, err := compute.NewFlavorResolver(serviceClients, &computeFacade).GetFlavorById("the_flavor_id")
+
+			Expect(err.Error()).To(ContainSubstring("failed to get flavors: failed to list flavors: boom"))
+		})
+	})
+
 	Context("ResolveFlavorForRequirements", func() {
 		var vmResources apiv1.VMResources
 		var bootFromVolume bool

@@ -15,6 +15,7 @@ var _ = Describe("DetachDiskMethod Integration Tests", func() {
 	detachResultSuccess := true
 
 	BeforeEach(func() {
+		detachResultSuccess = true
 		SetupHTTP()
 		MockAuthentication()
 
