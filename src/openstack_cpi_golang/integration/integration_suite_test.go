@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"fmt"
 	"io"
-	"log"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -25,7 +24,7 @@ func TestIntegration(t *testing.T) {
 
 var defaultConfig config.CpiConfig
 var bootFromVolumeConfig config.CpiConfig
-var logger = utils.NewLogger(boshlog.NewWriterLogger(boshlog.LevelDebug, os.Stderr))
+var logger = utils.NewLogger(boshlog.NewWriterLogger(boshlog.LevelError, os.Stderr))
 var Mux *http.ServeMux
 var Server *httptest.Server
 var originalStdin *os.File
@@ -87,12 +86,7 @@ func getBootFromVolumeConfig(url string) config.CpiConfig {
 func SetupHTTP() {
 	Mux = http.NewServeMux()
 
-	loggingMux := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		Mux.ServeHTTP(w, r)
-		log.Printf("Received request: %s %s\n", r.Method, r.URL.String())
-	})
-
-	Server = httptest.NewServer(loggingMux)
+	Server = httptest.NewServer(Mux)
 }
 
 func Endpoint() string {
