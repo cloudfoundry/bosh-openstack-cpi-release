@@ -32,33 +32,6 @@ var _ = Describe("NetworkConfigBuilder", func() {
 	})
 
 	Context("NewNetworkConfig", func() {
-		BeforeEach(func() {
-			networkingConfig, _ = createNetworkConfig(&securityGroupsResolver, //nolint:errcheck
-				[]byte(`{
-				"name1": {
-					"type":    "manual",
-					"ip":      "1.1.1.1",
-					"default": ["gateway"],
-					"cloud_properties": {"net_id": "the_net_id_1", "security_groups": ["security_group_1", "security_group_2"]}
-				},
-				"name2": {
-					"type":    "manual",
-					"ip":      "2.2.2.2",
-					"cloud_properties": {"net_id": "the_net_id_2"}
-				},
-				"name3": {
-					"type":    "vip",
-					"ip":      "3.3.3.3",
-					"cloud_properties": {"net_id": "the_net_id_3", "security_groups": ["security_group_3"]}
-				},
-				"name4": {
-					"type":    "dynamic",
-					"ip":      "4.4.4.4",
-					"cloud_properties": {"net_id": "the_net_id_4", "security_groups": ["security_group_4"]}
-				}
-			}`), openstackConfig, cloudProperties, logger)
-		})
-
 		It("returns an error if a manual network is missing a netid", func() {
 			_, err := createNetworkConfig(&securityGroupsResolver, []byte(`{
 				"name1": {
@@ -146,6 +119,10 @@ var _ = Describe("NetworkConfigBuilder", func() {
 	})
 
 	Context("DefaultNetwork", func() {
+		BeforeEach(func() {
+			networkingConfig = standardNetworkConfig(&securityGroupsResolver, openstackConfig, cloudProperties, logger)
+		})
+
 		It("returns the default network", func() {
 			defaultNetwork := networkingConfig.DefaultNetwork
 
@@ -166,6 +143,10 @@ var _ = Describe("NetworkConfigBuilder", func() {
 	})
 
 	Context("GetManualNetworks", func() {
+		BeforeEach(func() {
+			networkingConfig = standardNetworkConfig(&securityGroupsResolver, openstackConfig, cloudProperties, logger)
+		})
+
 		It("returns the manual networks", func() {
 			manualNetworks := sortNetworks(networkingConfig.ManualNetworks)
 
@@ -180,6 +161,10 @@ var _ = Describe("NetworkConfigBuilder", func() {
 	})
 
 	Context("GetVIPNetwork", func() {
+		BeforeEach(func() {
+			networkingConfig = standardNetworkConfig(&securityGroupsResolver, openstackConfig, cloudProperties, logger)
+		})
+
 		It("returns the vip network", func() {
 			vipNetwork := networkingConfig.VIPNetwork
 
@@ -190,6 +175,10 @@ var _ = Describe("NetworkConfigBuilder", func() {
 	})
 
 	Context("GetDynamicNetwork", func() {
+		BeforeEach(func() {
+			networkingConfig = standardNetworkConfig(&securityGroupsResolver, openstackConfig, cloudProperties, logger)
+		})
+
 		It("returns the dynamic network", func() {
 			dynamicNetwork := networkingConfig.DynamicNetwork
 
@@ -321,6 +310,34 @@ func createNetworkConfig(securityGroupsResolver network.SecurityGroupsResolver, 
 	networkConfig, err := network.NewNetworkConfigBuilder(securityGroupsResolver, networks, openstackConfig, cloudProperties, logger).Build()
 
 	return networkConfig, err
+}
+
+func standardNetworkConfig(securityGroupsResolver network.SecurityGroupsResolver, openstackConfig config.OpenstackConfig, cloudProperties properties.CreateVM, logger utils.Logger) properties.NetworkConfig {
+	networkingConfig, _ := createNetworkConfig(securityGroupsResolver, //nolint:errcheck
+		[]byte(`{
+			"name1": {
+				"type":    "manual",
+				"ip":      "1.1.1.1",
+				"default": ["gateway"],
+				"cloud_properties": {"net_id": "the_net_id_1", "security_groups": ["security_group_1", "security_group_2"]}
+			},
+			"name2": {
+				"type":    "manual",
+				"ip":      "2.2.2.2",
+				"cloud_properties": {"net_id": "the_net_id_2"}
+			},
+			"name3": {
+				"type":    "vip",
+				"ip":      "3.3.3.3",
+				"cloud_properties": {"net_id": "the_net_id_3", "security_groups": ["security_group_3"]}
+			},
+			"name4": {
+				"type":    "dynamic",
+				"ip":      "4.4.4.4",
+				"cloud_properties": {"net_id": "the_net_id_4", "security_groups": ["security_group_4"]}
+			}
+		}`), openstackConfig, cloudProperties, logger)
+	return networkingConfig
 }
 
 func sortSecurityGroups(securityGroups []string) []string {

@@ -23,6 +23,7 @@ var _ = Describe("DeleteStemcellMethod", func() {
 		BeforeEach(func() {
 			imageServiceBuilder = imagefakes.FakeImageServiceBuilder{}
 			logger = utilsfakes.FakeLogger{}
+			imageService = imagefakes.FakeImageService{}
 		})
 
 		It("deletes an image ID", func() {
