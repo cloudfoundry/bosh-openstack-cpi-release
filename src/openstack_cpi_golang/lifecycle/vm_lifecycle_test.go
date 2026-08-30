@@ -8,6 +8,7 @@ import (
 	"github.com/gophercloud/gophercloud/openstack"
 	"github.com/gophercloud/gophercloud/openstack/compute/v2/extensions/volumeattach"
 	"github.com/gophercloud/gophercloud/openstack/compute/v2/servers"
+	"github.com/gophercloud/gophercloud/openstack/networking/v2/extensions/security/groups"
 	"github.com/gophercloud/gophercloud/openstack/networking/v2/ports"
 	"github.com/gophercloud/gophercloud/openstack/networking/v2/subnets"
 	. "github.com/onsi/ginkgo/v2"
@@ -38,8 +39,10 @@ var _ = Describe("VM lifecycle (CPI-level)", func() {
 			}
 			vmID, cpiErr := createVM(cfg, stemcellID, defaultResourcePool(), networks, nil, nil)
 			Expect(cpiErr).To(BeNil())
-			exists, _ := hasVM(cfg, vmID)
-			Expect(exists).To(BeTrue())
+
+			netIDs := serverPortNetworkIDs(cfg, vmID)
+			Expect(netIDs).To(ContainElement(mustEnv("BOSH_OPENSTACK_NET_ID")))
+			Expect(netIDs).To(ContainElement(mustEnv("BOSH_OPENSTACK_NET_ID_NO_DHCP_1")))
 		})
 
 		It("adds allowed_address_pairs (VRRP) to the port", func() {
@@ -84,26 +87,26 @@ var _ = Describe("VM lifecycle (CPI-level)", func() {
 	Describe("security groups", func() {
 		It("creates a VM with a security group specified by name", func() {
 			cfg := baseConfig()
+			sgName := mustEnv("BOSH_OPENSTACK_SECURITY_GROUP_NAME")
 			networks := networkWithSecurityGroups(map[string]interface{}{
 				"net_id":          mustEnv("BOSH_OPENSTACK_NET_ID"),
-				"security_groups": []string{mustEnv("BOSH_OPENSTACK_SECURITY_GROUP_NAME")},
+				"security_groups": []string{sgName},
 			})
 			vmID, cpiErr := createVM(cfg, stemcellID, defaultResourcePool(), networks, nil, nil)
 			Expect(cpiErr).To(BeNil())
-			exists, _ := hasVM(cfg, vmID)
-			Expect(exists).To(BeTrue())
+			Expect(serverPortSecurityGroups(cfg, vmID)).To(ContainElement(securityGroupID(cfg, sgName)))
 		})
 
 		It("creates a VM with a security group specified by id", func() {
 			cfg := baseConfig()
+			sgID := mustEnv("BOSH_OPENSTACK_SECURITY_GROUP_ID")
 			networks := networkWithSecurityGroups(map[string]interface{}{
 				"net_id":          mustEnv("BOSH_OPENSTACK_NET_ID"),
-				"security_groups": []string{mustEnv("BOSH_OPENSTACK_SECURITY_GROUP_ID")},
+				"security_groups": []string{sgID},
 			})
 			vmID, cpiErr := createVM(cfg, stemcellID, defaultResourcePool(), networks, nil, nil)
 			Expect(cpiErr).To(BeNil())
-			exists, _ := hasVM(cfg, vmID)
-			Expect(exists).To(BeTrue())
+			Expect(serverPortSecurityGroups(cfg, vmID)).To(ContainElement(sgID))
 		})
 	})
 
@@ -243,6 +246,43 @@ func serverAttachmentDevices(cfg config.CpiConfig, id string) []string {
 		devices = append(devices, a.Device)
 	}
 	return devices
+}
+
+func serverPortNetworkIDs(cfg config.CpiConfig, vmID string) []string {
+	GinkgoHelper()
+	netIDs := []string{}
+	for _, p := range serverPorts(cfg, vmID) {
+		netIDs = append(netIDs, p.NetworkID)
+	}
+	return netIDs
+}
+
+func serverPortSecurityGroups(cfg config.CpiConfig, vmID string) []string {
+	GinkgoHelper()
+	sgs := []string{}
+	for _, p := range serverPorts(cfg, vmID) {
+		sgs = append(sgs, p.SecurityGroups...)
+	}
+	return sgs
+}
+
+func serverPorts(cfg config.CpiConfig, vmID string) []ports.Port {
+	GinkgoHelper()
+	pages, err := ports.List(networkClient(cfg), ports.ListOpts{DeviceID: vmID}).AllPages()
+	Expect(err).NotTo(HaveOccurred())
+	found, err := ports.ExtractPorts(pages)
+	Expect(err).NotTo(HaveOccurred())
+	return found
+}
+
+func securityGroupID(cfg config.CpiConfig, name string) string {
+	GinkgoHelper()
+	pages, err := groups.List(networkClient(cfg), groups.ListOpts{Name: name}).AllPages()
+	Expect(err).NotTo(HaveOccurred())
+	found, err := groups.ExtractGroups(pages)
+	Expect(err).NotTo(HaveOccurred())
+	Expect(found).ToNot(BeEmpty(), "security group %q not found", name)
+	return found[0].ID
 }
 
 func findPortByIP(cfg config.CpiConfig, ip string) *ports.Port {

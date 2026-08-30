@@ -165,6 +165,7 @@ func execCPI(cfg config.CpiConfig, method string, args ...interface{}) cpiEnvelo
 
 	inR, inW, err := os.Pipe()
 	Expect(err).NotTo(HaveOccurred())
+	defer func() { _ = inR.Close() }()
 	os.Stdin = inR
 	go func() {
 		_, _ = inW.Write(reqBytes)
@@ -173,6 +174,7 @@ func execCPI(cfg config.CpiConfig, method string, args ...interface{}) cpiEnvelo
 
 	outR, outW, err := os.Pipe()
 	Expect(err).NotTo(HaveOccurred())
+	defer func() { _ = outR.Close() }()
 	os.Stdout = outW
 	outCh := make(chan string, 1)
 	go func() {

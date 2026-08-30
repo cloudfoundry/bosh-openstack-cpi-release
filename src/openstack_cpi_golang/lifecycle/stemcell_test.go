@@ -3,6 +3,8 @@
 package lifecycle_test
 
 import (
+	"errors"
+
 	"github.com/cloudfoundry/bosh-openstack-cpi-release/src/openstack_cpi_golang/cpi/config"
 	"github.com/gophercloud/gophercloud"
 	"github.com/gophercloud/gophercloud/openstack"
@@ -32,7 +34,8 @@ var _ = Describe("Stemcell lifecycle", func() {
 			Expect(deleteStemcell(cfg(), id)).To(BeNil())
 
 			_, err := images.Get(imageClient(cfg()), id).Extract()
-			Expect(err).To(HaveOccurred(), "image %s should be gone after delete_stemcell", id)
+			var notFound gophercloud.ErrDefault404
+			Expect(errors.As(err, &notFound)).To(BeTrue(), "image %s should be gone after delete_stemcell, got %v", id, err)
 		})
 	})
 
@@ -46,6 +49,7 @@ var _ = Describe("Stemcell lifecycle", func() {
 		It("fails if the referenced image does not exist", func() {
 			_, cpiErr := createStemcell(cfg(), "/dev/null", map[string]interface{}{"image_id": "non-existing-id"})
 			Expect(cpiErr).ToNot(BeNil())
+			Expect(cpiErr.Message).To(ContainSubstring("failed to retrieve image"))
 		})
 
 		It("boots a VM from a light stemcell", func() {
