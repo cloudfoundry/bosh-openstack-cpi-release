@@ -1,4 +1,4 @@
-FROM ubuntu
+FROM ubuntu:noble
 
 ENV DEBIAN_FRONTEND=noninteractive
 ENV TZ=Etc/UTC
