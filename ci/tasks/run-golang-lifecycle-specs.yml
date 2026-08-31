@@ -1,0 +1,25 @@
+---
+platform: linux
+
+image_resource:
+  type: registry-image
+  source:
+    repository: ghcr.io/cloudfoundry/bosh/golang-release
+
+inputs:
+- name: bosh-openstack-cpi-release
+- name: openstack-lifecycle-stemcell
+- name: terraform-cpi
+
+run:
+  path: bosh-openstack-cpi-release/ci/tasks/run-golang-lifecycle-specs.sh
+
+params:
+  BOSH_OPENSTACK_DOMAIN:                   ""
+  BOSH_OPENSTACK_AUTH_URL_V3:              ""
+  BOSH_OPENSTACK_USERNAME_V3:              ""
+  BOSH_OPENSTACK_API_KEY_V3:               ""
+  BOSH_OPENSTACK_PROJECT:                  ""
+  BOSH_OPENSTACK_VOLUME_TYPE:              ""
+  BOSH_OPENSTACK_FLAVOR_WITH_NO_ROOT_DISK: ""
+  BOSH_OPENSTACK_AVAILABILITY_ZONE:        replace-me
