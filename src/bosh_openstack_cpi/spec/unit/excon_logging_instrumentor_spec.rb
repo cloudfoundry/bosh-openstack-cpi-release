@@ -195,6 +195,33 @@ describe Bosh::OpenStackCloud::ExconLoggingInstrumentor do
         end
       end
 
+      context 'with application_credential.secret in body' do
+        let(:body) {
+          {
+            auth: {
+              identity: {
+                application_credential: {
+                  secret: 'my-application-credential-secret',
+                },
+              },
+            },
+          } }
+        let(:params) {
+          {
+            body: JSON.dump(body),
+            headers: {
+              'Content-Type' => 'application/json',
+            },
+          } }
+
+        it 'redacts application_credential.secret' do
+          redacted_params = subject.redact(params)
+
+          parsed_body = JSON.parse(redacted_params[:body])
+          expect(parsed_body['auth']['identity']['application_credential']['secret']).to eq('<redacted>')
+        end
+      end
+
       context 'with server.user_data in body' do
         let(:body) {
           {
