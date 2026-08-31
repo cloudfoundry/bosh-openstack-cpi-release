@@ -139,7 +139,7 @@ func (b networkConfigBuilder) createManualNetwork(networks apiv1.Networks, opens
 	}
 
 	if len(manualNetworks) > 1 {
-		if openstackConfig.UseDHCP || openstackConfig.ConfigDrive != "" {
+		if openstackConfig.UseDHCP || openstackConfig.ConfigDrive == "" {
 			return []properties.Network{}, fmt.Errorf("multiple manual networks can only be used with 'openstack.use_dhcp=false' and 'openstack.config_drive=cdrom|disk'")
 		}
 	}

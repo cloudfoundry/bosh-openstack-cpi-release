@@ -25,13 +25,38 @@ var _ = Describe("NetworkConfigBuilder", func() {
 	var logger utils.Logger
 
 	BeforeEach(func() {
-		openstackConfig = config.OpenstackConfig{}
+		openstackConfig = config.OpenstackConfig{ConfigDrive: "cdrom"}
 		cloudProperties = properties.CreateVM{}
 		securityGroupsResolver = networkfakes.FakeSecurityGroupsResolver{}
 		logger = &utilsfakes.FakeLogger{}
+		networkingConfig, _ = createNetworkConfig(&securityGroupsResolver, //nolint:errcheck
+			[]byte(`{
+			"name1": {
+				"type":    "manual",
+				"ip":      "1.1.1.1",
+				"default": ["gateway"],
+				"cloud_properties": {"net_id": "the_net_id_1", "security_groups": ["security_group_1", "security_group_2"]}
+			},
+			"name2": {
+				"type":    "manual",
+				"ip":      "2.2.2.2",
+				"cloud_properties": {"net_id": "the_net_id_2"}
+			},
+			"name3": {
+				"type":    "vip",
+				"ip":      "3.3.3.3",
+				"cloud_properties": {"net_id": "the_net_id_3", "security_groups": ["security_group_3"]}
+			},
+			"name4": {
+				"type":    "dynamic",
+				"ip":      "4.4.4.4",
+				"cloud_properties": {"net_id": "the_net_id_4", "security_groups": ["security_group_4"]}
+			}
+		}`), openstackConfig, cloudProperties, logger)
 	})
 
 	Context("NewNetworkConfig", func() {
+
 		It("returns an error if a manual network is missing a netid", func() {
 			_, err := createNetworkConfig(&securityGroupsResolver, []byte(`{
 				"name1": {
@@ -62,6 +87,23 @@ var _ = Describe("NetworkConfigBuilder", func() {
 					"cloud_properties": {"net_id": "the_net_id_2"}
 				}
 			}`), config.OpenstackConfig{UseDHCP: true}, cloudProperties, logger)
+
+			Expect(err.Error()).To(Equal("invalid manual network configuration: multiple manual networks can only be used with 'openstack.use_dhcp=false' and 'openstack.config_drive=cdrom|disk'"))
+		})
+
+		It("returns an error if multiple manual network exists without config drive set", func() {
+			_, err := createNetworkConfig(&securityGroupsResolver, []byte(`{
+				"name1": {
+					"type":    "manual",
+					"ip":      "",
+					"cloud_properties": {"net_id": "the_net_id_1"}
+				},
+				"name2": {
+					"type":    "manual",
+					"ip":      "",
+					"cloud_properties": {"net_id": "the_net_id_2"}
+				}
+			}`), config.OpenstackConfig{UseDHCP: false}, cloudProperties, logger)
 
 			Expect(err.Error()).To(Equal("invalid manual network configuration: multiple manual networks can only be used with 'openstack.use_dhcp=false' and 'openstack.config_drive=cdrom|disk'"))
 		})
@@ -189,6 +231,9 @@ var _ = Describe("NetworkConfigBuilder", func() {
 	})
 
 	Context("SecurityGroups", func() {
+		BeforeEach(func() {
+			securityGroupsResolver = networkfakes.FakeSecurityGroupsResolver{}
+		})
 		It("returns cloud properties security groups", func() {
 			securityGroupsResolver.ResolveReturns([]string{"resolved_security_group_1", "resolved_security_group_2"}, nil)
 
@@ -292,7 +337,7 @@ var _ = Describe("NetworkConfigBuilder", func() {
 					"ip":      "4.4.4.4",
 					"cloud_properties": {"net_id": "the_net_id_4", "security_groups": ["security_group_4"]}
 				}
-			}`), openstackConfig, cloudProperties, logger)
+			}`), config.OpenstackConfig{ConfigDrive: "cdrom"}, cloudProperties, logger)
 			securityGroups := sortSecurityGroups(networkingConfig.SecurityGroups)
 
 			securityGroupsParam := securityGroupsResolver.ResolveArgsForCall(0)

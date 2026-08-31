@@ -220,7 +220,7 @@ var _ = Describe("Create VM", func() {
 				Expect(<-outChannel).To(ContainSubstring("multiple manual networks can only be used with"))
 			})
 
-			It("fails if multiple manual networks is used with an non-empty ConfigDrive", func() {
+			It("fails if multiple manual networks is used without config_drive set", func() {
 				writeJsonParamToStdIn(`{
 				"method": "create_vm",
 				"arguments": [
@@ -245,7 +245,6 @@ var _ = Describe("Create VM", func() {
 			}`)
 
 				defaultConfig = getDefaultConfig(Endpoint())
-				defaultConfig.Cloud.Properties.Openstack.ConfigDrive = "cdrom"
 				err := cpi.Execute(defaultConfig, logger)
 				Expect(err).ShouldNot(HaveOccurred())
 
