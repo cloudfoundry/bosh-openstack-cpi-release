@@ -31,29 +31,29 @@ type Properties struct {
 }
 
 type OpenstackConfig struct {
-	AuthURL                      string                 `json:"auth_url"`
-	Username                     string                 `json:"username"`
-	APIKey                       string                 `json:"api_key"`
-	ApplicationCredentialID      string                 `json:"application_credential_id"`
-	ApplicationCredentialSecret  string                 `json:"application_credential_secret"`
-	Region                       string                 `json:"region"`
-	EndpointType                 string                 `json:"endpoint_type"`
-	DefaultKeyName               string                 `json:"default_key_name"`
-	DefaultSecurityGroups        []string               `json:"default_security_groups"`
-	DefaultVolumeType            string                 `json:"default_volume_type"`
-	WaitResourcePollInterval     int                    `json:"wait_resource_poll_interval"`
-	BootFromVolume               bool                   `json:"boot_from_volume"`
-	ConfigDrive                  string                 `json:"config_drive"`
-	UseDHCP                      bool                   `json:"use_dhcp"`
-	IgnoreServerAvailabilityZone bool                   `json:"ignore_server_availability_zone"`
-	HumanReadableVMNames         bool                   `json:"human_readable_vm_names"`
-	UseNovaNetworking            bool                   `json:"use_nova_networking"`
-	ConnectionOptions            map[string]interface{} `json:"connection_options"`
-	DomainName                   string                 `json:"domain"`
-	ProjectName                  string                 `json:"project"`
-	Tenant                       string                 `json:"tenant"`
-	StateTimeOut                 int                    `json:"state_timeout"`
-	StemcellPubliclyVisible      bool                   `json:"stemcell_public_visibility"`
+	AuthURL                      string         `json:"auth_url"`
+	Username                     string         `json:"username"`
+	APIKey                       string         `json:"api_key"`
+	ApplicationCredentialID      string         `json:"application_credential_id"`
+	ApplicationCredentialSecret  string         `json:"application_credential_secret"`
+	Region                       string         `json:"region"`
+	EndpointType                 string         `json:"endpoint_type"`
+	DefaultKeyName               string         `json:"default_key_name"`
+	DefaultSecurityGroups        []string       `json:"default_security_groups"`
+	DefaultVolumeType            string         `json:"default_volume_type"`
+	WaitResourcePollInterval     int            `json:"wait_resource_poll_interval"`
+	BootFromVolume               bool           `json:"boot_from_volume"`
+	ConfigDrive                  string         `json:"config_drive"`
+	UseDHCP                      bool           `json:"use_dhcp"`
+	IgnoreServerAvailabilityZone bool           `json:"ignore_server_availability_zone"`
+	HumanReadableVMNames         bool           `json:"human_readable_vm_names"`
+	UseNovaNetworking            bool           `json:"use_nova_networking"`
+	ConnectionOptions            map[string]any `json:"connection_options"`
+	DomainName                   string         `json:"domain"`
+	ProjectName                  string         `json:"project"`
+	Tenant                       string         `json:"tenant"`
+	StateTimeOut                 int            `json:"state_timeout"`
+	StemcellPubliclyVisible      bool           `json:"stemcell_public_visibility"`
 	VM                           struct {
 		Stemcell struct {
 			APIVersion int `json:"api_version"`
