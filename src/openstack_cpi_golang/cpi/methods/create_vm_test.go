@@ -258,7 +258,7 @@ var _ = Describe("CreateVMMethod", func() {
 						"availability_zones": ["z1", "z2"]
 					}`
 
-				_, _, _ = methods.NewCreateVMMethod( //nolint:errcheck
+				_, _, err := methods.NewCreateVMMethod(
 					&imageServiceBuilder,
 					&networkServiceBuilder,
 					&computeServiceBuilder,
@@ -274,6 +274,7 @@ var _ = Describe("CreateVMMethod", func() {
 					env,
 				)
 
+				Expect(err).ToNot(HaveOccurred())
 				Expect(loadbalancerServiceBuilder.BuildCallCount()).To(Equal(0))
 			})
 
