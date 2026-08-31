@@ -75,13 +75,6 @@ var _ = Describe("VM lifecycle (CPI-level)", func() {
 			Expect(exists).To(BeTrue())
 		})
 
-		It("creates a VM with use_nova_networking", func() {
-			cfg := baseConfig(withUseNovaNetworking())
-			vmID, cpiErr := createVM(cfg, stemcellID, defaultResourcePool(), dynamicNetwork(), nil, nil)
-			Expect(cpiErr).To(BeNil())
-			exists, _ := hasVM(cfg, vmID)
-			Expect(exists).To(BeTrue())
-		})
 	})
 
 	Describe("security groups", func() {

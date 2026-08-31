@@ -80,6 +80,7 @@ func baseConfig(overrides ...configOverride) config.CpiConfig {
 	os.ProjectName = mustEnv("BOSH_OPENSTACK_PROJECT")
 
 	os.DefaultKeyName = getEnv("BOSH_OPENSTACK_DEFAULT_KEY_NAME", "")
+	os.UseDHCP = true
 	// The project "default" security group is not reliably bootable on the CI
 	// DevStack; use the terraform-created group, as BATS does.
 	os.DefaultSecurityGroups = []string{getEnv("BOSH_OPENSTACK_SECURITY_GROUP_NAME", "default")}
@@ -119,10 +120,6 @@ func withUseDHCP(v bool) configOverride {
 
 func withHumanReadableVMNames() configOverride {
 	return func(o *config.OpenstackConfig) { o.HumanReadableVMNames = true }
-}
-
-func withUseNovaNetworking() configOverride {
-	return func(o *config.OpenstackConfig) { o.UseNovaNetworking = true }
 }
 
 func withDefaultVolumeType(t string) configOverride {

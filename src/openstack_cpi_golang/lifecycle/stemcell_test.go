@@ -30,6 +30,7 @@ var _ = Describe("Stemcell lifecycle", func() {
 			id, cpiErr := createStemcell(cfg(), stemcellImagePath(), suiteManifest.CloudProperties)
 			Expect(cpiErr).To(BeNil())
 			Expect(id).ToNot(BeEmpty())
+			DeferCleanup(func() { _ = deleteStemcellBestEffort(cfg(), id) })
 
 			Expect(deleteStemcell(cfg(), id)).To(BeNil())
 
