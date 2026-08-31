@@ -48,7 +48,7 @@ type OpenstackConfig struct {
 	IgnoreServerAvailabilityZone bool     `json:"ignore_server_availability_zone"`
 	HumanReadableVMNames         bool     `json:"human_readable_vm_names"`
 	UseNovaNetworking            bool     `json:"use_nova_networking"`
-	ConnectionOptions            string   `json:"connection_options"`
+	ConnectionOptions            map[string]interface{} `json:"connection_options"`
 	DomainName                   string   `json:"domain"`
 	ProjectName                  string   `json:"project"`
 	Tenant                       string   `json:"tenant"`
