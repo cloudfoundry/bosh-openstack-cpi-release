@@ -25,18 +25,18 @@ func main() {
 
 	cpiConfig, err := config.NewConfigFromPath(fileSystem, *configPathOpt)
 	if err != nil {
-		cpiLogger.Error("main", "failed loading the configuration: %w", err)
+		cpiLogger.Error("main", "failed loading the configuration: %v", err)
 		os.Exit(1)
 	}
 	err = cpiConfig.Validate()
 	if err != nil {
-		cpiLogger.Error("main", "failed validating the configuration: %w", err)
+		cpiLogger.Error("main", "failed validating the configuration: %v", err)
 		os.Exit(1)
 	}
 
 	err = cpi.Execute(cpiConfig, cpiLogger)
 	if err != nil {
-		cpiLogger.Error("main", "execution failed with: %w", err)
+		cpiLogger.Error("main", "execution failed with: %v", err)
 		os.Exit(1)
 	}
 }
