@@ -16,7 +16,6 @@ source bosh-openstack-cpi-release/ci/tasks/utils.sh
 : "${openstack_api_key:?}"
 : "${openstack_domain:?}"
 : "${DEBUG_BATS:?}"
-: "${distro:?}"
 openstack_ca_file_path="${openstack_ca_file_path:-}"
 optional_value availability_zone
 
@@ -56,13 +55,6 @@ pushd bosh-openstack-cpi-release
 
 popd
 cp ./bosh-openstack-cpi-dev.tgz "${deployment_dir}/${cpi_release_name}.tgz"
-cp ./stemcell-director/*.tgz "${deployment_dir}/stemcell.tgz"
-prepare_bosh_release "${distro}"
-
-echo "Calculating MD5 of original stemcell:"
-md5sum stemcell-director/*.tgz
-echo "Calculating MD5 of copied stemcell:"
-md5sum "${deployment_dir}/stemcell.tgz"
 
 cd "${deployment_dir}"
 
@@ -77,7 +69,6 @@ bosh-go int ../bosh-deployment/bosh.yml \
     -o ../bosh-deployment/openstack/cpi.yml \
     "${maybe_use_custom_ca_ops_file[@]}" \
     -o ../bosh-deployment/external-ip-not-recommended.yml \
-    -o ../bosh-deployment/misc/source-releases/bosh.yml \
     -o ../bosh-deployment/jumpbox-user.yml \
     -o ../bosh-openstack-cpi-release/ci/ops_files/deployment-configuration.yml \
     -o ../bosh-openstack-cpi-release/ci/ops_files/custom-manual-networking.yml \
