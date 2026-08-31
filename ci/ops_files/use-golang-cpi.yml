@@ -1,0 +1,18 @@
+---
+# Deploy the director with the Go CPI job instead of the Ruby one (bosh-deployment/openstack/cpi.yml
+# wires openstack_cpi).
+- type: replace
+  path: /instance_groups/name=bosh/jobs/name=openstack_cpi
+  value:
+    name: openstack_cpi_golang
+    release: bosh-openstack-cpi
+
+- type: replace
+  path: /instance_groups/name=bosh/properties/director/cpi_job
+  value: openstack_cpi_golang
+
+- type: replace
+  path: /cloud_provider/template
+  value:
+    name: openstack_cpi_golang
+    release: bosh-openstack-cpi

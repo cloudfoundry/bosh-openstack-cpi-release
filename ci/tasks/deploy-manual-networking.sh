@@ -71,6 +71,7 @@ bosh-go int ../bosh-deployment/bosh.yml \
     -o ../bosh-deployment/external-ip-not-recommended.yml \
     -o ../bosh-deployment/jumpbox-user.yml \
     -o ../bosh-openstack-cpi-release/ci/ops_files/deployment-configuration.yml \
+    -o ../bosh-openstack-cpi-release/ci/ops_files/use-golang-cpi.yml \
     -o ../bosh-openstack-cpi-release/ci/ops_files/custom-manual-networking.yml \
     -o ../bosh-openstack-cpi-release/ci/ops_files/timeouts.yml \
     -o ../bosh-openstack-cpi-release/ci/ops_files/remove-registry.yml \
