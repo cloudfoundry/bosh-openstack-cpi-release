@@ -252,6 +252,32 @@ var _ = Describe("CreateVMMethod", func() {
 				Expect(loadbalancerServiceBuilder.BuildCallCount()).To(Equal(1))
 			})
 
+			It("does not build the loadbalancer service if no loadbalancer_pools are configured", func() {
+				jsonStr = `{
+						"instance_type": "type1",
+						"availability_zones": ["z1", "z2"]
+					}`
+
+				_, _, err := methods.NewCreateVMMethod(
+					&imageServiceBuilder,
+					&networkServiceBuilder,
+					&computeServiceBuilder,
+					&loadbalancerServiceBuilder,
+					cpiConfig,
+					&logger,
+				).CreateVMV2(
+					apiv1.NewAgentID("the_agent-id"),
+					apiv1.NewStemcellCID("stemcell-id"),
+					apiv1.CloudPropsImpl{RawMessage: []byte(jsonStr)},
+					networks,
+					[]apiv1.DiskCID{},
+					env,
+				)
+
+				Expect(err).ToNot(HaveOccurred())
+				Expect(loadbalancerServiceBuilder.BuildCallCount()).To(Equal(0))
+			})
+
 			It("returns an error if the loadbalancer service cannot be retrieved", func() {
 				loadbalancerServiceBuilder.BuildReturns(nil, errors.New("boom"))
 

@@ -83,9 +83,12 @@ func (m CreateVMMethod) CreateVMV2(
 		return apiv1.VMCID{}, apiv1.Networks{}, fmt.Errorf("failed to create image service: %w", err)
 	}
 
-	loadbalancerService, err := m.loadbalancerServiceBuilder.Build()
-	if err != nil {
-		return apiv1.VMCID{}, apiv1.Networks{}, fmt.Errorf("failed to create loadbalancer service: %w", err)
+	var loadbalancerService loadbalancer.LoadbalancerService
+	if len(cloudProps.LoadbalancerPools) > 0 {
+		loadbalancerService, err = m.loadbalancerServiceBuilder.Build()
+		if err != nil {
+			return apiv1.VMCID{}, apiv1.Networks{}, fmt.Errorf("failed to create loadbalancer service: %w", err)
+		}
 	}
 
 	_, err = imageService.GetImage(stemcellCID.AsString())

@@ -222,6 +222,25 @@ var _ = Describe("DeleteVMMethod", func() {
 			Expect(computeService.DeleteServerCallCount()).To(Equal(1))
 		})
 
+		It("does not build the loadbalancer service if metadata has no 'lbaas_pool_' tags", func() {
+			computeService.GetMetadataReturns(map[string]string{"tag1": "tag1Value"}, nil)
+
+			err := methods.NewDeleteVMMethod(
+				&networkServiceBuilder,
+				&computeServiceBuilder,
+				&loadbalancerServiceBuilder,
+				config.CpiConfig{},
+				&logger,
+			).DeleteVM(
+				apiv1.NewVMCID("vm-id"),
+			)
+
+			Expect(err).ToNot(HaveOccurred())
+			Expect(loadbalancerServiceBuilder.BuildCallCount()).To(Equal(0))
+			Expect(loadbalancerService.DeletePoolMemberCallCount()).To(Equal(0))
+			Expect(computeService.DeleteServerCallCount()).To(Equal(1))
+		})
+
 		It("deletes a pool member for tags with prefix 'lbaas_pool_'", func() {
 			err := methods.NewDeleteVMMethod(
 				&networkServiceBuilder,
