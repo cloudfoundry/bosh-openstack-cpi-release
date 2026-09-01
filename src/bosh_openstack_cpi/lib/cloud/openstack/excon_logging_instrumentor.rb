@@ -31,6 +31,7 @@ module Bosh::OpenStackCloud
         redact_body(redacted_params, 'auth.passwordCredentials.password')
         redact_body(redacted_params, 'server.user_data')
         redact_body(redacted_params, 'auth.identity.password.user.password')
+        redact_body(redacted_params, 'auth.identity.application_credential.secret')
         redact_headers(redacted_params, 'X-Auth-Token')
         redacted_params
       end
