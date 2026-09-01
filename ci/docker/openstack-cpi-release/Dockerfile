@@ -11,15 +11,19 @@ RUN apt-get -y update \
     && update-locale LC_ALL=en_US.UTF-8 LANG=en_US.UTF-8
 
 RUN apt-get install -y --no-install-recommends \
+    bison \
     ca-certificates \
     curl \
     build-essential \
     git \
     git-lfs \
     jq \
-    libyaml-dev \
-    libssl-dev \
     libffi-dev \
+    libgdbm-dev \
+    libncurses-dev \
+    libreadline-dev \
+    libssl-dev \
+    libyaml-dev \
     zlib1g-dev \
     openssh-client \
     && apt-get clean \
@@ -33,7 +37,7 @@ RUN mkdir /tmp/ruby-install && \
     make install && \
     rm -rf /tmp/ruby-install
 
-RUN ruby-install --system ruby 3.4
+RUN ruby-install --system --no-install-deps ruby 3.4
 
 RUN curl -fsSL "https://github.com/cloudfoundry/bosh-cli/releases/download/v${BOSH_CLI_VERSION}/bosh-cli-${BOSH_CLI_VERSION}-linux-amd64" \
     > /usr/bin/bosh \
