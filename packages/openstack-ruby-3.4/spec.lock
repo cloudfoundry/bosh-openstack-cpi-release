@@ -1,0 +1,4 @@
+name: openstack-ruby-3.4
+fingerprint: bd92d8beb74c60f3d618e26ffda3525f2a1d2e1aacabd628a5b4b32883a05482
+dependencies:
+- openstack-rust-1-linux
