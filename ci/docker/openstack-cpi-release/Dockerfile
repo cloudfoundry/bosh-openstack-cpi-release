@@ -1,4 +1,4 @@
-FROM ubuntu
+FROM ubuntu:noble
 
 ENV DEBIAN_FRONTEND=noninteractive
 ENV TZ=Etc/UTC
@@ -20,6 +20,7 @@ RUN apt-get install -y --no-install-recommends \
     openssh-client \
     ruby \
     ruby-bundler \
+    ruby-dev \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
