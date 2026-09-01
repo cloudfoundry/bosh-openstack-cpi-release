@@ -25,3 +25,4 @@ params:
   DEBUG_BATS:                          ""
   openstack_file_path:                 ""
   availability_zone:                   replace-me
+  USE_GOLANG_CPI:                      "true"

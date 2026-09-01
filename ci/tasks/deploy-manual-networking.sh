@@ -18,6 +18,7 @@ source bosh-openstack-cpi-release/ci/tasks/utils.sh
 : "${DEBUG_BATS:?}"
 openstack_ca_file_path="${openstack_ca_file_path:-}"
 optional_value availability_zone
+USE_GOLANG_CPI="${USE_GOLANG_CPI:-true}"
 
 # Variables from TF
 export_terraform_variable terraform-cpi/metadata "default_key_name"
@@ -37,6 +38,11 @@ deployment_dir="${PWD}/bosh-director-deployment"
 
 maybe_use_custom_ca_ops_file=()
 maybe_load_custom_ca_file=()
+maybe_golang_cpi_ops_file=()
+
+if [ "${USE_GOLANG_CPI}" == "true" ]; then
+  maybe_golang_cpi_ops_file=(-o ../bosh-openstack-cpi-release/ci/ops_files/use-golang-cpi.yml)
+fi
 
 case "$openstack_ca_file_path" in
     "")
@@ -71,7 +77,7 @@ bosh-go int ../bosh-deployment/bosh.yml \
     -o ../bosh-deployment/external-ip-not-recommended.yml \
     -o ../bosh-deployment/jumpbox-user.yml \
     -o ../bosh-openstack-cpi-release/ci/ops_files/deployment-configuration.yml \
-    -o ../bosh-openstack-cpi-release/ci/ops_files/use-golang-cpi.yml \
+    "${maybe_golang_cpi_ops_file[@]}" \
     -o ../bosh-openstack-cpi-release/ci/ops_files/custom-manual-networking.yml \
     -o ../bosh-openstack-cpi-release/ci/ops_files/timeouts.yml \
     -o ../bosh-openstack-cpi-release/ci/ops_files/remove-registry.yml \
