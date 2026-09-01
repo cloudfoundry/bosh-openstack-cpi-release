@@ -18,6 +18,7 @@ RUN apt-get install -y --no-install-recommends \
     git \
     git-lfs \
     jq \
+    libssl-dev \
     openssh-client \
     ruby \
     ruby-bundler \
