@@ -337,7 +337,7 @@ jobs:
         - get: bosh-openstack-cpi-release
           trigger: true
           passed:
-            - run-devstack-tests
+            - run-devstack-tests-ruby-cpi
         - get: bosh-shared-ci
         - get: version
           resource: release-version-semver
@@ -399,7 +399,7 @@ jobs:
     - get: bosh-shared-ci
     - get: bosh-openstack-cpi-release
       passed:
-      - run-devstack-tests
+      - run-devstack-tests-ruby-cpi
     - get: version
       resource: release-version-semver
       trigger: true
