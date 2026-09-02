@@ -40,6 +40,8 @@ RUN mkdir /tmp/ruby-install && \
 RUN ruby-install --system --no-install-deps ruby 3.4
 
 RUN curl -fsSL "https://github.com/cloudfoundry/bosh-cli/releases/download/v${BOSH_CLI_VERSION}/bosh-cli-${BOSH_CLI_VERSION}-linux-amd64" \
-    > /usr/bin/bosh \
+    > /tmp/bosh \
+    && echo "ff092e567f6b6b41cbcaf8b4065eb2bae29a7463f537bd99ae6424c0d93291c9  /tmp/bosh" | sha256sum -c - \
+    && mv /tmp/bosh /usr/bin/bosh \
     && chmod +x /usr/bin/bosh \
     && cp /usr/bin/bosh /usr/local/bin/bosh-go
