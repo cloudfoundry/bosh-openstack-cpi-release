@@ -17,11 +17,14 @@ pushd bosh-openstack-cpi-release/ci/terraform/ci/lifecycle
   set -e
 
   # Sync state to output so ensure-destroy has it; skip silently only if no state file exists
+  set +e
   [ -f terraform.tfstate ] && cp -f terraform.tfstate "${BASE_DIR}/terraform-cpi/ci/terraform/ci/lifecycle/"
+  state_copy_exit=$?
+  set -e
 
-  if [ $apply_exit -ne 0 ]; then
+  if [ $apply_exit -ne 0 ] || [ $state_copy_exit -ne 0 ]; then
     echo "{}" > "${BASE_DIR}/terraform-cpi/metadata"
-    exit $apply_exit
+    exit $((apply_exit != 0 ? apply_exit : state_copy_exit))
   fi
 
   # This subshell converts 'terraform output' output into JSON to be consumed by former clients of the Terraform Resource.
