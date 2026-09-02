@@ -157,7 +157,7 @@ describe Bosh::OpenStackCloud::ManualNetwork do
         it 'retrieves ports with the correct filter' do
           subject.prepare(openstack, [])
 
-          expect(ports).to have_received(:all).with(fixed_ips: [anything, "network_id=net"])
+          expect(ports).to have_received(:all).with(fixed_ips: ["ip_address=10.0.0.1", "network_id=net"])
         end
 
         it 'deletes only detached ports' do
