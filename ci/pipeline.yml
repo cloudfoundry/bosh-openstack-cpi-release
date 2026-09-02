@@ -445,6 +445,8 @@ jobs:
     - get: bosh-openstack-cpi-release
     - get: golang-release
     - get: openstack-cpi-release-docker-image
+    - get: weekly
+      trigger: true
   - task: bump-deps
     file: golang-release/ci/tasks/shared/bump-deps.yml
     input_mapping:
@@ -470,6 +472,8 @@ jobs:
     - get: ruby-release
     - get: bosh-ruby-release-registry-image
     - get: openstack-cpi-release-docker-image
+    - get: weekly
+      trigger: true
   - load_var: ruby_version
     file: bosh-openstack-cpi-release/src/bosh_openstack_cpi/.ruby-version
     format: trim
@@ -572,6 +576,14 @@ resource_types:
     password: ((dockerhub_password))
 
 resources:
+- name: weekly
+  type: time
+  source:
+    days:
+    - Saturday
+    start: 3:00 -0700
+    stop: 4:30 -0700
+
 - name: gcp-devstack
   type: terraform
   source:
