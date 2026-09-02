@@ -24,6 +24,7 @@ RUN apt-get install -y --no-install-recommends \
     libreadline-dev \
     libssl-dev \
     libyaml-dev \
+    netcat-openbsd \
     zlib1g-dev \
     openssh-client \
     && apt-get clean \
