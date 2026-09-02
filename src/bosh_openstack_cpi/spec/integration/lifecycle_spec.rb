@@ -199,7 +199,7 @@ describe Bosh::OpenStackCloud::Cloud do
 
       def clean_up_port(ip, net_id)
         ports = openstack.with_openstack(retryable: true) do
-          openstack.network.ports.all(fixed_ips: ["ip_address=#{ip}", network_id: net_id])
+          openstack.network.ports.all(fixed_ips: ["ip_address=#{ip}", "network_id=#{net_id}"])
         end
 
         port_ids = ports.select { |p| p.status == 'DOWN' && p.device_id.empty? && p.device_owner.empty? }.map(&:id)
