@@ -44,12 +44,12 @@ jobs:
 
 - name: run-devstack-tests
   serial: true
-  serial_groups: [ devstack ]
+  serial_groups: [devstack]
   plan:
   - do:
     - in_parallel:
       - get: bosh-openstack-cpi-release
-        passed: [ run-specs ]
+        passed: [run-specs]
         timeout: *timeouts-long
         trigger: true
       - get: openstack-lifecycle-stemcell
@@ -77,24 +77,24 @@ jobs:
         OS_PASSWORD: ((openstack_ci_user.password))
         OS_PROJECT: bosh
 
-    - task: lifecycle-apply-terraform
-      timeout: *timeouts-long
-      image: terraform-image
-      file: bosh-openstack-cpi-release/ci/tasks/terraform-apply-lifecycle.yml
-      params: &lifecycle-terraform-params
-        TF_VAR_prefix: "lifecycle-openstack-tests"
-        TF_VAR_auth_url: http://10.100.30.2/identity
-        TF_VAR_user_name: ((openstack_ci_user.username))
-        TF_VAR_password: ((openstack_ci_user.password))
-        TF_VAR_domain_name: Default
-        TF_VAR_project_name: bosh
-        TF_VAR_ext_net_name: public
-        TF_VAR_region_name: RegionOne
-        TF_VAR_openstack_default_key_public_key: ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHspetaTfg96YfZO3/xjKxGcjTnFPlxp7uP1KDisvPjB devstack-ci-openstack
-        TF_VAR_dns_nameservers: '["8.8.8.8"]'
-        TF_VAR_use_lbaas: false
-
     - do:
+      - task: lifecycle-apply-terraform
+        timeout: *timeouts-long
+        image: terraform-image
+        file: bosh-openstack-cpi-release/ci/tasks/terraform-apply-lifecycle.yml
+        params: &lifecycle-terraform-params
+          TF_VAR_prefix: "lifecycle-openstack-tests"
+          TF_VAR_auth_url: http://10.100.30.2/identity
+          TF_VAR_user_name: ((openstack_ci_user.username))
+          TF_VAR_password: ((openstack_ci_user.password))
+          TF_VAR_domain_name: Default
+          TF_VAR_project_name: bosh
+          TF_VAR_ext_net_name: public
+          TF_VAR_region_name: RegionOne
+          TF_VAR_openstack_default_key_public_key: ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHspetaTfg96YfZO3/xjKxGcjTnFPlxp7uP1KDisvPjB devstack-ci-openstack
+          TF_VAR_dns_nameservers: '["8.8.8.8"]'
+          TF_VAR_use_lbaas: false
+
       - task: run-golang-lifecycle-specs
         timeout: *timeouts-long
         file: bosh-openstack-cpi-release/ci/tasks/run-golang-lifecycle-specs.yml
@@ -189,12 +189,12 @@ jobs:
 
 - name: run-devstack-tests-ruby-cpi
   serial: true
-  serial_groups: [ devstack ]
+  serial_groups: [devstack]
   plan:
   - do:
     - in_parallel:
       - get: bosh-openstack-cpi-release
-        passed: [ run-devstack-tests ]
+        passed: [run-devstack-tests]
         timeout: *timeouts-long
         trigger: true
       - get: openstack-lifecycle-stemcell
@@ -222,13 +222,13 @@ jobs:
         OS_PASSWORD: ((openstack_ci_user.password))
         OS_PROJECT: bosh
 
-    - task: lifecycle-apply-terraform
-      timeout: *timeouts-long
-      image: terraform-image
-      file: bosh-openstack-cpi-release/ci/tasks/terraform-apply-lifecycle.yml
-      params: *lifecycle-terraform-params
-
     - do:
+      - task: lifecycle-apply-terraform
+        timeout: *timeouts-long
+        image: terraform-image
+        file: bosh-openstack-cpi-release/ci/tasks/terraform-apply-lifecycle.yml
+        params: *lifecycle-terraform-params
+
       - task: run-lifecycle
         timeout: *timeouts-long
         image: openstack-cpi-release-docker-image
@@ -310,28 +310,28 @@ jobs:
         action: destroy
 
 - name: bump-major
-  serial_groups: [ version ]
+  serial_groups: [version]
   plan:
     - put: release-version-semver
       params:
         bump: major
 
 - name: bump-minor
-  serial_groups: [ version ]
+  serial_groups: [version]
   plan:
     - put: release-version-semver
       params:
         bump: minor
 
 - name: bump-patch
-  serial_groups: [ version ]
+  serial_groups: [version]
   plan:
     - put: release-version-semver
       params:
         bump: patch
 
 - name: automatically-release-new-patch
-  serial_groups: [ version ]
+  serial_groups: [version]
   plan:
     - in_parallel:
         - get: bosh-openstack-cpi-release
@@ -393,7 +393,7 @@ jobs:
 
 - name: promote-candidate
   disable_manual_trigger: true
-  serial_groups: [ version ]
+  serial_groups: [version]
   plan:
   - in_parallel:
     - get: bosh-shared-ci
@@ -525,7 +525,7 @@ jobs:
     output_mapping:
       output_repo: bosh-openstack-cpi-release
     params:
-      PACKAGES: [ golang-1-linux ]
+      PACKAGES: [golang-1-linux]
       PRIVATE_YML: |
         blobstore:
           provider: gcs
@@ -673,7 +673,7 @@ resources:
   source:
     start: 3:00 -0700
     stop: 4:30 -0700
-    days: [ Saturday ]
+    days: [Saturday]
 
 - name: terraform-image
   type: registry-image
