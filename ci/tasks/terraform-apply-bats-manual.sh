@@ -4,22 +4,23 @@ set -e
 
 BASE_DIR=$(pwd)
 
-# Copy CI directory to output before apply so destroy has the terraform
-# config and any partial state even if apply fails
-cp -r "${BASE_DIR}/bosh-openstack-cpi-release/ci" "${BASE_DIR}/terraform-cpi"
-
 pushd bosh-openstack-cpi-release/ci/terraform/ci/bats-manual
   terraform init
+
+  # Copy CI directory after init so the .terraform/ provider cache is included;
+  # destroy task runs without re-initializing
+  cp -r "${BASE_DIR}/bosh-openstack-cpi-release/ci" "${BASE_DIR}/terraform-cpi"
 
   set +e
   terraform apply -auto-approve -input=false
   apply_exit=$?
   set -e
 
-  # Sync state to output regardless of apply result so ensure-destroy can run
-  cp -f terraform.tfstate "${BASE_DIR}/terraform-cpi/ci/terraform/ci/bats-manual/" 2>/dev/null || true
+  # Sync state to output so ensure-destroy has it; skip silently only if no state file exists
+  [ -f terraform.tfstate ] && cp -f terraform.tfstate "${BASE_DIR}/terraform-cpi/ci/terraform/ci/bats-manual/"
 
   if [ $apply_exit -ne 0 ]; then
+    echo "{}" > "${BASE_DIR}/terraform-cpi/metadata"
     exit $apply_exit
   fi
 
@@ -39,3 +40,4 @@ echo "******************************"
 echo "Metadata JSON passed to subsequent tests:"
 cat terraform-cpi/metadata
 echo "******************************"
+
