@@ -1,11 +1,11 @@
 # github.com/Masterminds/semver/v3 v3.5.0
 ## explicit; go 1.21
 github.com/Masterminds/semver/v3
-# github.com/cloudfoundry/bosh-cpi-go v0.0.0-20260822100132-980e5b7f78d1
+# github.com/cloudfoundry/bosh-cpi-go v0.0.0-20260829100026-db2cbc96a12e
 ## explicit; go 1.25.0
 github.com/cloudfoundry/bosh-cpi-go/apiv1
 github.com/cloudfoundry/bosh-cpi-go/rpc
-# github.com/cloudfoundry/bosh-utils v0.0.645
+# github.com/cloudfoundry/bosh-utils v0.0.647
 ## explicit; go 1.25.0
 github.com/cloudfoundry/bosh-utils/errors
 github.com/cloudfoundry/bosh-utils/logger
@@ -23,7 +23,7 @@ github.com/google/go-cmp/cmp/internal/diff
 github.com/google/go-cmp/cmp/internal/flags
 github.com/google/go-cmp/cmp/internal/function
 github.com/google/go-cmp/cmp/internal/value
-# github.com/google/pprof v0.0.0-20260802141513-ef3492d7dac3
+# github.com/google/pprof v0.0.0-20260825171938-4d453200e7d9
 ## explicit; go 1.25.0
 github.com/google/pprof/profile
 # github.com/google/uuid v1.6.0
