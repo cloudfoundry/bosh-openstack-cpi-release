@@ -32,7 +32,9 @@ RUN apt-get install -y --no-install-recommends \
 # ruby-install: compile Ruby 3.4 from source so gem versions match the Gemfile.lock
 RUN mkdir /tmp/ruby-install && \
     cd /tmp/ruby-install && \
-    curl -fsSL https://codeload.github.com/postmodern/ruby-install/tar.gz/v0.9.3 | tar -xz && \
+    curl -fsSL https://codeload.github.com/postmodern/ruby-install/tar.gz/v0.9.3 -o ruby-install.tar.gz && \
+    echo "3e920c9c770ce040cdf71cc64b809e861b613c570c6113ee61ab1d2885a16ab3  ruby-install.tar.gz" | sha256sum -c - && \
+    tar -xz -f ruby-install.tar.gz && \
     cd ruby-install-0.9.3 && \
     make install && \
     rm -rf /tmp/ruby-install
