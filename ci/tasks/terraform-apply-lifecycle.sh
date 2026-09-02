@@ -17,10 +17,13 @@ pushd bosh-openstack-cpi-release/ci/terraform/ci/lifecycle
   set -e
 
   # Sync state to output so ensure-destroy has it; skip silently only if no state file exists
-  set +e
-  [ -f terraform.tfstate ] && cp -f terraform.tfstate "${BASE_DIR}/terraform-cpi/ci/terraform/ci/lifecycle/"
-  state_copy_exit=$?
-  set -e
+  state_copy_exit=0
+  if [ -f terraform.tfstate ]; then
+    set +e
+    cp -f terraform.tfstate "${BASE_DIR}/terraform-cpi/ci/terraform/ci/lifecycle/"
+    state_copy_exit=$?
+    set -e
+  fi
 
   if [ $apply_exit -ne 0 ] || [ $state_copy_exit -ne 0 ]; then
     echo "{}" > "${BASE_DIR}/terraform-cpi/metadata"
