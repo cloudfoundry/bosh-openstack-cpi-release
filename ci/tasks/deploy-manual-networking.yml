@@ -6,8 +6,6 @@ image_resource:
     repository: boshcpi/openstack-cpi-release
 inputs:
   - name: bosh-openstack-cpi-release
-  - name: bosh-release
-  - name: stemcell-director
   - name: terraform-cpi
   - name: bosh-deployment
 outputs:
@@ -25,6 +23,6 @@ params:
   openstack_api_key:                   ""
   openstack_domain:                    ""
   DEBUG_BATS:                          ""
-  distro:                              ""
   openstack_file_path:                 ""
   availability_zone:                   replace-me
+  USE_GOLANG_CPI:                      "true"

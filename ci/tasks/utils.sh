@@ -45,41 +45,6 @@ init_openstack_cli_env(){
 
 }
 
-prepare_bosh_release() {
-    local distribution=${1}
-    local bosh_release_version=${2}
-    local stemcell_version=${3}
-
-    use_compiled_release=true
-
-    local s3_path_to_bosh_release
-    s3_path_to_bosh_release=$(find_bosh_compiled_release "${distribution}" "${bosh_release_version}" "${stemcell_version}")
-
-    if [ -n "${s3_path_to_bosh_release}" ]; then
-        echo "Using compiled BOSH release: s3://bosh-compiled-release-tarballs/$s3_path_to_bosh_release"
-        # shellcheck disable=SC2154
-        aws --no-sign-request s3 cp "s3://bosh-compiled-release-tarballs/${s3_path_to_bosh_release}" "${deployment_dir}/bosh-release.tgz"
-    else
-        use_compiled_release=false
-    fi
-
-    if [ "${use_compiled_release}" = "false" ]; then
-       echo "Using BOSH release from sources"
-       # shellcheck disable=SC2154
-       cp ./bosh-release/*.tgz "${deployment_dir}/bosh-release.tgz"
-    fi
-}
-
-find_bosh_compiled_release(){
-    local distribution=$1
-    local bosh_release_version=${2:-$(cat ./bosh-release/version)}
-    local stemcell_version=${3:-$(cat ./stemcell-director/version)}
-
-    local s3_path_to_bosh_release
-    s3_path_to_bosh_release=$(aws --no-sign-request s3 ls s3://bosh-compiled-release-tarballs | grep -oE "[^ ](\w|-)*$bosh_release_version.+$distribution.+$stemcell_version.*\.tgz" | sort -r | head -1)
-    echo "${s3_path_to_bosh_release}"
-}
-
 export_terraform_variable() {
     local metadata=$1
     local variable_name=$2
