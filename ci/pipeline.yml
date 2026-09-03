@@ -174,13 +174,6 @@ jobs:
           timeout: *timeouts-long
           file: bosh-openstack-cpi-release/ci/tasks/print_task_errors.yml
 
-      ensure:
-        task: bats-destroy-terraform
-        timeout: *timeouts-long
-        image: terraform-image
-        file: bosh-openstack-cpi-release/ci/tasks/terraform-destroy-bats-manual.yml
-        params: *bats-terraform-vars
-
     ensure:
       put: destroy-devstack
       resource: gcp-devstack
@@ -296,13 +289,6 @@ jobs:
           task: bats-print-errors
           timeout: *timeouts-long
           file: bosh-openstack-cpi-release/ci/tasks/print_task_errors.yml
-
-      ensure:
-        task: bats-destroy-terraform
-        timeout: *timeouts-long
-        image: terraform-image
-        file: bosh-openstack-cpi-release/ci/tasks/terraform-destroy-bats-manual.yml
-        params: *bats-terraform-vars
 
     ensure:
       put: destroy-devstack
@@ -615,7 +601,7 @@ resources:
   type: git
   source:
     uri: https://github.com/cloudfoundry/bosh-openstack-cpi-release.git
-    branch: master
+    branch: ci_update_pipelines
     username: bosh-admin-bot
     password: ((github_public_repo_token))
 
