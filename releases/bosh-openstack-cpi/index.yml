@@ -79,6 +79,8 @@ builds:
     version: "36"
   afbdb318-b878-4a4f-5a63-8d5c97d30dba:
     version: 55.0.3
+  b0b4a6b0-a353-4c0d-754e-d309e0dd9528:
+    version: 55.1.0
   b5ad8811-90d6-4e6e-7d7f-3700f4296d5c:
     version: "43"
   b834ba24-8230-41a2-6c1f-be14dbf4dfe6:
