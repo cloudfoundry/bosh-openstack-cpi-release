@@ -1,13 +1,13 @@
 ---
 platform: linux
 image_resource:
-  type: docker-image
+  type: registry-image
   source:
-    repository: boshcpi/openstack-cpi-release
+    repository: ghcr.io/cloudfoundry/bosh-openstack-cpi-release/openstack-cpi-release
+    username: ((github_read_write_packages.username))
+    password: ((github_read_write_packages.password))
 inputs:
   - name: bosh-openstack-cpi-release
-  - name: bosh-release
-  - name: stemcell-director
   - name: terraform-cpi
   - name: bosh-deployment
 outputs:
@@ -25,6 +25,6 @@ params:
   openstack_api_key:                   ""
   openstack_domain:                    ""
   DEBUG_BATS:                          ""
-  distro:                              ""
   openstack_file_path:                 ""
   availability_zone:                   replace-me
+  USE_GOLANG_CPI:                      "true"

@@ -1,30 +1,15 @@
 ---
 - type: replace
-  path: /releases/name=bosh
-  value:
-    name: bosh
-    url: file://bosh-release.tgz
-
-- type: replace
   path: /releases/name=bosh-openstack-cpi
   value:
     name: bosh-openstack-cpi
     url: file://bosh-openstack-cpi.tgz
 
 - type: replace
-  path: /resource_pools/name=vms
+  path: /resource_pools/name=vms/cloud_properties?
   value:
-    name: vms
-    network: default
-    stemcell:
-      url: file://stemcell.tgz
-    cloud_properties:
-      instance_type: ((openstack_flavor))
-      availability_zone: ((availability_zone))
-    env:
-      bosh:
-        mbus:
-          cert: ((mbus_bootstrap_ssl))
+    instance_type: ((openstack_flavor))
+    availability_zone: ((availability_zone))
 
 - type: replace
   path: /instance_groups/name=bosh/properties/hm/resurrector_enabled
