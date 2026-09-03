@@ -620,8 +620,8 @@ resources:
     uri: https://github.com/cloudfoundry/bosh-openstack-cpi-release.git
     branch: release-semver
     file: VERSION
-    username: ((github_read_write_packages.username))
-    password: ((github_read_write_packages.password))
+    username: bosh-admin-bot
+    password: ((github_public_repo_token))
 
 - name: bats
   type: git
