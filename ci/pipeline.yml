@@ -601,7 +601,7 @@ resources:
   type: git
   source:
     uri: https://github.com/cloudfoundry/bosh-openstack-cpi-release.git
-    branch: ci_update_pipelines
+    branch: master
     username: bosh-admin-bot
     password: ((github_public_repo_token))
 
