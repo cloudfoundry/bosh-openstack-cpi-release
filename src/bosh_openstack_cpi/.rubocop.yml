@@ -1,7 +1,0 @@
-AllCops:
-  NewCops: enable
-  DisabledByDefault: true
-  SuggestExtensions: false
-
-Lint:
-  Enabled: true # equivalent to `--lint`
