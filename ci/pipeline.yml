@@ -183,122 +183,6 @@ jobs:
       get_params:
         action: destroy
 
-- name: run-devstack-tests-ruby-cpi
-  serial: true
-  serial_groups: [devstack]
-  plan:
-  - do:
-    - in_parallel:
-      - get: bosh-openstack-cpi-release
-        passed: [run-devstack-tests]
-        timeout: *timeouts-long
-        trigger: true
-      - get: openstack-lifecycle-stemcell
-        resource: openstack-ubuntu-noble-stemcell
-        timeout: *timeouts-long
-      - get: terraform-image
-      - get: openstack-cpi-release-docker-image
-      - get: stemcell
-        resource: openstack-ubuntu-noble-stemcell
-        timeout: *timeouts-long
-      - get: bats
-        timeout: *timeouts-long
-      - get: bosh-deployment
-        timeout: *timeouts-long
-
-    - put: gcp-devstack
-      params:
-        terraform_source: bosh-openstack-cpi-release/ci/terraform/ci/gcp-devstack
-    - task: wait-for-devstack
-      image: openstack-cpi-release-docker-image
-      file: bosh-openstack-cpi-release/ci/tasks/wait-for-devstack.yml
-      params:
-        AUTH_URL: http://10.100.30.2/identity
-        OS_USERNAME: ((openstack_ci_user.username))
-        OS_PASSWORD: ((openstack_ci_user.password))
-        OS_PROJECT: bosh
-
-    - do:
-      - task: lifecycle-apply-terraform
-        timeout: *timeouts-long
-        image: terraform-image
-        file: bosh-openstack-cpi-release/ci/tasks/terraform-apply-lifecycle.yml
-        params: *lifecycle-terraform-params
-
-      - task: run-lifecycle
-        timeout: *timeouts-long
-        image: openstack-cpi-release-docker-image
-        file: bosh-openstack-cpi-release/ci/tasks/run-lifecycle.yml
-        params:
-          BOSH_OPENSTACK_DOMAIN: Default
-          BOSH_OPENSTACK_PROJECT: bosh
-          BOSH_OPENSTACK_USERNAME_V3: ((openstack_ci_user.username))
-          BOSH_OPENSTACK_AUTH_URL_V3: http://10.100.30.2/identity
-          BOSH_OPENSTACK_API_KEY_V3: ((openstack_ci_user.password))
-          BOSH_CLI_SILENCE_SLOW_LOAD_WARNING: true
-          BOSH_OPENSTACK_VOLUME_TYPE: lvmdriver-1
-          BOSH_OPENSTACK_CONNECT_TIMEOUT: "600"
-          BOSH_OPENSTACK_READ_TIMEOUT: "120"
-          BOSH_OPENSTACK_WRITE_TIMEOUT: "120"
-          BOSH_OPENSTACK_FLAVOR_WITH_NO_ROOT_DISK: no-root-disk
-          BOSH_OPENSTACK_AVAILABILITY_ZONE: nova
-          BOSH_OPENSTACK_EXCLUDE_CINDER_V1: true
-      ensure:
-        task: lifecycle-destroy-terraform
-        timeout: *timeouts-long
-        image: terraform-image
-        file: bosh-openstack-cpi-release/ci/tasks/terraform-destroy-lifecycle.yml
-        params: *lifecycle-terraform-params
-
-    - do:
-      - task: bats-apply-terraform
-        timeout: *timeouts-long
-        image: terraform-image
-        file: bosh-openstack-cpi-release/ci/tasks/terraform-apply-bats-manual.yml
-        params: *bats-terraform-vars
-
-      - task: bats-deploy-director
-        timeout: *timeouts-long
-        image: openstack-cpi-release-docker-image
-        file: bosh-openstack-cpi-release/ci/tasks/deploy-manual-networking.yml
-        params:
-          openstack_flavor: "m1.small"
-          openstack_connection_timeout: "600"
-          openstack_read_timeout: "180"
-          openstack_write_timeout: "180"
-          openstack_state_timeout: "900"
-          openstack_auth_url: http://10.100.30.2/identity
-          openstack_username: ((openstack_ci_user.username))
-          openstack_api_key: ((openstack_ci_user.password))
-          openstack_domain: Default
-          availability_zone: nova
-          DEBUG_BATS: *debug_bats
-          USE_GOLANG_CPI: "false"
-
-      - task: run-bats
-        timeout: *timeouts-long
-        file: bosh-openstack-cpi-release/ci/tasks/run-manual-networking-bats.yml
-        params:
-          stemcell_name: "bosh-openstack-kvm-ubuntu-noble"
-          openstack_flavor_with_ephemeral_disk: with-ephemeral-disk
-          openstack_flavor_with_no_ephemeral_disk: without-ephemeral-disk
-          availability_zone: nova
-          DEBUG_BATS: *debug_bats
-          bats_rspec_tags: "--tag ~ssh"
-        ensure:
-          task: bats-print-errors
-          timeout: *timeouts-long
-          file: bosh-openstack-cpi-release/ci/tasks/print_task_errors.yml
-
-    ensure:
-      put: destroy-devstack
-      resource: gcp-devstack
-      params:
-        terraform_source: bosh-openstack-cpi-release/ci/terraform/ci/gcp-devstack
-        action: destroy
-      get_params:
-        action: destroy
-
 - name: bump-major
   serial_groups: [version]
   plan:
@@ -327,7 +211,7 @@ jobs:
         - get: bosh-openstack-cpi-release
           trigger: true
           passed:
-            - run-devstack-tests-ruby-cpi
+            - run-devstack-tests
         - get: bosh-shared-ci
         - get: version
           resource: release-version-semver
@@ -388,7 +272,7 @@ jobs:
     - get: bosh-shared-ci
     - get: bosh-openstack-cpi-release
       passed:
-      - run-devstack-tests-ruby-cpi
+      - run-devstack-tests
     - get: version
       resource: release-version-semver
       trigger: true
@@ -442,45 +326,8 @@ jobs:
       output_repo: bosh-openstack-cpi-release
     params:
       SOURCE_PATH: src/openstack_cpi_golang
-  - task: run-unit-specs
-    file: bosh-openstack-cpi-release/ci/tasks/run-unit-specs.yml
-    image: openstack-cpi-release-docker-image
   - task: run-golang-unit-specs
     file: bosh-openstack-cpi-release/ci/tasks/run-golang-unit-specs.yml
-  - put: bosh-openstack-cpi-release
-    params:
-      repository: bosh-openstack-cpi-release
-      rebase: true
-
-- name: bump-ruby-deps
-  plan:
-  - in_parallel:
-    - get: bosh-openstack-cpi-release
-    - get: ruby-release
-    - get: bosh-ruby-release-registry-image
-    - get: openstack-cpi-release-docker-image
-    - get: weekly
-      trigger: true
-  - load_var: ruby_version
-    file: bosh-openstack-cpi-release/src/bosh_openstack_cpi/.ruby-version
-    format: trim
-    reveal: true
-  - task: bump-gems
-    image: bosh-ruby-release-registry-image
-    file: ruby-release/ci/tasks/shared/bump-gems.yml
-    input_mapping:
-      input-repo: bosh-openstack-cpi-release
-    output_mapping:
-      output-repo: bosh-openstack-cpi-release
-    params:
-      GEM_DIRS: src/bosh_openstack_cpi
-      GIT_USER_NAME: CI Bot
-      GIT_USER_EMAIL: bots@cloudfoundry.org
-      PACKAGE: ruby-((.:ruby_version))
-  - task: run-unit-specs
-    timeout: *timeouts-long
-    image: openstack-cpi-release-docker-image
-    file: bosh-openstack-cpi-release/ci/tasks/run-unit-specs.yml
   - put: bosh-openstack-cpi-release
     params:
       repository: bosh-openstack-cpi-release
@@ -492,28 +339,7 @@ jobs:
     - get: bosh-openstack-cpi-release
     - get: golang-release
       trigger: true
-    - get: ruby-release
-      trigger: true
-    - get: bosh-ruby-release-registry-image
     - get: openstack-cpi-release-docker-image
-  - task: bump-ruby-package
-    image: bosh-ruby-release-registry-image
-    file: ruby-release/ci/tasks/shared/bump-ruby-package.yml
-    input_mapping:
-      bosh-release: bosh-openstack-cpi-release
-    output_mapping:
-      bosh-release: bosh-openstack-cpi-release
-    params:
-      GIT_USER_NAME: CI Bot
-      GIT_USER_EMAIL: bots@cloudfoundry.org
-      PACKAGE: ruby-3.4
-      PACKAGE_PREFIX: openstack
-      PRIVATE_YML: |
-        blobstore:
-          provider: gcs
-          options:
-            credentials_source: static
-            json_key: '((gcp_json_key))'
   - task: bump-golang-packages
     file: golang-release/ci/tasks/shared/bump-golang-package.yml
     input_mapping:
@@ -528,12 +354,8 @@ jobs:
           options:
             credentials_source: static
             json_key: '((gcp_json_key))'
-  - in_parallel:
-    - task: run-unit-specs
-      file: bosh-openstack-cpi-release/ci/tasks/run-unit-specs.yml
-      image: openstack-cpi-release-docker-image
-    - task: run-golang-unit-specs
-      file: bosh-openstack-cpi-release/ci/tasks/run-golang-unit-specs.yml
+  - task: run-golang-unit-specs
+    file: bosh-openstack-cpi-release/ci/tasks/run-golang-unit-specs.yml
   - put: bosh-openstack-cpi-release
     params:
       repository: bosh-openstack-cpi-release
@@ -662,18 +484,6 @@ resources:
   type: git
   source:
     uri: https://github.com/cloudfoundry/bosh-package-golang-release.git
-
-- name: ruby-release
-  type: git
-  source:
-    uri: https://github.com/cloudfoundry/bosh-package-ruby-release.git
-
-- name: bosh-ruby-release-registry-image
-  type: registry-image
-  source:
-    repository: bosh/ruby-release
-    username: ((dockerhub_username))
-    password: ((dockerhub_password))
 
 - name: terraform-image
   type: registry-image
