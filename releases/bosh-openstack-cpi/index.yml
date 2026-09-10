@@ -11,6 +11,8 @@ builds:
     version: "9"
   0f1fa967-6b77-4470-a739-a91257fc0aba:
     version: "7"
+  1199cf55-a4ce-4ca9-4cb7-9efe83b1f75c:
+    version: 55.1.1
   156f0c49-e417-4be1-68aa-86c96d744f42:
     version: "42"
   24eb6fa1-a878-4591-75d4-a44dad42b0db:
