@@ -103,4 +103,4 @@ cd bats
 bundle install -j4
 # bats_rspec_tags may hold multiple space-separated flags; split into an array.
 read -ra rspec_tags <<< "${bats_rspec_tags:-}"
-bundle exec rspec --tag ~raw_ephemeral_storage --tag ~multiple_manual_networks "${rspec_tags[@]}" spec
+bundle exec rspec --tag ~raw_ephemeral_storage --tag ~ipv6 "${rspec_tags[@]}" spec
