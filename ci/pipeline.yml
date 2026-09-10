@@ -60,8 +60,6 @@ jobs:
       - get: stemcell
         resource: openstack-ubuntu-noble-stemcell
         timeout: *timeouts-long
-      - get: bats
-        timeout: *timeouts-long
       - get: bosh-deployment
         timeout: *timeouts-long
 
@@ -161,18 +159,30 @@ jobs:
       - task: run-bats
         timeout: *timeouts-long
         image: openstack-cpi-release-docker-image
-        file: bosh-openstack-cpi-release/ci/tasks/run-manual-networking-bats.yml
+        file: bosh-openstack-cpi-release/ci/tasks/run-bats.yml
         params:
           stemcell_name: "bosh-openstack-kvm-ubuntu-noble"
           openstack_flavor_with_ephemeral_disk: with-ephemeral-disk
           openstack_flavor_with_no_ephemeral_disk: without-ephemeral-disk
           availability_zone: nova
           DEBUG_BATS: *debug_bats
-          bats_rspec_tags: ""
         ensure:
           task: bats-print-errors
           timeout: *timeouts-long
-          file: bosh-openstack-cpi-release/ci/tasks/print_task_errors.yml
+          image: openstack-cpi-release-docker-image
+          config:
+            platform: linux
+            inputs:
+            - name: bosh-director-deployment
+            run:
+              path: bash
+              args:
+              - -c
+              - |
+                export BOSH_CLIENT=admin
+                export BOSH_CLIENT_SECRET=$(bosh-go int bosh-director-deployment/credentials.yml --path /admin_password)
+                export BOSH_CA_CERT="$(bosh-go int bosh-director-deployment/credentials.yml --path /director_ssl/ca)"
+                bosh-go -n tasks --all --recent=50
 
     ensure:
       put: destroy-devstack
@@ -445,12 +455,6 @@ resources:
     file: VERSION
     username: bosh-admin-bot
     password: ((github_public_repo_token))
-
-- name: bats
-  type: git
-  source:
-    uri: https://github.com/cloudfoundry/bosh-acceptance-tests.git
-    branch: master
 
 - name: openstack-ubuntu-noble-stemcell
   type: bosh-io-stemcell
