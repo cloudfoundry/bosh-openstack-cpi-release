@@ -157,7 +157,7 @@ create_flavors() {
   os_admin flavor show with-ephemeral-disk >/dev/null 2>&1 || \
     os_admin flavor create --ram 1024 --disk 5 --ephemeral 5 --vcpus 1 with-ephemeral-disk
   os_admin flavor show without-ephemeral-disk >/dev/null 2>&1 || \
-    os_admin flavor create --ram 1024 --disk 5 --ephemeral 0 --vcpus 1 without-ephemeral-disk
+    os_admin flavor create --ram 1024 --disk 15 --ephemeral 0 --vcpus 1 without-ephemeral-disk
 }
 
 bump_quotas() {

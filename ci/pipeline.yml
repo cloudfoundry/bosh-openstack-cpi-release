@@ -168,7 +168,7 @@ jobs:
           openstack_flavor_with_no_ephemeral_disk: without-ephemeral-disk
           availability_zone: nova
           DEBUG_BATS: *debug_bats
-          bats_rspec_tags: "--tag ~ssh"
+          bats_rspec_tags: ""
         ensure:
           task: bats-print-errors
           timeout: *timeouts-long
