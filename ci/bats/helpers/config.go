@@ -122,6 +122,9 @@ func (c *Config) loadSpec(path string) error {
 	if err := yaml.Unmarshal(data, &f); err != nil {
 		return err
 	}
+	if len(f.Properties.Networks) == 0 {
+		return fmt.Errorf("properties.networks is missing or empty in %s", path)
+	}
 	c.BATs = f.Properties
 	return nil
 }

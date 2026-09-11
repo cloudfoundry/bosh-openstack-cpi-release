@@ -174,11 +174,13 @@ jobs:
             platform: linux
             inputs:
             - name: bosh-director-deployment
+            - name: terraform-cpi
             run:
               path: bash
               args:
               - -c
               - |
+                export BOSH_ENVIRONMENT=$(jq -r '.director_public_ip' terraform-cpi/metadata)
                 export BOSH_CLIENT=admin
                 export BOSH_CLIENT_SECRET=$(bosh-go int bosh-director-deployment/credentials.yml --path /admin_password)
                 export BOSH_CA_CERT="$(bosh-go int bosh-director-deployment/credentials.yml --path /director_ssl/ca)"

@@ -12,8 +12,18 @@ import (
 var _ = Describe("VM recreation", func() {
 	const deployment = "bats-recreation"
 
+	var deployed bool
+
+	BeforeEach(func() {
+		deployed = false
+	})
+
 	AfterEach(func() {
-		_ = bosh.DeleteDeployment(deployment)
+		if deployed {
+			Expect(bosh.DeleteDeployment(deployment)).To(Succeed())
+		} else {
+			_ = bosh.DeleteDeployment(deployment)
+		}
 	})
 
 	It("recreates the VM and brings it back with the same static IP", func() {
@@ -30,6 +40,7 @@ var _ = Describe("VM recreation", func() {
 		By("deploying")
 		_, err = bosh.Deploy(f.Name())
 		Expect(err).NotTo(HaveOccurred())
+		deployed = true
 
 		By("recording instance IP before recreate")
 		instancesBefore, err := bosh.Instances(deployment)

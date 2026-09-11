@@ -2,6 +2,7 @@ package bats_test
 
 import (
 	"os"
+	"strings"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -12,8 +13,18 @@ import (
 var _ = Describe("Manual networking", func() {
 	const deployment = "bats-networking"
 
+	var deployed bool
+
+	BeforeEach(func() {
+		deployed = false
+	})
+
 	AfterEach(func() {
-		_ = bosh.DeleteDeployment(deployment)
+		if deployed {
+			Expect(bosh.DeleteDeployment(deployment)).To(Succeed())
+		} else {
+			_ = bosh.DeleteDeployment(deployment)
+		}
 	})
 
 	It("assigns the expected static IP on the primary manual network", func() {
@@ -30,6 +41,7 @@ var _ = Describe("Manual networking", func() {
 		By("deploying")
 		_, err = bosh.Deploy(f.Name())
 		Expect(err).NotTo(HaveOccurred())
+		deployed = true
 
 		By("verifying the instance IP matches the requested static IP")
 		instances, err := bosh.Instances(deployment)
@@ -59,13 +71,22 @@ var _ = Describe("Manual networking", func() {
 		By("deploying two instance groups across two networks")
 		_, err = bosh.Deploy(f.Name())
 		Expect(err).NotTo(HaveOccurred())
+		deployed = true
 
-		By("verifying both instances are running")
+		By("verifying both instances are running with the expected IPs")
 		instances, err := bosh.Instances(deployment)
 		Expect(err).NotTo(HaveOccurred())
 		Expect(instances).To(HaveLen(2))
 		for _, inst := range instances {
 			Expect(inst.State).To(Equal("running"))
+			switch {
+			case strings.HasPrefix(inst.Name, "primary-vm"):
+				Expect(inst.IPs).To(ContainSubstring(primary.StaticIP),
+					"primary-vm should have IP %s", primary.StaticIP)
+			case strings.HasPrefix(inst.Name, "secondary-vm"):
+				Expect(inst.IPs).To(ContainSubstring(secondary.StaticIP),
+					"secondary-vm should have IP %s", secondary.StaticIP)
+			}
 		}
 	})
 })

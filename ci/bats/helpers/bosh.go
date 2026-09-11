@@ -1,12 +1,16 @@
 package helpers
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"os"
 	"os/exec"
 	"strings"
+	"time"
 )
+
+const defaultCommandTimeout = 30 * time.Minute
 
 // Runner is a thin wrapper around the bosh-go CLI binary.
 type Runner struct {
@@ -29,7 +33,9 @@ func NewRunner(cfg *Config) *Runner {
 
 // Run executes bosh-go with the given args, returning combined stdout+stderr.
 func (r *Runner) Run(args ...string) (string, error) {
-	cmd := exec.Command("bosh-go", append([]string{"-n"}, args...)...)
+	ctx, cancel := context.WithTimeout(context.Background(), defaultCommandTimeout)
+	defer cancel()
+	cmd := exec.CommandContext(ctx, "bosh-go", append([]string{"-n"}, args...)...)
 	cmd.Env = r.env
 	out, err := cmd.CombinedOutput()
 	if err != nil {
@@ -88,6 +94,23 @@ func (r *Runner) Instances(deployment string) ([]Instance, error) {
 	return parseInstancesJSON(out)
 }
 
+// InstanceDetail extends Instance with the disk CID of the attached persistent disk.
+type InstanceDetail struct {
+	Name    string `json:"instance"`
+	State   string `json:"process_state"`
+	IPs     string `json:"ips"`
+	DiskCID string `json:"disk_cids"`
+}
+
+// InstancesDetails returns instances with disk attachment information.
+func (r *Runner) InstancesDetails(deployment string) ([]InstanceDetail, error) {
+	out, err := r.Run("instances", "-d", deployment, "--details", "--json")
+	if err != nil {
+		return nil, err
+	}
+	return parseInstanceDetailsJSON(out)
+}
+
 // DiskIDs returns the disk CIDs attached to instances of a deployment.
 func (r *Runner) DiskIDs(deployment string) ([]string, error) {
 	out, err := r.Run("disks", "--orphaned", "--json")
@@ -112,6 +135,27 @@ func parseInstancesJSON(raw string) ([]Instance, error) {
 	var resp instancesResponse
 	if err := json.Unmarshal([]byte(raw[idx:]), &resp); err != nil {
 		return nil, fmt.Errorf("parsing instances JSON: %w\nraw: %s", err, raw)
+	}
+	if len(resp.Tables) == 0 {
+		return nil, nil
+	}
+	return resp.Tables[0].Rows, nil
+}
+
+type instanceDetailsResponse struct {
+	Tables []struct {
+		Rows []InstanceDetail `json:"Rows"`
+	} `json:"Tables"`
+}
+
+func parseInstanceDetailsJSON(raw string) ([]InstanceDetail, error) {
+	idx := strings.Index(raw, "{")
+	if idx < 0 {
+		return nil, fmt.Errorf("no JSON in bosh instances --details output: %s", raw)
+	}
+	var resp instanceDetailsResponse
+	if err := json.Unmarshal([]byte(raw[idx:]), &resp); err != nil {
+		return nil, fmt.Errorf("parsing instances details JSON: %w\nraw: %s", err, raw)
 	}
 	if len(resp.Tables) == 0 {
 		return nil, nil

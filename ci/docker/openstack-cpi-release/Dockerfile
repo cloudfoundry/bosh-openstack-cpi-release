@@ -1,3 +1,5 @@
+FROM ghcr.io/cloudfoundry/bosh/golang-release AS golang
+
 FROM ubuntu:noble
 
 ENV DEBIAN_FRONTEND=noninteractive
@@ -48,3 +50,6 @@ RUN curl -fsSL "https://github.com/cloudfoundry/bosh-cli/releases/download/v${BO
     && mv /tmp/bosh /usr/bin/bosh \
     && chmod +x /usr/bin/bosh \
     && cp /usr/bin/bosh /usr/local/bin/bosh-go
+
+COPY --from=golang /usr/local/go /usr/local/go
+ENV PATH="/usr/local/go/bin:${PATH}"
