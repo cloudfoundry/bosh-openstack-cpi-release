@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 
-# Network and credential variables are exported at runtime by the utils.sh
-# helpers (export_terraform_variable/optional_value), which shellcheck can't follow.
 # shellcheck disable=SC1091,SC2154
+# SC1091: utils.sh exports are not statically traceable
+# SC2154: terraform variables are exported dynamically by export_terraform_variable
 
 set -eo pipefail
 
@@ -13,7 +13,6 @@ source bosh-openstack-cpi-release/ci/tasks/utils.sh
 : "${openstack_flavor_with_no_ephemeral_disk:?}"
 
 optional_value availability_zone
-optional_value bats_rspec_tags
 
 export_terraform_variable terraform-cpi/metadata "director_public_ip"
 export_terraform_variable terraform-cpi/metadata "director_private_ip"
@@ -34,11 +33,10 @@ export_terraform_variable terraform-cpi/metadata "secondary_net_dhcp_pool"
 export_terraform_variable terraform-cpi/metadata "security_group"
 
 working_dir=$PWD
-# checked by BATs environment helper (bosh-acceptance-tests.git/lib/bat/env.rb)
+
 export BAT_STEMCELL="${working_dir}/stemcell/stemcell.tgz"
 export BAT_DIRECTOR="${director_public_ip}"
 export BAT_INFRASTRUCTURE='openstack'
-export BAT_BOSH_CLI='bosh-go'
 
 export BOSH_ENVIRONMENT="${director_public_ip}"
 export BOSH_CLIENT="admin"
@@ -47,7 +45,7 @@ export BOSH_CLIENT_SECRET
 BOSH_CA_CERT="$(creds_path /director_ssl/ca)"
 export BOSH_CA_CERT
 
-ssh_private_key=$( creds_path /jumpbox_ssh/private_key | sed 's/$/\\n/' | tr -d '\n' )
+ssh_private_key="$(creds_path /jumpbox_ssh/private_key | sed 's/$/\\n/' | tr -d '\n')"
 private_key_path=$(mktemp)
 echo -e "${ssh_private_key}" > "${private_key_path}"
 export BOSH_ALL_PROXY="ssh+socks5://jumpbox@${director_public_ip}:22?private-key=${private_key_path}"
@@ -99,8 +97,5 @@ properties:
     gateway: ${secondary_net_gateway}
 EOF
 
-cd bats
-bundle install -j4
-# bats_rspec_tags may hold multiple space-separated flags; split into an array.
-read -ra rspec_tags <<< "${bats_rspec_tags:-}"
-bundle exec rspec --tag ~raw_ephemeral_storage --tag ~ipv6 --tag ~nic_groups --tag ~multiple_manual_networks "${rspec_tags[@]}" spec
+cd bosh-openstack-cpi-release/ci/bats
+go test ./... -v -timeout 90m
