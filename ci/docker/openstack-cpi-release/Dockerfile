@@ -51,5 +51,5 @@ RUN curl -fsSL "https://github.com/cloudfoundry/bosh-cli/releases/download/v${BO
     && chmod +x /usr/bin/bosh \
     && cp /usr/bin/bosh /usr/local/bin/bosh-go
 
-COPY --from=golang /usr/local/go /usr/local/go
+COPY --from=golang /var/vcap/packages/golang-1-linux /usr/local/go
 ENV PATH="/usr/local/go/bin:${PATH}"
