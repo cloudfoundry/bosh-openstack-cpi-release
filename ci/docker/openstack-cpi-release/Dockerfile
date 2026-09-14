@@ -13,6 +13,8 @@ RUN apt-get -y update \
 RUN apt-get install -y --no-install-recommends \
     ca-certificates \
     curl \
+    ruby \
+    ruby-bundler \
     git \
     git-lfs \
     jq \
