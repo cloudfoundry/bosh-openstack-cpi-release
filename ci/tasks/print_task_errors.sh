@@ -14,4 +14,8 @@ bosh-go -n tasks --all --recent=100
 
 echo 'Printing debug output of tasks in state error, latest errors first'
 
-bosh-go -n tasks --all --recent=100 --json | ./bosh-openstack-cpi-release/ci/ruby_scripts/print_task_debug_output.sh
+bosh-go -n tasks --all --recent=100 --json \
+  | jq -r '.Tables[0].Rows[] | select(.state == "error") | .id' \
+  | while read -r task_id; do
+      bosh-go task "${task_id}" --debug
+    done

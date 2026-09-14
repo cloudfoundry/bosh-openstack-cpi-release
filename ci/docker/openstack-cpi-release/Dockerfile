@@ -11,10 +11,12 @@ RUN apt-get -y update \
     && update-locale LC_ALL=en_US.UTF-8 LANG=en_US.UTF-8
 
 RUN apt-get install -y --no-install-recommends \
+    build-essential \
     ca-certificates \
     curl \
     ruby \
     ruby-bundler \
+    ruby-dev \
     git \
     git-lfs \
     jq \
