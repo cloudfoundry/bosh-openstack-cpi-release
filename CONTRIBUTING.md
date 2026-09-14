@@ -18,28 +18,6 @@ Follow these steps to make a contribution to any of CF open source repositories:
 
 ## Development
 
-### Prerequisites:
-- ruby 2.x
-- bundler
-
-### Running unit tests
-
-The CPI Ruby code has unit tests that can be run as follows.
-
-```bash
-./scripts/test-unit
-```
-
-### Running ERB job templates unit tests
-
-The ERB templates rendered by the jobs of this Bosh Release have specific unit
-tests that are run along with the other unit tests as instructed above. When
-required, you can run them separately though, with this command:
-
-```bash
-./scripts/test-unit-erb
-```
-
 ### Running manual tests
 *Note:* This is not required for opening a pull request. Having green unit tests is good enough from our perspective.
 
