@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 
 manifest_path() {
-  bosh-go int bosh-director-deployment/bosh.yml --path="$1"
+  bosh int bosh-director-deployment/bosh.yml --path="$1"
 }
 
 creds_path() {
-  bosh-go int bosh-director-deployment/credentials.yml --path="$1"
+  bosh int bosh-director-deployment/credentials.yml --path="$1"
 }
 
 optional_value() {

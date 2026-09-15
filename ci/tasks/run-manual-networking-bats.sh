@@ -38,7 +38,7 @@ working_dir=$PWD
 export BAT_STEMCELL="${working_dir}/stemcell/stemcell.tgz"
 export BAT_DIRECTOR="${director_public_ip}"
 export BAT_INFRASTRUCTURE='openstack'
-export BAT_BOSH_CLI='bosh-go'
+export BAT_BOSH_CLI='bosh'
 
 export BOSH_ENVIRONMENT="${director_public_ip}"
 export BOSH_CLIENT="admin"
@@ -53,7 +53,7 @@ echo -e "${ssh_private_key}" > "${private_key_path}"
 export BOSH_ALL_PROXY="ssh+socks5://jumpbox@${director_public_ip}:22?private-key=${private_key_path}"
 
 echo "using bosh CLI version..."
-bosh-go --version
+bosh --version
 
 export BAT_DEPLOYMENT_SPEC="${working_dir}/bats-config.yml"
 cat > "${BAT_DEPLOYMENT_SPEC}" <<EOF

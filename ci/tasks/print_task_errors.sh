@@ -7,15 +7,15 @@ source bosh-openstack-cpi-release/ci/tasks/utils.sh
 export_terraform_variable terraform-cpi/metadata "director_public_ip"
 export BOSH_ENVIRONMENT=${director_public_ip}
 export BOSH_CLIENT=admin
-export BOSH_CLIENT_SECRET=$(bosh-go int bosh-director-deployment/credentials.yml  --path /admin_password)
-export BOSH_CA_CERT="$(bosh-go int bosh-director-deployment/credentials.yml --path /director_ssl/ca)"
+export BOSH_CLIENT_SECRET=$(bosh int bosh-director-deployment/credentials.yml  --path /admin_password)
+export BOSH_CA_CERT="$(bosh int bosh-director-deployment/credentials.yml --path /director_ssl/ca)"
 
-bosh-go -n tasks --all --recent=100
+bosh -n tasks --all --recent=100
 
 echo 'Printing debug output of tasks in state error, latest errors first'
 
-bosh-go -n tasks --all --recent=100 --json \
+bosh -n tasks --all --recent=100 --json \
   | jq -r '.Tables[0].Rows[] | select(.state == "error") | .id' \
   | while read -r task_id; do
-      bosh-go task "${task_id}" --debug
+      bosh task "${task_id}" --debug || true
     done
