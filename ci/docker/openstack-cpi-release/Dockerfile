@@ -14,6 +14,7 @@ RUN apt-get install -y --no-install-recommends \
     build-essential \
     ca-certificates \
     curl \
+    libssl-dev \
     ruby \
     ruby-bundler \
     ruby-dev \
