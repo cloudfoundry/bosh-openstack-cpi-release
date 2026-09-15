@@ -169,10 +169,6 @@ jobs:
           availability_zone: nova
           DEBUG_BATS: *debug_bats
           bats_rspec_tags: ""
-        ensure:
-          task: bats-print-errors
-          timeout: *timeouts-long
-          file: bosh-openstack-cpi-release/ci/tasks/print_task_errors.yml
 
     ensure:
       put: destroy-devstack

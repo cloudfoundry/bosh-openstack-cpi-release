@@ -31,4 +31,4 @@ RUN curl -fsSL "https://github.com/cloudfoundry/bosh-cli/releases/download/v${BO
     && echo "ff092e567f6b6b41cbcaf8b4065eb2bae29a7463f537bd99ae6424c0d93291c9  /tmp/bosh" | sha256sum -c - \
     && mv /tmp/bosh /usr/bin/bosh \
     && chmod +x /usr/bin/bosh \
-    && cp /usr/bin/bosh /usr/local/bin/bosh-go
+    && cp /usr/bin/bosh /usr/local/bin/bosh
