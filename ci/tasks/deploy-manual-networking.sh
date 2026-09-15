@@ -48,7 +48,7 @@ esac
 
 echo "setting up artifacts used in bosh.yml"
 pushd bosh-openstack-cpi-release
-    bosh-go -n create-release \
+    bosh -n create-release \
     --name "bosh-openstack-cpi" \
     --tarball "../bosh-openstack-cpi-dev.tgz"
 
@@ -58,11 +58,11 @@ cp ./bosh-openstack-cpi-dev.tgz "${deployment_dir}/${cpi_release_name}.tgz"
 cd "${deployment_dir}"
 
 echo "using bosh CLI version..."
-bosh-go --version
+bosh --version
 
 echo "check bosh deployment interpolation"
 # shellcheck disable=SC2154
-bosh-go int ../bosh-deployment/bosh.yml \
+bosh int ../bosh-deployment/bosh.yml \
     --var-errs --var-errs-unused \
     --vars-store ./credentials.yml \
     -o ../bosh-deployment/openstack/cpi.yml \
@@ -98,6 +98,6 @@ bosh-go int ../bosh-deployment/bosh.yml \
     -v region=null > bosh.yml
 
 echo "deploying BOSH..."
-bosh-go create-env bosh.yml \
+bosh create-env bosh.yml \
     --vars-store credentials.yml \
     --state bosh-state.json
