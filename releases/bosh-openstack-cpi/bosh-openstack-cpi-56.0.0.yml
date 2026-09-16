@@ -1,0 +1,33 @@
+name: bosh-openstack-cpi
+version: 56.0.0
+commit_hash: 5b19937f
+uncommitted_changes: false
+jobs:
+- name: openstack_cpi_golang
+  version: 32f5ebd3c5bdd3311d606a71b987be4f820bf756da83cd195d95abd49bf010a7
+  fingerprint: 32f5ebd3c5bdd3311d606a71b987be4f820bf756da83cd195d95abd49bf010a7
+  sha1: sha256:c353e20a3739a6e3ba3d244f5e9e371424a761f06ea8b7bed17a9405044d16b6
+  packages:
+  - openstack_cpi_golang
+packages:
+- name: golang-1-linux
+  version: 4a5b3ef32c78d96b58195b90b0fd51789f48090991bef36ca5df0af1b3453544
+  fingerprint: 4a5b3ef32c78d96b58195b90b0fd51789f48090991bef36ca5df0af1b3453544
+  sha1: sha256:24884383937f71d0ea4f2ba5a14c5f137cffd963b05b2ab6c2813ad9e9817158
+  dependencies: []
+- name: openstack-rust-1-linux
+  version: 9d04c35339688bfab109d4685fa9adad9d4a87050c73850e180d95172cbf13a0
+  fingerprint: 9d04c35339688bfab109d4685fa9adad9d4a87050c73850e180d95172cbf13a0
+  sha1: sha256:495c7122dfe102d7f994e8c00dd0e149235870eda2e6f00468dac750f2802609
+  dependencies: []
+- name: openstack_cpi_golang
+  version: 0ee4bc7ac11626061b698db395ef4f7d258c84add6653e3b8ef45f94f8bce03f
+  fingerprint: 0ee4bc7ac11626061b698db395ef4f7d258c84add6653e3b8ef45f94f8bce03f
+  sha1: sha256:22a5bf459fd9609578d2ad76016d193548adf2cab43c69d317e16aa6c666098a
+  dependencies:
+  - golang-1-linux
+license:
+  version: ea2e8a54b7403eff37a24eb20dbd07a0cb44beb96f52886db6a348ec87f5ccec
+  fingerprint: ea2e8a54b7403eff37a24eb20dbd07a0cb44beb96f52886db6a348ec87f5ccec
+  sha1: sha256:5ea6d3e2ca51bde6aa41e4e19896ebc1eaea259cdb868e2ab3383347d60d426d
+no_compression: false
