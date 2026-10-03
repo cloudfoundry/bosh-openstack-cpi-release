@@ -3,13 +3,13 @@ module github.com/cloudfoundry/bosh-openstack-cpi-release/src/openstack_cpi_gola
 go 1.26.0
 
 require (
-	github.com/cloudfoundry/bosh-cpi-go v0.0.0-20260917211438-10ca39352bd6
+	github.com/cloudfoundry/bosh-cpi-go v0.0.0-20260926100154-386c5baeb401
 	github.com/cloudfoundry/bosh-utils v0.0.655
 	github.com/google/uuid v1.6.0
 	github.com/gophercloud/gophercloud v1.14.1
-	github.com/maxbrunsfeld/counterfeiter/v6 v6.13.0
+	github.com/maxbrunsfeld/counterfeiter/v6 v6.14.0
 	github.com/onsi/ginkgo/v2 v2.33.0
-	github.com/onsi/gomega v1.43.0
+	github.com/onsi/gomega v1.43.1
 	go.yaml.in/yaml/v3 v3.0.5
 )
 
@@ -24,5 +24,5 @@ require (
 	golang.org/x/sync v0.23.0 // indirect
 	golang.org/x/sys v0.48.0 // indirect
 	golang.org/x/text v0.42.0 // indirect
-	golang.org/x/tools v0.50.0 // indirect
+	golang.org/x/tools v0.51.0 // indirect
 )
