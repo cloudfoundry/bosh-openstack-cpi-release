@@ -11,12 +11,10 @@ type CreateVM struct {
 	AvailabilityZone    string             `json:"availability_zone"`
 	AvailabilityZones   []string           `json:"availability_zones"`
 	BootFromVolume      *bool              `json:"boot_from_volume,omitempty"`
-	EphemeralDisk       string             `json:"ephemeral_disk"`
 	InstanceType        string             `json:"instance_type"`
 	KeyName             string             `json:"key_name"`
 	LoadbalancerPools   []LoadbalancerPool `json:"loadbalancer_pools"`
 	RootDisk            Disk               `json:"root_disk,omitempty"`
-	SchedulerHints      string             `json:"scheduler_hints"`
 	SecurityGroups      []string           `json:"security_groups"`
 	VRRPPortCheck       *bool              `json:"vrrp_port_check,omitempty"`
 }
