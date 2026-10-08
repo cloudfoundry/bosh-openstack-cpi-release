@@ -15,6 +15,8 @@ builds:
     version: 55.1.1
   156f0c49-e417-4be1-68aa-86c96d744f42:
     version: "42"
+  2046ce47-5b38-497b-4e17-5cb8660dc271:
+    version: 56.0.1
   24eb6fa1-a878-4591-75d4-a44dad42b0db:
     version: "44"
   26cfefd5-1935-464b-bce8-b7ffd9ec6ef4:
