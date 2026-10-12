@@ -7,6 +7,7 @@ import (
 	"io/fs"
 	"strings"
 
+	"github.com/cloudfoundry/bosh-cpi-go/apiv1"
 	"github.com/gophercloud/gophercloud"
 )
 
@@ -18,6 +19,50 @@ type CpiConfig struct {
 
 func (c CpiConfig) OpenStackConfig() OpenstackConfig {
 	return c.Cloud.Properties.Openstack
+}
+
+// MergeContext overlays OpenStack-related fields found in a CPI call context on
+// top of this configuration. A director with a multi-CPI (CPI config) setup
+// sends the per-CPI "properties" block (auth_url, region, credentials, etc.) as
+// the JSON-RPC request context, so that a single installed CPI job can serve
+// several OpenStack endpoints. Only fields present in the context override the
+// job's static configuration; everything else is left untouched. This mirrors
+// the legacy Ruby CPI's `cloud_properties['openstack'].merge!(context)` behavior.
+func (o OpenstackConfig) MergeContext(ctx apiv1.CallContext) (OpenstackConfig, error) {
+	var contextFields map[string]json.RawMessage
+	if err := ctx.As(&contextFields); err != nil {
+		return o, fmt.Errorf("failed to parse CPI call context: %w", err)
+	}
+
+	if len(contextFields) == 0 {
+		return o, nil
+	}
+
+	baseJSON, err := json.Marshal(o)
+	if err != nil {
+		return o, fmt.Errorf("failed to marshal openstack configuration: %w", err)
+	}
+
+	var merged map[string]json.RawMessage
+	if err := json.Unmarshal(baseJSON, &merged); err != nil {
+		return o, fmt.Errorf("failed to unmarshal openstack configuration: %w", err)
+	}
+
+	for key, value := range contextFields {
+		merged[key] = value
+	}
+
+	mergedJSON, err := json.Marshal(merged)
+	if err != nil {
+		return o, fmt.Errorf("failed to marshal merged openstack configuration: %w", err)
+	}
+
+	var result OpenstackConfig
+	if err := json.Unmarshal(mergedJSON, &result); err != nil {
+		return o, fmt.Errorf("failed to unmarshal merged openstack configuration: %w", err)
+	}
+
+	return result, nil
 }
 
 func (c CpiConfig) Properties() Properties {
