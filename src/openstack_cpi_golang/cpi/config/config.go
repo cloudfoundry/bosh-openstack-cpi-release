@@ -62,6 +62,10 @@ func (o OpenstackConfig) MergeContext(ctx apiv1.CallContext) (OpenstackConfig, e
 		return o, fmt.Errorf("failed to unmarshal merged openstack configuration: %w", err)
 	}
 
+	if err := result.Validate(); err != nil {
+		return o, fmt.Errorf("invalid merged openstack configuration: %w", err)
+	}
+
 	return result, nil
 }
 
