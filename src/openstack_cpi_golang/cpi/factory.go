@@ -1,6 +1,8 @@
 package cpi
 
 import (
+	"fmt"
+
 	"github.com/cloudfoundry/bosh-cpi-go/apiv1"
 	"github.com/cloudfoundry/bosh-openstack-cpi-release/src/openstack_cpi_golang/cpi/compute"
 	"github.com/cloudfoundry/bosh-openstack-cpi-release/src/openstack_cpi_golang/cpi/config"
@@ -58,6 +60,17 @@ func NewFactory(
 }
 
 func (f Factory) New(ctx apiv1.CallContext) (apiv1.CPI, error) {
+	// A multi-CPI (CPI config) director identifies which OpenStack endpoint and
+	// credentials to use for this request via the call context, since a single
+	// installed CPI job may need to serve several OpenStack regions/projects.
+	openstackConfig, err := f.openstackConfig.MergeContext(ctx)
+	if err != nil {
+		return CPI{}, fmt.Errorf("failed to resolve openstack configuration from CPI call context: %w", err)
+	}
+
+	cpiConfig := f.cpiConfig
+	cpiConfig.Cloud.Properties.Openstack = openstackConfig
+
 	openstackService := openstack.NewOpenstackService(openstack.NewOpenstackFacade(), utils.NewEnvVar())
 
 	return CPI{
@@ -65,100 +78,100 @@ func (f Factory) New(ctx apiv1.CallContext) (apiv1.CPI, error) {
 
 		methods.NewCreateStemcellMethod(
 
-			image.NewImageServiceBuilder(openstackService, f.cpiConfig, f.logger),
-			image.NewHeavyStemcellCreator(f.openstackConfig),
-			image.NewLightStemcellCreator(f.openstackConfig),
+			image.NewImageServiceBuilder(openstackService, cpiConfig, f.logger),
+			image.NewHeavyStemcellCreator(openstackConfig),
+			image.NewLightStemcellCreator(openstackConfig),
 			root_image.NewRootImage(),
-			f.openstackConfig,
+			openstackConfig,
 			f.logger,
 		),
 
 		methods.NewDeleteStemcellMethod(
-			image.NewImageServiceBuilder(openstackService, f.cpiConfig, f.logger),
+			image.NewImageServiceBuilder(openstackService, cpiConfig, f.logger),
 			f.logger,
 		),
 
 		methods.NewCreateVMMethod(
-			image.NewImageServiceBuilder(openstackService, f.cpiConfig, f.logger),
-			network.NewNetworkServiceBuilder(openstackService, f.cpiConfig, f.logger),
-			compute.NewComputeServiceBuilder(openstackService, f.cpiConfig, f.logger),
-			loadbalancer.NewLoadbalancerServiceBuilder(openstackService, f.cpiConfig, f.logger),
-			f.cpiConfig,
+			image.NewImageServiceBuilder(openstackService, cpiConfig, f.logger),
+			network.NewNetworkServiceBuilder(openstackService, cpiConfig, f.logger),
+			compute.NewComputeServiceBuilder(openstackService, cpiConfig, f.logger),
+			loadbalancer.NewLoadbalancerServiceBuilder(openstackService, cpiConfig, f.logger),
+			cpiConfig,
 			f.logger,
 		),
 
 		methods.NewDeleteVMMethod(
-			network.NewNetworkServiceBuilder(openstackService, f.cpiConfig, f.logger),
-			compute.NewComputeServiceBuilder(openstackService, f.cpiConfig, f.logger),
-			loadbalancer.NewLoadbalancerServiceBuilder(openstackService, f.cpiConfig, f.logger),
-			f.cpiConfig,
+			network.NewNetworkServiceBuilder(openstackService, cpiConfig, f.logger),
+			compute.NewComputeServiceBuilder(openstackService, cpiConfig, f.logger),
+			loadbalancer.NewLoadbalancerServiceBuilder(openstackService, cpiConfig, f.logger),
+			cpiConfig,
 			f.logger,
 		),
 
 		methods.NewCalculateVMCloudPropertiesMethod(
-			compute.NewComputeServiceBuilder(openstackService, f.cpiConfig, f.logger),
-			f.cpiConfig,
+			compute.NewComputeServiceBuilder(openstackService, cpiConfig, f.logger),
+			cpiConfig,
 			f.logger,
 		),
 
 		methods.NewHasVMMethod(
-			compute.NewComputeServiceBuilder(openstackService, f.cpiConfig, f.logger),
+			compute.NewComputeServiceBuilder(openstackService, cpiConfig, f.logger),
 			f.logger,
 		),
 
 		methods.NewRebootVMMethod(
-			compute.NewComputeServiceBuilder(openstackService, f.cpiConfig, f.logger),
-			f.cpiConfig,
+			compute.NewComputeServiceBuilder(openstackService, cpiConfig, f.logger),
+			cpiConfig,
 			f.logger,
 		),
 
 		methods.NewSetVMMetadataMethod(
-			compute.NewComputeServiceBuilder(openstackService, f.cpiConfig, f.logger),
+			compute.NewComputeServiceBuilder(openstackService, cpiConfig, f.logger),
 			f.logger,
-			f.cpiConfig),
+			cpiConfig),
 		methods.NewGetDisksMethod(
-			compute.NewComputeServiceBuilder(openstackService, f.cpiConfig, f.logger),
+			compute.NewComputeServiceBuilder(openstackService, cpiConfig, f.logger),
 			f.logger),
 		methods.NewCreateDiskMethod(
-			compute.NewComputeServiceBuilder(openstackService, f.cpiConfig, f.logger),
-			volume.NewVolumeServiceBuilder(openstackService, f.cpiConfig, f.logger),
-			f.cpiConfig,
+			compute.NewComputeServiceBuilder(openstackService, cpiConfig, f.logger),
+			volume.NewVolumeServiceBuilder(openstackService, cpiConfig, f.logger),
+			cpiConfig,
 			f.logger,
 		),
 		methods.NewDeleteDiskMethod(
-			volume.NewVolumeServiceBuilder(openstackService, f.cpiConfig, f.logger),
-			f.cpiConfig,
+			volume.NewVolumeServiceBuilder(openstackService, cpiConfig, f.logger),
+			cpiConfig,
 			f.logger,
 		),
 		methods.NewAttachDiskMethod(
-			compute.NewComputeServiceBuilder(openstackService, f.cpiConfig, f.logger),
-			volume.NewVolumeServiceBuilder(openstackService, f.cpiConfig, f.logger),
-			f.cpiConfig,
+			compute.NewComputeServiceBuilder(openstackService, cpiConfig, f.logger),
+			volume.NewVolumeServiceBuilder(openstackService, cpiConfig, f.logger),
+			cpiConfig,
 			f.logger),
 		methods.NewDetachDiskMethod(
-			compute.NewComputeServiceBuilder(openstackService, f.cpiConfig, f.logger),
-			volume.NewVolumeServiceBuilder(openstackService, f.cpiConfig, f.logger),
-			f.cpiConfig,
+			compute.NewComputeServiceBuilder(openstackService, cpiConfig, f.logger),
+			volume.NewVolumeServiceBuilder(openstackService, cpiConfig, f.logger),
+			cpiConfig,
 			f.logger),
 		methods.NewHasDiskMethod(
-			volume.NewVolumeServiceBuilder(openstackService, f.cpiConfig, f.logger),
+			volume.NewVolumeServiceBuilder(openstackService, cpiConfig, f.logger),
 			f.logger),
 		methods.NewResizeDiskMethod(
-			volume.NewVolumeServiceBuilder(openstackService, f.cpiConfig, f.logger),
-			f.cpiConfig,
+			volume.NewVolumeServiceBuilder(openstackService, cpiConfig, f.logger),
+			cpiConfig,
 			f.logger,
 		),
 		methods.NewSetDiskMetadataMethod(
-			compute.NewComputeServiceBuilder(openstackService, f.cpiConfig, f.logger),
-			volume.NewVolumeServiceBuilder(openstackService, f.cpiConfig, f.logger),
+			compute.NewComputeServiceBuilder(openstackService, cpiConfig, f.logger),
+			volume.NewVolumeServiceBuilder(openstackService, cpiConfig, f.logger),
 			f.logger),
 		methods.NewDeleteSnapshotMethod(
-			volume.NewVolumeServiceBuilder(openstackService, f.cpiConfig, f.logger),
-			f.cpiConfig,
+			volume.NewVolumeServiceBuilder(openstackService, cpiConfig, f.logger),
+			cpiConfig,
 			f.logger),
 		methods.NewSnapshotDiskMethod(
-			volume.NewVolumeServiceBuilder(openstackService, f.cpiConfig, f.logger),
-			f.cpiConfig,
+			volume.NewVolumeServiceBuilder(openstackService, cpiConfig, f.logger),
+			cpiConfig,
 			f.logger),
 	}, nil
 }
