@@ -59,6 +59,10 @@ func NewFactory(
 	}
 }
 
+// New builds a CPI backed by the OpenStack endpoint and credentials resolved
+// for this call. It merges any OpenStack overrides present in ctx (as sent by
+// a multi-CPI director) onto the job's static configuration before
+// constructing the CPI's methods and service builders.
 func (f Factory) New(ctx apiv1.CallContext) (apiv1.CPI, error) {
 	// A multi-CPI (CPI config) director identifies which OpenStack endpoint and
 	// credentials to use for this request via the call context, since a single
