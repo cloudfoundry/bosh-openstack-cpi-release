@@ -10,8 +10,8 @@ import (
 	"github.com/cloudfoundry/bosh-openstack-cpi-release/src/openstack_cpi_golang/cpi/compute"
 	"github.com/cloudfoundry/bosh-openstack-cpi-release/src/openstack_cpi_golang/cpi/config"
 	"github.com/cloudfoundry/bosh-openstack-cpi-release/src/openstack_cpi_golang/cpi/properties"
-	"github.com/cloudfoundry/bosh-openstack-cpi-release/src/openstack_cpi_golang/cpi/utils"
 	"github.com/cloudfoundry/bosh-openstack-cpi-release/src/openstack_cpi_golang/cpi/volume"
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	"github.com/gophercloud/gophercloud"
 )
 
@@ -19,20 +19,22 @@ type CreateDiskMethod struct {
 	computeServiceBuilder compute.ComputeServiceBuilder
 	volumeServiceBuilder  volume.VolumeServiceBuilder
 	cpiConfig             config.CpiConfig
-	logger                utils.Logger
+	logger                boshlog.Logger
+	logTag                string
 }
 
 func NewCreateDiskMethod(
 	computeServiceBuilder compute.ComputeServiceBuilder,
 	volumeServiceBuilder volume.VolumeServiceBuilder,
 	cpiConfig config.CpiConfig,
-	logger utils.Logger,
+	logger boshlog.Logger,
 ) CreateDiskMethod {
 	return CreateDiskMethod{
 		computeServiceBuilder: computeServiceBuilder,
 		volumeServiceBuilder:  volumeServiceBuilder,
 		cpiConfig:             cpiConfig,
 		logger:                logger,
+		logTag:                "create_disk",
 	}
 }
 
@@ -66,27 +68,27 @@ func (a CreateDiskMethod) CreateDisk(
 		if errors.As(err, &errDefault404) {
 			return apiv1.DiskCID{}, nil
 		}
-		return apiv1.DiskCID{}, fmt.Errorf("create_disk: %w", err)
+		return apiv1.DiskCID{}, fmt.Errorf("failed to create disk: %w", err)
 	}
 
 	var az string
 	if server.ID != "" && !openstackConfig.IgnoreServerAvailabilityZone {
 		az, err = computeService.GetServerAZ(vmCID.AsString())
 		if err != nil {
-			return apiv1.DiskCID{}, fmt.Errorf("create_disk: %w", err)
+			return apiv1.DiskCID{}, fmt.Errorf("failed to create disk: %w", err)
 		}
 	}
 
-	a.logger.Info("create_disk", "Creating new volume...")
+	a.logger.Info(a.logTag, "Creating new volume...")
 	volume, err := volumeService.CreateVolume(sizeInGB, cloudProps, az)
 	if err != nil {
 		return apiv1.DiskCID{}, fmt.Errorf("failed to create volume: %w", err)
 	}
 
-	a.logger.Info("create_disk", fmt.Sprintf("Creating new volume %s ...", volume.ID))
+	a.logger.Info(a.logTag, "Creating new volume %s ...", volume.ID)
 	err = volumeService.WaitForVolumeToBecomeStatus(volume.ID, time.Duration(openstackConfig.StateTimeOut)*time.Second, "available")
 	if err != nil {
-		return apiv1.DiskCID{}, fmt.Errorf("create disk: %w", err)
+		return apiv1.DiskCID{}, fmt.Errorf("failed to wait for volume to become available: %w", err)
 	}
 
 	return apiv1.NewDiskCID(volume.ID), nil

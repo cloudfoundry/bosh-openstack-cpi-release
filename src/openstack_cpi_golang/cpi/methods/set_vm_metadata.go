@@ -7,23 +7,25 @@ import (
 	"github.com/cloudfoundry/bosh-cpi-go/apiv1"
 	"github.com/cloudfoundry/bosh-openstack-cpi-release/src/openstack_cpi_golang/cpi/compute"
 	"github.com/cloudfoundry/bosh-openstack-cpi-release/src/openstack_cpi_golang/cpi/config"
-	"github.com/cloudfoundry/bosh-openstack-cpi-release/src/openstack_cpi_golang/cpi/utils"
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 )
 
 type SetVMMetadataMethod struct {
 	computeServiceBuilder compute.ComputeServiceBuilder
-	logger                utils.Logger
+	logger                boshlog.Logger
+	logTag                string
 	cpiConfig             config.CpiConfig
 }
 
 func NewSetVMMetadataMethod(
 	computeServiceBuilder compute.ComputeServiceBuilder,
-	logger utils.Logger,
+	logger boshlog.Logger,
 	cpiConfig config.CpiConfig,
 ) SetVMMetadataMethod {
 	return SetVMMetadataMethod{
 		computeServiceBuilder: computeServiceBuilder,
 		logger:                logger,
+		logTag:                "set_vm_metadata",
 		cpiConfig:             cpiConfig,
 	}
 }
@@ -106,7 +108,7 @@ func (s SetVMMetadataMethod) applyHumanReadableName(computeService compute.Compu
 	} else if compilingOk {
 		newServerName = "compiling/" + compiling.(string)
 	} else {
-		s.logger.Debug("set_vm_metadata_method", "did not apply human readable name: no name, job/index and compiling provided", nil)
+		s.logger.Debug(s.logTag, "Did not apply human readable name: no name, job/index and compiling provided")
 		return nil
 	}
 
@@ -114,7 +116,7 @@ func (s SetVMMetadataMethod) applyHumanReadableName(computeService compute.Compu
 	if err != nil {
 		return fmt.Errorf("failed to update human readable name on server: %w", err)
 	}
-	s.logger.Info("set_vm_metadata_method", "Renamed VM with id '"+vmCID.AsString(), "' to '", newServerName, "'")
+	s.logger.Info(s.logTag, "Renamed VM with id '%s' to '%s'", vmCID.AsString(), newServerName)
 
 	return nil
 }

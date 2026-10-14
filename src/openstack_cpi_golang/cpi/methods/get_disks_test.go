@@ -44,7 +44,7 @@ var _ = Describe("GetDisksMethod Unit Tests", func() {
 			getDisksMethod := methods.NewGetDisksMethod(computeServiceBuilder, logger)
 			vmCID := apiv1.VMCID{}
 			_, err := getDisksMethod.GetDisks(vmCID)
-			Expect(err.Error()).To(Equal("get_disks: Failed to get compute service: boom"))
+			Expect(err.Error()).To(Equal("failed to get compute service: boom"))
 		})
 
 		It("fails on get VM", func() {
@@ -53,7 +53,7 @@ var _ = Describe("GetDisksMethod Unit Tests", func() {
 			getDisksMethod := methods.NewGetDisksMethod(computeServiceBuilder, logger)
 			vmCID := apiv1.NewVMCID(serverId)
 			_, err := getDisksMethod.GetDisks(vmCID)
-			Expect(err.Error()).To(Equal(fmt.Sprintf("get_disks: Failed to get VM %s: boom", serverId)))
+			Expect(err.Error()).To(Equal(fmt.Sprintf("failed to get VM %s: boom", serverId)))
 		})
 
 		It("fails on list volume attachments", func() {
@@ -68,7 +68,7 @@ var _ = Describe("GetDisksMethod Unit Tests", func() {
 			getDisksMethod := methods.NewGetDisksMethod(computeServiceBuilder, logger)
 			vmCID := apiv1.NewVMCID(serverId)
 			_, err := getDisksMethod.GetDisks(vmCID)
-			Expect(err.Error()).To(Equal(fmt.Sprintf("get_disks: Failed to get volume attachments for VM ID %s: boom", serverId)))
+			Expect(err.Error()).To(Equal(fmt.Sprintf("failed to get volume attachments for VM ID %s: boom", serverId)))
 		})
 
 		It("does not fail if volume attachments returns an empty list", func() {

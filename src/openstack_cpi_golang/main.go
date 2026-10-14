@@ -6,7 +6,6 @@ import (
 
 	"github.com/cloudfoundry/bosh-openstack-cpi-release/src/openstack_cpi_golang/cpi"
 	"github.com/cloudfoundry/bosh-openstack-cpi-release/src/openstack_cpi_golang/cpi/config"
-	"github.com/cloudfoundry/bosh-openstack-cpi-release/src/openstack_cpi_golang/cpi/utils"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 )
 
@@ -17,26 +16,25 @@ var (
 
 func main() {
 	boshLogger := boshlog.NewWriterLogger(boshlog.LevelDebug, os.Stderr)
-	cpiLogger := utils.NewLogger(boshLogger)
 	fileSystem := os.DirFS("/")
-	defer cpiLogger.HandlePanic("Main")
+	defer boshLogger.HandlePanic("main")
 
 	flag.Parse()
 
 	cpiConfig, err := config.NewConfigFromPath(fileSystem, *configPathOpt)
 	if err != nil {
-		cpiLogger.Error("main", "failed loading the configuration: %v", err)
+		boshLogger.Error("main", "failed loading the configuration: %v", err)
 		os.Exit(1)
 	}
 	err = cpiConfig.Validate()
 	if err != nil {
-		cpiLogger.Error("main", "failed validating the configuration: %v", err)
+		boshLogger.Error("main", "failed validating the configuration: %v", err)
 		os.Exit(1)
 	}
 
-	err = cpi.Execute(cpiConfig, cpiLogger)
+	err = cpi.Execute(cpiConfig, boshLogger)
 	if err != nil {
-		cpiLogger.Error("main", "execution failed with: %v", err)
+		boshLogger.Error("main", "execution failed with: %v", err)
 		os.Exit(1)
 	}
 }

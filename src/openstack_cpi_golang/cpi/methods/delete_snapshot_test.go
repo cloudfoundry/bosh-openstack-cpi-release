@@ -38,19 +38,19 @@ var _ = Describe("DeleteSnapshotMethod Unit Tests", func() {
 	It("fails on volume service builder", func() {
 		volumeServiceBuilder.BuildReturns(nil, errors.New("boom"))
 		err := deleteSnapshot.DeleteSnapshot(snapshotCID)
-		Expect(err.Error()).To(Equal("deleteSnapshot: Failed to get volume service: boom"))
+		Expect(err.Error()).To(Equal("failed to get volume service: boom"))
 	})
 
 	It("fails to delete snapshot", func() {
 		volumeService.DeleteSnapshotReturns(errors.New("boom"))
 		err := deleteSnapshot.DeleteSnapshot(snapshotCID)
-		Expect(err.Error()).To(Equal("deleteSnapshot: Failed to delete snapshot ID snap1-id: boom"))
+		Expect(err.Error()).To(Equal("failed to delete snapshot ID snap1-id: boom"))
 	})
 
 	It("fails to wait for snapshot to be deleted", func() {
 		volumeService.WaitForSnapshotToBecomeStatusReturns(errors.New("boom"))
 		err := deleteSnapshot.DeleteSnapshot(snapshotCID)
-		Expect(err.Error()).To(Equal("deleteSnapshot: Failed while waiting for snapshot ID snap1-id to be deleted: boom"))
+		Expect(err.Error()).To(Equal("failed while waiting for snapshot ID snap1-id to be deleted: boom"))
 	})
 
 	It("successfully deletes snapshot", func() {

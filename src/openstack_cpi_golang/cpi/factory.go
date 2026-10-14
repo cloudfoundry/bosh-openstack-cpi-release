@@ -14,12 +14,13 @@ import (
 	"github.com/cloudfoundry/bosh-openstack-cpi-release/src/openstack_cpi_golang/cpi/openstack"
 	"github.com/cloudfoundry/bosh-openstack-cpi-release/src/openstack_cpi_golang/cpi/utils"
 	"github.com/cloudfoundry/bosh-openstack-cpi-release/src/openstack_cpi_golang/cpi/volume"
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 )
 
 type Factory struct {
 	cpiConfig       config.CpiConfig
 	openstackConfig config.OpenstackConfig
-	logger          utils.Logger
+	logger          boshlog.Logger
 }
 
 type CPI struct {
@@ -50,7 +51,7 @@ type CPI struct {
 
 func NewFactory(
 	cpiConfig config.CpiConfig,
-	logger utils.Logger,
+	logger boshlog.Logger,
 ) Factory {
 	return Factory{
 		cpiConfig:       cpiConfig,

@@ -65,8 +65,9 @@ var _ = Describe("NetworkService", func() {
 
 			_, _ = network.NewSecurityGroupsResolver(serviceClients, &networkingFacade, &logger).Resolve([]string{"the_group_id"}) //nolint:errcheck
 
-			_, msg, _ := logger.WarnArgsForCall(0)
-			Expect(msg).To(Equal("failed to get security group 'the_group_id' by id: boom. Trying to get security group by name"))
+			_, msg, args := logger.WarnArgsForCall(0)
+			Expect(msg).To(Equal("Failed to get security group '%s' by id: %v. Trying to get security group by name"))
+			Expect(args).To(ContainElement("the_group_id"))
 		})
 
 		It("returns an error is resolved security group is nil", func() {
