@@ -76,7 +76,7 @@ var _ = Describe("DeleteVMMethod", func() {
 				apiv1.NewVMCID("vm-id"),
 			)
 
-			Expect(err.Error()).To(Equal("delete_vm: boom"))
+			Expect(err.Error()).To(Equal("failed to delete VM: boom"))
 		})
 
 		It("creates the network service", func() {
@@ -106,7 +106,7 @@ var _ = Describe("DeleteVMMethod", func() {
 				apiv1.NewVMCID("vm-id"),
 			)
 
-			Expect(err.Error()).To(Equal("delete_vm: boom"))
+			Expect(err.Error()).To(Equal("failed to delete VM: boom"))
 		})
 
 		It("get ports has been called once with the correct parameters", func() {
@@ -138,7 +138,7 @@ var _ = Describe("DeleteVMMethod", func() {
 				apiv1.NewVMCID("vm-id"),
 			)
 
-			Expect(err.Error()).To(Equal("delete_vm: boom"))
+			Expect(err.Error()).To(Equal("failed to delete VM: boom"))
 
 		})
 
@@ -170,7 +170,7 @@ var _ = Describe("DeleteVMMethod", func() {
 				apiv1.NewVMCID("vm-id"),
 			)
 
-			Expect(err.Error()).To(Equal("delete_vm: boom"))
+			Expect(err.Error()).To(Equal("failed to delete VM: boom"))
 		})
 
 		It("creates the loadbalancer service", func() {
@@ -201,7 +201,7 @@ var _ = Describe("DeleteVMMethod", func() {
 				apiv1.NewVMCID("vm-id"),
 			)
 
-			Expect(err.Error()).To(Equal("delete_vm: boom"))
+			Expect(err.Error()).To(Equal("failed to delete VM: boom"))
 		})
 
 		It("does not remove pool memberships if no server tags are found", func() {
@@ -274,7 +274,7 @@ var _ = Describe("DeleteVMMethod", func() {
 			)
 
 			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(Equal("delete_vm: boom"))
+			Expect(err.Error()).To(Equal("failed to delete VM: boom"))
 		})
 
 		It("deletes a server", func() {
@@ -306,7 +306,7 @@ var _ = Describe("DeleteVMMethod", func() {
 				apiv1.NewVMCID("vm-id"),
 			)
 
-			Expect(err.Error()).To(Equal("delete_vm: boom"))
+			Expect(err.Error()).To(Equal("failed to delete VM: boom"))
 		})
 
 		It("delete ports has been called once with the correct parameters", func() {
@@ -339,7 +339,7 @@ var _ = Describe("DeleteVMMethod", func() {
 				apiv1.NewVMCID("vm-id"),
 			)
 
-			Expect(err.Error()).To(Equal("delete_vm: boom"))
+			Expect(err.Error()).To(Equal("failed to delete VM: boom"))
 
 		})
 

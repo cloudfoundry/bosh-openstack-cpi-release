@@ -334,7 +334,7 @@ var _ = Describe("Delete VM", func() {
 		Expect(err).ShouldNot(HaveOccurred())
 
 		stdOutWriter.Close() //nolint:errcheck
-		Expect(<-outChannel).To(ContainSubstring(`message":"delete_vm: failed while waiting for loadbalancer to become active: timeout while waiting for loadbalancer 'lbas_id_timeout'`))
+		Expect(<-outChannel).To(ContainSubstring(`message":"failed to delete VM: failed while waiting for loadbalancer to become active: timeout while waiting for loadbalancer 'lbas_id_timeout'`))
 	})
 
 	It("does not fail when deleting not-existing vm", func() {
@@ -392,6 +392,6 @@ var _ = Describe("Delete VM", func() {
 		Expect(err).ShouldNot(HaveOccurred())
 
 		stdOutWriter.Close() //nolint:errcheck
-		Expect(<-outChannel).To(ContainSubstring(`message":"delete_vm: failed to delete pool member: max retry attempts (10) reached, err: Internal Server Error`))
+		Expect(<-outChannel).To(ContainSubstring(`message":"failed to delete VM: failed to delete pool member: max retry attempts (10) reached, err: Internal Server Error`))
 	})
 })

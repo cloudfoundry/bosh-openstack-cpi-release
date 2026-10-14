@@ -6,6 +6,7 @@ import (
 	"github.com/cloudfoundry/bosh-openstack-cpi-release/src/openstack_cpi_golang/cpi/config"
 	"github.com/cloudfoundry/bosh-openstack-cpi-release/src/openstack_cpi_golang/cpi/openstack"
 	"github.com/cloudfoundry/bosh-openstack-cpi-release/src/openstack_cpi_golang/cpi/utils"
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 )
 
 //counterfeiter:generate . VolumeServiceBuilder
@@ -16,10 +17,10 @@ type VolumeServiceBuilder interface {
 type volumeServiceBuilder struct {
 	openstackService openstack.OpenstackService
 	cpiConfig        config.CpiConfig
-	logger           utils.Logger
+	logger           boshlog.Logger
 }
 
-func NewVolumeServiceBuilder(openstackService openstack.OpenstackService, cpiConfig config.CpiConfig, logger utils.Logger) volumeServiceBuilder {
+func NewVolumeServiceBuilder(openstackService openstack.OpenstackService, cpiConfig config.CpiConfig, logger boshlog.Logger) volumeServiceBuilder {
 	return volumeServiceBuilder{
 		openstackService: openstackService,
 		cpiConfig:        cpiConfig,

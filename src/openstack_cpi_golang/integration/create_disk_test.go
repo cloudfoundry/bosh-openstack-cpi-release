@@ -103,7 +103,7 @@ var _ = Describe("Create Disk", func() {
 
 			stdOutWriter.Close() //nolint:errcheck
 			actual := <-outChannel
-			Expect(actual).To(ContainSubstring(`create disk: volume became error state while waiting to become available`))
+			Expect(actual).To(ContainSubstring(`failed to wait for volume to become available: volume became error state while waiting to become available`))
 		})
 	})
 })

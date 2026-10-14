@@ -8,6 +8,7 @@ import (
 	"github.com/cloudfoundry/bosh-openstack-cpi-release/src/openstack_cpi_golang/cpi/config"
 	"github.com/cloudfoundry/bosh-openstack-cpi-release/src/openstack_cpi_golang/cpi/properties"
 	"github.com/cloudfoundry/bosh-openstack-cpi-release/src/openstack_cpi_golang/cpi/utils"
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 )
 
 type networkConfigBuilder struct {
@@ -15,7 +16,8 @@ type networkConfigBuilder struct {
 	networks               apiv1.Networks
 	openstackConfig        config.OpenstackConfig
 	cloudProps             properties.CreateVM
-	logger                 utils.Logger
+	logger                 boshlog.Logger
+	logTag                 string
 }
 
 func NewNetworkConfigBuilder(
@@ -23,7 +25,7 @@ func NewNetworkConfigBuilder(
 	networks apiv1.Networks,
 	openstackConfig config.OpenstackConfig,
 	cloudProps properties.CreateVM,
-	logger utils.Logger,
+	logger boshlog.Logger,
 ) networkConfigBuilder {
 	return networkConfigBuilder{
 		securityGroupsResolver: securityGroupsResolver,
@@ -31,6 +33,7 @@ func NewNetworkConfigBuilder(
 		openstackConfig:        openstackConfig,
 		cloudProps:             cloudProps,
 		logger:                 logger,
+		logTag:                 "network_config_builder",
 	}
 }
 
@@ -92,7 +95,7 @@ func (b networkConfigBuilder) securityGroups(networks []properties.Network) ([]s
 		return []string{}, fmt.Errorf("failed to resolve security group: %w", err)
 	}
 
-	b.logger.Info("network-config-builder", "resolved security groups ids: %v", securityGroupIDs)
+	b.logger.Info(b.logTag, "Resolved security groups ids: %v", securityGroupIDs)
 	return securityGroupIDs, nil
 }
 

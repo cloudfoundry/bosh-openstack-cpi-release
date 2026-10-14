@@ -216,7 +216,7 @@ var _ = Describe("REBOOT VM", func() {
 
 		_ = stdOutWriter.Close() //nolint:errcheck
 		Expect(<-outChannel).To(
-			ContainSubstring(`reboot_vm: failed to retrieve server information: Resource not found`),
+			ContainSubstring(`failed to reboot VM: failed to retrieve server information: Resource not found`),
 		)
 	})
 
@@ -232,7 +232,7 @@ var _ = Describe("REBOOT VM", func() {
 
 		_ = stdOutWriter.Close() //nolint:errcheck
 		Expect(<-outChannel).To(
-			ContainSubstring(`reboot_vm: failed to reboot server: Resource not found`),
+			ContainSubstring(`failed to reboot VM: failed to reboot server: Resource not found`),
 		)
 	})
 
@@ -248,7 +248,7 @@ var _ = Describe("REBOOT VM", func() {
 
 		_ = stdOutWriter.Close() //nolint:errcheck
 		Expect(<-outChannel).To(
-			ContainSubstring(`reboot_vm: compute_service: server became ERROR state while waiting to become ACTIVE"`),
+			ContainSubstring(`failed to reboot VM: failed to reboot server: server became ERROR state while waiting to become ACTIVE"`),
 		)
 	})
 

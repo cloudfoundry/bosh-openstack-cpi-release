@@ -6,18 +6,18 @@ import (
 
 	"github.com/cloudfoundry/bosh-cpi-go/apiv1"
 	"github.com/cloudfoundry/bosh-openstack-cpi-release/src/openstack_cpi_golang/cpi/compute"
-	"github.com/cloudfoundry/bosh-openstack-cpi-release/src/openstack_cpi_golang/cpi/utils"
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	"github.com/gophercloud/gophercloud"
 )
 
 type HasVMMethod struct {
 	computeServiceBuilder compute.ComputeServiceBuilder
-	logger                utils.Logger
+	logger                boshlog.Logger
 }
 
 func NewHasVMMethod(
 	computeServiceBuilder compute.ComputeServiceBuilder,
-	logger utils.Logger,
+	logger boshlog.Logger,
 ) HasVMMethod {
 	return HasVMMethod{
 		computeServiceBuilder: computeServiceBuilder,
@@ -30,7 +30,7 @@ func (a HasVMMethod) HasVM(vmCID apiv1.VMCID) (bool, error) {
 
 	computeService, err := a.computeServiceBuilder.Build()
 	if err != nil {
-		return false, fmt.Errorf("has_vm: %w", err)
+		return false, fmt.Errorf("failed to check if VM exists: %w", err)
 	}
 
 	server, err := computeService.GetServer(vmCID.AsString())
@@ -38,7 +38,7 @@ func (a HasVMMethod) HasVM(vmCID apiv1.VMCID) (bool, error) {
 		if errors.As(err, &errDefault404) {
 			return false, nil
 		}
-		return false, fmt.Errorf("has_vm: %w", err)
+		return false, fmt.Errorf("failed to check if VM exists: %w", err)
 	}
 
 	switch server.Status {

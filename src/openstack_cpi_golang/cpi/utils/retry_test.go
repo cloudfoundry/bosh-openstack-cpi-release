@@ -39,7 +39,7 @@ var _ = Describe("RetryOnError", func() {
 		_ = utils.RetryOnError(retryConfig, &logger)(nil, "", "", nil, errors.New("boom"), 0) //nolint:errcheck
 
 		tag, msg, _ := logger.WarnArgsForCall(0)
-		Expect(tag).To(Equal("retry on error"))
+		Expect(tag).To(Equal("retry_on_error"))
 		Expect(msg).To(Equal("attempt failed with error: boom"))
 	})
 
@@ -58,7 +58,7 @@ var _ = Describe("RetryOnError", func() {
 		Expect(err).To(BeNil())
 
 		tag, msg, _ := logger.WarnArgsForCall(1)
-		Expect(tag).To(Equal("retry on error"))
+		Expect(tag).To(Equal("retry_on_error"))
 		Expect(msg).To(Equal("detected HTTP error 500, sleeping for 0 seconds"))
 	})
 
@@ -71,7 +71,7 @@ var _ = Describe("RetryOnError", func() {
 		Expect(err).To(BeNil())
 
 		tag, msg, _ := logger.WarnArgsForCall(1)
-		Expect(tag).To(Equal("retry on error"))
+		Expect(tag).To(Equal("retry_on_error"))
 		Expect(msg).To(Equal("detected HTTP error 503, sleeping for 0 seconds"))
 	})
 
@@ -85,7 +85,7 @@ var _ = Describe("RetryOnError", func() {
 		Expect(err).To(BeNil())
 
 		tag, msg, _ := logger.WarnArgsForCall(1)
-		Expect(tag).To(Equal("retry on error"))
+		Expect(tag).To(Equal("retry_on_error"))
 		Expect(msg).To(Equal("detected timeout, sleeping for 0 seconds"))
 	})
 
@@ -97,7 +97,7 @@ var _ = Describe("RetryOnError", func() {
 		Expect(err).To(BeNil())
 
 		tag, msg, _ := logger.WarnArgsForCall(1)
-		Expect(tag).To(Equal("retry on error"))
+		Expect(tag).To(Equal("retry_on_error"))
 		Expect(msg).To(Equal("detected network error, sleeping for 0 seconds"))
 	})
 })

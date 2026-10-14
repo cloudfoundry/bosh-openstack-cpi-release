@@ -6,6 +6,7 @@ import (
 	"github.com/cloudfoundry/bosh-openstack-cpi-release/src/openstack_cpi_golang/cpi/config"
 	"github.com/cloudfoundry/bosh-openstack-cpi-release/src/openstack_cpi_golang/cpi/openstack"
 	"github.com/cloudfoundry/bosh-openstack-cpi-release/src/openstack_cpi_golang/cpi/utils"
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 )
 
 //counterfeiter:generate . ImageServiceBuilder
@@ -16,10 +17,10 @@ type ImageServiceBuilder interface {
 type imageServiceBuilder struct {
 	openstackService openstack.OpenstackService
 	cpiConfig        config.CpiConfig
-	logger           utils.Logger
+	logger           boshlog.Logger
 }
 
-func NewImageServiceBuilder(openstackService openstack.OpenstackService, cpiConfig config.CpiConfig, logger utils.Logger) imageServiceBuilder {
+func NewImageServiceBuilder(openstackService openstack.OpenstackService, cpiConfig config.CpiConfig, logger boshlog.Logger) imageServiceBuilder {
 	return imageServiceBuilder{
 		openstackService: openstackService,
 		cpiConfig:        cpiConfig,

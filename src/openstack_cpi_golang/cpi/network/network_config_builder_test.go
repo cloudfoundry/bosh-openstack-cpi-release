@@ -11,8 +11,8 @@ import (
 	"github.com/cloudfoundry/bosh-openstack-cpi-release/src/openstack_cpi_golang/cpi/network"
 	"github.com/cloudfoundry/bosh-openstack-cpi-release/src/openstack_cpi_golang/cpi/network/networkfakes"
 	"github.com/cloudfoundry/bosh-openstack-cpi-release/src/openstack_cpi_golang/cpi/properties"
-	"github.com/cloudfoundry/bosh-openstack-cpi-release/src/openstack_cpi_golang/cpi/utils"
 	"github.com/cloudfoundry/bosh-openstack-cpi-release/src/openstack_cpi_golang/cpi/utils/utilsfakes"
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 )
@@ -22,7 +22,7 @@ var _ = Describe("NetworkConfigBuilder", func() {
 	var securityGroupsResolver networkfakes.FakeSecurityGroupsResolver
 	var openstackConfig config.OpenstackConfig
 	var cloudProperties properties.CreateVM
-	var logger utils.Logger
+	var logger boshlog.Logger
 
 	BeforeEach(func() {
 		openstackConfig = config.OpenstackConfig{ConfigDrive: "cdrom"}
@@ -347,7 +347,7 @@ var _ = Describe("NetworkConfigBuilder", func() {
 	})
 })
 
-func createNetworkConfig(securityGroupsResolver network.SecurityGroupsResolver, bytes []byte, openstackConfig config.OpenstackConfig, cloudProperties properties.CreateVM, logger utils.Logger) (properties.NetworkConfig, error) {
+func createNetworkConfig(securityGroupsResolver network.SecurityGroupsResolver, bytes []byte, openstackConfig config.OpenstackConfig, cloudProperties properties.CreateVM, logger boshlog.Logger) (properties.NetworkConfig, error) {
 	var networks apiv1.Networks
 	err := json.Unmarshal(bytes, &networks)
 	Expect(err).ToNot(HaveOccurred())
@@ -357,7 +357,7 @@ func createNetworkConfig(securityGroupsResolver network.SecurityGroupsResolver, 
 	return networkConfig, err
 }
 
-func standardNetworkConfig(securityGroupsResolver network.SecurityGroupsResolver, openstackConfig config.OpenstackConfig, cloudProperties properties.CreateVM, logger utils.Logger) properties.NetworkConfig {
+func standardNetworkConfig(securityGroupsResolver network.SecurityGroupsResolver, openstackConfig config.OpenstackConfig, cloudProperties properties.CreateVM, logger boshlog.Logger) properties.NetworkConfig {
 	networkingConfig, _ := createNetworkConfig(securityGroupsResolver, //nolint:errcheck
 		[]byte(`{
 			"name1": {

@@ -171,7 +171,7 @@ var _ = Describe("CreateDisk", func() {
 					&apiv1.VMCID{},
 				)
 
-				Expect(err.Error()).To(Equal("create_disk: boom"))
+				Expect(err.Error()).To(Equal("failed to create disk: boom"))
 				Expect(diskCID).To(Equal(apiv1.DiskCID{}))
 			})
 		})
@@ -242,7 +242,7 @@ var _ = Describe("CreateDisk", func() {
 				&apiv1.VMCID{},
 			)
 
-			Expect(err.Error()).To(Equal("create_disk: boom"))
+			Expect(err.Error()).To(Equal("failed to create disk: boom"))
 			Expect(diskCID).To(Equal(apiv1.DiskCID{}))
 		})
 
@@ -280,7 +280,7 @@ var _ = Describe("CreateDisk", func() {
 			)
 
 			Expect(volumeService.WaitForVolumeToBecomeStatusCallCount()).To(Equal(1))
-			Expect(err.Error()).To(Equal("create disk: some_error_while_waiting_for_volume"))
+			Expect(err.Error()).To(Equal("failed to wait for volume to become available: some_error_while_waiting_for_volume"))
 			Expect(diskCID).To(Equal(apiv1.DiskCID{}))
 		})
 	})

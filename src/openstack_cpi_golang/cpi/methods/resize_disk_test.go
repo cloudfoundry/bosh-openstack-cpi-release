@@ -113,9 +113,10 @@ var _ = Describe("NewResizeDiskMethod", func() {
 
 			Expect(err).ToNot(HaveOccurred())
 			Expect(volumeService.ExtendVolumeSizeCallCount()).To(Equal(0))
-			arg1, arg2, _ := logger.InfoArgsForCall(1)
+			arg1, arg2, arg3 := logger.InfoArgsForCall(1)
 			Expect(arg1).To(Equal("resize_disk"))
-			Expect(arg2).To(Equal("Skipping resize of disk test-disk-cid because current value 5 GiB is equal new value 5 GiB"))
+			Expect(arg2).To(Equal("Skipping resize of disk %s because current value %d GiB is equal new value %d GiB"))
+			Expect(arg3).To(Equal([]interface{}{"test-disk-cid", 5, 5}))
 			Expect(volumeService.GetVolumeCallCount()).To(Equal(1))
 		})
 
@@ -162,9 +163,10 @@ var _ = Describe("NewResizeDiskMethod", func() {
 
 			Expect(err).ToNot(HaveOccurred())
 			Expect(volumeService.ExtendVolumeSizeCallCount()).To(Equal(1))
-			arg1, arg2, _ := logger.InfoArgsForCall(2)
+			arg1, arg2, arg3 := logger.InfoArgsForCall(2)
 			Expect(arg1).To(Equal("resize_disk"))
-			Expect(arg2).To(Equal("Resized volume test-disk-cid to 6 GiB"))
+			Expect(arg2).To(Equal("Resized volume %s to %d GiB"))
+			Expect(arg3).To(Equal([]interface{}{"test-disk-cid", 6}))
 		})
 
 		It("returns error because volume could not be extended", func() {
@@ -194,9 +196,10 @@ var _ = Describe("NewResizeDiskMethod", func() {
 
 			Expect(err).ToNot(HaveOccurred())
 			Expect(volumeService.WaitForVolumeToBecomeStatusCallCount()).To(Equal(1))
-			arg1, arg2, _ := logger.InfoArgsForCall(2)
+			arg1, arg2, arg3 := logger.InfoArgsForCall(2)
 			Expect(arg1).To(Equal("resize_disk"))
-			Expect(arg2).To(Equal("Resized volume test-disk-cid to 6 GiB"))
+			Expect(arg2).To(Equal("Resized volume %s to %d GiB"))
+			Expect(arg3).To(Equal([]interface{}{"test-disk-cid", 6}))
 		})
 
 		It("returns error while waiting for volume to be extended", func() {
