@@ -102,6 +102,7 @@ type computeService struct {
 	volumeConfigurator       VolumeConfigurator
 	availabilityZoneProvider AvailabilityZoneProvider
 	logger                   utils.Logger
+	logTag                   string
 }
 
 func NewComputeService(
@@ -119,6 +120,7 @@ func NewComputeService(
 		volumeConfigurator:       volumeConfigurator,
 		availabilityZoneProvider: availabilityZoneProvider,
 		logger:                   logger,
+		logTag:                   "compute_service",
 	}
 }
 
@@ -182,6 +184,10 @@ func (c computeService) CreateServer(
 
 	var server *servers.Server
 	availabilityZones := c.availabilityZoneProvider.GetAvailabilityZones(cloudProps)
+
+	if len(availabilityZones) == 1 && availabilityZones[0] == "" {
+		c.logger.Info(c.logTag, "No availability zone configured, VM will be created in OpenStack's default availability zone")
+	}
 
 	for _, availabilityZone := range availabilityZones {
 		createOpts := c.getServerCreateOpts(vmName, availabilityZone, stemcellCID, networkConfig, flavor, keyname, blockDevices, userDataJson)
