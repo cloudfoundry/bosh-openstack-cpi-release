@@ -35,7 +35,7 @@ func (c openstackService) ComputeServiceV2(config config.OpenstackConfig) (*goph
 		return nil, fmt.Errorf("failed to authenticate: %w", err)
 	}
 
-	return c.openstackFacade.NewComputeV2(authenticatedClient, c.endpointOpts())
+	return c.openstackFacade.NewComputeV2(authenticatedClient, c.endpointOpts(config.Region))
 }
 
 func (c openstackService) LoadbalancerV2(config config.OpenstackConfig) (*gophercloud.ServiceClient, error) {
@@ -44,7 +44,7 @@ func (c openstackService) LoadbalancerV2(config config.OpenstackConfig) (*gopher
 		return nil, fmt.Errorf("failed to authenticate: %w", err)
 	}
 
-	return c.openstackFacade.NewLoadBalancerV2(authenticatedClient, c.endpointOpts())
+	return c.openstackFacade.NewLoadBalancerV2(authenticatedClient, c.endpointOpts(config.Region))
 }
 
 func (c openstackService) NetworkServiceV2(config config.OpenstackConfig) (*gophercloud.ServiceClient, error) {
@@ -53,7 +53,7 @@ func (c openstackService) NetworkServiceV2(config config.OpenstackConfig) (*goph
 		return nil, fmt.Errorf("failed to authenticate: %w", err)
 	}
 
-	return c.openstackFacade.NewNetworkV2(authenticatedClient, c.endpointOpts())
+	return c.openstackFacade.NewNetworkV2(authenticatedClient, c.endpointOpts(config.Region))
 }
 
 func (c openstackService) ImageServiceV2(config config.OpenstackConfig) (*gophercloud.ServiceClient, error) {
@@ -62,7 +62,7 @@ func (c openstackService) ImageServiceV2(config config.OpenstackConfig) (*gopher
 		return nil, fmt.Errorf("failed to authenticate: %w", err)
 	}
 
-	return c.openstackFacade.NewImageServiceV2(authenticatedClient, c.endpointOpts())
+	return c.openstackFacade.NewImageServiceV2(authenticatedClient, c.endpointOpts(config.Region))
 }
 
 func (c openstackService) BlockStorageV3(config config.OpenstackConfig) (*gophercloud.ServiceClient, error) {
@@ -71,11 +71,15 @@ func (c openstackService) BlockStorageV3(config config.OpenstackConfig) (*gopher
 		return nil, fmt.Errorf("failed to authenticate: %w", err)
 	}
 
-	return c.openstackFacade.NewBlockStorageV3(authenticatedClient, c.endpointOpts())
+	return c.openstackFacade.NewBlockStorageV3(authenticatedClient, c.endpointOpts(config.Region))
 }
 
-func (c openstackService) endpointOpts() gophercloud.EndpointOpts {
+func (c openstackService) endpointOpts(regionFromConfig string) gophercloud.EndpointOpts {
+	region := regionFromConfig
+	if region == "" {
+		region = c.envVar.Get("OS_REGION_NAME")
+	}
 	return gophercloud.EndpointOpts{
-		Region: c.envVar.Get("OS_REGION_NAME"),
+		Region: region,
 	}
 }
