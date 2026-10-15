@@ -374,6 +374,24 @@ var _ = Describe("OpenstackConfig", func() {
 			Expect(merged).To(Equal(openstackConfig))
 		})
 
+		It("returns the unmodified config when no context is provided (single-CPI director)", func() {
+			ctx := apiv1.CloudPropsImpl{}
+
+			merged, err := openstackConfig.MergeContext(ctx)
+
+			Expect(err).ToNot(HaveOccurred())
+			Expect(merged).To(Equal(openstackConfig))
+		})
+
+		It("returns the unmodified config for a blank context payload", func() {
+			ctx := apiv1.CloudPropsImpl{RawMessage: []byte("   ")}
+
+			merged, err := openstackConfig.MergeContext(ctx)
+
+			Expect(err).ToNot(HaveOccurred())
+			Expect(merged).To(Equal(openstackConfig))
+		})
+
 		It("errors when the context cannot be parsed", func() {
 			ctx := apiv1.CloudPropsImpl{RawMessage: []byte(`not-json`)}
 
