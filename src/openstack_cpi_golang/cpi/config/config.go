@@ -1,6 +1,7 @@
 package config
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -29,6 +30,17 @@ func (c CpiConfig) OpenStackConfig() OpenstackConfig {
 // job's static configuration; everything else is left untouched. This mirrors
 // the legacy Ruby CPI's `cloud_properties['openstack'].merge!(context)` behavior.
 func (o OpenstackConfig) MergeContext(ctx apiv1.CallContext) (OpenstackConfig, error) {
+	// The CPI call context is optional. Single-CPI directors (and several
+	// dispatcher/test paths) issue requests without one, in which case there are
+	// no OpenStack overrides to apply and the raw context payload is empty. An
+	// absent context must be treated as "no overrides"; otherwise CallContext.As
+	// would fail on the empty payload ("unexpected end of JSON input") and break
+	// every call that does not carry a context. A present but malformed context
+	// is still rejected by the parse below.
+	if cp, ok := ctx.(apiv1.CloudPropsImpl); ok && len(bytes.TrimSpace(cp.RawMessage)) == 0 {
+		return o, nil
+	}
+
 	var contextFields map[string]json.RawMessage
 	if err := ctx.As(&contextFields); err != nil {
 		return o, fmt.Errorf("failed to parse CPI call context: %w", err)
