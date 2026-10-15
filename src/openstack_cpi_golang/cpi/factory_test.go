@@ -35,9 +35,13 @@ var _ = Describe("Factory", func() {
 				"region": "PO-C"
 			}`)}
 
-			_, err := factory.New(ctx)
-
+			cpiInstance, err := factory.New(ctx)
 			Expect(err).ToNot(HaveOccurred())
+
+			// Verify the CPI is functional by invoking a method (Info is stateless)
+			info, err := cpiInstance.Info()
+			Expect(err).ToNot(HaveOccurred())
+			Expect(info.APIVersion).To(Equal(2))
 		})
 
 		It("builds a CPI when no OpenStack overrides are present in the context", func() {
