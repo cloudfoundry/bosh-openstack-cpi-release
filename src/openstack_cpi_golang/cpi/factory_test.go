@@ -60,5 +60,17 @@ var _ = Describe("Factory", func() {
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("failed to resolve openstack configuration from CPI call context"))
 		})
+
+		It("validates the merged configuration after context merge, rejecting invalid context overrides", func() {
+			// Context with invalid config_drive value
+			ctx := apiv1.CloudPropsImpl{RawMessage: []byte(`{
+				"config_drive": "invalid_value"
+			}`)}
+
+			_, err := factory.New(ctx)
+
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("invalid openstack configuration"))
+		})
 	})
 })

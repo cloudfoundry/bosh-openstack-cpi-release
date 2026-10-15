@@ -72,6 +72,11 @@ func (f Factory) New(ctx apiv1.CallContext) (apiv1.CPI, error) {
 		return CPI{}, fmt.Errorf("failed to resolve openstack configuration from CPI call context: %w", err)
 	}
 
+	// Validate the merged configuration (whether from context or base config)
+	if err := openstackConfig.Validate(); err != nil {
+		return CPI{}, fmt.Errorf("invalid openstack configuration: %w", err)
+	}
+
 	cpiConfig := f.cpiConfig
 	cpiConfig.Cloud.Properties.Openstack = openstackConfig
 

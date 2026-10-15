@@ -28,6 +28,10 @@ func (c CpiConfig) OpenStackConfig() OpenstackConfig {
 // several OpenStack endpoints. Only fields present in the context override the
 // job's static configuration; everything else is left untouched. This mirrors
 // the legacy Ruby CPI's `cloud_properties['openstack'].merge!(context)` behavior.
+//
+// Validation of the merged configuration is the caller's responsibility
+// (Factory.New), since validation must happen after merging regardless of
+// whether the context is present or empty.
 func (o OpenstackConfig) MergeContext(ctx apiv1.CallContext) (OpenstackConfig, error) {
 	// The CPI call context is optional. Single-CPI directors (and several
 	// dispatcher/test paths) issue requests without one; the dispatcher then
@@ -71,10 +75,6 @@ func (o OpenstackConfig) MergeContext(ctx apiv1.CallContext) (OpenstackConfig, e
 	var result OpenstackConfig
 	if err := json.Unmarshal(mergedJSON, &result); err != nil {
 		return o, fmt.Errorf("failed to unmarshal merged openstack configuration: %w", err)
-	}
-
-	if err := result.Validate(); err != nil {
-		return o, fmt.Errorf("invalid merged openstack configuration: %w", err)
 	}
 
 	return result, nil
