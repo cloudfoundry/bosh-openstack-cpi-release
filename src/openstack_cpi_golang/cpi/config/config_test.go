@@ -340,6 +340,56 @@ var _ = Describe("OpenstackConfig", func() {
 			Expect(merged.DefaultKeyName).To(Equal("the_static_default_key_name"))
 		})
 
+		It("clears application credentials when the context switches to username/api_key auth", func() {
+			appCredConfig := config.OpenstackConfig{
+				AuthURL:                     "the_static_auth_url",
+				ApplicationCredentialID:     "the_static_app_cred_id",
+				ApplicationCredentialSecret: "the_static_app_cred_secret",
+				Region:                      "the_static_region",
+			}
+
+			ctx := apiv1.CloudPropsImpl{RawMessage: []byte(`{
+				"username": "the_context_username",
+				"api_key": "the_context_api_key"
+			}`)}
+
+			merged, err := appCredConfig.MergeContext(ctx)
+
+			Expect(err).ToNot(HaveOccurred())
+			Expect(merged.Username).To(Equal("the_context_username"))
+			Expect(merged.APIKey).To(Equal("the_context_api_key"))
+			// the opposite credential pair must be cleared
+			Expect(merged.ApplicationCredentialID).To(BeEmpty())
+			Expect(merged.ApplicationCredentialSecret).To(BeEmpty())
+			// the merged config must be valid (exactly one credential form)
+			Expect(merged.Validate()).ToNot(HaveOccurred())
+		})
+
+		It("clears username/api_key when the context switches to application credential auth", func() {
+			usernameConfig := config.OpenstackConfig{
+				AuthURL:  "the_static_auth_url",
+				Username: "the_static_username",
+				APIKey:   "the_static_api_key",
+				Region:   "the_static_region",
+			}
+
+			ctx := apiv1.CloudPropsImpl{RawMessage: []byte(`{
+				"application_credential_id": "the_context_app_cred_id",
+				"application_credential_secret": "the_context_app_cred_secret"
+			}`)}
+
+			merged, err := usernameConfig.MergeContext(ctx)
+
+			Expect(err).ToNot(HaveOccurred())
+			Expect(merged.ApplicationCredentialID).To(Equal("the_context_app_cred_id"))
+			Expect(merged.ApplicationCredentialSecret).To(Equal("the_context_app_cred_secret"))
+			// the opposite credential pair must be cleared
+			Expect(merged.Username).To(BeEmpty())
+			Expect(merged.APIKey).To(BeEmpty())
+			// the merged config must be valid (exactly one credential form)
+			Expect(merged.Validate()).ToNot(HaveOccurred())
+		})
+
 		It("returns the unmodified config when the context carries no OpenStack overrides", func() {
 			ctx := apiv1.CloudPropsImpl{RawMessage: []byte(`{
 				"director_uuid": "some-director-uuid",
