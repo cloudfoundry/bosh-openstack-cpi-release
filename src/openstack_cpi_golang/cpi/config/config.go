@@ -63,6 +63,26 @@ func (o OpenstackConfig) MergeContext(ctx apiv1.CallContext) (OpenstackConfig, e
 		return o, fmt.Errorf("failed to unmarshal openstack configuration: %w", err)
 	}
 
+	// Credentials come in two mutually exclusive forms: username/api_key or
+	// application_credential_id/application_credential_secret. When the context
+	// switches to one form, remove the other from the base config so the merged
+	// result does not carry both. Validate() rejects configs with both forms,
+	// and AuthOptions() would otherwise mis-resolve (it prefers username/api_key
+	// whenever present). This must happen before applying the context overrides.
+	_, ctxHasUsername := contextFields["username"]
+	_, ctxHasAPIKey := contextFields["api_key"]
+	_, ctxHasAppCredID := contextFields["application_credential_id"]
+	_, ctxHasAppCredSecret := contextFields["application_credential_secret"]
+
+	if ctxHasUsername || ctxHasAPIKey {
+		delete(merged, "application_credential_id")
+		delete(merged, "application_credential_secret")
+	}
+	if ctxHasAppCredID || ctxHasAppCredSecret {
+		delete(merged, "username")
+		delete(merged, "api_key")
+	}
+
 	for key, value := range contextFields {
 		merged[key] = value
 	}
