@@ -3,6 +3,7 @@ package config_test
 import (
 	"testing/fstest"
 
+	"github.com/cloudfoundry/bosh-cpi-go/apiv1"
 	"github.com/cloudfoundry/bosh-openstack-cpi-release/src/openstack_cpi_golang/cpi/config"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -297,6 +298,157 @@ var _ = Describe("OpenstackConfig", func() {
 			Expect(cpiConfig.Cloud.Properties.Openstack.AuthOptions().IdentityEndpoint).To(Equal("the_auth_url"))
 			Expect(cpiConfig.Cloud.Properties.Openstack.AuthOptions().ApplicationCredentialID).To(Equal("the_application_credential_id"))
 			Expect(cpiConfig.Cloud.Properties.Openstack.AuthOptions().ApplicationCredentialSecret).To(Equal("the_application_credential_secret"))
+		})
+	})
+	Context("MergeContext", func() {
+		var openstackConfig config.OpenstackConfig
+
+		BeforeEach(func() {
+			openstackConfig = config.OpenstackConfig{
+				AuthURL:               "the_static_auth_url",
+				Username:              "the_static_username",
+				APIKey:                "the_static_api_key",
+				Region:                "the_static_region",
+				DomainName:            "the_static_domain",
+				ProjectName:           "the_static_project",
+				DefaultKeyName:        "the_static_default_key_name",
+				DefaultSecurityGroups: []string{"the_static_security_group"},
+			}
+		})
+
+		It("overrides only the fields present in the call context, as a multi-CPI director would send them", func() {
+			ctx := apiv1.CloudPropsImpl{RawMessage: []byte(`{
+				"director_uuid": "some-director-uuid",
+				"request_id": "cpi-123",
+				"auth_url": "https://osvip-po-c01.example.com:5000/v3/auth",
+				"region": "PO-C",
+				"default_security_groups": ["some-po-c-security-group"]
+			}`)}
+
+			merged, err := openstackConfig.MergeContext(ctx)
+
+			Expect(err).ToNot(HaveOccurred())
+			Expect(merged.AuthURL).To(Equal("https://osvip-po-c01.example.com:5000/v3/auth"))
+			Expect(merged.Region).To(Equal("PO-C"))
+			Expect(merged.DefaultSecurityGroups).To(Equal([]string{"some-po-c-security-group"}))
+
+			// fields absent from the context are left untouched
+			Expect(merged.Username).To(Equal("the_static_username"))
+			Expect(merged.APIKey).To(Equal("the_static_api_key"))
+			Expect(merged.DomainName).To(Equal("the_static_domain"))
+			Expect(merged.ProjectName).To(Equal("the_static_project"))
+			Expect(merged.DefaultKeyName).To(Equal("the_static_default_key_name"))
+		})
+
+		It("clears application credentials when the context switches to username/api_key auth", func() {
+			appCredConfig := config.OpenstackConfig{
+				AuthURL:                     "the_static_auth_url",
+				ApplicationCredentialID:     "the_static_app_cred_id",
+				ApplicationCredentialSecret: "the_static_app_cred_secret",
+				Region:                      "the_static_region",
+			}
+
+			ctx := apiv1.CloudPropsImpl{RawMessage: []byte(`{
+				"username": "the_context_username",
+				"api_key": "the_context_api_key"
+			}`)}
+
+			merged, err := appCredConfig.MergeContext(ctx)
+
+			Expect(err).ToNot(HaveOccurred())
+			Expect(merged.Username).To(Equal("the_context_username"))
+			Expect(merged.APIKey).To(Equal("the_context_api_key"))
+			// the opposite credential pair must be cleared
+			Expect(merged.ApplicationCredentialID).To(BeEmpty())
+			Expect(merged.ApplicationCredentialSecret).To(BeEmpty())
+			// the merged config must be valid (exactly one credential form)
+			Expect(merged.Validate()).ToNot(HaveOccurred())
+		})
+
+		It("clears username/api_key when the context switches to application credential auth", func() {
+			usernameConfig := config.OpenstackConfig{
+				AuthURL:  "the_static_auth_url",
+				Username: "the_static_username",
+				APIKey:   "the_static_api_key",
+				Region:   "the_static_region",
+			}
+
+			ctx := apiv1.CloudPropsImpl{RawMessage: []byte(`{
+				"application_credential_id": "the_context_app_cred_id",
+				"application_credential_secret": "the_context_app_cred_secret"
+			}`)}
+
+			merged, err := usernameConfig.MergeContext(ctx)
+
+			Expect(err).ToNot(HaveOccurred())
+			Expect(merged.ApplicationCredentialID).To(Equal("the_context_app_cred_id"))
+			Expect(merged.ApplicationCredentialSecret).To(Equal("the_context_app_cred_secret"))
+			// the opposite credential pair must be cleared
+			Expect(merged.Username).To(BeEmpty())
+			Expect(merged.APIKey).To(BeEmpty())
+			// the merged config must be valid (exactly one credential form)
+			Expect(merged.Validate()).ToNot(HaveOccurred())
+		})
+
+		It("returns the unmodified config when the context carries no OpenStack overrides", func() {
+			ctx := apiv1.CloudPropsImpl{RawMessage: []byte(`{
+				"director_uuid": "some-director-uuid",
+				"request_id": "cpi-123"
+			}`)}
+
+			merged, err := openstackConfig.MergeContext(ctx)
+
+			Expect(err).ToNot(HaveOccurred())
+			Expect(merged).To(Equal(openstackConfig))
+		})
+
+		It("also picks up the stemcell API version every call context carries, since OpenstackConfig.VM mirrors it", func() {
+			ctx := apiv1.CloudPropsImpl{RawMessage: []byte(`{
+				"director_uuid": "some-director-uuid",
+				"request_id": "cpi-123",
+				"vm": {"stemcell": {"api_version": 3}}
+			}`)}
+
+			merged, err := openstackConfig.MergeContext(ctx)
+
+			Expect(err).ToNot(HaveOccurred())
+			Expect(merged.VM.Stemcell.APIVersion).To(Equal(3))
+		})
+
+		It("returns the unmodified config for an empty context object", func() {
+			ctx := apiv1.CloudPropsImpl{RawMessage: []byte(`{}`)}
+
+			merged, err := openstackConfig.MergeContext(ctx)
+
+			Expect(err).ToNot(HaveOccurred())
+			Expect(merged).To(Equal(openstackConfig))
+		})
+
+		It("returns the unmodified config when no context is provided (single-CPI director)", func() {
+			ctx := apiv1.CloudPropsImpl{}
+
+			merged, err := openstackConfig.MergeContext(ctx)
+
+			Expect(err).ToNot(HaveOccurred())
+			Expect(merged).To(Equal(openstackConfig))
+		})
+
+		It("rejects a whitespace-only context payload as malformed", func() {
+			ctx := apiv1.CloudPropsImpl{RawMessage: []byte("   ")}
+
+			_, err := openstackConfig.MergeContext(ctx)
+
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("failed to parse CPI call context"))
+		})
+
+		It("errors when the context cannot be parsed", func() {
+			ctx := apiv1.CloudPropsImpl{RawMessage: []byte(`not-json`)}
+
+			_, err := openstackConfig.MergeContext(ctx)
+
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("failed to parse CPI call context"))
 		})
 	})
 })
