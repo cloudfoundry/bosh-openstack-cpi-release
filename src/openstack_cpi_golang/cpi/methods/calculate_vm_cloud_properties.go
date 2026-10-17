@@ -7,20 +7,20 @@ import (
 	"github.com/cloudfoundry/bosh-openstack-cpi-release/src/openstack_cpi_golang/cpi/compute"
 	"github.com/cloudfoundry/bosh-openstack-cpi-release/src/openstack_cpi_golang/cpi/config"
 	"github.com/cloudfoundry/bosh-openstack-cpi-release/src/openstack_cpi_golang/cpi/properties"
-	"github.com/cloudfoundry/bosh-openstack-cpi-release/src/openstack_cpi_golang/cpi/utils"
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	"github.com/gophercloud/gophercloud/openstack/compute/v2/flavors"
 )
 
 type CalculateVMCloudPropertiesMethod struct {
 	computeServiceBuilder compute.ComputeServiceBuilder
 	cpiConfig             config.CpiConfig
-	logger                utils.Logger
+	logger                boshlog.Logger
 }
 
 func NewCalculateVMCloudPropertiesMethod(
 	computeServiceBuilder compute.ComputeServiceBuilder,
 	cpiConfig config.CpiConfig,
-	logger utils.Logger,
+	logger boshlog.Logger,
 ) CalculateVMCloudPropertiesMethod {
 	return CalculateVMCloudPropertiesMethod{
 		computeServiceBuilder: computeServiceBuilder,
@@ -32,7 +32,7 @@ func NewCalculateVMCloudPropertiesMethod(
 func (a CalculateVMCloudPropertiesMethod) CalculateVMCloudProperties(requirements apiv1.VMResources) (apiv1.VMCloudProps, error) {
 	computeService, err := a.computeServiceBuilder.Build()
 	if err != nil {
-		return nil, fmt.Errorf("calculate_vm_cloud_properties: %w", err)
+		return nil, fmt.Errorf("failed to calculate VM cloud properties: %w", err)
 	}
 
 	bootFromVolume := a.cpiConfig.Cloud.Properties.Openstack.BootFromVolume
@@ -40,7 +40,7 @@ func (a CalculateVMCloudPropertiesMethod) CalculateVMCloudProperties(requirement
 	matchedFlavor, err := computeService.GetMatchingFlavor(requirements, bootFromVolume)
 
 	if err != nil {
-		return nil, fmt.Errorf("calculate_vm_cloud_properties: %w", err)
+		return nil, fmt.Errorf("failed to calculate VM cloud properties: %w", err)
 	}
 
 	return a.vmCloudProperties(requirements, matchedFlavor, bootFromVolume), nil

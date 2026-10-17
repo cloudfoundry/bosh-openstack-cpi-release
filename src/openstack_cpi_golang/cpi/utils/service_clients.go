@@ -2,6 +2,7 @@ package utils
 
 import (
 	"github.com/cloudfoundry/bosh-openstack-cpi-release/src/openstack_cpi_golang/cpi/config"
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	"github.com/gophercloud/gophercloud"
 )
 
@@ -13,7 +14,7 @@ type ServiceClients struct {
 	RetryableServiceClient RetryableServiceClient
 }
 
-func NewServiceClients(serviceClient *gophercloud.ServiceClient, cpiConfig config.CpiConfig, logger Logger) ServiceClients {
+func NewServiceClients(serviceClient *gophercloud.ServiceClient, cpiConfig config.CpiConfig, logger boshlog.Logger) ServiceClients {
 	retryableServiceClient := serviceClient
 	retryableServiceClient.RetryFunc = RetryOnError(cpiConfig.Properties().RetryConfig.Default(), logger)
 

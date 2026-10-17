@@ -66,13 +66,13 @@ var _ = Describe("SnapshotDisk Unit Tests", func() {
 		It("fails on volume service builder", func() {
 			volumeServiceBuilder.BuildReturns(nil, errors.New("boom"))
 			_, err := snapshotDisk.SnapshotDisk(volumeCid, metadata)
-			Expect(err.Error()).To(Equal("snapShotDisk: Failed to get volume service: boom"))
+			Expect(err.Error()).To(Equal("failed to get volume service: boom"))
 		})
 
 		It("fails on get volume", func() {
 			volumeService.GetVolumeReturns(nil, errors.New("boom"))
 			_, err := snapshotDisk.SnapshotDisk(volumeCid, metadata)
-			Expect(err.Error()).To(Equal("snapShotDisk: Failed to get volume ID vol1-id: boom"))
+			Expect(err.Error()).To(Equal("failed to get volume ID vol1-id: boom"))
 		})
 
 		It("fails to convert metadata to map[string]interface for MarshalJSON", func() {
@@ -81,13 +81,13 @@ var _ = Describe("SnapshotDisk Unit Tests", func() {
 			}
 			metadataFalse := apiv1.NewDiskMeta(diskMeta)
 			_, err := snapshotDisk.SnapshotDisk(volumeCid, metadataFalse)
-			Expect(err).To(MatchError(ContainSubstring("snapShotDisk: Failed to convert disk metadata")))
+			Expect(err).To(MatchError(ContainSubstring("failed to convert disk metadata")))
 		})
 
 		It("fails to create snapshot", func() {
 			volumeService.CreateSnapshotReturns(nil, errors.New("boom"))
 			_, err := snapshotDisk.SnapshotDisk(volumeCid, metadata)
-			Expect(err).To(MatchError(ContainSubstring(("snapShotDisk: Failed to create snapshot"))))
+			Expect(err).To(MatchError(ContainSubstring(("failed to create snapshot"))))
 		})
 
 		It("creates snapshot", func() {
@@ -113,7 +113,7 @@ var _ = Describe("SnapshotDisk Unit Tests", func() {
 		It("fails to waitForSnapshotToBeAvailable", func() {
 			volumeService.WaitForSnapshotToBecomeStatusReturns(errors.New("boom"))
 			_, err := snapshotDisk.SnapshotDisk(volumeCid, metadata)
-			Expect(err).To(MatchError(ContainSubstring("snapShotDisk: Failed while waiting for creating snapshot")))
+			Expect(err).To(MatchError(ContainSubstring("failed while waiting for snapshot")))
 		})
 	})
 

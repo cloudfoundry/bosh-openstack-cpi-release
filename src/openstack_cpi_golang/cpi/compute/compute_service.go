@@ -10,6 +10,7 @@ import (
 	"github.com/cloudfoundry/bosh-openstack-cpi-release/src/openstack_cpi_golang/cpi/config"
 	"github.com/cloudfoundry/bosh-openstack-cpi-release/src/openstack_cpi_golang/cpi/properties"
 	"github.com/cloudfoundry/bosh-openstack-cpi-release/src/openstack_cpi_golang/cpi/utils"
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	"github.com/google/uuid"
 	"github.com/gophercloud/gophercloud"
 	"github.com/gophercloud/gophercloud/openstack/compute/v2/extensions/bootfromvolume"
@@ -101,7 +102,8 @@ type computeService struct {
 	flavorResolver           FlavorResolver
 	volumeConfigurator       VolumeConfigurator
 	availabilityZoneProvider AvailabilityZoneProvider
-	logger                   utils.Logger
+	logger                   boshlog.Logger
+	logTag                   string
 }
 
 func NewComputeService(
@@ -110,7 +112,7 @@ func NewComputeService(
 	flavorResolver FlavorResolver,
 	volumeConfigurator VolumeConfigurator,
 	availabilityZoneProvider AvailabilityZoneProvider,
-	logger utils.Logger,
+	logger boshlog.Logger,
 ) computeService {
 	return computeService{
 		serviceClients:           serviceClients,
@@ -119,6 +121,7 @@ func NewComputeService(
 		volumeConfigurator:       volumeConfigurator,
 		availabilityZoneProvider: availabilityZoneProvider,
 		logger:                   logger,
+		logTag:                   "compute_service",
 	}
 }
 
@@ -191,7 +194,7 @@ func (c computeService) CreateServer(
 			if availabilityZone == availabilityZones[len(availabilityZones)-1] {
 				return nil, fmt.Errorf("failed to create server in availability zone '%s': %w", availabilityZone, err)
 			}
-			c.logger.Warn("failed to create server in availability zone '%s': %v, "+
+			c.logger.Warn(c.logTag, "Failed to create server in availability zone '%s': %v, "+
 				"retrying in a different availability zone", availabilityZone, err)
 
 			continue
@@ -202,7 +205,7 @@ func (c computeService) CreateServer(
 			if availabilityZone == availabilityZones[len(availabilityZones)-1] {
 				return server, fmt.Errorf("failed while waiting on the server creation in availability zone '%s': %w", availabilityZone, err)
 			}
-			c.logger.Warn("failed while waiting on the server creation in availability zone '%s': %v, "+
+			c.logger.Warn(c.logTag, "Failed while waiting on the server creation in availability zone '%s': %v, "+
 				"retrying in a different availability zone", availabilityZone, err)
 
 			continue
@@ -223,7 +226,7 @@ func (c computeService) DeleteServer(
 	_, err := c.GetServer(serverID)
 	if err != nil {
 		if errors.As(err, &errDefault404) {
-			c.logger.Info("compute_service", fmt.Sprintf("SKIPPING: Server deletion with id '%s' is not found", serverID))
+			c.logger.Info(c.logTag, "Skipping: Server deletion with id '%s' is not found", serverID)
 			return nil
 		}
 		return err
@@ -240,7 +243,7 @@ func (c computeService) DeleteServer(
 		return fmt.Errorf("failed while waiting on the server deletion: %w", err)
 	}
 
-	c.logger.Info("compute_service", fmt.Sprintf("Deleted server with id '%s'", serverID))
+	c.logger.Info(c.logTag, "Deleted server with id '%s'", serverID)
 
 	// deleting registry settings - Seems that it is not needed for V2
 	// https://bosh.io/docs/cpi-api-v2/#reference-table-based-on-each-component-version
@@ -271,7 +274,7 @@ func (c computeService) RebootServer(
 		time.Duration(cpiConfig.Cloud.Properties.Openstack.StateTimeOut)*time.Second,
 	)
 	if err != nil {
-		return fmt.Errorf("compute_service: %w", err)
+		return fmt.Errorf("failed to reboot server: %w", err)
 	}
 
 	return nil
@@ -283,7 +286,7 @@ func (c computeService) GetMetadata(serverID string) (map[string]string, error) 
 	serverMetadata, err := c.computeFacade.GetServerMetadata(c.serviceClients.RetryableServiceClient, serverID)
 	if err != nil {
 		if errors.As(err, &errDefault404) {
-			c.logger.Info("compute_service", fmt.Sprintf("SKIPPING: Metadata retrieval for server with id '%s' is not found", serverID))
+			c.logger.Info(c.logTag, "Skipping: Metadata retrieval for server with id '%s' is not found", serverID)
 			serverMetadata = map[string]string{}
 		} else {
 			return nil, fmt.Errorf("failed to retrieve server metadata: %w", err)
@@ -321,7 +324,7 @@ func (c computeService) UpdateServerMetadata(serverID string, serverMetadata pro
 	}
 
 	if len(updateMetadataOpts) == 0 {
-		c.logger.Info("compute_service", fmt.Sprintf("SKIPPING: No Metadata was found to be updated for server with id '%s'", serverID))
+		c.logger.Info(c.logTag, "Skipping: No Metadata was found to be updated for server with id '%s'", serverID)
 		return nil
 	}
 
@@ -339,7 +342,7 @@ func (c computeService) DeleteServerMetaData(
 	updateMetaDataMap properties.ServerMetadata,
 ) error {
 	if length := len(updateMetaDataMap); length == 0 {
-		c.logger.Info("compute_service", fmt.Sprintf("SKIPPING: No metadata was provided to be deleted for server with id '%s'", serverID))
+		c.logger.Info(c.logTag, "Skipping: No metadata was provided to be deleted for server with id '%s'", serverID)
 		return nil
 	}
 
@@ -364,7 +367,7 @@ func (c computeService) DeleteServerMetaData(
 	}
 
 	if length := len(oldMetaDataMap); length == 0 {
-		c.logger.Info("compute_service", fmt.Sprintf("SKIPPING: No metadata was provided to be deleted for server with id '%s'", serverID))
+		c.logger.Info(c.logTag, "Skipping: No metadata was provided to be deleted for server with id '%s'", serverID)
 		return nil
 	}
 

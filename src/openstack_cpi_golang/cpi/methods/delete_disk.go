@@ -7,26 +7,28 @@ import (
 
 	"github.com/cloudfoundry/bosh-cpi-go/apiv1"
 	"github.com/cloudfoundry/bosh-openstack-cpi-release/src/openstack_cpi_golang/cpi/config"
-	"github.com/cloudfoundry/bosh-openstack-cpi-release/src/openstack_cpi_golang/cpi/utils"
 	"github.com/cloudfoundry/bosh-openstack-cpi-release/src/openstack_cpi_golang/cpi/volume"
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	"github.com/gophercloud/gophercloud"
 )
 
 type DeleteDiskMethod struct {
 	volumeServiceBuilder volume.VolumeServiceBuilder
 	cpiConfig            config.CpiConfig
-	logger               utils.Logger
+	logger               boshlog.Logger
+	logTag               string
 }
 
 func NewDeleteDiskMethod(
 	volumeServiceBuilder volume.VolumeServiceBuilder,
 	cpiConfig config.CpiConfig,
-	logger utils.Logger,
+	logger boshlog.Logger,
 ) DeleteDiskMethod {
 	return DeleteDiskMethod{
 		volumeServiceBuilder: volumeServiceBuilder,
 		cpiConfig:            cpiConfig,
 		logger:               logger,
+		logTag:               "delete_disk",
 	}
 }
 
@@ -42,10 +44,10 @@ func (a DeleteDiskMethod) DeleteDisk(diskCID apiv1.DiskCID) error {
 	volume, err := volumeService.GetVolume(diskCID.AsString())
 	if err != nil {
 		if errors.As(err, &errDefault404) {
-			a.logger.Info("volume %s not found. Skipping.", diskCID.AsString())
+			a.logger.Info(a.logTag, "Volume %s not found. Skipping", diskCID.AsString())
 			return nil
 		}
-		return fmt.Errorf("delete disk: %w", err)
+		return fmt.Errorf("failed to delete disk: %w", err)
 	}
 
 	if volume.ID != "" {
@@ -54,15 +56,15 @@ func (a DeleteDiskMethod) DeleteDisk(diskCID apiv1.DiskCID) error {
 		}
 		err := volumeService.DeleteVolume(volume.ID)
 		if err != nil {
-			return fmt.Errorf("delete disk: %w", err)
+			return fmt.Errorf("failed to delete disk: %w", err)
 		}
 
 		err = volumeService.WaitForVolumeToBecomeStatus(volume.ID, time.Duration(openstackConfig.StateTimeOut)*time.Second, "deleted")
 		if err != nil {
-			return fmt.Errorf("delete disk: %w", err)
+			return fmt.Errorf("failed to delete disk: %w", err)
 		}
 	} else {
-		a.logger.Info("volume %s not found. Skipping.", diskCID.AsString())
+		a.logger.Info(a.logTag, "Volume %s not found. Skipping", diskCID.AsString())
 	}
 	return nil
 }

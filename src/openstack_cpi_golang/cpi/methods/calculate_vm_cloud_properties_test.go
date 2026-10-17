@@ -131,7 +131,7 @@ var _ = Describe("HasVMMethod", func() {
 
 			Expect(vmCloudProperties).To(BeNil())
 			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(Equal("calculate_vm_cloud_properties: boom"))
+			Expect(err.Error()).To(Equal("failed to calculate VM cloud properties: boom"))
 		})
 
 		It("returns false and error if GetServer fails", func() {
@@ -147,7 +147,7 @@ var _ = Describe("HasVMMethod", func() {
 
 			Expect(vmCloudProperties).To(BeNil())
 			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(Equal("calculate_vm_cloud_properties: boom"))
+			Expect(err.Error()).To(Equal("failed to calculate VM cloud properties: boom"))
 		})
 	})
 })

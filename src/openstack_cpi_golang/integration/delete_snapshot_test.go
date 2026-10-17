@@ -72,7 +72,7 @@ var _ = Describe("DELETE SNAPSHOT", func() {
 			Expect(err).ShouldNot(HaveOccurred())
 
 			_ = stdOutWriter.Close() //nolint:errcheck
-			Expect(<-outChannel).To(ContainSubstring(`"message":"deleteSnapshot: Failed to delete snapshot ID snapshot-id`))
+			Expect(<-outChannel).To(ContainSubstring(`"message":"failed to delete snapshot ID snapshot-id`))
 		})
 	})
 
@@ -106,7 +106,7 @@ var _ = Describe("DELETE SNAPSHOT", func() {
 			Expect(err).ShouldNot(HaveOccurred())
 
 			_ = stdOutWriter.Close() //nolint:errcheck
-			Expect(<-outChannel).To(ContainSubstring(`"message":"deleteSnapshot: Failed while waiting for snapshot ID snapshot-id to be deleted`))
+			Expect(<-outChannel).To(ContainSubstring(`"message":"failed while waiting for snapshot ID snapshot-id to be deleted`))
 		})
 	})
 })

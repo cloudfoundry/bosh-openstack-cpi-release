@@ -155,7 +155,7 @@ var _ = Describe("HAS VM", func() {
 		Expect(err).ShouldNot(HaveOccurred())
 
 		stdOutWriter.Close() //nolint:errcheck
-		Expect(<-outChannel).To(ContainSubstring(`message":"has_vm: failed to retrieve server information: max retry attempts (10) reached, err: Internal Server Error`))
+		Expect(<-outChannel).To(ContainSubstring(`message":"failed to check if VM exists: failed to retrieve server information: max retry attempts (10) reached, err: Internal Server Error`))
 	})
 
 })

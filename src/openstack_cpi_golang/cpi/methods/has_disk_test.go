@@ -51,7 +51,7 @@ var _ = Describe("HasDiskMethod", func() {
 			)
 
 			Expect(exists).To(Equal(false))
-			Expect(err.Error()).To(Equal("has_disk: boom"))
+			Expect(err.Error()).To(Equal("failed to check if disk exists: boom"))
 		})
 
 		It("returns false and no error if GetVolume fails with notFound", func() {

@@ -10,7 +10,6 @@ import (
 	"testing"
 
 	"github.com/cloudfoundry/bosh-openstack-cpi-release/src/openstack_cpi_golang/cpi/config"
-	"github.com/cloudfoundry/bosh-openstack-cpi-release/src/openstack_cpi_golang/cpi/utils"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 
 	. "github.com/onsi/ginkgo/v2"
@@ -24,7 +23,7 @@ func TestIntegration(t *testing.T) {
 
 var defaultConfig config.CpiConfig
 var bootFromVolumeConfig config.CpiConfig
-var logger = utils.NewLogger(boshlog.NewWriterLogger(boshlog.LevelError, os.Stderr))
+var logger = boshlog.NewWriterLogger(boshlog.LevelError, os.Stderr)
 var Mux *http.ServeMux
 var Server *httptest.Server
 var originalStdin *os.File

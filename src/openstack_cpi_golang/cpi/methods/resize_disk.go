@@ -7,32 +7,34 @@ import (
 
 	"github.com/cloudfoundry/bosh-cpi-go/apiv1"
 	"github.com/cloudfoundry/bosh-openstack-cpi-release/src/openstack_cpi_golang/cpi/config"
-	"github.com/cloudfoundry/bosh-openstack-cpi-release/src/openstack_cpi_golang/cpi/utils"
 	"github.com/cloudfoundry/bosh-openstack-cpi-release/src/openstack_cpi_golang/cpi/volume"
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 )
 
 type ResizeDiskMethod struct {
 	volumeServiceBuilder volume.VolumeServiceBuilder
 	cpiConfig            config.CpiConfig
-	logger               utils.Logger
+	logger               boshlog.Logger
+	logTag               string
 }
 
 func NewResizeDiskMethod(
 	volumeServiceBuilder volume.VolumeServiceBuilder,
 	cpiConfig config.CpiConfig,
-	logger utils.Logger,
+	logger boshlog.Logger,
 ) ResizeDiskMethod {
 	return ResizeDiskMethod{
 		volumeServiceBuilder: volumeServiceBuilder,
 		cpiConfig:            cpiConfig,
 		logger:               logger,
+		logTag:               "resize_disk",
 	}
 }
 
 func (r ResizeDiskMethod) ResizeDisk(cid apiv1.DiskCID, size int) error {
 	sizeInGib := mibToGib(size)
 
-	r.logger.Info("resize_disk", fmt.Sprintf("Resizing volume %s to %d GiB (%v MiB)", cid.AsString(), sizeInGib, size))
+	r.logger.Info(r.logTag, "Resizing volume %s to %d GiB (%v MiB)", cid.AsString(), sizeInGib, size)
 
 	volumeService, err := r.volumeServiceBuilder.Build()
 	if err != nil {
@@ -46,7 +48,7 @@ func (r ResizeDiskMethod) ResizeDisk(cid apiv1.DiskCID, size int) error {
 
 	switch {
 	case volume.Size == sizeInGib:
-		r.logger.Info("resize_disk", fmt.Sprintf("Skipping resize of disk %s because current value %d GiB is equal new value %d GiB", cid.AsString(), volume.Size, sizeInGib))
+		r.logger.Info(r.logTag, "Skipping resize of disk %s because current value %d GiB is equal new value %d GiB", cid.AsString(), volume.Size, sizeInGib)
 		return nil
 	case volume.Size > sizeInGib:
 		return fmt.Errorf("cannot resize volume to a smaller size from %d GiB to %d GiB", volume.Size, sizeInGib)
@@ -59,13 +61,13 @@ func (r ResizeDiskMethod) ResizeDisk(cid apiv1.DiskCID, size int) error {
 		return fmt.Errorf("failed to resize volume %s: %w", cid.AsString(), err)
 	}
 
-	r.logger.Info("resize_disk", fmt.Sprintf("Resizing volume %s to %d GiB ...", cid.AsString(), sizeInGib))
+	r.logger.Info(r.logTag, "Resizing volume %s to %d GiB ...", cid.AsString(), sizeInGib)
 	err = volumeService.WaitForVolumeToBecomeStatus(volume.ID, time.Duration(r.cpiConfig.OpenStackConfig().StateTimeOut)*time.Second, "available")
 	if err != nil {
 		return fmt.Errorf("failed while waiting on resizing volume %s: %w", cid.AsString(), err)
 	}
 
-	r.logger.Info("resize_disk", fmt.Sprintf("Resized volume %s to %d GiB", cid.AsString(), sizeInGib))
+	r.logger.Info(r.logTag, "Resized volume %s to %d GiB", cid.AsString(), sizeInGib)
 
 	return nil
 }

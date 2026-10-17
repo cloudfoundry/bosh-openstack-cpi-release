@@ -10,7 +10,7 @@ import (
 	"github.com/cloudfoundry/bosh-openstack-cpi-release/src/openstack_cpi_golang/cpi/loadbalancer"
 	"github.com/cloudfoundry/bosh-openstack-cpi-release/src/openstack_cpi_golang/cpi/network"
 	"github.com/cloudfoundry/bosh-openstack-cpi-release/src/openstack_cpi_golang/cpi/properties"
-	"github.com/cloudfoundry/bosh-openstack-cpi-release/src/openstack_cpi_golang/cpi/utils"
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 )
 
 type DeleteVMMethod struct {
@@ -18,7 +18,7 @@ type DeleteVMMethod struct {
 	computeServiceBuilder      compute.ComputeServiceBuilder
 	loadbalancerServiceBuilder loadbalancer.LoadbalancerServiceBuilder
 	cpiConfig                  config.CpiConfig
-	logger                     utils.Logger
+	logger                     boshlog.Logger
 }
 
 func NewDeleteVMMethod(
@@ -26,7 +26,7 @@ func NewDeleteVMMethod(
 	computeServiceBuilder compute.ComputeServiceBuilder,
 	loadbalancerServiceBuilder loadbalancer.LoadbalancerServiceBuilder,
 	config config.CpiConfig,
-	logger utils.Logger,
+	logger boshlog.Logger,
 ) DeleteVMMethod {
 	return DeleteVMMethod{
 		networkServiceBuilder:      networkServiceBuilder,
@@ -40,23 +40,23 @@ func NewDeleteVMMethod(
 func (a DeleteVMMethod) DeleteVM(cid apiv1.VMCID) error {
 	computeService, err := a.computeServiceBuilder.Build()
 	if err != nil {
-		return fmt.Errorf("delete_vm: %w", err)
+		return fmt.Errorf("failed to delete VM: %w", err)
 	}
 
 	networkService, err := a.networkServiceBuilder.Build()
 	if err != nil {
-		return fmt.Errorf("delete_vm: %w", err)
+		return fmt.Errorf("failed to delete VM: %w", err)
 	}
 
 	// Get ports before deleting the server so that it is still assigned to the server
 	ports, err := networkService.GetPorts(cid.AsString(), properties.Network{}, true)
 	if err != nil {
-		return fmt.Errorf("delete_vm: %w", err)
+		return fmt.Errorf("failed to delete VM: %w", err)
 	}
 
 	serverMetadata, err := computeService.GetMetadata(cid.AsString())
 	if err != nil {
-		return fmt.Errorf("delete_vm: %w", err)
+		return fmt.Errorf("failed to delete VM: %w", err)
 	}
 
 	if len(serverMetadata) > 0 {
@@ -66,13 +66,13 @@ func (a DeleteVMMethod) DeleteVM(cid apiv1.VMCID) error {
 				if loadbalancerService == nil {
 					loadbalancerService, err = a.loadbalancerServiceBuilder.Build()
 					if err != nil {
-						return fmt.Errorf("delete_vm: %w", err)
+						return fmt.Errorf("failed to delete VM: %w", err)
 					}
 				}
 				parts := strings.Split(value, "/")
 				err = loadbalancerService.DeletePoolMember(parts[0], parts[1], a.cpiConfig.Cloud.Properties.Openstack.StateTimeOut)
 				if err != nil {
-					return fmt.Errorf("delete_vm: %w", err)
+					return fmt.Errorf("failed to delete VM: %w", err)
 				}
 			}
 		}
@@ -80,12 +80,12 @@ func (a DeleteVMMethod) DeleteVM(cid apiv1.VMCID) error {
 
 	err = computeService.DeleteServer(cid.AsString(), a.cpiConfig)
 	if err != nil {
-		return fmt.Errorf("delete_vm: %w", err)
+		return fmt.Errorf("failed to delete VM: %w", err)
 	}
 
 	err = networkService.DeletePorts(ports)
 	if err != nil {
-		return fmt.Errorf("delete_vm: %w", err)
+		return fmt.Errorf("failed to delete VM: %w", err)
 	}
 
 	return nil
