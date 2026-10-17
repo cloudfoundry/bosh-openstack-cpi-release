@@ -383,6 +383,25 @@ var _ = Describe("ComputeService", func() {
 			Expect(computeFacade.CreateServerCallCount()).To(Equal(2))
 		})
 
+		It("logs when no availability zone is configured", func() {
+			availabilityZoneProvider.GetAvailabilityZonesReturns([]string{""})
+
+			_, err := computeService.CreateServer(
+				apiv1.StemcellCID{},
+				defaultCloudConfig,
+				networkConfig,
+				agentID,
+				env,
+				createCpiConfig(10),
+			)
+
+			Expect(err).ToNot(HaveOccurred())
+			Expect(logger.InfoCallCount()).To(Equal(1))
+			tag, msg, _ := logger.InfoArgsForCall(0)
+			Expect(tag).To(Equal("compute_service"))
+			Expect(msg).To(Equal("No availability zone configured, VM will be created in OpenStack's default availability zone"))
+		})
+
 		It("returns an error if the server creation fails", func() {
 			computeFacade.CreateServerReturns(nil, errors.New("boom"))
 
