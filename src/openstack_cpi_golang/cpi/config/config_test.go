@@ -390,6 +390,56 @@ var _ = Describe("OpenstackConfig", func() {
 			Expect(merged.Validate()).ToNot(HaveOccurred())
 		})
 
+		It("does not clear working credentials when the context carries null/empty credential fields", func() {
+			usernameConfig := config.OpenstackConfig{
+				AuthURL:  "the_static_auth_url",
+				Username: "the_static_username",
+				APIKey:   "the_static_api_key",
+				Region:   "the_static_region",
+			}
+
+			// A context that mentions the opposite credential pair as null or
+			// empty must NOT be treated as a credential switch.
+			ctx := apiv1.CloudPropsImpl{RawMessage: []byte(`{
+				"region": "PO-C",
+				"application_credential_id": null,
+				"application_credential_secret": ""
+			}`)}
+
+			merged, err := usernameConfig.MergeContext(ctx)
+
+			Expect(err).ToNot(HaveOccurred())
+			// static username/api_key must be preserved
+			Expect(merged.Username).To(Equal("the_static_username"))
+			Expect(merged.APIKey).To(Equal("the_static_api_key"))
+			Expect(merged.Region).To(Equal("PO-C"))
+			Expect(merged.Validate()).ToNot(HaveOccurred())
+		})
+
+		It("does not clear working application credentials when the context carries null/empty username/api_key", func() {
+			appCredConfig := config.OpenstackConfig{
+				AuthURL:                     "the_static_auth_url",
+				ApplicationCredentialID:     "the_static_app_cred_id",
+				ApplicationCredentialSecret: "the_static_app_cred_secret",
+				Region:                      "the_static_region",
+			}
+
+			ctx := apiv1.CloudPropsImpl{RawMessage: []byte(`{
+				"region": "PO-C",
+				"username": null,
+				"api_key": ""
+			}`)}
+
+			merged, err := appCredConfig.MergeContext(ctx)
+
+			Expect(err).ToNot(HaveOccurred())
+			// static application credentials must be preserved
+			Expect(merged.ApplicationCredentialID).To(Equal("the_static_app_cred_id"))
+			Expect(merged.ApplicationCredentialSecret).To(Equal("the_static_app_cred_secret"))
+			Expect(merged.Region).To(Equal("PO-C"))
+			Expect(merged.Validate()).ToNot(HaveOccurred())
+		})
+
 		It("returns the unmodified config when the context carries no OpenStack overrides", func() {
 			ctx := apiv1.CloudPropsImpl{RawMessage: []byte(`{
 				"director_uuid": "some-director-uuid",

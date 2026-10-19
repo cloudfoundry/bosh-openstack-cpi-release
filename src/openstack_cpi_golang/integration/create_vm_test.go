@@ -788,7 +788,7 @@ var _ = Describe("Create VM", func() {
 						APIKey:                  "admin",
 						DomainName:              "domain",
 						Tenant:                  "tenant",
-						Region:                  "region",
+						Region:                  "RegionOne",
 						DefaultKeyName:          "unknown_key_name",
 						StemcellPubliclyVisible: true,
 					}
