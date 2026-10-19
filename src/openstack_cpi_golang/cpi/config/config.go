@@ -69,10 +69,14 @@ func (o OpenstackConfig) MergeContext(ctx apiv1.CallContext) (OpenstackConfig, e
 	// result does not carry both. Validate() rejects configs with both forms,
 	// and AuthOptions() would otherwise mis-resolve (it prefers username/api_key
 	// whenever present). This must happen before applying the context overrides.
-	_, ctxHasUsername := contextFields["username"]
-	_, ctxHasAPIKey := contextFields["api_key"]
-	_, ctxHasAppCredID := contextFields["application_credential_id"]
-	_, ctxHasAppCredSecret := contextFields["application_credential_secret"]
+	//
+	// Only a *non-empty* credential value counts as a switch: a context that
+	// carries username/api_key or application_credential_* as null or "" must
+	// not wipe the working credentials from the static config.
+	ctxHasUsername := hasNonEmptyValue(contextFields, "username")
+	ctxHasAPIKey := hasNonEmptyValue(contextFields, "api_key")
+	ctxHasAppCredID := hasNonEmptyValue(contextFields, "application_credential_id")
+	ctxHasAppCredSecret := hasNonEmptyValue(contextFields, "application_credential_secret")
 
 	if ctxHasUsername || ctxHasAPIKey {
 		delete(merged, "application_credential_id")
@@ -98,6 +102,22 @@ func (o OpenstackConfig) MergeContext(ctx apiv1.CallContext) (OpenstackConfig, e
 	}
 
 	return result, nil
+}
+
+// hasNonEmptyValue reports whether key is present in fields with a non-null,
+// non-empty string value. Absent keys, JSON null, and empty strings all count
+// as "not supplied" so they do not trigger a credential-type switch in
+// MergeContext (which would otherwise wipe the static config's credentials).
+func hasNonEmptyValue(fields map[string]json.RawMessage, key string) bool {
+	raw, ok := fields[key]
+	if !ok {
+		return false
+	}
+	var value string
+	if err := json.Unmarshal(raw, &value); err != nil {
+		return false
+	}
+	return value != ""
 }
 
 func (c CpiConfig) Properties() Properties {
