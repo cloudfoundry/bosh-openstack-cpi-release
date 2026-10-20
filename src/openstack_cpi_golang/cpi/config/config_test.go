@@ -440,6 +440,30 @@ var _ = Describe("OpenstackConfig", func() {
 			Expect(merged.Validate()).ToNot(HaveOccurred())
 		})
 
+		It("does not let a null/empty context value overwrite a credential of the same pair", func() {
+			usernameConfig := config.OpenstackConfig{
+				AuthURL:  "the_static_auth_url",
+				Username: "the_static_username",
+				APIKey:   "the_static_api_key",
+				Region:   "the_static_region",
+			}
+
+			// Context supplies api_key as null for the SAME pair the static
+			// config uses; it must not clobber the working api_key.
+			ctx := apiv1.CloudPropsImpl{RawMessage: []byte(`{
+				"region": "PO-C",
+				"api_key": null
+			}`)}
+
+			merged, err := usernameConfig.MergeContext(ctx)
+
+			Expect(err).ToNot(HaveOccurred())
+			Expect(merged.Username).To(Equal("the_static_username"))
+			Expect(merged.APIKey).To(Equal("the_static_api_key"))
+			Expect(merged.Region).To(Equal("PO-C"))
+			Expect(merged.Validate()).ToNot(HaveOccurred())
+		})
+
 		It("returns the unmodified config when the context carries no OpenStack overrides", func() {
 			ctx := apiv1.CloudPropsImpl{RawMessage: []byte(`{
 				"director_uuid": "some-director-uuid",
