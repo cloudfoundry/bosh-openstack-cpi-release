@@ -63,12 +63,23 @@ func (o OpenstackConfig) MergeContext(ctx apiv1.CallContext) (OpenstackConfig, e
 		return o, fmt.Errorf("failed to unmarshal openstack configuration: %w", err)
 	}
 
-	// A credential field carried as null or "" means "not supplied". Drop such
-	// values from the context up front so they neither (a) trigger a false
-	// credential-type switch nor (b) overwrite the static config's working
-	// credentials when the overlay loop runs below.
+	// Normalize credential fields carried in the context. A credential field
+	// given as null or "" means "not supplied", so drop it up front: that way it
+	// neither (a) triggers a false credential-type switch nor (b) overwrites the
+	// static config's working credentials in the overlay loop below. A non-string
+	// credential value (number, bool, object, ...) is malformed and must be
+	// rejected rather than silently discarded - otherwise Factory.New could fall
+	// back to the static credentials against a context-overridden endpoint.
 	for _, key := range []string{"username", "api_key", "application_credential_id", "application_credential_secret"} {
-		if raw, ok := contextFields[key]; ok && !isNonEmptyJSONString(raw) {
+		raw, ok := contextFields[key]
+		if !ok {
+			continue
+		}
+		var value string
+		if err := json.Unmarshal(raw, &value); err != nil {
+			return o, fmt.Errorf("invalid CPI call context: credential field %q must be a string", key)
+		}
+		if value == "" {
 			delete(contextFields, key)
 		}
 	}
@@ -108,17 +119,6 @@ func (o OpenstackConfig) MergeContext(ctx apiv1.CallContext) (OpenstackConfig, e
 	}
 
 	return result, nil
-}
-
-// isNonEmptyJSONString reports whether raw is a JSON string with a non-empty
-// value. JSON null, an empty string, and non-string values all return false,
-// so a credential field carried that way is treated as "not supplied".
-func isNonEmptyJSONString(raw json.RawMessage) bool {
-	var value string
-	if err := json.Unmarshal(raw, &value); err != nil {
-		return false
-	}
-	return value != ""
 }
 
 func (c CpiConfig) Properties() Properties {
