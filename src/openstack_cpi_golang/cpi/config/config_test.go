@@ -464,6 +464,27 @@ var _ = Describe("OpenstackConfig", func() {
 			Expect(merged.Validate()).ToNot(HaveOccurred())
 		})
 
+		It("rejects a non-string credential value in the context instead of discarding it", func() {
+			usernameConfig := config.OpenstackConfig{
+				AuthURL:  "the_static_auth_url",
+				Username: "the_static_username",
+				APIKey:   "the_static_api_key",
+				Region:   "the_static_region",
+			}
+
+			// A malformed (numeric) credential override must fail loudly, not be
+			// silently dropped (which could reuse static creds on a new endpoint).
+			ctx := apiv1.CloudPropsImpl{RawMessage: []byte(`{
+				"auth_url": "https://osvip-po-c01.example.com:5000/v3/auth",
+				"api_key": 12345
+			}`)}
+
+			_, err := usernameConfig.MergeContext(ctx)
+
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("credential field \"api_key\" must be a string"))
+		})
+
 		It("returns the unmodified config when the context carries no OpenStack overrides", func() {
 			ctx := apiv1.CloudPropsImpl{RawMessage: []byte(`{
 				"director_uuid": "some-director-uuid",
