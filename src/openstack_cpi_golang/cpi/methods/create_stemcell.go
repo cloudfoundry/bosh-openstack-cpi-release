@@ -9,7 +9,7 @@ import (
 	"github.com/cloudfoundry/bosh-openstack-cpi-release/src/openstack_cpi_golang/cpi/image"
 	"github.com/cloudfoundry/bosh-openstack-cpi-release/src/openstack_cpi_golang/cpi/image/root_image"
 	"github.com/cloudfoundry/bosh-openstack-cpi-release/src/openstack_cpi_golang/cpi/properties"
-	"github.com/cloudfoundry/bosh-openstack-cpi-release/src/openstack_cpi_golang/cpi/utils"
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 )
 
 type CreateStemcellMethod struct {
@@ -18,7 +18,8 @@ type CreateStemcellMethod struct {
 	lightStemcellCreator image.LightStemcellCreator
 	rootImageProvider    root_image.RootImage
 	config               config.OpenstackConfig
-	logger               utils.Logger
+	logger               boshlog.Logger
+	logTag               string
 }
 
 func NewCreateStemcellMethod(
@@ -27,7 +28,7 @@ func NewCreateStemcellMethod(
 	lightStemcellCreator image.LightStemcellCreator,
 	rootImageProvider root_image.RootImage,
 	config config.OpenstackConfig,
-	logger utils.Logger,
+	logger boshlog.Logger,
 ) CreateStemcellMethod {
 	return CreateStemcellMethod{
 		imageServiceBuilder:  imageServiceBuilder,
@@ -36,6 +37,7 @@ func NewCreateStemcellMethod(
 		rootImageProvider:    rootImageProvider,
 		config:               config,
 		logger:               logger,
+		logTag:               "create_stemcell",
 	}
 }
 
@@ -43,7 +45,7 @@ func (a CreateStemcellMethod) CreateStemcell(
 	imagePath string,
 	props apiv1.StemcellCloudProps,
 ) (apiv1.StemcellCID, error) {
-	a.logger.Info("create_stemcell", "Creating new image...")
+	a.logger.Info(a.logTag, "Creating new image...")
 
 	var cloudProps = properties.CreateStemcell{}
 	err := props.As(&cloudProps)

@@ -129,7 +129,7 @@ var _ = Describe("GetDisksMethod Integration Tests", func() {
 		Expect(err).ShouldNot(HaveOccurred())
 		stdOutWriter.Close() //nolint:errcheck
 		actual := <-outChannel
-		Expect(actual).To(ContainSubstring(`"message":"get_disks: Failed to get VM server-id-not-ok: failed to retrieve server information: Resource not found`))
+		Expect(actual).To(ContainSubstring(`"message":"failed to get VM server-id-not-ok: failed to retrieve server information: Resource not found`))
 	})
 
 	It("no disks attached to the server", func() {

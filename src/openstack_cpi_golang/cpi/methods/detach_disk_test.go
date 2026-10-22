@@ -54,7 +54,7 @@ var _ = Describe("DetachDiskMethod Unit Tests", func() {
 			vmCID := apiv1.VMCID{}
 			diskCID := apiv1.DiskCID{}
 			err := detachDiskMethod.DetachDisk(vmCID, diskCID)
-			Expect(err.Error()).To(Equal("detach_disk: Failed to get compute service: boom"))
+			Expect(err.Error()).To(Equal("failed to get compute service: boom"))
 		})
 
 		It("fails on get VM", func() {
@@ -64,7 +64,7 @@ var _ = Describe("DetachDiskMethod Unit Tests", func() {
 			vmCID := apiv1.NewVMCID(serverId)
 			diskCID := apiv1.DiskCID{}
 			err := detachDiskMethod.DetachDisk(vmCID, diskCID)
-			Expect(err.Error()).To(Equal(fmt.Sprintf("detach_disk: Failed to get VM %s: boom", serverId)))
+			Expect(err.Error()).To(Equal(fmt.Sprintf("failed to get VM %s: boom", serverId)))
 		})
 
 		It("fails on list volume attachments", func() {
@@ -80,7 +80,7 @@ var _ = Describe("DetachDiskMethod Unit Tests", func() {
 			vmCID := apiv1.NewVMCID(serverId)
 			diskCID := apiv1.NewDiskCID(volumeId1)
 			err := detachDiskMethod.DetachDisk(vmCID, diskCID)
-			Expect(err.Error()).To(Equal(fmt.Sprintf("detach_disk: Failed to get volume attachments for VM ID %s: boom", serverId)))
+			Expect(err.Error()).To(Equal(fmt.Sprintf("failed to get volume attachments for VM ID %s: boom", serverId)))
 		})
 
 		It("success: volume is not attached to VM", func() {
@@ -121,7 +121,7 @@ var _ = Describe("DetachDiskMethod Unit Tests", func() {
 			vmCID := apiv1.NewVMCID(serverId)
 			diskCID := apiv1.NewDiskCID(volumeId2)
 			err := detachDiskMethod.DetachDisk(vmCID, diskCID)
-			Expect(err.Error()).To(Equal(fmt.Sprintf("detach_disk: Failed to detach volume %s from VM %s: boom", diskCID.AsString(), vmCID.AsString())))
+			Expect(err.Error()).To(Equal(fmt.Sprintf("failed to detach volume %s from VM %s: boom", diskCID.AsString(), vmCID.AsString())))
 		})
 
 		It("fails on waiting after detached volume", func() {
@@ -145,7 +145,7 @@ var _ = Describe("DetachDiskMethod Unit Tests", func() {
 			vmCID := apiv1.NewVMCID(serverId)
 			diskCID := apiv1.NewDiskCID(volumeId2)
 			err := detachDiskMethod.DetachDisk(vmCID, diskCID)
-			Expect(err.Error()).To(Equal(fmt.Sprintf("detach_disk: Timeout on waiting for volume ID %s become available (waiting: %d sec): boom", diskCID.AsString(), cpiConfig.Cloud.Properties.Openstack.StateTimeOut)))
+			Expect(err.Error()).To(Equal(fmt.Sprintf("timeout on waiting for volume ID %s become available (waiting: %d sec): boom", diskCID.AsString(), cpiConfig.Cloud.Properties.Openstack.StateTimeOut)))
 		})
 
 		It("success on detach volume", func() {

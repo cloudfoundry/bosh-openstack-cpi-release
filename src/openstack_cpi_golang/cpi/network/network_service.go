@@ -9,6 +9,7 @@ import (
 	"github.com/cloudfoundry/bosh-openstack-cpi-release/src/openstack_cpi_golang/cpi/config"
 	"github.com/cloudfoundry/bosh-openstack-cpi-release/src/openstack_cpi_golang/cpi/properties"
 	"github.com/cloudfoundry/bosh-openstack-cpi-release/src/openstack_cpi_golang/cpi/utils"
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	"github.com/gophercloud/gophercloud"
 	"github.com/gophercloud/gophercloud/openstack/networking/v2/extensions/layer3/floatingips"
 	"github.com/gophercloud/gophercloud/openstack/networking/v2/ports"
@@ -46,18 +47,20 @@ type NetworkService interface {
 type networkService struct {
 	serviceClients   utils.ServiceClients
 	networkingFacade NetworkingFacade
-	logger           utils.Logger
+	logger           boshlog.Logger
+	logTag           string
 }
 
 func NewNetworkService(
 	serviceClients utils.ServiceClients,
 	networkingFacade NetworkingFacade,
-	logger utils.Logger,
+	logger boshlog.Logger,
 ) networkService {
 	return networkService{
 		serviceClients:   serviceClients,
 		networkingFacade: networkingFacade,
 		logger:           logger,
+		logTag:           "network_service",
 	}
 }
 
@@ -151,14 +154,14 @@ func (c networkService) CreatePort(network properties.Network, securityGroups []
 		return ports.Port{}, fmt.Errorf("failed create network opts: %w", err)
 	}
 
-	c.logger.Info("network-service", fmt.Sprintf("creating port with opts '%+v', using security groups %v", createOpts, securityGroups))
+	c.logger.Info(c.logTag, "Creating port with opts '%+v', using security groups %v", createOpts, securityGroups)
 
 	createdPort, err := c.networkingFacade.CreatePort(c.serviceClients.ServiceClient, createOpts)
 	if err != nil {
-		c.logger.Warn("network-service",
-			fmt.Sprintf("failed to create port on network '%s' for ip '%s': %v",
-				network.CloudProps.NetID, network.IP, err))
-		c.logger.Warn("network-service", "checking for conflicting ports now")
+		c.logger.Warn(c.logTag,
+			"Failed to create port on network '%s' for ip '%s': %v",
+			network.CloudProps.NetID, network.IP, err)
+		c.logger.Warn(c.logTag, "Checking for conflicting ports now")
 
 		listOpts := ports.ListOpts{
 			NetworkID: network.CloudProps.NetID,
@@ -176,9 +179,9 @@ func (c networkService) CreatePort(network properties.Network, securityGroups []
 
 		for _, port := range existingPorts {
 			if port.Status == "DOWN" && port.DeviceID == "" && port.DeviceOwner == "" {
-				c.logger.Warn("network-service", fmt.Sprintf("port on network '%s' for ip '%s' "+
-					"is already allocated but unused, deleting conflicting port now.",
-					network.CloudProps.NetID, network.IP))
+				c.logger.Warn(c.logTag, "Port on network '%s' for ip '%s' "+
+					"is already allocated but unused, deleting conflicting port now",
+					network.CloudProps.NetID, network.IP)
 
 				err := c.networkingFacade.DeletePort(c.serviceClients.RetryableServiceClient, port.ID)
 				if err != nil {
@@ -198,9 +201,9 @@ func (c networkService) CreatePort(network properties.Network, securityGroups []
 				network.CloudProps.NetID, network.IP)
 		}
 
-		c.logger.Info("network-service",
-			fmt.Sprintf("recreated port with id '%s' on network '%s' for ip '%s'",
-				createdPort.ID, network.CloudProps.NetID, network.IP))
+		c.logger.Info(c.logTag,
+			"Recreated port with id '%s' on network '%s' for ip '%s'",
+			createdPort.ID, network.CloudProps.NetID, network.IP)
 	}
 
 	return *createdPort, nil
@@ -235,12 +238,12 @@ func (c networkService) DeletePorts(ports []ports.Port) error {
 		err := c.networkingFacade.DeletePort(c.serviceClients.RetryableServiceClient, port.ID)
 		if err != nil {
 			if errors.As(err, &errDefault404) {
-				c.logger.Info("network_service", fmt.Sprintf("SKIPPING: Port deletion with id '%s' is not found", port.ID))
+				c.logger.Info(c.logTag, "Skipping: Port deletion with id '%s' is not found", port.ID)
 				return nil
 			}
 			return fmt.Errorf("failed to delete port: %w", err)
 		}
-		c.logger.Info("network_service", fmt.Sprintf("Deleted port with id '%s'", port.ID))
+		c.logger.Info(c.logTag, "Deleted port with id '%s'", port.ID)
 	}
 
 	return nil

@@ -8,41 +8,43 @@ import (
 
 	"github.com/cloudfoundry/bosh-cpi-go/apiv1"
 	"github.com/cloudfoundry/bosh-openstack-cpi-release/src/openstack_cpi_golang/cpi/config"
-	"github.com/cloudfoundry/bosh-openstack-cpi-release/src/openstack_cpi_golang/cpi/utils"
 	"github.com/cloudfoundry/bosh-openstack-cpi-release/src/openstack_cpi_golang/cpi/volume"
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	"github.com/google/uuid"
 )
 
 type SnapshotDiskMethod struct {
 	volumeServiceBuilder volume.VolumeServiceBuilder
 	cpiConfig            config.CpiConfig
-	logger               utils.Logger
+	logger               boshlog.Logger
+	logTag               string
 }
 
 func NewSnapshotDiskMethod(
 	volumeServiceBuilder volume.VolumeServiceBuilder,
 	cpiConfig config.CpiConfig,
-	logger utils.Logger) SnapshotDiskMethod {
+	logger boshlog.Logger) SnapshotDiskMethod {
 	return SnapshotDiskMethod{
 		volumeServiceBuilder: volumeServiceBuilder,
 		cpiConfig:            cpiConfig,
 		logger:               logger,
+		logTag:               "snapshot_disk",
 	}
 }
 
 func (s SnapshotDiskMethod) SnapshotDisk(cid apiv1.DiskCID, meta apiv1.DiskMeta) (apiv1.SnapshotCID, error) {
 
-	s.logger.Info("snapshot_disk", fmt.Sprintf("Execute snapshot for disk ID %s", cid.AsString()))
+	s.logger.Info(s.logTag, "Execute snapshot for disk ID %s", cid.AsString())
 
 	volumeService, err := s.volumeServiceBuilder.Build()
 	if err != nil {
 		return apiv1.SnapshotCID{},
-			fmt.Errorf("snapShotDisk: Failed to get volume service: %w", err)
+			fmt.Errorf("failed to get volume service: %w", err)
 	}
 	currentVolume, err := volumeService.GetVolume(cid.AsString())
 	if err != nil {
 		return apiv1.SnapshotCID{},
-			fmt.Errorf("snapShotDisk: Failed to get volume ID %s: %w", cid.AsString(), err)
+			fmt.Errorf("failed to get volume ID %s: %w", cid.AsString(), err)
 	}
 	var devices []string
 	devices = make([]string, 0)
@@ -53,9 +55,9 @@ func (s SnapshotDiskMethod) SnapshotDisk(cid apiv1.DiskCID, meta apiv1.DiskMeta)
 	}
 	stringKeyMap, err := metaDataToMap(meta)
 	if err != nil {
-		return apiv1.SnapshotCID{}, fmt.Errorf("snapShotDisk: Failed to convert disk metadata: %w", err)
+		return apiv1.SnapshotCID{}, fmt.Errorf("failed to convert disk metadata: %w", err)
 	}
-	s.logger.Debug("snapshot_disk", fmt.Sprintf("Provided disk metadata: %v", stringKeyMap))
+	s.logger.Debug(s.logTag, "Provided disk metadata: %v", stringKeyMap)
 
 	description := []interface{}{
 		getMapValueOrDefault(stringKeyMap, "deployment", "deployment-not-set"),
@@ -68,7 +70,7 @@ func (s SnapshotDiskMethod) SnapshotDisk(cid apiv1.DiskCID, meta apiv1.DiskMeta)
 	}
 	randomUUID, err := uuid.NewRandom()
 	if err != nil {
-		return apiv1.SnapshotCID{}, fmt.Errorf("snapShotDisk: Failed to create random UUID for snapshot name: %w", err)
+		return apiv1.SnapshotCID{}, fmt.Errorf("failed to create random UUID for snapshot name: %w", err)
 	}
 	snapshotName := "snapshot-" + randomUUID.String()
 	var descriptionParts []string
@@ -77,7 +79,7 @@ func (s SnapshotDiskMethod) SnapshotDisk(cid apiv1.DiskCID, meta apiv1.DiskMeta)
 	}
 	snapshotDescription := strings.Join(descriptionParts, "/")
 
-	s.logger.Info("snapShotDisk", fmt.Sprintf("Creating new snapshot %s for volume %s", snapshotName, cid.AsString()))
+	s.logger.Info(s.logTag, "Creating new snapshot %s for volume %s", snapshotName, cid.AsString())
 	stringKeyMap["director"] = getMapValueOrDefault(stringKeyMap, "director_name", "director-not-set")
 	stringKeyMap["instance_index"] = fmt.Sprintf("%v", getMapValueOrDefault(stringKeyMap, "index", "index-not-set"))
 	stringKeyMap["instance_name"] = fmt.Sprintf("%v", fmt.Sprintf("%v", getMapValueOrDefault(stringKeyMap, "job", "job-not-set"))+"/"+fmt.Sprintf("%v", getMapValueOrDefault(stringKeyMap, "instance_id", "instance_id-not-set")))
@@ -93,12 +95,12 @@ func (s SnapshotDiskMethod) SnapshotDisk(cid apiv1.DiskCID, meta apiv1.DiskMeta)
 		convertMapToString(stringKeyMap),
 	)
 	if err != nil {
-		return apiv1.SnapshotCID{}, fmt.Errorf("snapShotDisk: Failed to create snapshot %s for volume %s: %w", snapshotName, cid.AsString(), err)
+		return apiv1.SnapshotCID{}, fmt.Errorf("failed to create snapshot %s for volume %s: %w", snapshotName, cid.AsString(), err)
 	}
-	s.logger.Info("snapShotDisk", fmt.Sprintf("Waiting for new snapshot %s for volume %s to become available", snapshotName, cid.AsString()))
+	s.logger.Info(s.logTag, "Waiting for new snapshot %s for volume %s to become available", snapshotName, cid.AsString())
 	err = volumeService.WaitForSnapshotToBecomeStatus(snapshot.ID, time.Duration(s.cpiConfig.OpenStackConfig().StateTimeOut)*time.Second, "available")
 	if err != nil {
-		return apiv1.SnapshotCID{}, fmt.Errorf("snapShotDisk: Failed while waiting for creating snapshot %s for volume %s: %w", snapshotName, cid.AsString(), err)
+		return apiv1.SnapshotCID{}, fmt.Errorf("failed while waiting for snapshot %s for volume %s to become available: %w", snapshotName, cid.AsString(), err)
 	}
 	return apiv1.NewSnapshotCID(snapshot.ID), nil
 }
@@ -113,13 +115,13 @@ func getMapValueOrDefault(m map[string]interface{}, key string, defaultValue int
 func metaDataToMap(meta apiv1.DiskMeta) (map[string]interface{}, error) {
 	jsonBytes, err := meta.MarshalJSON()
 	if err != nil {
-		return nil, fmt.Errorf("metaDataToMap: Failed to convert apiv1.DiskMeta using MarshalJSON")
+		return nil, fmt.Errorf("failed to marshal disk metadata to JSON: %w", err)
 	}
 
 	var resultMap map[string]interface{}
 	err = json.Unmarshal(jsonBytes, &resultMap)
 	if err != nil {
-		return nil, fmt.Errorf("metaDataToMap: failed to convert apiv1.DiskMeta to map using Unmarshal")
+		return nil, fmt.Errorf("failed to unmarshal disk metadata to map: %w", err)
 	}
 	for k, v := range resultMap {
 		if v == nil || k == "" {

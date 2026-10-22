@@ -181,7 +181,7 @@ var _ = Describe("SNAPSHOT DISK", func() {
 			Expect(err).ShouldNot(HaveOccurred())
 
 			_ = stdOutWriter.Close() //nolint:errcheck
-			Expect(<-outChannel).To(ContainSubstring(`"message":"snapShotDisk: Failed to get volume ID`))
+			Expect(<-outChannel).To(ContainSubstring(`"message":"failed to get volume ID`))
 		})
 
 	})
@@ -239,7 +239,7 @@ var _ = Describe("SNAPSHOT DISK", func() {
 			Expect(err).ShouldNot(HaveOccurred())
 
 			_ = stdOutWriter.Close() //nolint:errcheck
-			Expect(<-outChannel).To(ContainSubstring(`"message":"snapShotDisk: Failed to create snapshot snapshot-`))
+			Expect(<-outChannel).To(ContainSubstring(`"message":"failed to create snapshot snapshot-`))
 		})
 
 	})
@@ -320,7 +320,7 @@ var _ = Describe("SNAPSHOT DISK", func() {
 			Expect(err).ShouldNot(HaveOccurred())
 
 			_ = stdOutWriter.Close() //nolint:errcheck
-			Expect(<-outChannel).To(ContainSubstring(`"message":"snapShotDisk: Failed while waiting for creating snapshot snapshot-`))
+			Expect(<-outChannel).To(ContainSubstring(`"message":"failed while waiting for snapshot snapshot-`))
 		})
 
 	})

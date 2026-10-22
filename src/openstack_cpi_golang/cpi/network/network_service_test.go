@@ -349,10 +349,12 @@ var _ = Describe("NetworkService", func() {
 			_, _ = network.NewNetworkService(serviceClients, &networkingFacade, &logger). //nolint:errcheck
 													CreatePort(defaultNetwork, securityGroups, cloudProperties)
 
-			tag, msg, _ := logger.WarnArgsForCall(0)
+			tag, msg, args := logger.WarnArgsForCall(0)
 
-			Expect(tag).To(Equal("network-service"))
-			Expect(msg).To(ContainSubstring("failed to create port on network 'the_net_id_1' for ip '1.1.1.1': boom"))
+			Expect(tag).To(Equal("network_service"))
+			Expect(msg).To(Equal("Failed to create port on network '%s' for ip '%s': %v"))
+			Expect(args).To(ContainElement("the_net_id_1"))
+			Expect(args).To(ContainElement("1.1.1.1"))
 		})
 
 		It("lists potentially conflicting ports", func() {

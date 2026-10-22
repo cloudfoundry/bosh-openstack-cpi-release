@@ -217,11 +217,9 @@ var _ = Describe("NewSetVMMetadataMethod", func() {
 			Expect(computeService.UpdateServerCallCount()).To(Equal(1))
 			Expect(err).ToNot(HaveOccurred())
 			arg1, arg2, arg3 := logger.InfoArgsForCall(0)
-			Expect(arg1).To(Equal("set_vm_metadata_method"))
-			Expect(arg2).To(Equal("Renamed VM with id '123-456"))
-			Expect(arg3[0]).To(Equal("' to '"))
-			Expect(arg3[1]).To(Equal("new-name"))
-			Expect(arg3[2]).To(Equal("'"))
+			Expect(arg1).To(Equal("set_vm_metadata"))
+			Expect(arg2).To(Equal("Renamed VM with id '%s' to '%s'"))
+			Expect(arg3).To(Equal([]interface{}{"123-456", "new-name"}))
 		})
 
 		It("applies human readable: input: job + index", func() {
@@ -239,11 +237,9 @@ var _ = Describe("NewSetVMMetadataMethod", func() {
 			Expect(computeService.UpdateServerCallCount()).To(Equal(1))
 			Expect(err).ToNot(HaveOccurred())
 			arg1, arg2, arg3 := logger.InfoArgsForCall(0)
-			Expect(arg1).To(Equal("set_vm_metadata_method"))
-			Expect(arg2).To(Equal("Renamed VM with id '123-456"))
-			Expect(arg3[0]).To(Equal("' to '"))
-			Expect(arg3[1]).To(Equal("new-job/1"))
-			Expect(arg3[2]).To(Equal("'"))
+			Expect(arg1).To(Equal("set_vm_metadata"))
+			Expect(arg2).To(Equal("Renamed VM with id '%s' to '%s'"))
+			Expect(arg3).To(Equal([]interface{}{"123-456", "new-job/1"}))
 		})
 
 		It("applies human readable: input: compiling", func() {
@@ -261,11 +257,9 @@ var _ = Describe("NewSetVMMetadataMethod", func() {
 			Expect(computeService.UpdateServerCallCount()).To(Equal(1))
 			Expect(err).ToNot(HaveOccurred())
 			arg1, arg2, arg3 := logger.InfoArgsForCall(0)
-			Expect(arg1).To(Equal("set_vm_metadata_method"))
-			Expect(arg2).To(Equal("Renamed VM with id '123-456"))
-			Expect(arg3[0]).To(Equal("' to '"))
-			Expect(arg3[1]).To(Equal("compiling/compiling-new"))
-			Expect(arg3[2]).To(Equal("'"))
+			Expect(arg1).To(Equal("set_vm_metadata"))
+			Expect(arg2).To(Equal("Renamed VM with id '%s' to '%s'"))
+			Expect(arg3).To(Equal([]interface{}{"123-456", "compiling/compiling-new"}))
 		})
 
 		It("applies human readable: input: not relevant for naming", func() {
@@ -283,9 +277,9 @@ var _ = Describe("NewSetVMMetadataMethod", func() {
 			Expect(computeService.UpdateServerCallCount()).To(Equal(0))
 			Expect(logger.DebugCallCount()).To(Equal(1))
 			arg1, arg2, arg3 := logger.DebugArgsForCall(0)
-			Expect(arg1).To(Equal("set_vm_metadata_method"))
-			Expect(arg2).To(Equal("did not apply human readable name: no name, job/index and compiling provided"))
-			Expect(len(arg3)).To(Equal(1))
+			Expect(arg1).To(Equal("set_vm_metadata"))
+			Expect(arg2).To(Equal("Did not apply human readable name: no name, job/index and compiling provided"))
+			Expect(len(arg3)).To(Equal(0))
 			Expect(err).ToNot(HaveOccurred())
 		})
 

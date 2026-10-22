@@ -6,6 +6,7 @@ import (
 	"github.com/cloudfoundry/bosh-openstack-cpi-release/src/openstack_cpi_golang/cpi/config"
 	"github.com/cloudfoundry/bosh-openstack-cpi-release/src/openstack_cpi_golang/cpi/openstack"
 	"github.com/cloudfoundry/bosh-openstack-cpi-release/src/openstack_cpi_golang/cpi/utils"
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 )
 
 //counterfeiter:generate . LoadbalancerServiceBuilder
@@ -16,10 +17,10 @@ type LoadbalancerServiceBuilder interface {
 type loadbalancerServiceBuilder struct {
 	openstackService openstack.OpenstackService
 	cpiConfig        config.CpiConfig
-	logger           utils.Logger
+	logger           boshlog.Logger
 }
 
-func NewLoadbalancerServiceBuilder(openstackService openstack.OpenstackService, cpiConfig config.CpiConfig, logger utils.Logger) loadbalancerServiceBuilder {
+func NewLoadbalancerServiceBuilder(openstackService openstack.OpenstackService, cpiConfig config.CpiConfig, logger boshlog.Logger) loadbalancerServiceBuilder {
 	return loadbalancerServiceBuilder{
 		openstackService: openstackService,
 		cpiConfig:        cpiConfig,
