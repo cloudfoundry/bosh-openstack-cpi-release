@@ -79,7 +79,10 @@ properties:
     description: Whether to use DHCP when configuring networking on VM (for both manual and dynamic)
     default: true
   openstack.ignore_server_availability_zone:
-    description: When creating a disk, do not use the availability zone of the server, fall back to Openstacks default
+    description: |
+      When creating a disk, do not pin it to the availability zone of the attached VM; use OpenStack's default volume AZ instead.
+      Must be set to true when using the `availability_zones` cloud property with more than one AZ: if a VM is recreated
+      in a different AZ (due to retry logic), a disk pinned to the original server's AZ cannot be attached to the new VM.
     default: false
   openstack.human_readable_vm_names:
     description: When creating a VM, use the job name as VM name if true. Otherwise use a generated UUID as name. If this parameter is set to true, the registry.endpoint parameter has to be set.
