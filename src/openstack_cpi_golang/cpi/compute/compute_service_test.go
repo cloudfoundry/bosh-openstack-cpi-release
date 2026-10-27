@@ -383,6 +383,22 @@ var _ = Describe("ComputeService", func() {
 			Expect(computeFacade.CreateServerCallCount()).To(Equal(2))
 		})
 
+		It("returns an error when no availability zone is configured", func() {
+			availabilityZoneProvider.GetAvailabilityZonesReturns([]string{""})
+
+			_, err := computeService.CreateServer(
+				apiv1.StemcellCID{},
+				defaultCloudConfig,
+				networkConfig,
+				agentID,
+				env,
+				createCpiConfig(10),
+			)
+
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(Equal("'availability_zone' or 'availability_zones' must be set in cloud_properties"))
+		})
+
 		It("returns an error if the server creation fails", func() {
 			computeFacade.CreateServerReturns(nil, errors.New("boom"))
 

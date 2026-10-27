@@ -183,6 +183,10 @@ func (c computeService) CreateServer(
 	var server *servers.Server
 	availabilityZones := c.availabilityZoneProvider.GetAvailabilityZones(cloudProps)
 
+	if len(availabilityZones) == 1 && availabilityZones[0] == "" {
+		return nil, fmt.Errorf("'availability_zone' or 'availability_zones' must be set in cloud_properties")
+	}
+
 	for _, availabilityZone := range availabilityZones {
 		createOpts := c.getServerCreateOpts(vmName, availabilityZone, stemcellCID, networkConfig, flavor, keyname, blockDevices, userDataJson)
 
