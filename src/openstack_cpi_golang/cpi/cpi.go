@@ -5,12 +5,12 @@ import (
 
 	"github.com/cloudfoundry/bosh-cpi-go/rpc"
 	"github.com/cloudfoundry/bosh-openstack-cpi-release/src/openstack_cpi_golang/cpi/config"
-	"github.com/cloudfoundry/bosh-openstack-cpi-release/src/openstack_cpi_golang/cpi/utils"
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 )
 
-func Execute(cpiConfig config.CpiConfig, cpiLogger utils.Logger) error {
+func Execute(cpiConfig config.CpiConfig, cpiLogger boshlog.Logger) error {
 
-	cli := rpc.NewFactory(cpiLogger.TargetLogger()).NewCLI(
+	cli := rpc.NewFactory(cpiLogger).NewCLI(
 		NewFactory(cpiConfig, cpiLogger),
 	)
 

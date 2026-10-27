@@ -6,6 +6,7 @@ import (
 	"github.com/cloudfoundry/bosh-openstack-cpi-release/src/openstack_cpi_golang/cpi/config"
 	"github.com/cloudfoundry/bosh-openstack-cpi-release/src/openstack_cpi_golang/cpi/openstack"
 	"github.com/cloudfoundry/bosh-openstack-cpi-release/src/openstack_cpi_golang/cpi/utils"
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 )
 
 //counterfeiter:generate . NetworkServiceBuilder
@@ -16,10 +17,10 @@ type NetworkServiceBuilder interface {
 type networkServiceBuilder struct {
 	openstackService openstack.OpenstackService
 	cpiConfig        config.CpiConfig
-	logger           utils.Logger
+	logger           boshlog.Logger
 }
 
-func NewNetworkServiceBuilder(openstackService openstack.OpenstackService, cpiConfig config.CpiConfig, logger utils.Logger) networkServiceBuilder {
+func NewNetworkServiceBuilder(openstackService openstack.OpenstackService, cpiConfig config.CpiConfig, logger boshlog.Logger) networkServiceBuilder {
 	return networkServiceBuilder{
 		openstackService: openstackService,
 		cpiConfig:        cpiConfig,

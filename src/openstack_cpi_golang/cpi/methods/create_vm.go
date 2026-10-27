@@ -11,7 +11,7 @@ import (
 	"github.com/cloudfoundry/bosh-openstack-cpi-release/src/openstack_cpi_golang/cpi/loadbalancer"
 	"github.com/cloudfoundry/bosh-openstack-cpi-release/src/openstack_cpi_golang/cpi/network"
 	"github.com/cloudfoundry/bosh-openstack-cpi-release/src/openstack_cpi_golang/cpi/properties"
-	"github.com/cloudfoundry/bosh-openstack-cpi-release/src/openstack_cpi_golang/cpi/utils"
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	"github.com/gophercloud/gophercloud/openstack/compute/v2/servers"
 	"github.com/gophercloud/gophercloud/openstack/loadbalancer/v2/pools"
 	"github.com/gophercloud/gophercloud/openstack/networking/v2/ports"
@@ -23,7 +23,8 @@ type CreateVMMethod struct {
 	computeServiceBuilder      compute.ComputeServiceBuilder
 	loadbalancerServiceBuilder loadbalancer.LoadbalancerServiceBuilder
 	cpiConfig                  config.CpiConfig
-	logger                     utils.Logger
+	logger                     boshlog.Logger
+	logTag                     string
 }
 
 func NewCreateVMMethod(
@@ -32,7 +33,7 @@ func NewCreateVMMethod(
 	computeServiceBuilder compute.ComputeServiceBuilder,
 	loadbalancerServiceBuilder loadbalancer.LoadbalancerServiceBuilder,
 	cpiConfig config.CpiConfig,
-	logger utils.Logger,
+	logger boshlog.Logger,
 ) CreateVMMethod {
 	return CreateVMMethod{
 		imageServiceBuilder:        imageServiceBuilder,
@@ -41,6 +42,7 @@ func NewCreateVMMethod(
 		loadbalancerServiceBuilder: loadbalancerServiceBuilder,
 		cpiConfig:                  cpiConfig,
 		logger:                     logger,
+		logTag:                     "create_vm",
 	}
 }
 
@@ -180,7 +182,7 @@ func (m CreateVMMethod) configureLoadbalancerPools(
 		if err != nil {
 			return poolMemberships, fmt.Errorf("failed to get pool ID of pool '%s': %w", poolProperties.Name, err)
 		}
-		m.logger.Info("create_vm_method", fmt.Sprintf("Resolved pool id '%s' for pool '%s'", pool.ID, poolProperties.Name))
+		m.logger.Info(m.logTag, "Resolved pool id '%s' for pool '%s'", pool.ID, poolProperties.Name)
 
 		ip := networkConfig.DefaultNetwork.IP
 
@@ -199,7 +201,7 @@ func (m CreateVMMethod) configureLoadbalancerPools(
 		poolMember.PoolID = pool.ID
 		poolMemberships = append(poolMemberships, *poolMember)
 
-		m.logger.Info("create_vm_method", fmt.Sprintf("created pool member '%+v' in pool '%s'", *poolMember, pool.ID))
+		m.logger.Info(m.logTag, "Created pool member '%+v' in pool '%s'", *poolMember, pool.ID)
 	}
 
 	return poolMemberships, nil
@@ -226,9 +228,9 @@ func (m CreateVMMethod) cleanupServerResources(
 	for _, poolMember := range poolMembers {
 		err := loadbalancerService.DeletePoolMember(poolMember.PoolID, poolMember.ID, m.cpiConfig.Cloud.Properties.Openstack.StateTimeOut)
 		if err != nil {
-			m.logger.Warn("create_vm_method",
-				fmt.Sprintf("failed while cleaning up pool member: '%s' in pool '%s' with error: %s",
-					poolMember.ID, poolMember.PoolID, err.Error()))
+			m.logger.Warn(m.logTag,
+				"Failed while cleaning up pool member: '%s' in pool '%s' with error: %s",
+				poolMember.ID, poolMember.PoolID, err.Error())
 			continue
 		}
 	}
@@ -236,15 +238,15 @@ func (m CreateVMMethod) cleanupServerResources(
 	if server != nil {
 		err := computeService.DeleteServer(server.ID, m.cpiConfig)
 		if err != nil {
-			m.logger.Warn("create_vm_method",
-				fmt.Sprintf("failed while cleaning up server '%s' with error: %s", server.ID, err.Error()))
+			m.logger.Warn(m.logTag,
+				"Failed while cleaning up server '%s' with error: %s", server.ID, err.Error())
 		}
 	}
 
 	err := networkService.DeletePorts(ports)
 	if err != nil {
-		m.logger.Warn("create_vm_method",
-			fmt.Sprintf("failed while cleaning up ports: '%+v' with error: %s", ports, err.Error()))
+		m.logger.Warn(m.logTag,
+			"Failed while cleaning up ports: '%+v' with error: %s", ports, err.Error())
 	}
 
 	return apiv1.VMCID{}, apiv1.Networks{}, errorMsg

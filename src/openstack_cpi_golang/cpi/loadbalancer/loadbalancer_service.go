@@ -7,6 +7,7 @@ import (
 
 	"github.com/cloudfoundry/bosh-openstack-cpi-release/src/openstack_cpi_golang/cpi/properties"
 	"github.com/cloudfoundry/bosh-openstack-cpi-release/src/openstack_cpi_golang/cpi/utils"
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	"github.com/gophercloud/gophercloud"
 	"github.com/gophercloud/gophercloud/openstack/loadbalancer/v2/loadbalancers"
 	"github.com/gophercloud/gophercloud/openstack/loadbalancer/v2/pools"
@@ -26,18 +27,20 @@ type LoadbalancerService interface {
 type loadbalancerService struct {
 	serviceClients     utils.ServiceClients
 	loadbalancerFacade LoadbalancerFacade
-	logger             utils.Logger
+	logger             boshlog.Logger
+	logTag             string
 }
 
 func NewLoadbalancerService(
 	serviceClients utils.ServiceClients,
 	loadbalancerFacade LoadbalancerFacade,
-	logger utils.Logger,
+	logger boshlog.Logger,
 ) loadbalancerService {
 	return loadbalancerService{
 		serviceClients:     serviceClients,
 		loadbalancerFacade: loadbalancerFacade,
 		logger:             logger,
+		logTag:             "loadbalancer_service",
 	}
 }
 
@@ -102,11 +105,11 @@ func (l loadbalancerService) CreatePoolMember(pool pools.Pool, ip string, poolPr
 					// If there is a conflict, try to find if the pool member already exists with the same IP and Port
 					poolMember := l.getPoolMember(pool.ID, createMemberOpts)
 					if poolMember != nil {
-						l.logger.Info("loadbalancer_service", fmt.Sprintf("SKIPPING creation: pool membership with pool id '%s', ip '%s', and port '%v' already exists", pool.ID, ip, poolProperties.ProtocolPort))
+						l.logger.Info(l.logTag, "Skipping creation: pool membership with pool id '%s', ip '%s', and port '%v' already exists", pool.ID, ip, poolProperties.ProtocolPort)
 						return poolMember, nil
 					} else {
 						attempts++
-						l.logger.Warn("loadbalancer_service", fmt.Sprintf("creating pool membership with IP '%s' in pool '%s' failed in attempt number '%v' with error: %s", ip, pool.ID, attempts, err.Error()))
+						l.logger.Warn(l.logTag, "Creating pool membership with IP '%s' in pool '%s' failed in attempt number '%v' with error: %s", ip, pool.ID, attempts, err.Error())
 					}
 				} else {
 					return nil, err
@@ -153,16 +156,16 @@ func (l loadbalancerService) DeletePoolMember(poolID string, memberID string, st
 			if err != nil {
 				if errors.As(err, &errDefault409) {
 					attempts++
-					l.logger.Warn("loadbalancer_service", fmt.Sprintf("deleting pool membership with ID '%s' in pool '%s' failed in attempt number '%v' with error: %s", memberID, poolID, attempts, err.Error()))
+					l.logger.Warn(l.logTag, "Deleting pool membership with ID '%s' in pool '%s' failed in attempt number '%v' with error: %s", memberID, poolID, attempts, err.Error())
 				} else if errors.As(err, &errDefault404) {
-					l.logger.Info("loadbalancer_service", fmt.Sprintf("SKIPPING deletion: pool member with id '%s' in pool '%s' is not found", memberID, poolID))
+					l.logger.Info(l.logTag, "Skipping deletion: pool member with id '%s' in pool '%s' is not found", memberID, poolID)
 					return nil
 				} else {
 					return err
 				}
 			}
 			isDeleted = true
-			l.logger.Info("loadbalancer_service", fmt.Sprintf("Deleted pool member with id '%s' from pool '%s'", memberID, poolID))
+			l.logger.Info(l.logTag, "Deleted pool member with id '%s' from pool '%s'", memberID, poolID)
 		}
 	}
 

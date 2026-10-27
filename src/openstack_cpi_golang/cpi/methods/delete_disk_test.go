@@ -73,7 +73,7 @@ var _ = Describe("DeleteDisk", func() {
 				apiv1.NewDiskCID("some-disk-cid"),
 			)
 
-			Expect(err.Error()).To(Equal("delete disk: some_error_while_getting_volume"))
+			Expect(err.Error()).To(Equal("failed to delete disk: some_error_while_getting_volume"))
 		})
 
 		It("returns an error if volume is not in status available", func() {
@@ -101,7 +101,7 @@ var _ = Describe("DeleteDisk", func() {
 				apiv1.NewDiskCID("some-disk-cid"),
 			)
 
-			Expect(err.Error()).To(Equal("delete disk: some_error_while_deleting_volume"))
+			Expect(err.Error()).To(Equal("failed to delete disk: some_error_while_deleting_volume"))
 		})
 
 		It("fails while waiting for the volume to become deleted", func() {
@@ -116,7 +116,7 @@ var _ = Describe("DeleteDisk", func() {
 			)
 
 			Expect(volumeService.WaitForVolumeToBecomeStatusCallCount()).To(Equal(1))
-			Expect(err.Error()).To(Equal("delete disk: some_error_while_waiting_for_volume"))
+			Expect(err.Error()).To(Equal("failed to delete disk: some_error_while_waiting_for_volume"))
 		})
 
 		It("deletes the volume", func() {
@@ -145,11 +145,12 @@ var _ = Describe("DeleteDisk", func() {
 				).DeleteDisk(
 					apiv1.NewDiskCID("some-disk-cid"),
 				)
-				firstLoggerInfo, secondLoggerInfo, _ := logger.InfoArgsForCall(0)
+				firstLoggerInfo, secondLoggerInfo, thirdLoggerInfo := logger.InfoArgsForCall(0)
 
 				Expect(logger.InfoCallCount()).To(Equal(1))
-				Expect(firstLoggerInfo).To(Equal("volume %s not found. Skipping."))
-				Expect(secondLoggerInfo).To(Equal("some-disk-cid"))
+				Expect(firstLoggerInfo).To(Equal("delete_disk"))
+				Expect(secondLoggerInfo).To(Equal("Volume %s not found. Skipping"))
+				Expect(thirdLoggerInfo).To(Equal([]interface{}{"some-disk-cid"}))
 			})
 		})
 	})

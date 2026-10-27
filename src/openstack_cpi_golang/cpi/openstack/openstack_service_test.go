@@ -69,6 +69,18 @@ var _ = Describe("OpenstackService", func() {
 			}))
 		})
 
+		It("uses the region from the merged config when set, falling back to env var when empty", func() {
+			openstackConfig := config.OpenstackConfig{
+				Region: "the_config_region",
+			}
+			_, _ = openstack.NewOpenstackService(&openstackFacade, &envVar).ImageServiceV2(openstackConfig) //nolint:errcheck
+
+			_, endpointOpts := openstackFacade.NewImageServiceV2ArgsForCall(0)
+			Expect(endpointOpts).To(Equal(gophercloud.EndpointOpts{
+				Region: "the_config_region",
+			}))
+		})
+
 		It("returns an error on failing authentication", func() {
 			openstackFacade.AuthenticatedClientReturns(nil, errors.New("boom"))
 
@@ -115,6 +127,18 @@ var _ = Describe("OpenstackService", func() {
 			_, endpointOpts := openstackFacade.NewComputeV2ArgsForCall(0)
 			Expect(endpointOpts).To(Equal(gophercloud.EndpointOpts{
 				Region: "the_os_region_name",
+			}))
+		})
+
+		It("uses the region from the merged config when set, falling back to env var when empty", func() {
+			openstackConfig := config.OpenstackConfig{
+				Region: "the_config_region",
+			}
+			_, _ = openstack.NewOpenstackService(&openstackFacade, &envVar).ComputeServiceV2(openstackConfig) //nolint:errcheck
+
+			_, endpointOpts := openstackFacade.NewComputeV2ArgsForCall(0)
+			Expect(endpointOpts).To(Equal(gophercloud.EndpointOpts{
+				Region: "the_config_region",
 			}))
 		})
 
@@ -167,6 +191,18 @@ var _ = Describe("OpenstackService", func() {
 			}))
 		})
 
+		It("uses the region from the merged config when set, falling back to env var when empty", func() {
+			openstackConfig := config.OpenstackConfig{
+				Region: "the_config_region",
+			}
+			_, _ = openstack.NewOpenstackService(&openstackFacade, &envVar).LoadbalancerV2(openstackConfig) //nolint:errcheck
+
+			_, endpointOpts := openstackFacade.NewLoadBalancerV2ArgsForCall(0)
+			Expect(endpointOpts).To(Equal(gophercloud.EndpointOpts{
+				Region: "the_config_region",
+			}))
+		})
+
 		It("returns an error on failing authentication", func() {
 			openstackFacade.AuthenticatedClientReturns(nil, errors.New("boom"))
 
@@ -216,6 +252,18 @@ var _ = Describe("OpenstackService", func() {
 			}))
 		})
 
+		It("uses the region from the merged config when set, falling back to env var when empty", func() {
+			openstackConfig := config.OpenstackConfig{
+				Region: "the_config_region",
+			}
+			_, _ = openstack.NewOpenstackService(&openstackFacade, &envVar).NetworkServiceV2(openstackConfig) //nolint:errcheck
+
+			_, endpointOpts := openstackFacade.NewNetworkV2ArgsForCall(0)
+			Expect(endpointOpts).To(Equal(gophercloud.EndpointOpts{
+				Region: "the_config_region",
+			}))
+		})
+
 		It("returns an error on failing authentication", func() {
 			openstackFacade.AuthenticatedClientReturns(nil, errors.New("boom"))
 
@@ -225,5 +273,70 @@ var _ = Describe("OpenstackService", func() {
 			Expect(client).To(BeNil())
 		})
 
+	})
+
+	Context("BlockStorageV3", func() {
+		It("returns a BlockStorageV3 instance", func() {
+			openstackFacade.NewBlockStorageV3Returns(&serviceClient, nil)
+			client, err := openstack.NewOpenstackService(&openstackFacade, &envVar).BlockStorageV3(config.OpenstackConfig{})
+
+			Expect(err).ToNot(HaveOccurred())
+			Expect(client).To(Equal(&serviceClient))
+		})
+
+		It("authenticates using the cpi config", func() {
+			openstackFacade.NewBlockStorageV3Returns(&serviceClient, nil)
+			openstackConfig := config.OpenstackConfig{
+				AuthURL:     "the_auth_url",
+				Username:    "the_username",
+				APIKey:      "the_api_key",
+				DomainName:  "the_domain_name",
+				ProjectName: "the_tenant",
+			}
+
+			_, _ = openstack.NewOpenstackService(&openstackFacade, &envVar).BlockStorageV3(openstackConfig) //nolint:errcheck
+
+			opts := openstackFacade.AuthenticatedClientArgsForCall(0)
+			Expect(opts).To(Equal(gophercloud.AuthOptions{
+				IdentityEndpoint: "the_auth_url",
+				Username:         "the_username",
+				Password:         "the_api_key",
+				DomainName:       "the_domain_name",
+				TenantName:       "the_tenant",
+			}))
+		})
+
+		It("gets the region of the service from the environment", func() {
+			openstackFacade.NewBlockStorageV3Returns(&serviceClient, nil)
+			_, _ = openstack.NewOpenstackService(&openstackFacade, &envVar).BlockStorageV3(config.OpenstackConfig{}) //nolint:errcheck
+
+			_, endpointOpts := openstackFacade.NewBlockStorageV3ArgsForCall(0)
+			Expect(endpointOpts).To(Equal(gophercloud.EndpointOpts{
+				Region: "the_os_region_name",
+			}))
+		})
+
+		It("uses the region from the merged config when set, falling back to env var when empty", func() {
+			openstackFacade.NewBlockStorageV3Returns(&serviceClient, nil)
+			openstackConfig := config.OpenstackConfig{
+				Region: "the_config_region",
+			}
+			_, _ = openstack.NewOpenstackService(&openstackFacade, &envVar).BlockStorageV3(openstackConfig) //nolint:errcheck
+
+			_, endpointOpts := openstackFacade.NewBlockStorageV3ArgsForCall(0)
+			Expect(endpointOpts).To(Equal(gophercloud.EndpointOpts{
+				Region: "the_config_region",
+			}))
+		})
+
+		It("returns an error on failing authentication", func() {
+			openstackFacade.NewBlockStorageV3Returns(&serviceClient, nil)
+			openstackFacade.AuthenticatedClientReturns(nil, errors.New("boom"))
+
+			client, err := openstack.NewOpenstackService(&openstackFacade, &envVar).BlockStorageV3(config.OpenstackConfig{})
+
+			Expect(err.Error()).To(Equal("failed to authenticate: boom"))
+			Expect(client).To(BeNil())
+		})
 	})
 })

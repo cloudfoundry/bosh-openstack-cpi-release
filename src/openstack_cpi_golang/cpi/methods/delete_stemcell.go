@@ -6,26 +6,28 @@ import (
 	"github.com/cloudfoundry/bosh-openstack-cpi-release/src/openstack_cpi_golang/cpi/image"
 
 	"github.com/cloudfoundry/bosh-cpi-go/apiv1"
-	"github.com/cloudfoundry/bosh-openstack-cpi-release/src/openstack_cpi_golang/cpi/utils"
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 )
 
 type DeleteStemcellMethod struct {
 	imageServiceBuilder image.ImageServiceBuilder
-	logger              utils.Logger
+	logger              boshlog.Logger
+	logTag              string
 }
 
 func NewDeleteStemcellMethod(
 	serviceFactory image.ImageServiceBuilder,
-	logger utils.Logger,
+	logger boshlog.Logger,
 ) DeleteStemcellMethod {
 	return DeleteStemcellMethod{
 		imageServiceBuilder: serviceFactory,
 		logger:              logger,
+		logTag:              "delete_stemcell",
 	}
 }
 
 func (a DeleteStemcellMethod) DeleteStemcell(cid apiv1.StemcellCID) error {
-	a.logger.Info("delete_stemcell", "Creating image service ...")
+	a.logger.Info(a.logTag, "Creating image service ...")
 	imageService, err := a.imageServiceBuilder.Build()
 	if err != nil {
 		return fmt.Errorf("failed to create image service: %w", err)

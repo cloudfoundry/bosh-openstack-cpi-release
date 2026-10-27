@@ -35,6 +35,8 @@ builds:
     version: "13"
   53a7c8c6-3395-4f17-98c4-02c8b70c8107:
     version: "25"
+  5aa8932c-1cd5-46b6-4575-89539084aa1d:
+    version: 56.0.2
   5c8ebb6b-ed2f-4aa4-5587-865b1af81a4c:
     version: "35"
   5d63e2cc-b2fa-47a1-b530-78fd00dc65c5:
@@ -97,6 +99,8 @@ builds:
     version: "39"
   ca3d600c-c807-45e8-99b1-1462b7d7f1b3:
     version: "30"
+  cac43570-38bd-45c1-4035-13fcbbbc25c1:
+    version: 56.0.3
   d2848822-d111-42cb-8db6-796533f660b1:
     version: "20"
   d66a1497-e0bb-4382-9d09-cdbeee0dddb0:

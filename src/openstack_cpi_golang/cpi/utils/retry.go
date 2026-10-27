@@ -8,10 +8,11 @@ import (
 	"time"
 
 	"github.com/cloudfoundry/bosh-openstack-cpi-release/src/openstack_cpi_golang/cpi/config"
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	"github.com/gophercloud/gophercloud"
 )
 
-func RetryOnError(retryConfig config.RetryConfig, logger Logger) func(
+func RetryOnError(retryConfig config.RetryConfig, logger boshlog.Logger) func(
 	ctx context.Context,
 	method string,
 	url string,
@@ -22,34 +23,28 @@ func RetryOnError(retryConfig config.RetryConfig, logger Logger) func(
 	sleepDuration := time.Duration(retryConfig.SleepDuration) * time.Second
 	maxRetries := retryConfig.MaxAttempts
 
+	const logTag = "retry_on_error"
+
 	return func(ctx context.Context, method string, url string, options *gophercloud.RequestOpts, inError error, failCount uint) error {
 		if failCount >= uint(maxRetries) {
 			return fmt.Errorf("max retry attempts (%d) reached, err: %w", failCount, inError)
 		}
 
-		logger.Warn(
-			"retry on error",
-			fmt.Sprintf("attempt failed with error: %v", inError))
+		logger.Warn(logTag, "attempt failed with error: %v", inError)
 
 		var responseCode gophercloud.ErrUnexpectedResponseCode
 		if errors.As(inError, &responseCode) {
 			if responseCode.Actual == 500 || responseCode.Actual == 503 {
-				logger.Warn(
-					"retry on error",
-					fmt.Sprintf("detected HTTP error %d, sleeping for %.0f seconds", responseCode.Actual, sleepDuration.Seconds()))
+				logger.Warn(logTag, "detected HTTP error %d, sleeping for %.0f seconds", responseCode.Actual, sleepDuration.Seconds())
 				time.Sleep(sleepDuration)
 				return nil
 			}
 		} else if isTimeout(inError) {
-			logger.Warn(
-				"retry on error",
-				fmt.Sprintf("detected timeout, sleeping for %.0f seconds", sleepDuration.Seconds()))
+			logger.Warn(logTag, "detected timeout, sleeping for %.0f seconds", sleepDuration.Seconds())
 			time.Sleep(sleepDuration)
 			return nil
 		} else if isNetworkError(inError) {
-			logger.Warn(
-				"retry on error",
-				fmt.Sprintf("detected network error, sleeping for %.0f seconds", sleepDuration.Seconds()))
+			logger.Warn(logTag, "detected network error, sleeping for %.0f seconds", sleepDuration.Seconds())
 			time.Sleep(sleepDuration)
 			return nil
 		}

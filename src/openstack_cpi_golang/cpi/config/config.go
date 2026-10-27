@@ -7,6 +7,7 @@ import (
 	"io/fs"
 	"strings"
 
+	"github.com/cloudfoundry/bosh-cpi-go/apiv1"
 	"github.com/gophercloud/gophercloud"
 )
 
@@ -18,6 +19,106 @@ type CpiConfig struct {
 
 func (c CpiConfig) OpenStackConfig() OpenstackConfig {
 	return c.Cloud.Properties.Openstack
+}
+
+// MergeContext overlays OpenStack-related fields found in a CPI call context on
+// top of this configuration. A director with a multi-CPI (CPI config) setup
+// sends the per-CPI "properties" block (auth_url, region, credentials, etc.) as
+// the JSON-RPC request context, so that a single installed CPI job can serve
+// several OpenStack endpoints. Only fields present in the context override the
+// job's static configuration; everything else is left untouched. This mirrors
+// the legacy Ruby CPI's `cloud_properties['openstack'].merge!(context)` behavior.
+//
+// Validation of the merged configuration is the caller's responsibility
+// (Factory.New), since validation must happen after merging regardless of
+// whether the context is present or empty.
+func (o OpenstackConfig) MergeContext(ctx apiv1.CallContext) (OpenstackConfig, error) {
+	// The CPI call context is optional. Single-CPI directors (and several
+	// dispatcher/test paths) issue requests without one; the dispatcher then
+	// leaves the raw context payload empty. Only a truly absent (empty) payload
+	// is treated as "no overrides"; otherwise CallContext.As would fail on the
+	// empty payload ("unexpected end of JSON input") and break every call that
+	// does not carry a context. A present payload (including a malformed or
+	// whitespace-only one) is still parsed and rejected below.
+	if cp, ok := ctx.(apiv1.CloudPropsImpl); ok && len(cp.RawMessage) == 0 {
+		return o, nil
+	}
+
+	var contextFields map[string]json.RawMessage
+	if err := ctx.As(&contextFields); err != nil {
+		return o, fmt.Errorf("failed to parse CPI call context: %w", err)
+	}
+
+	if len(contextFields) == 0 {
+		return o, nil
+	}
+
+	baseJSON, err := json.Marshal(o)
+	if err != nil {
+		return o, fmt.Errorf("failed to marshal openstack configuration: %w", err)
+	}
+
+	var merged map[string]json.RawMessage
+	if err := json.Unmarshal(baseJSON, &merged); err != nil {
+		return o, fmt.Errorf("failed to unmarshal openstack configuration: %w", err)
+	}
+
+	// Normalize credential fields carried in the context. A credential field
+	// given as null or "" means "not supplied", so drop it up front: that way it
+	// neither (a) triggers a false credential-type switch nor (b) overwrites the
+	// static config's working credentials in the overlay loop below. A non-string
+	// credential value (number, bool, object, ...) is malformed and must be
+	// rejected rather than silently discarded - otherwise Factory.New could fall
+	// back to the static credentials against a context-overridden endpoint.
+	for _, key := range []string{"username", "api_key", "application_credential_id", "application_credential_secret"} {
+		raw, ok := contextFields[key]
+		if !ok {
+			continue
+		}
+		var value string
+		if err := json.Unmarshal(raw, &value); err != nil {
+			return o, fmt.Errorf("invalid CPI call context: credential field %q must be a string", key)
+		}
+		if value == "" {
+			delete(contextFields, key)
+		}
+	}
+
+	// Credentials come in two mutually exclusive forms: username/api_key or
+	// application_credential_id/application_credential_secret. When the context
+	// supplies one form, remove the other from the base config so the merged
+	// result does not carry both. Validate() rejects configs with both forms,
+	// and AuthOptions() would otherwise mis-resolve (it prefers username/api_key
+	// whenever present). This must happen before applying the context overrides.
+	_, ctxHasUsername := contextFields["username"]
+	_, ctxHasAPIKey := contextFields["api_key"]
+	_, ctxHasAppCredID := contextFields["application_credential_id"]
+	_, ctxHasAppCredSecret := contextFields["application_credential_secret"]
+
+	if ctxHasUsername || ctxHasAPIKey {
+		delete(merged, "application_credential_id")
+		delete(merged, "application_credential_secret")
+	}
+	if ctxHasAppCredID || ctxHasAppCredSecret {
+		delete(merged, "username")
+		delete(merged, "api_key")
+	}
+
+	for key, value := range contextFields {
+		merged[key] = value
+	}
+
+	mergedJSON, err := json.Marshal(merged)
+	if err != nil {
+		return o, fmt.Errorf("failed to marshal merged openstack configuration: %w", err)
+	}
+
+	var result OpenstackConfig
+	if err := json.Unmarshal(mergedJSON, &result); err != nil {
+		return o, fmt.Errorf("failed to unmarshal merged openstack configuration: %w", err)
+	}
+
+	return result, nil
 }
 
 func (c CpiConfig) Properties() Properties {

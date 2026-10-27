@@ -11,6 +11,7 @@ import (
 	"github.com/cloudfoundry/bosh-openstack-cpi-release/src/openstack_cpi_golang/cpi/config"
 	"github.com/cloudfoundry/bosh-openstack-cpi-release/src/openstack_cpi_golang/cpi/properties"
 	"github.com/cloudfoundry/bosh-openstack-cpi-release/src/openstack_cpi_golang/cpi/utils"
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	"github.com/gophercloud/gophercloud"
 	"github.com/gophercloud/gophercloud/openstack/imageservice/v2/images"
 )
@@ -40,10 +41,10 @@ type imageService struct {
 	serviceClients utils.ServiceClients
 	imagesFacade   ImageFacade
 	httpClient     HttpClient
-	logger         utils.Logger
+	logger         boshlog.Logger
 }
 
-func NewImageService(serviceClients utils.ServiceClients, imagesFacade ImageFacade, httpClient HttpClient, logger utils.Logger) imageService {
+func NewImageService(serviceClients utils.ServiceClients, imagesFacade ImageFacade, httpClient HttpClient, logger boshlog.Logger) imageService {
 	return imageService{
 		serviceClients: serviceClients,
 		imagesFacade:   imagesFacade,

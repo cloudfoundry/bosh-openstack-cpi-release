@@ -16,7 +16,6 @@ import (
 
 	"github.com/cloudfoundry/bosh-openstack-cpi-release/src/openstack_cpi_golang/cpi"
 	"github.com/cloudfoundry/bosh-openstack-cpi-release/src/openstack_cpi_golang/cpi/config"
-	"github.com/cloudfoundry/bosh-openstack-cpi-release/src/openstack_cpi_golang/cpi/utils"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -28,7 +27,7 @@ func TestLifecycle(t *testing.T) {
 	RunSpecs(t, "OpenStack Lifecycle Suite")
 }
 
-var logger = utils.NewLogger(boshlog.NewWriterLogger(boshlog.LevelError, os.Stderr))
+var logger = boshlog.NewWriterLogger(boshlog.LevelError, os.Stderr)
 
 // stemcellID is uploaded once and reused by specs needing a bootable image.
 var stemcellID string

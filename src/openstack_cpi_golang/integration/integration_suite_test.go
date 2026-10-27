@@ -10,7 +10,6 @@ import (
 	"testing"
 
 	"github.com/cloudfoundry/bosh-openstack-cpi-release/src/openstack_cpi_golang/cpi/config"
-	"github.com/cloudfoundry/bosh-openstack-cpi-release/src/openstack_cpi_golang/cpi/utils"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 
 	. "github.com/onsi/ginkgo/v2"
@@ -24,7 +23,7 @@ func TestIntegration(t *testing.T) {
 
 var defaultConfig config.CpiConfig
 var bootFromVolumeConfig config.CpiConfig
-var logger = utils.NewLogger(boshlog.NewWriterLogger(boshlog.LevelError, os.Stderr))
+var logger = boshlog.NewWriterLogger(boshlog.LevelError, os.Stderr)
 var Mux *http.ServeMux
 var Server *httptest.Server
 var originalStdin *os.File
@@ -51,7 +50,7 @@ func getDefaultConfig(url string) config.CpiConfig {
 		APIKey:                  "admin",
 		DomainName:              "domain",
 		Tenant:                  "tenant",
-		Region:                  "region",
+		Region:                  "RegionOne",
 		DefaultKeyName:          "default_key_name",
 		StemcellPubliclyVisible: true,
 		StateTimeOut:            1,
@@ -74,7 +73,7 @@ func getBootFromVolumeConfig(url string) config.CpiConfig {
 		APIKey:                  "admin",
 		DomainName:              "domain",
 		Tenant:                  "tenant",
-		Region:                  "region",
+		Region:                  "RegionOne",
 		DefaultKeyName:          "default_key_name",
 		StemcellPubliclyVisible: true,
 		BootFromVolume:          true,

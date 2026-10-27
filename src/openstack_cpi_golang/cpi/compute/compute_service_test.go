@@ -708,7 +708,7 @@ var _ = Describe("ComputeService", func() {
 			)
 
 			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(Equal("compute_service: timeout while waiting for server to become active"))
+			Expect(err.Error()).To(Equal("failed to reboot server: timeout while waiting for server to become active"))
 		})
 	})
 
@@ -799,12 +799,13 @@ var _ = Describe("ComputeService", func() {
 			updateMetaDataMap := map[string]interface{}{}
 
 			err := computeService.UpdateServerMetadata(server.ID, updateMetaDataMap)
-			firstLoggerInfo, secondLoggerInfo, _ := logger.InfoArgsForCall(0)
+			firstLoggerInfo, secondLoggerInfo, infoArgs := logger.InfoArgsForCall(0)
 
 			Expect(computeFacade.UpdateServerMetadataCallCount()).To(Equal(0))
 			Expect(logger.InfoCallCount()).To(Equal(1))
 			Expect(firstLoggerInfo).To(Equal("compute_service"))
-			Expect(secondLoggerInfo).To(Equal("SKIPPING: No Metadata was found to be updated for server with id '123-456'"))
+			Expect(secondLoggerInfo).To(Equal("Skipping: No Metadata was found to be updated for server with id '%s'"))
+			Expect(infoArgs).To(Equal([]interface{}{"123-456"}))
 			Expect(err).ToNot(HaveOccurred())
 		})
 
@@ -814,12 +815,13 @@ var _ = Describe("ComputeService", func() {
 			}
 
 			err := computeService.UpdateServerMetadata(server.ID, updateMetaDataMap)
-			firstLoggerInfo, secondLoggerInfo, _ := logger.InfoArgsForCall(0)
+			firstLoggerInfo, secondLoggerInfo, infoArgs := logger.InfoArgsForCall(0)
 
 			Expect(computeFacade.UpdateServerMetadataCallCount()).To(Equal(0))
 			Expect(logger.InfoCallCount()).To(Equal(1))
 			Expect(firstLoggerInfo).To(Equal("compute_service"))
-			Expect(secondLoggerInfo).To(Equal("SKIPPING: No Metadata was found to be updated for server with id '123-456'"))
+			Expect(secondLoggerInfo).To(Equal("Skipping: No Metadata was found to be updated for server with id '%s'"))
+			Expect(infoArgs).To(Equal([]interface{}{"123-456"}))
 			Expect(err).ToNot(HaveOccurred())
 		})
 
@@ -859,12 +861,13 @@ var _ = Describe("ComputeService", func() {
 			oldMetaDataMap := map[string]string{}
 
 			err := computeService.DeleteServerMetaData(server.ID, oldMetaDataMap, updateMetaDataMap)
-			firstLoggerInfo, secondLoggerInfo, _ := logger.InfoArgsForCall(0)
+			firstLoggerInfo, secondLoggerInfo, infoArgs := logger.InfoArgsForCall(0)
 
 			Expect(computeFacade.UpdateServerMetadataCallCount()).To(Equal(0))
 			Expect(logger.InfoCallCount()).To(Equal(1))
 			Expect(firstLoggerInfo).To(Equal("compute_service"))
-			Expect(secondLoggerInfo).To(Equal("SKIPPING: No metadata was provided to be deleted for server with id '123-456'"))
+			Expect(secondLoggerInfo).To(Equal("Skipping: No metadata was provided to be deleted for server with id '%s'"))
+			Expect(infoArgs).To(Equal([]interface{}{"123-456"}))
 			Expect(err).ToNot(HaveOccurred())
 		})
 
@@ -880,12 +883,13 @@ var _ = Describe("ComputeService", func() {
 			}
 
 			err := computeService.DeleteServerMetaData(server.ID, oldMetaDataMap, updateMetaDataMap)
-			firstLoggerInfo, secondLoggerInfo, _ := logger.InfoArgsForCall(0)
+			firstLoggerInfo, secondLoggerInfo, infoArgs := logger.InfoArgsForCall(0)
 
 			Expect(computeFacade.UpdateServerMetadataCallCount()).To(Equal(0))
 			Expect(logger.InfoCallCount()).To(Equal(1))
 			Expect(firstLoggerInfo).To(Equal("compute_service"))
-			Expect(secondLoggerInfo).To(Equal("SKIPPING: No metadata was provided to be deleted for server with id '123-456'"))
+			Expect(secondLoggerInfo).To(Equal("Skipping: No metadata was provided to be deleted for server with id '%s'"))
+			Expect(infoArgs).To(Equal([]interface{}{"123-456"}))
 			Expect(err).ToNot(HaveOccurred())
 		})
 

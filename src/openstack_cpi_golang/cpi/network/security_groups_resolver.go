@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/cloudfoundry/bosh-openstack-cpi-release/src/openstack_cpi_golang/cpi/utils"
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	"github.com/gophercloud/gophercloud/openstack/networking/v2/extensions/security/groups"
 )
 
@@ -15,18 +16,20 @@ type SecurityGroupsResolver interface {
 type securityGroupsResolver struct {
 	serviceClients   utils.ServiceClients
 	networkingFacade NetworkingFacade
-	logger           utils.Logger
+	logger           boshlog.Logger
+	logTag           string
 }
 
 func NewSecurityGroupsResolver(
 	serviceClients utils.ServiceClients,
 	networkingFacade NetworkingFacade,
-	logger utils.Logger,
+	logger boshlog.Logger,
 ) securityGroupsResolver {
 	return securityGroupsResolver{
 		serviceClients:   serviceClients,
 		networkingFacade: networkingFacade,
 		logger:           logger,
+		logTag:           "security_group_resolver",
 	}
 }
 
@@ -38,7 +41,7 @@ func (s securityGroupsResolver) Resolve(securityGroupIDsAndNames []string) ([]st
 	for _, securityGroup := range securityGroupIDsAndNames {
 		resolvedSecurityGroup, err = s.resolveSecurityGroupById(securityGroup)
 		if err != nil {
-			s.logger.Warn("security-group-resolver", fmt.Sprintf("failed to get security group '%s' by id: %v. Trying to get security group by name", securityGroup, err))
+			s.logger.Warn(s.logTag, "Failed to get security group '%s' by id: %v. Trying to get security group by name", securityGroup, err)
 
 			resolvedSecurityGroup, err = s.resolveSecurityGroupByName(securityGroup)
 			if err != nil {

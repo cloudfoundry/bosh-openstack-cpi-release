@@ -51,7 +51,7 @@ var _ = Describe("HasVMMethod", func() {
 			)
 
 			Expect(exists).To(Equal(false))
-			Expect(err.Error()).To(Equal("has_vm: boom"))
+			Expect(err.Error()).To(Equal("failed to check if VM exists: boom"))
 		})
 
 		It("returns false and no error if GetServer fails with notFound", func() {
