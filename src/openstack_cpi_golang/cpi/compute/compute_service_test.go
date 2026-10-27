@@ -397,6 +397,7 @@ var _ = Describe("ComputeService", func() {
 
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(Equal("'availability_zone' or 'availability_zones' must be set in cloud_properties"))
+			Expect(computeFacade.CreateServerCallCount()).To(Equal(0))
 		})
 
 		It("returns an error if the server creation fails", func() {
