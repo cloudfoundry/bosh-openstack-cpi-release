@@ -446,7 +446,6 @@ resources:
   type: git
   source:
     uri: https://github.com/cloudfoundry/bosh-acceptance-tests.git
-    branch: master
 
 - name: openstack-ubuntu-noble-stemcell
   type: bosh-io-stemcell
