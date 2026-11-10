@@ -1,13 +1,13 @@
 # BOSH OpenStack CPI Release
 
-* Documentation: [bosh.io/docs/openstack](https://bosh.io/docs/openstack/)
-* Slack: [`#bosh` on cloudfoundry.slack.com](https://cloudfoundry.slack.com/messages/openstack) ([get your invite here](https://slack.cloudfoundry.org/))
-* Issues: [GitHub Issues](https://github.com/cloudfoundry/bosh-openstack-cpi-release/issues)
-* CI: [bosh.ci.cloudfoundry.org](https://bosh.ci.cloudfoundry.org/teams/main/pipelines/bosh-openstack-cpi)
+- Documentation: [bosh.io/docs/openstack](https://bosh.io/docs/openstack/)
+- Slack: [`#openstack` on cloudfoundry.slack.com](https://cloudfoundry.slack.com/messages/openstack) ([get your invite here](https://slack.cloudfoundry.org/))
+- Issues: [GitHub Issues](https://github.com/cloudfoundry/bosh-openstack-cpi-release/issues)
+- CI: [bosh.ci.cloudfoundry.org](https://bosh.ci.cloudfoundry.org/teams/main/pipelines/bosh-openstack-cpi)
 
 See [Initializing a BOSH environment on OpenStack](https://bosh.io/docs/init-openstack.html) for example usage.
 
-See [List of OpenStack API calls](docs/openstack-api-calls.md) for the OpenStack permissions required by the CPI.
+See [List of OpenStack API calls](docs/openstack-api-calls.md) for an inventory of OpenStack API calls made by the CPI.
 
 ## Supported OpenStack Versions
 

@@ -23,6 +23,7 @@ PUT    /v2.1/servers/{id}
 ## identity (keystone)
 
 ```text
+GET    /                    (version discovery, only when auth_url has no version suffix)
 POST   /v3/auth/tokens
 ```
 
@@ -54,25 +55,29 @@ PUT    /v2.0/floatingips/{id}
 ## load balancer (octavia)
 
 ```text
-DELETE /v2/lbaas/pools/{id}/members/{id}
-GET    /v2/lbaas/listeners/{id}
-GET    /v2/lbaas/loadbalancers/{id}
-GET    /v2/lbaas/pools/{id}
-GET    /v2/lbaas/pools/{id}/members
-GET    /v2/lbaas/pools?name={name}
-POST   /v2/lbaas/pools/{id}/members
+DELETE /v2.0/lbaas/pools/{id}/members/{id}
+GET    /v2.0/lbaas/listeners/{id}
+GET    /v2.0/lbaas/loadbalancers/{id}
+GET    /v2.0/lbaas/pools/{id}
+GET    /v2.0/lbaas/pools/{id}/members
+GET    /v2.0/lbaas/pools?name={name}
+POST   /v2.0/lbaas/pools/{id}/members
 ```
 
 ## block storage (cinder v3)
 
+Paths below are relative to the Cinder v3 service endpoint. When the catalog
+endpoint is project-scoped (`…/v3/{project_id}`), gophercloud appends them
+directly; when it is unscoped (`…/v3`), no project ID appears in the path.
+
 ```text
-DELETE /v3/{project_id}/snapshots/{id}
-DELETE /v3/{project_id}/volumes/{id}
-GET    /v3/{project_id}/snapshots/{id}
-GET    /v3/{project_id}/volumes/{id}
-POST   /v3/{project_id}/snapshots
-POST   /v3/{project_id}/snapshots/{id}/metadata
-POST   /v3/{project_id}/volumes
-POST   /v3/{project_id}/volumes/{id}/action  (os-extend)
-PUT    /v3/{project_id}/volumes/{id}         (metadata update)
+DELETE /snapshots/{id}
+DELETE /volumes/{id}
+GET    /snapshots/{id}
+GET    /volumes/{id}
+POST   /snapshots
+POST   /snapshots/{id}/metadata
+POST   /volumes
+POST   /volumes/{id}/action  (os-extend)
+PUT    /volumes/{id}         (metadata update)
 ```
