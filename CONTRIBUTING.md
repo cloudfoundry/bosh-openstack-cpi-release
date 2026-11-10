@@ -2,23 +2,24 @@
 
 ## Contributor License Agreement
 
-Follow these steps to make a contribution to any of CF open source repositories:
+All contributors must sign a Contributor License Agreement. You will be prompted to do so automatically via [EasyCLA](https://corporate.v1.easycla.lfx.linuxfoundation.org/) when you open your first pull request.
 
-1. Ensure that you have completed our CLA Agreement for
-   [individuals](http://cloudfoundry.org/pdfs/CFF_Individual_CLA.pdf) or
-   [corporations](http://cloudfoundry.org/pdfs/CFF_Corporate_CLA.pdf).
+If you'd like to review the agreements before signing:
 
-2. Set your name and email (these should match the information on your submitted CLA)
+- [Individual CLA](https://www.cloudfoundry.org/wp-content/uploads/icla.pdf)
+- [Corporate CLA](https://www.cloudfoundry.org/wp-content/uploads/ccla.pdf)
 
-        git config --global user.name "Firstname Lastname"
-        git config --global user.email "your_email@example.com"
+Set your name and email to match your submitted CLA:
 
-3. If your company has signed a Corporate CLA, but sure to make the membership in your company's github organization public
-
+```bash
+git config --global user.name "Firstname Lastname"
+git config --global user.email "your_email@example.com"
+```
 
 ## Development
 
 ### Running manual tests
+
 *Note:* This is not required for opening a pull request. Having green unit tests is good enough from our perspective.
 
 If you still want to run manual tests (e.g. in order to validate your use case) this is how you do it:
@@ -28,7 +29,7 @@ If you still want to run manual tests (e.g. in order to validate your use case) 
 - Create the BOSH release:
 
     ```bash
-    $ bosh create release --force --with-tarball
+    bosh create-release --force --tarball bosh-openstack-cpi-release.tgz
     ```
 
-- Deploy a BOSH Director using your CPI release (see [bosh.io](http://bosh.io/docs/init-openstack.html#create-manifest))
+- Upload and deploy using your CPI release (see [Initializing a BOSH environment on OpenStack](https://bosh.io/docs/init-openstack/)).
