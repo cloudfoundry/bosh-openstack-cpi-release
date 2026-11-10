@@ -65,16 +65,16 @@ PUT /v2.0/floatingips/<resource_id> body: {"floatingip":{"port_id":null}}
 ### All calls for API endpoint 'resources (resources)'
 ### All calls for API endpoint 'volume (cinder)'
 ### All calls for API endpoint 'volumev2 (cinderv2)'
-```
-DELETE /v2/<tenant_id>/snapshots/<resource_id>
-DELETE /v2/<tenant_id>/volumes/<resource_id>
-GET /v2/<tenant_id>/snapshots/<resource_id>
-GET /v2/<tenant_id>/volumes/<resource_id>
-POST /v2/<tenant_id>/snapshots body: {"snapshot":{"volume_id":"<resource_id>","name":"<name>","description":"<description>","force":true}}
-POST /v2/<tenant_id>/snapshots/<resource_id>/metadata body: {"metadata":"<metadata>"}
-POST /v2/<tenant_id>/volumes body: {"volume":{"name":"<name>","description":"<description>","size":"<size>","availability_zone":"<availability_zone>"}}
-POST /v2/<tenant_id>/volumes body: {"volume":{"name":"<name>","description":"<description>","size":"<size>"}}
-POST /v2/<tenant_id>/volumes/<resource_id>/action body: {"os-extend":{"new_size":"<new_size>"}}
-POST /v2/<tenant_id>/volumes/<resource_id>/metadata body: {"metadata":"<metadata>"}
-```
 ### All calls for API endpoint 'volumev3 (cinderv3)'
+```
+DELETE /v3/<tenant_id>/snapshots/<resource_id>
+DELETE /v3/<tenant_id>/volumes/<resource_id>
+GET /v3/<tenant_id>/snapshots/<resource_id>
+GET /v3/<tenant_id>/volumes/<resource_id>
+POST /v3/<tenant_id>/snapshots body: {"snapshot":{"volume_id":"<resource_id>","name":"<name>","description":"<description>","force":true}}
+PUT /v3/<tenant_id>/snapshots/<resource_id>/metadata body: {"metadata":"<metadata>"}
+POST /v3/<tenant_id>/volumes body: {"volume":{"name":"<name>","description":"<description>","size":"<size>","availability_zone":"<availability_zone>"}}
+POST /v3/<tenant_id>/volumes body: {"volume":{"name":"<name>","description":"<description>","size":"<size>"}}
+POST /v3/<tenant_id>/volumes/<resource_id>/action body: {"os-extend":{"new_size":"<new_size>"}}
+PUT /v3/<tenant_id>/volumes/<resource_id> body: {"volume":{"metadata":"<metadata>"}}
+```
