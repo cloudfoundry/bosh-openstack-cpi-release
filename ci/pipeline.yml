@@ -402,6 +402,7 @@ resources:
       gcp_credentials_json: ((gcp_json_key))
       os_username: ((openstack_ci_user.username))
       os_password: ((openstack_ci_user.password))
+      devstack_branch: stable/2026.2
 
 - name: bosh-shared-ci
   type: git

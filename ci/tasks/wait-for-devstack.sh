@@ -12,7 +12,7 @@ set -euo pipefail
 
 echo "waiting for DevStack Keystone at ${AUTH_URL} ..."
 for i in $(seq 1 100); do
-  code="$(curl -s -o /dev/null -m 5 -w '%{http_code}' "${AUTH_URL}" || echo 000)"
+  code="$(curl -s -o /dev/null -m 5 -w '%{http_code}' "${AUTH_URL}" || true)"
   if [ "${code}" = "200" ] || [ "${code}" = "300" ]; then
     echo "Keystone is up (HTTP ${code})"
     break
@@ -26,7 +26,7 @@ for i in $(seq 1 100); do
 done
 
 # CI-user auth is the final setup action on the VM (see install-devstack.sh create_user_and_roles),
-# so a 201 here means flavors, project, and quotas are all in place — not just that Keystone answers.
+# so a 201 here means flavors, project, and quotas are all in place - not just that Keystone answers.
 # Keystone comes up partway through stack.sh, so this must span the rest of stack.sh plus the admin
 # steps.
 echo "waiting for CI user auth (confirms full DevStack setup has completed) ..."
@@ -40,9 +40,9 @@ for i in $(seq 1 30); do
     -X POST "${AUTH_URL}/v3/auth/tokens" \
     -H "Content-Type: application/json" \
     -d "${payload}" \
-    || echo 000)"
+    || true)"
   if [ "${code}" = "201" ]; then
-    echo "CI user auth OK — DevStack fully ready"
+    echo "CI user auth OK - DevStack fully ready"
     exit 0
   fi
   echo "auth not ready yet (attempt ${i}, HTTP ${code}); sleeping 30s"
