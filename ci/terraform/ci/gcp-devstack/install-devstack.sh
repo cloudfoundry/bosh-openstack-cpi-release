@@ -48,19 +48,56 @@ on_err() {
 }
 trap on_err ERR
 
+# Reads a VM metadata attribute. Prints the value on stdout. Exit status distinguishes the cases the
+# caller must treat differently:
+#   0 + value   attribute present (HTTP 200)
+#   0 + empty   attribute absent  (HTTP 404) - caller may fall back to a default
+#   1           fetch failed after retries (HTTP 5xx, transient 503s, or network/DNS) - caller must
+#               NOT silently fall back, since the real value may well exist but be unreadable.
+# The GCE metadata server documents transient 503s, so retry those a few times before giving up.
 metadata_attr() {
-  curl -sf -H "Metadata-Flavor: Google" \
-    "http://metadata.google.internal/computeMetadata/v1/instance/attributes/$1" 2>/dev/null || true
+  local name="$1" attempt http body
+  local url="http://metadata.google.internal/computeMetadata/v1/instance/attributes/${name}"
+  for attempt in 1 2 3 4 5; do
+    # -w writes the status on its own trailing line; body is everything before it. curl exits 0 even
+    # on 404/503 here (no -f), so we branch on the status code, not curl's exit.
+    if body="$(curl -s -m 5 -w $'\n%{http_code}' -H "Metadata-Flavor: Google" "${url}" 2>/dev/null)"; then
+      http="${body##*$'\n'}"
+      body="${body%$'\n'*}"
+      case "${http}" in
+        200) printf '%s' "${body}"; return 0 ;;
+        404) return 0 ;;                       # absent: empty output, success exit
+      esac
+    fi
+    # Transient failure (5xx / network / DNS not up yet): back off and retry.
+    sleep $(( attempt * 2 ))
+  done
+  return 1
 }
 
-# The OpenStack user/password are supplied via VM metadata (from CredHub, out of the repo). Falls back
-# to the defaults above for manual runs. Called after install_prereqs so curl is present.
+# The OpenStack user/password are supplied via VM metadata (from CredHub, out of the repo). An absent
+# attribute (manual runs with no metadata set) falls back to the defaults above; a failed *read* of a
+# present attribute must fail closed, so the VM never silently comes up with the known default
+# password when CredHub values were expected. Called after install_prereqs so curl is present.
 load_credentials() {
   local val
-  val="$(metadata_attr os-username)";     [ -n "$val" ] && OS_USERNAME="$val"
-  val="$(metadata_attr os-password)";     [ -n "$val" ] && OS_PASSWORD="$val"
-  val="$(metadata_attr devstack-branch)"
-  if [ -n "$val" ]; then DEVSTACK_BRANCH="$val"; fi
+  if val="$(metadata_attr os-username)"; then
+    [ -n "$val" ] && OS_USERNAME="$val"
+  else
+    log "FATAL: could not read os-username from VM metadata after retries; refusing to fall back to the default" >&2
+    exit 1
+  fi
+  if val="$(metadata_attr os-password)"; then
+    [ -n "$val" ] && OS_PASSWORD="$val"
+  else
+    log "FATAL: could not read os-password from VM metadata after retries; refusing to start DevStack with the default password" >&2
+    exit 1
+  fi
+  # The DevStack branch is non-sensitive and has a safe default; a transient read failure here is not
+  # worth aborting the whole install over, so treat failure like absent.
+  if val="$(metadata_attr devstack-branch)" && [ -n "$val" ]; then
+    DEVSTACK_BRANCH="$val"
+  fi
 }
 
 install_prereqs() {
