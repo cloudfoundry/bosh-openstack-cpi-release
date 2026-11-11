@@ -4,6 +4,9 @@
 # Runs as a sudo-capable non-root user. Invoked by the create-devstack CI task.
 
 set -euo pipefail
+# errtrace: without it the ERR trap below is not inherited by functions, command
+# substitutions, or subshells - and nearly all work here runs inside functions.
+set -o errtrace
 
 ### ----- Tunables (can be overridden via environment variables) ---------------------------------
 DEVSTACK_BRANCH="${DEVSTACK_BRANCH:-stable/2026.2}"
@@ -35,8 +38,15 @@ METADATA_OUT="${METADATA_OUT:-/opt/openstack-metadata.json}"
 
 log() { echo "[install-devstack] $*"; }
 
-# Traps ERR so the last failure is visible in the log before the script exits.
-trap 'log "FATAL: command failed at line ${LINENO} (exit $?)"' ERR
+# Traps ERR so the last failure is visible in the log before the script exits. A function handler
+# (rather than an inline trap string) lets us capture the failing command via BASH_COMMAND for
+# context. Log to stderr so the message isn't swallowed into a $(...) result when the failure
+# happens inside a command substitution (errtrace propagates the trap into those).
+on_err() {
+  local ec=$?
+  log "FATAL: command '${BASH_COMMAND}' failed at line ${BASH_LINENO[0]} (exit ${ec})" >&2
+}
+trap on_err ERR
 
 metadata_attr() {
   curl -sf -H "Metadata-Flavor: Google" \
