@@ -4,13 +4,16 @@
 # Runs as a sudo-capable non-root user. Invoked by the create-devstack CI task.
 
 set -euo pipefail
+# errtrace: without it the ERR trap below is not inherited by functions, command
+# substitutions, or subshells - and nearly all work here runs inside functions.
+set -o errtrace
 
 ### ----- Tunables (can be overridden via environment variables) ---------------------------------
-DEVSTACK_BRANCH="${DEVSTACK_BRANCH:-stable/2025.1}"          # Epoxy
+DEVSTACK_BRANCH="${DEVSTACK_BRANCH:-stable/2026.2}"
 STACK_USER="${STACK_USER:-stack}"
 STACK_DIR="${STACK_DIR:-/opt/stack}"
 
-# OpenStack identity defaults — override via environment or VM metadata.
+# OpenStack identity defaults - override via environment or VM metadata.
 OS_PROJECT="${OS_PROJECT:-bosh}"
 OS_USERNAME="${OS_USERNAME:-bosh}"
 OS_PASSWORD="${OS_PASSWORD:-bosh-ci-password}"
@@ -35,17 +38,29 @@ METADATA_OUT="${METADATA_OUT:-/opt/openstack-metadata.json}"
 
 log() { echo "[install-devstack] $*"; }
 
+# Traps ERR so the last failure is visible in the log before the script exits. A function handler
+# (rather than an inline trap string) lets us capture the failing command via BASH_COMMAND for
+# context. Log to stderr so the message isn't swallowed into a $(...) result when the failure
+# happens inside a command substitution (errtrace propagates the trap into those).
+on_err() {
+  local ec=$?
+  log "FATAL: command '${BASH_COMMAND}' failed at line ${BASH_LINENO[0]} (exit ${ec})" >&2
+}
+trap on_err ERR
+
 metadata_attr() {
-  curl -s -H "Metadata-Flavor: Google" \
+  curl -sf -H "Metadata-Flavor: Google" \
     "http://metadata.google.internal/computeMetadata/v1/instance/attributes/$1" 2>/dev/null || true
 }
 
 # The OpenStack user/password are supplied via VM metadata (from CredHub, out of the repo). Falls back
 # to the defaults above for manual runs. Called after install_prereqs so curl is present.
 load_credentials() {
-  local u p
-  u="$(metadata_attr os-username)"; [ -n "$u" ] && OS_USERNAME="$u"
-  p="$(metadata_attr os-password)"; [ -n "$p" ] && OS_PASSWORD="$p"
+  local val
+  val="$(metadata_attr os-username)";     [ -n "$val" ] && OS_USERNAME="$val"
+  val="$(metadata_attr os-password)";     [ -n "$val" ] && OS_PASSWORD="$val"
+  val="$(metadata_attr devstack-branch)"
+  if [ -n "$val" ]; then DEVSTACK_BRANCH="$val"; fi
 }
 
 install_prereqs() {
@@ -61,6 +76,11 @@ install_prereqs() {
 
 clone_devstack() {
   if [[ ! -d "${STACK_DIR}/devstack" ]]; then
+    if ! git ls-remote --exit-code "https://opendev.org/openstack/devstack" \
+        "refs/heads/${DEVSTACK_BRANCH}" >/dev/null 2>&1; then
+      log "ERROR: branch '${DEVSTACK_BRANCH}' not found in openstack/devstack - it may have been renamed to unmaintained/${DEVSTACK_BRANCH#stable/}"
+      exit 1
+    fi
     sudo -u "${STACK_USER}" git clone https://opendev.org/openstack/devstack "${STACK_DIR}/devstack" \
       --branch "${DEVSTACK_BRANCH}" --depth 1
   fi
@@ -81,7 +101,7 @@ DATABASE_PASSWORD=\$ADMIN_PASSWORD
 RABBIT_PASSWORD=\$ADMIN_PASSWORD
 SERVICE_PASSWORD=\$ADMIN_PASSWORD
 
-# Public/external network — name pinned, CIDR pinned; UUID is discovered post-install.
+# Public/external network - name pinned, CIDR pinned; UUID is discovered post-install.
 FLOATING_RANGE=${FLOATING_RANGE}
 PUBLIC_NETWORK_GATEWAY=${PUBLIC_NETWORK_GATEWAY}
 PUBLIC_INTERFACE=
@@ -92,6 +112,10 @@ disable_service tempest
 
 LOGFILE=${STACK_DIR}/devstack/stack.sh.log
 LOGDAYS=1
+
+# Glance quotas are enabled by default in 2026.2; the lifecycle suite uploads two
+# stemcells (~1.5 GB each) which exceeds the 2 GB default limit. CI doesn't need quotas.
+GLANCE_ENABLE_QUOTAS=False
 EOF
 }
 
@@ -137,7 +161,7 @@ create_project() {
 
 create_user_and_roles() {
   # Runs last in main(): CI-user auth (which wait-for-devstack polls) only succeeds once every
-  # preceding setup step — flavors, project, quotas — has completed. Auth success therefore means
+  # preceding setup step - flavors, project, quotas - has completed. Auth success therefore means
   # the cloud is fully ready, not merely that Keystone is answering.
   os_admin user show "${OS_USERNAME}" >/dev/null 2>&1 || \
     os_admin user create --domain "${OS_DOMAIN}" --password "${OS_PASSWORD}" "${OS_USERNAME}"

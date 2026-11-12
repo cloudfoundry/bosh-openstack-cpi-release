@@ -100,6 +100,10 @@ variable "os_password" {
   sensitive   = true
 }
 
+variable "devstack_branch" {
+  description = "DevStack git branch to install (e.g. stable/2026.2). Passed to the VM via instance metadata."
+}
+
 resource "google_compute_subnetwork" "devstack" {
   name          = var.subnet_name
   ip_cidr_range = var.subnet_cidr
@@ -137,9 +141,10 @@ resource "google_compute_instance" "devstack" {
   # DevStack is installed on boot; install-devstack.sh also applies the SNAT hairpin rule.
   # os-username/os-password are read by the script from the metadata server (kept out of the repo).
   metadata = {
-    startup-script = file("${path.module}/install-devstack.sh")
-    os-username    = var.os_username
-    os-password    = var.os_password
+    startup-script  = file("${path.module}/install-devstack.sh")
+    os-username     = var.os_username
+    os-password     = var.os_password
+    devstack-branch = var.devstack_branch
   }
 }
 
