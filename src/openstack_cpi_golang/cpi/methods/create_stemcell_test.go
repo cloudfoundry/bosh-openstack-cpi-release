@@ -181,7 +181,30 @@ var _ = Describe("CreateStemcellMethod", func() {
 
 			imagePath, tempDirPath := rootImageProvider.GetArgsForCall(0)
 			Expect(imagePath).To(Equal("imagePath"))
-			Expect(tempDirPath).To(MatchRegexp("/tmp/unpacked-image-\\d+"))
+			Expect(tempDirPath).To(MatchRegexp("unpacked-image-\\d+$"))
+		})
+
+		It("honors TMPDIR when creating the temp dir", func() {
+			tmpRoot := GinkgoT().TempDir()
+			GinkgoT().Setenv("TMPDIR", tmpRoot)
+
+			theImageService := image.NewImageService(utils.ServiceClients{}, nil, nil, nil)
+			imageServiceBuilder.BuildReturns(theImageService, nil)
+			rootImageProvider.GetReturns("", errors.New("boom"))
+
+			theCloudProps := &MockStemcellCloudProps{}
+
+			_, _ = methods.NewCreateStemcellMethod( //nolint:errcheck
+				&imageServiceBuilder,
+				&heavyStemcellCreator,
+				&lightStemcellCreator,
+				&rootImageProvider,
+				config.OpenstackConfig{},
+				&logger,
+			).CreateStemcell("imagePath", theCloudProps)
+
+			_, tempDirPath := rootImageProvider.GetArgsForCall(0)
+			Expect(tempDirPath).To(HavePrefix(tmpRoot))
 		})
 
 	})
